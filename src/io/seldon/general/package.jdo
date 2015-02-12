@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jdo PUBLIC 
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" 
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+<jdo>
+	<package name="io.seldon.general">
+        <class name="User" identity-type="application">
+            <field name="userId" primary-key="true" value-strategy="identity"/>
+            <field name="username"/>
+            <field name="firstOp"/>
+            <field name="lastOp"/>
+            <field name="type"/>
+            <field name="numOp"/>
+            <field name="active"/>
+            <field name="clientUserId"/>
+            <field name="avgRating"/>
+            <field name="stdDevRating"/>
+        </class>
+        <class name="UserAttribute" identity-type="application">
+            <field name="attributeId" primary-key="true" value-strategy="identity"/>
+            <field name="name"/>
+            <field name="type"/>
+            <field name="linkType"/>
+            <field name="demographic"/>
+        </class>
+        <class name="Item" identity-type="application">
+            <field name="itemId" primary-key="true"  value-strategy="identity"/>
+            <field name="name"/>
+            <field name="firstOp"/>
+            <field name="lastOp"/>
+            <field name="popular"/>
+            <field name="type"/>
+            <field name="clientItemId"/>
+            <field name="avgRating"/>
+            <field name="stdDevRating"/>
+        </class>
+        <class name="Opinion" identity-type="application">
+            <field name="opId" primary-key="true" value-strategy="identity"/>
+            <field name="userId"/>
+            <field name="itemId"/>
+            <field name="value"/>
+            <field name="time"/>
+        </class>
+        <class name="UserDimension" identity-type="application">
+            <field name="userId" primary-key="true"/>
+            <field name="dimId" primary-key="true"/>
+            <field name="relevance"/>
+        </class>
+        <class name="ItemDemographic" identity-type="application">
+            <field name="itemId" primary-key="true"/>
+            <field name="demoId" primary-key="true"/>
+            <field name="relevance"/>
+        </class>
+        <class name="Action" identity-type="application">
+           <field name="actionId" primary-key="true" value-strategy="identity"/>
+           <field name="userId"/>
+           <field name="itemId"/>
+           <field name="type"/>
+           <field name="times"/>
+           <field name="date"/>
+           <field name="value"/>
+           <field name="comment"/>
+           <field name="clientUserId"/>
+           <field name="clientItemId"/>
+           <field name="tags" persistence-modifier="none"/>
+       </class>
+       <class name="ActionType" identity-type="application">
+            <field name="typeId" primary-key="true" value-strategy="identity"/>
+            <field name="name"/>
+            <field name="weight"/>
+            <field name="defValue"/>
+            <field name="linkType"/>
+            <field name="semantic"/>
+        </class>
+        <class name="ExplicitLink" identity-type="application">
+            <field name="linkId" primary-key="true" value-strategy="identity"/>
+            <field name="u1"/>
+            <field name="u2"/>
+            <field name="value"/>
+            <field name="type"/>
+            <field name="date"/>
+        </class>
+        <class name="ItemAttr" identity-type="application">
+            <field name="itemAttrId" primary-key="true" value-strategy="identity"/>
+            <field name="name"/>
+            <field name="type"/>
+        </class>
+        <class name="ItemType" identity-type="application">
+            <field name="typeId" primary-key="true" value-strategy="identity"/>
+            <field name="name"/>
+            <field name="linkType"/>
+            <field name="semantic"/>
+        </class>
+        <class name="Version" identity-type="application">
+            <field name="majorVersion" primary-key="true" value-strategy="identity"/>
+            <field name="minorVersion"/>
+            <field name="bugFixVersion"/>
+            <field name="releaseDate"/>
+        </class>
+       <class name="LinkType" identity-type="application">
+            <field name="typeId" primary-key="true" value-strategy="identity"/>
+            <field name="name"/>
+            <field name="defValue"/>
+        </class>
+        <class name="ExtAction" identity-type="application">
+           <field name="actionId" primary-key="true" value-strategy="identity"/>
+           <field name="userId"/>
+           <field name="itemId"/>
+           <field name="type"/>
+           <field name="times"/>
+           <field name="date"/>
+           <field name="value"/>
+           <field name="comment"/>
+           <field name="clientUserId"/>
+           <field name="clientItemId"/>
+           <field name="tags" persistence-modifier="none"/>
+       </class>
+       <class name="Interaction" identity-type="application">
+            <field name="id" primary-key="true" value-strategy="identity"/>
+            <field name="user1Id" />
+            <field name="user2FbId"/>
+            <field name="type" />
+            <field name="subType" />
+            <field name="parameterId"/>
+            <field name="count"/>
+            <field name="date"/>
+            <field name="interactionEvents"/>
+        </class>
+        <class name="InteractionEvent" identity-type="application">
+            <field name="id" primary-key="true" value-strategy="identity"/>
+            <field name="type" />
+            <field name="date" />
+        </class>
+        <class name="ExternalUserAttribute" identity-type="application">
+            <field name="id" primary-key="true" value-strategy="identity"/>
+            <field name="type" />
+            <field name="uid" />
+            <field name="value" />
+         </class>
+	</package>
+</jdo>

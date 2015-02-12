@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+	<import resource="classpath*:*-view-controllers.xml"/>
+   
+	<!-- Scans the classpath of this application for @Components to deploy as beans.
+	 Only scan this package (with the controllers) so that beans are not duplicated -->
+	<context:component-scan base-package="io.seldon.api.controller" />
+
+	<!-- Configures the @Controller programming model -->
+	<mvc:annotation-driven />
+    <mvc:resources mapping="/static/**" location="/WEB-INF/resources/"/>
+
+    <!-- Run our exception resolver first -->
+    <bean class="io.seldon.api.handler.ApiHandlerExceptionResolver">
+        <property name="order" value="0"/>
+    </bean>
+
+    <!--<aop:aspectj-autoproxy/>-->
+
+	<!-- Forwards requests to the "/" resource to the "welcome" view -->
+	<mvc:view-controller path="/" view-name="welcome"/>
+	
+
+    <!-- Declare properties files -->
+    <context:property-placeholder
+            location="classpath:version.properties,classpath:facebook.properties,classpath:labs.properties"/>
+
+    <!-- Pull in version info -->
+    <import resource="api-version-ctx.xml"/>
+
+	<!-- Configures Handler Interceptors -->
+	<mvc:interceptors>
+		<!-- Changes the locale when a 'locale' request parameter is sent; e.g. /?locale=de -->
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />
+        <mvc:interceptor>
+            <mvc:mapping path="/js/**"/>
+            <mvc:mapping path="/acquire/**"/>
+            <mvc:exclude-mapping path="/js/user/new"/>
+			<mvc:exclude-mapping path="/js/share"/>
+			<mvc:exclude-mapping path="/js/interaction/new"/>
+			<mvc:exclude-mapping path="/js/tracking"/>
+			<mvc:exclude-mapping path="/acquire/daily"/>
+            <bean class="io.seldon.api.interceptor.JavascriptScopeInterceptor"/>
+        </mvc:interceptor>
+	</mvc:interceptors>
+
+    <bean id="localeResolver"
+          class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+        <property name="defaultLocale" value="en" />
+    </bean>
+
+
+    <!-- Application Message Bundle -->
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basename" value="/WEB-INF/messages/messages" />
+		<property name="cacheSeconds" value="0" />
+	</bean>
+
+    <!-- Resolves view names to protected .jsp resources within the /WEB-INF/views directory -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/views/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!-- @Scheduled and @Async -->
+    <task:annotation-driven executor="executor.taskExecutor" scheduler="scheduler.taskScheduler"/>
+    <task:executor id="executor.taskExecutor" pool-size="5"/>
+    <task:scheduler id="scheduler.taskScheduler" pool-size="10"/>
+    <!-- doesn't fall under the scope of component scan; declare explicitly: -->
+    <bean id="service.authorisationServer" class="io.seldon.api.service.AuthorizationServer"/>
+</beans>

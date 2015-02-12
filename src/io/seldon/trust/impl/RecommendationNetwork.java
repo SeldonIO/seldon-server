@@ -1,0 +1,62 @@
+/*
+ * Seldon -- open source prediction engine
+ * =======================================
+ *
+ * Copyright 2011-2015 Seldon Technologies Ltd and Rummble Ltd (http://www.seldon.io/)
+ *
+ * ********************************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * ********************************************************************************************
+ */
+
+package io.seldon.trust.impl;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public interface RecommendationNetwork {
+
+	/**
+	 * 
+	 * @return the id for the user/item this network concerns
+	 */
+	public long getId();
+	/**
+	 * 
+	 * @return type of this network
+	 */
+	public int getType();
+	/**
+	 * 
+	 * @param id - user or item id
+	 * @return
+	 */
+	public Double getSimilarity(long id);
+	/**
+	 * 
+	 * @return set of ids similar for this network
+	 */
+	public Set<Long> getSimilarityNetwork();
+	/**
+	 * 
+	 * @param k - neighbourhood size
+	 * @return - a set of ids for the most similar neighbours ordered by similarity
+	 */
+	public List<Long> getSimilarityNeighbourhood(int k);
+	
+	public Map<Long,Double> getSimilarityNeighbourhoodMap(int k);
+	
+}

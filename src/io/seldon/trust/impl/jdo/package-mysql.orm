@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE orm PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Mapping Metadata 2.0//EN"
+    "http://java.sun.com/dtd/orm_2_0.dtd">
+<orm>
+	<package name="io.seldon.trust.impl.jdo">
+		<class name="MemberTrustState" table="TRUST_NETWORK">
+			<field name="srcUser" column="SRCUSER"/>
+            <field name="type" column="TYPE"/>
+            <field name="dstUser" column="DSTUSER"/>            
+            <field name="b" column="B"/>            
+            <field name="d" column="D"/>                         
+            <field name="u" column="U"/>              
+            <field name="a" column="A"/>                         
+            <field name="sixd" column="SIXD"/>              
+            <field name="updated" column="UPDATED"/>              
+        </class>
+        <class name="MemberContentTrustState" table="CONTENT_TRUST_NETWORK">
+			<field name="srcContent" column="SRCCONTENT"/>
+            <field name="type" column="TYPE"/>
+            <field name="dstContent" column="DSTCONTENT"/>            
+            <field name="b" column="B"/>            
+            <field name="d" column="D"/>                         
+            <field name="u" column="U"/>              
+            <field name="a" column="A"/>                         
+            <field name="sixd" column="SIXD"/>              
+            <field name="updated" column="UPDATED"/>              
+        </class>
+	</package>
+</orm>

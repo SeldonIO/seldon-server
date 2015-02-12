@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jdo PUBLIC 
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" 
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+<jdo>
+	<package name="io.seldon.facebook">
+        <class name="RummbleFacebookAccount" identity-type="application">
+            <field name="id" primary-key="true" value-strategy="identity"/>
+            <field name="oAuthToken"/>
+            <field name="tokenActive"/>
+            <field name="fbId"/>
+        </class>
+	</package>
+</jdo>

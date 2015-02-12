@@ -1,0 +1,200 @@
+/*
+ * Seldon -- open source prediction engine
+ * =======================================
+ *
+ * Copyright 2011-2015 Seldon Technologies Ltd and Rummble Ltd (http://www.seldon.io/)
+ *
+ * ********************************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * ********************************************************************************************
+ */
+
+package io.seldon.api.statsd;
+
+/**
+ * StatsdClient.java
+ *
+ * (C) 2011 Meetup, Inc.
+ * Author: Andrew Gwozdziewycz <andrew@meetup.com>, @apgwoz
+ *
+ *
+ *
+ * Example usage:
+ *
+ *    StatsdClient client = new StatsdClient("statsd.example.com", 8125);
+ *    // increment by 1
+ *    client.increment("foo.bar.baz");
+ *    // increment by 10
+ *    client.increment("foo.bar.baz", 10);
+ *    // sample rate
+ *    client.increment("foo.bar.baz", 10, .1);
+ *    // increment multiple keys by 1
+ *    client.increment("foo.bar.baz", "foo.bar.boo", "foo.baz.bar");
+ *    // increment multiple keys by 10 -- yeah, it's "backwards"
+ *    client.increment(10, "foo.bar.baz", "foo.bar.boo", "foo.baz.bar");
+ *    // multiple keys with a sample rate
+ *    client.increment(10, .1, "foo.bar.baz", "foo.bar.boo", "foo.baz.bar");
+ *
+ * Note: For best results, and greater availability, you'll probably want to
+ * create a wrapper class which creates a static client and proxies to it.
+ *
+ * You know... the "Java way."
+ */
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.util.Locale;
+import java.util.Random;
+
+import org.apache.log4j.Logger;
+
+public class StatsdClient {
+	//private static final Random RNG = new Random();
+	
+	private static final ThreadLocal<Random> safeRNG = new ThreadLocal<Random>() {
+	    @Override protected Random initialValue() {
+	        return new Random();
+	    }
+	};
+	
+	private static final Logger log = Logger.getLogger(StatsdClient.class.getName());
+
+	private final InetSocketAddress _address;
+	private final DatagramChannel _channel;
+
+	public StatsdClient(String host, int port) throws UnknownHostException, IOException {
+		this(InetAddress.getByName(host), port);
+	}
+
+	public StatsdClient(InetAddress host, int port) throws IOException {
+		_address = new InetSocketAddress(host, port);
+		_channel = DatagramChannel.open();
+	}
+
+	public boolean timing(String key, int value) {
+		return timing(key, value, 1.0);
+	}
+
+	public boolean timing(String key, int value, double sampleRate) {
+		return send(sampleRate, String.format(Locale.ENGLISH, "%s:%d|ms", key, value));
+	}
+
+	public boolean decrement(String key) {
+		return increment(key, -1, 1.0);
+	}
+
+	public boolean decrement(String key, int magnitude) {
+		return decrement(key, magnitude, 1.0);
+	}
+
+	public boolean decrement(String key, int magnitude, double sampleRate) {
+		magnitude = magnitude < 0 ? magnitude : -magnitude;
+		return increment(key, magnitude, sampleRate);
+	}
+
+	public boolean decrement(String... keys) {
+		return increment(-1, 1.0, keys);
+	}
+
+	public boolean decrement(int magnitude, String... keys) {
+		magnitude = magnitude < 0 ? magnitude : -magnitude;
+		return increment(magnitude, 1.0, keys);
+	}
+
+	public boolean decrement(int magnitude, double sampleRate, String... keys) {
+		magnitude = magnitude < 0 ? magnitude : -magnitude;
+		return increment(magnitude, sampleRate, keys);
+	}
+
+	public boolean increment(String key) {
+		return increment(key, 1, 1.0);
+	}
+
+	public boolean increment(String key, int magnitude) {
+		return increment(key, magnitude, 1.0);
+	}
+
+	public boolean increment(String key, int magnitude, double sampleRate) {
+		String stat = String.format(Locale.ENGLISH, "%s:%s|c", key, magnitude);
+		return send(sampleRate, stat);
+	}
+
+	public boolean increment(int magnitude, double sampleRate, String... keys) {
+		String[] stats = new String[keys.length];
+		for (int i = 0; i < keys.length; i++) {
+			stats[i] = String.format(Locale.ENGLISH, "%s:%s|c", keys[i], magnitude);
+		}
+		return send(sampleRate, stats);
+	}
+
+	public boolean gauge(String key, double magnitude){
+		return gauge(key, magnitude, 1.0);
+	}
+
+	public boolean gauge(String key, double magnitude, double sampleRate){
+		final String stat = String.format(Locale.ENGLISH, "%s:%s|g", key, magnitude);
+		return send(sampleRate, stat);
+	}
+
+	private boolean send(double sampleRate, String... stats) {
+
+		boolean retval = false; // didn't send anything
+		if (sampleRate < 1.0) {
+			for (String stat : stats) {
+				if (safeRNG.get().nextDouble() <= sampleRate) {
+					stat = String.format(Locale.ENGLISH, "%s|@%f", stat, sampleRate);
+					if (doSend(stat)) {
+						retval = true;
+					}
+				}
+			}
+		} else {
+			for (String stat : stats) {
+				if (doSend(stat)) {
+					retval = true;
+				}
+			}
+		}
+
+		return retval;
+	}
+
+	private boolean doSend(final String stat) {
+		try {
+			final byte[] data = stat.getBytes("utf-8");
+			final ByteBuffer buff = ByteBuffer.wrap(data);
+			final int nbSentBytes = _channel.send(buff, _address);
+
+			if (data.length == nbSentBytes) {
+				return true;
+			} else {
+				log.error(String.format(
+						"Could not send entirely stat %s to host %s:%d. Only sent %d bytes out of %d bytes", stat,
+						_address.getHostName(), _address.getPort(), nbSentBytes, data.length));
+				return false;
+			}
+
+		} catch (IOException e) {
+			log.error(
+					String.format("Could not send stat %s to host %s:%d", stat, _address.getHostName(),
+							_address.getPort()), e);
+			return false;
+		}
+	}
+}
