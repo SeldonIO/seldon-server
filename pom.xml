@@ -560,11 +560,6 @@
             <artifactId>semanticvectors</artifactId>
             <version>5.4</version>
         </dependency>
-        <dependency>
-            <groupId>edu.rit.cs</groupId>
-            <artifactId>pj</artifactId>
-            <version>20110809</version>
-        </dependency>
 
         <!--<dependency>-->
             <!--<groupId>code.lucamarrocco</groupId>-->
