@@ -251,7 +251,11 @@
             <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>io.seldon</groupId>
+            <artifactId>seldon-server-config-${config.version}</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.datanucleus</groupId>
             <artifactId>datanucleus-core</artifactId>
@@ -567,11 +571,6 @@
             <!--<artifactId>hoptoad-notifier</artifactId>-->
             <!--<version>1.8</version>-->
         <!--</dependency>-->
-        <dependency>
-            <groupId>io.airbrake</groupId>
-            <artifactId>airbrake-java</artifactId>
-            <version>2.2.1-RL-SNAPSHOT</version>
-        </dependency>
 
 
         <!-- For testing -->
