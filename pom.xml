@@ -196,10 +196,6 @@
 
     <repositories>
         <repository>
-            <id>github-releases</id>
-            <url>http://oss.sonatype.org/content/repositories/github-releases/</url>
-        </repository>
-        <repository>
             <id>clojars.org</id>
             <url>http://clojars.org/repo</url>
         </repository>
