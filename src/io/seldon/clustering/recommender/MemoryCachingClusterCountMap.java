@@ -23,30 +23,21 @@
 
 package io.seldon.clustering.recommender;
 
+import io.seldon.util.CollectionTools;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import io.seldon.util.CollectionTools;
 
-import edu.rit.pj.reduction.SharedDouble;
-
-/**
- * A memory based counter for doubles based on long keys. Uses a caching concurrent map to store mappings with
- * a SharedDouble from JP library to atomically increment counters. SharedDouble uses CAS method over an
- * AtomicLong. Old entries will fall off end of map if infrequently used. Thus we (maybe) don't need to weight
- * the counts.
- * @author rummble
- *
- */
 public class MemoryCachingClusterCountMap implements ClusterCounter {
 
-	private ConcurrentMap<Long, SharedDouble> cache; 
+	private ConcurrentMap<Long, Double> cache; 
 	
 	public MemoryCachingClusterCountMap(int cacheSize)
 	{
-		cache = new ConcurrentLinkedHashMap.Builder<Long, SharedDouble>()
+		cache = new ConcurrentLinkedHashMap.Builder<Long, Double>()
 	    .maximumWeightedCapacity(cacheSize)
 	    .build();
 	}
@@ -60,9 +51,9 @@ public class MemoryCachingClusterCountMap implements ClusterCounter {
 	public void incrementCount(long itemId,double weight,long time)
 	{
 		//IGNORES TIME
-		SharedDouble previous = cache.putIfAbsent(itemId, new SharedDouble(weight));
+		Double previous = cache.putIfAbsent(itemId, new Double(weight));
 		if (previous != null)
-			previous.addAndGet(weight);
+			cache.put(itemId, previous+weight);
 	}
 
 	/**
@@ -73,7 +64,7 @@ public class MemoryCachingClusterCountMap implements ClusterCounter {
 	@Override
 	public double getCount(long itemId,long time)
 	{
-		SharedDouble previous = cache.get(itemId);
+		Double previous = cache.get(itemId);
 		if (previous != null)
 			return previous.doubleValue();
 		else
@@ -83,8 +74,8 @@ public class MemoryCachingClusterCountMap implements ClusterCounter {
 	@Override
 	public Map<Long, Double> getTopCounts(long time, int limit) {
 		Map<Long,Double> map  = new HashMap<Long,Double>();
-		for(Map.Entry<Long, SharedDouble> e : cache.entrySet())
-			map.put(e.getKey(), e.getValue().get());
+		for(Map.Entry<Long, Double> e : cache.entrySet())
+			map.put(e.getKey(), e.getValue());
 		return CollectionTools.sortMapAndLimit(map, limit);
 	}
 }
