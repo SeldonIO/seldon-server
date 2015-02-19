@@ -39,7 +39,6 @@ import javax.jdo.datastore.JDOConnection;
 
 import org.apache.log4j.Logger;
 import org.datanucleus.api.jdo.JDOTransaction;
-import org.datanucleus.store.mapped.exceptions.MappedDatastoreException;
 
 
 
@@ -120,12 +119,6 @@ public class TransactionPeer {
                     	SQLException sqlEx = null;
                         if (nested[i] instanceof SQLException)
                         	sqlEx = (SQLException) nested[i];
-                        else if (nested[i] instanceof MappedDatastoreException)
-                        {
-                        	MappedDatastoreException mex = (MappedDatastoreException) nested[i];
-                        	if (mex.getCause() instanceof SQLException)
-                        		sqlEx = (SQLException) mex.getCause();
-                        }
                         if (sqlEx != null)
                         {
                             switch(SQLErrorPeer.diagnoseSQLError(sqlEx))
