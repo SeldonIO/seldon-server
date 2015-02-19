@@ -21,22 +21,19 @@
  * ********************************************************************************************
  */
 
-package io.seldon.clustering.recommender;
-
-import java.util.List;
-
-import io.seldon.trust.impl.CFAlgorithm;
+package io.seldon.api.state;
 
 /**
+ * Listener which gets updated when global config (non-client specific) is updated.
+ *
+ *
  * @author firemanphil
- *         Date: 09/10/2014
- *         Time: 15:05
+ *         Date: 26/11/14
+ *         Time: 10:56
  */
-public interface ItemRecommendationAlgorithm {
+public interface GlobalConfigUpdateListener {
 
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, List<Long> recentItemInteractions);
 
-    String name();
+    void configUpdated(String configKey, String configValue);
 
 }

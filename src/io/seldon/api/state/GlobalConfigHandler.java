@@ -21,22 +21,13 @@
  * ********************************************************************************************
  */
 
-package io.seldon.clustering.recommender;
-
-import java.util.List;
-
-import io.seldon.trust.impl.CFAlgorithm;
+package io.seldon.api.state;
 
 /**
  * @author firemanphil
- *         Date: 09/10/2014
- *         Time: 15:05
+ *         Date: 27/11/14
+ *         Time: 11:37
  */
-public interface ItemRecommendationAlgorithm {
-
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, List<Long> recentItemInteractions);
-
-    String name();
-
+public interface GlobalConfigHandler {
+    void addSubscriber(String node, GlobalConfigUpdateListener listener);
 }

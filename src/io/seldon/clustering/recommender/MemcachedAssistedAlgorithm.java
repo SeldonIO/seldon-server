@@ -41,22 +41,19 @@ import io.seldon.memcache.SecurityHashPeer;
  *         Date: 14/10/2014
  *         Time: 12:27
  */
-public abstract class MemcachedAssistedAlgorithm extends BaseItemRecommendationAlgorithm {
+public abstract class MemcachedAssistedAlgorithm implements ItemRecommendationAlgorithm {
 
     private static final int EXPIRY_TIME = 20 * 60;
     protected static Logger logger = Logger.getLogger(MemcachedAssistedAlgorithm.class.getName());
 
-    public MemcachedAssistedAlgorithm(List<ItemIncluder> producers, List<ItemFilter> filters) {
-        super(producers, filters);
-    }
 
 
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,List<Long> recentitemInteractions) {
+    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId,
+                                                 int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
         if(user==null || client == null)
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
 
-        RecommendationContext ctxt = retrieveContext(client,dimensionId, options.getNumRecentItems());
         ItemRecommendationResultSet res;
         try {
             res = (ItemRecommendationResultSet) getMemcache().get(getCacheKey(client, user, dimensionId));
@@ -71,8 +68,6 @@ public abstract class MemcachedAssistedAlgorithm extends BaseItemRecommendationA
             return res;
         } else
             return filter(obtainNewRecommendations(options,client, user, dimensionId, ctxt, maxRecsCount, recentitemInteractions),ctxt);
-
-
 
     }
 
@@ -107,8 +102,8 @@ public abstract class MemcachedAssistedAlgorithm extends BaseItemRecommendationA
         Iterator<ItemRecommendationResultSet.ItemRecommendationResult> iter = resultSet.iterator();
         while (iter.hasNext()){
             ItemRecommendationResultSet.ItemRecommendationResult result = iter.next();
-            if((ctxt.mode== RecommendationContext.MODE.EXCLUSION && ctxt.contextItems.contains(result.item))
-                    || (ctxt.mode== RecommendationContext.MODE.INCLUSION && !ctxt.contextItems.contains(result.item))){
+            if((ctxt.getMode()== RecommendationContext.MODE.EXCLUSION && ctxt.getContextItems().contains(result.item))
+                    || (ctxt.getMode()== RecommendationContext.MODE.INCLUSION && !ctxt.getContextItems().contains(result.item))){
                 iter.remove();
             }
         }

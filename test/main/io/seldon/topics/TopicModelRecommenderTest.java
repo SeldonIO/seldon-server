@@ -28,12 +28,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
@@ -51,12 +46,14 @@ public class TopicModelRecommenderTest {
 
 	private TopicFeaturesManager mockFeaturesManager;
 	private RecentItemsWithTagsManager mockTagsManager;
+	private RecommendationContext mockCtxt;
 
 	@Before
 	public void createMocks()
 	{
 		mockFeaturesManager = createMock(TopicFeaturesManager.class);
 		mockTagsManager = createMock(RecentItemsWithTagsManager.class);
+		mockCtxt = createMock(RecommendationContext.class);
 	}
 	
 	@Test
@@ -66,9 +63,9 @@ public class TopicModelRecommenderTest {
 		final int dimension = 1;
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(null);
 		replay(mockFeaturesManager);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager,null,null);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		
-		RecommendationContext ctxt = new RecommendationContext(RecommendationContext.MODE.INCLUSION, new HashSet<Long>());
+		RecommendationContext ctxt = RecommendationContext.buildContext(null,null,client,1L,null,0L,0,null,1,1, null);
 		ItemRecommendationResultSet res = r.recommendWithoutCache(new CFAlgorithm(), client, 1L, dimension,ctxt, 50,null);
 		
 		verify(mockFeaturesManager);
@@ -78,7 +75,7 @@ public class TopicModelRecommenderTest {
 		
 	}
 	
-	@Test 
+	@Test
 	public void testNoTags()
 	{
 		final String client = "test";
@@ -94,25 +91,26 @@ public class TopicModelRecommenderTest {
 		options.setTagAttrId(attrId);
 		expect(mockTagsManager.retrieveRecentItems(EasyMock.eq(client), EasyMock.eq(recentItems),EasyMock.eq(attrId),EasyMock.eq(table))).andReturn(null);
 		replay(mockTagsManager);
-		
-		TopicFeaturesStore tfs = new TopicFeaturesStore(null,null);
+
+		TopicFeaturesStore tfs = new TopicFeaturesStore(Collections.<Long, Map<Integer,Float>>emptyMap(),Collections.<String, Map<Integer,Float>>emptyMap());
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(tfs);
 		replay(mockFeaturesManager);
-		RecommendationContext ctxt = new RecommendationContext(RecommendationContext.MODE.INCLUSION, recentItems);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager,null,null);
-		
-		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, ctxt, 50,null);
-		
+		expect(mockCtxt.getContextItems()).andReturn(Collections.singleton(1L)).times(3);
+		replay(mockCtxt);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
+
+		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, mockCtxt, 50,null);
+
 		verify(mockFeaturesManager);
-		verify(mockTagsManager);
+		verify(mockCtxt,mockTagsManager);
 		Assert.assertNotNull(res);
 		Assert.assertNotNull(res.getResults());
 		Assert.assertEquals(0, res.getResults().size());
 
 	}
-	
-	
-	@Test 
+
+
+	@Test
 	public void testSimpleResults()
 	{
 		final String client = "test";
@@ -120,13 +118,13 @@ public class TopicModelRecommenderTest {
 		final int attrId = 1;
 		final int limit = 10;
 		final int numRecentItems = 1000;
-		final String table = "varchar"; 
+		final String table = "varchar";
 		Set<Long> recentItems = new HashSet<Long>();
-		
+
 		CFAlgorithm options = new CFAlgorithm();
 		options.setNumRecentItems(numRecentItems);
 		options.setTagAttrId(attrId);
-		
+
 		Map<Long,List<String>> itemTags = new HashMap<Long,List<String>>();
 		final String tag = "tag";
 		final Long itemId = 1L;
@@ -136,7 +134,7 @@ public class TopicModelRecommenderTest {
 		recentItems.add(itemId);
 		expect(mockTagsManager.retrieveRecentItems(EasyMock.eq(client), EasyMock.eq(recentItems), EasyMock.eq(attrId),EasyMock.eq(table))).andReturn(itemTags);
 		replay(mockTagsManager);
-		
+
 		Map<Long,Map<Integer,Float>> userTopicWeights = new HashMap<Long,Map<Integer,Float>>();
 		Map<Integer,Float> topicWeights = new HashMap<Integer,Float>();
 		final Long user = 1L;
@@ -152,10 +150,12 @@ public class TopicModelRecommenderTest {
 		TopicFeaturesStore tfs = new TopicFeaturesStore(userTopicWeights,tagTopicWeights);
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(tfs);
 		replay(mockFeaturesManager);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager,null,null);
-		RecommendationContext ctxt = new RecommendationContext(RecommendationContext.MODE.INCLUSION, recentItems);
-		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, ctxt, 50,null);
-		
+		expect(mockCtxt.getContextItems()).andReturn(recentItems).times(3);
+		replay(mockCtxt);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
+		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, mockCtxt, 50,null);
+
+		verify(mockCtxt);
 		verify(mockFeaturesManager);
 		verify(mockTagsManager);
 		Assert.assertNotNull(res);

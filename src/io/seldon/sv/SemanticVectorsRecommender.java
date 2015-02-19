@@ -45,16 +45,20 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 
 	public SemanticVectorsRecommender(SemanticVectorsManager svManager, List<ItemIncluder> producers, List<ItemFilter> filters)
 	{
-		super(producers,filters);
 		this.svManager = svManager;
 	}
 	
 	@Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,List<Long> recentitemInteractions) {
-		RecommendationContext ctxt = retrieveContext(client,dimensionId, options.getNumRecentItems());
+    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId,
+												 int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
 		return recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
 	}
-	
+
+	@Override
+	public String name() {
+		return "semantic_vecs";
+	}
+
 	@Override
 	public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client,
 			Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions) {
@@ -84,15 +88,15 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 		
 		Map<Long,Double> recommendations;
 
-		if (ctxt.mode == RecommendationContext.MODE.INCLUSION)
+		if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
 		{
-			// compare recentItemInteractions against contextItems and choose best
-			recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, new HashSet<Long>(recentItemInteractions),ctxt.contextItems , new LongIdTransform(),maxRecsCount,options.isIgnorePerfectSVMatches());
+			// compare recentItemInteractions against.getContextItems() and choose best
+			recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, new HashSet<Long>(recentItemInteractions),ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,options.isIgnorePerfectSVMatches());
 		}
 		else 
 		{
 			//compare recentItemInteactions against all items and choose best using context and exclusions
-			Set<Long> itemExclusions = ctxt.mode == RecommendationContext.MODE.INCLUSION ? Collections.<Long>emptySet() : ctxt.contextItems;
+			Set<Long> itemExclusions = ctxt.getMode() == RecommendationContext.MODE.INCLUSION ? Collections.<Long>emptySet() : ctxt.getContextItems();
 			recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, new LongIdTransform(), maxRecsCount, itemExclusions, null, options.isIgnorePerfectSVMatches());
 		}
 		List<ItemRecommendationResult> results = new ArrayList<ItemRecommendationResult>();

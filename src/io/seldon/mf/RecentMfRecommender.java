@@ -48,13 +48,12 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
 
     public RecentMfRecommender(MfFeaturesManager store, List<ItemIncluder> producers, List<ItemFilter> filters){
-        super(producers,filters);
         this.store = store;
     }
     
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,List<Long> recentitemInteractions) {
-		RecommendationContext ctxt = retrieveContext(client,dimensionId, options.getNumRecentItems());
+    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
+												 RecommendationContext ctxt, List<Long> recentitemInteractions) {
 		return recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
 	}
 
@@ -91,9 +90,9 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         }
         
         Set<ItemRecommendationResult> recs = new HashSet<ItemRecommendationResult>();
-        if(ctxt.mode== RecommendationContext.MODE.INCLUSION){
+        if(ctxt.getMode()== RecommendationContext.MODE.INCLUSION){
             // special case for INCLUSION as it's easier on the cpu.
-            for (Long item : ctxt.contextItems){
+            for (Long item : ctxt.getContextItems()){
             	if (!recentItemInteractions.contains(item))
             	{
             		float[] features = clientStore.productFeatures.get(item);
@@ -171,4 +170,8 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         return sum;
     }
 
+	@Override
+	public String name() {
+		return "recent_mf";
+	}
 }

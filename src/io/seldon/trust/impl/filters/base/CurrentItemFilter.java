@@ -21,22 +21,27 @@
  * ********************************************************************************************
  */
 
-package io.seldon.clustering.recommender;
-
-import java.util.List;
+package io.seldon.trust.impl.filters.base;
 
 import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.trust.impl.ItemFilter;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
+ * Filter for the item that the user is currently interacting with.
  * @author firemanphil
- *         Date: 09/10/2014
- *         Time: 15:05
+ *         Date: 05/12/14
+ *         Time: 15:31
  */
-public interface ItemRecommendationAlgorithm {
-
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, List<Long> recentItemInteractions);
-
-    String name();
-
+@Component
+public class CurrentItemFilter implements ItemFilter {
+    @Override
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId,
+                                           Long currentItem,String lastRecListUUID, int numRecommendations, CFAlgorithm options) {
+        return Collections.singletonList(currentItem);
+    }
 }
+

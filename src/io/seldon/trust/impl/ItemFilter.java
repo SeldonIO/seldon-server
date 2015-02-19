@@ -32,6 +32,6 @@ import java.util.List;
  */
 public interface ItemFilter {
 
-
-    List<Long> produceExcludedItems(String client);
+    List<Long> produceExcludedItems(String client, Long user, String clientUserId,
+                                    Long currentItem,String lastRecListUUID, int numRecommendations, CFAlgorithm options);
 }

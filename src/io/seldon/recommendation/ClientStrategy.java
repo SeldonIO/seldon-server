@@ -21,22 +21,17 @@
  * ********************************************************************************************
  */
 
-package io.seldon.clustering.recommender;
+package io.seldon.recommendation;
 
 import java.util.List;
 
-import io.seldon.trust.impl.CFAlgorithm;
-
 /**
+ * Provides a list of algorithm strategies to use for a client for a given user.
  * @author firemanphil
- *         Date: 09/10/2014
- *         Time: 15:05
+ *         Date: 19/02/15
+ *         Time: 15:04
  */
-public interface ItemRecommendationAlgorithm {
+public interface ClientStrategy {
 
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, List<Long> recentItemInteractions);
-
-    String name();
-
+    List<AlgorithmStrategy> getAlgorithms(String userId);
 }

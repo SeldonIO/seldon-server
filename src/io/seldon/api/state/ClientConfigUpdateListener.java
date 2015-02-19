@@ -21,22 +21,22 @@
  * ********************************************************************************************
  */
 
-package io.seldon.clustering.recommender;
-
-import java.util.List;
-
-import io.seldon.trust.impl.CFAlgorithm;
+package io.seldon.api.state;
 
 /**
  * @author firemanphil
- *         Date: 09/10/2014
- *         Time: 15:05
+ *         Date: 19/02/15
+ *         Time: 14:56
  */
-public interface ItemRecommendationAlgorithm {
+public interface ClientConfigUpdateListener {
 
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, List<Long> recentItemInteractions);
-
-    String name();
+    /**
+     * Notification of a change in config. DO NOT BLOCK ON THIS METHOD! Long
+     * running operations will hold up startup.
+     * @param client
+     * @param configKey
+     * @param configValue
+     */
+    void configUpdated(String client, String configKey, String configValue);
 
 }

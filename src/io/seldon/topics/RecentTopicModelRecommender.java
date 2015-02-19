@@ -48,15 +48,19 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 	public RecentTopicModelRecommender(TopicFeaturesManager featuresManager,RecentItemsWithTagsManager tagsManager,
 								 List<ItemIncluder> producers, List<ItemFilter> filters)
 	{
-		super(producers,filters);
 		this.featuresManager = featuresManager;
 		this.tagsManager = tagsManager;
 	}
 	
 	@Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,List<Long> recentitemInteractions) {
-		RecommendationContext ctxt = retrieveContext(client,dimensionId, options.getNumRecentItems());
+    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId,
+												 int maxRecsCount, RecommendationContext ctxt,List<Long> recentitemInteractions) {
 		return recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
+	}
+
+	@Override
+	public String name() {
+		return "recent_topic";
 	}
 
 	@Override
@@ -69,14 +73,14 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
 		}
 		
-		if (ctxt == null || ctxt.contextItems == null || ctxt.contextItems.size() == 0)
+		if (ctxt == null || ctxt.getContextItems() == null || ctxt.getContextItems().size() == 0)
 		{
 			logger.warn("Not items passed in to recommend from. For client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
 		}
 		
 		logger.debug("retrive tags for recent items with attr-id "+options.getTagAttrId()+" from table "+options.getTagTable());
-		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.contextItems, options.getTagAttrId(),options.getTagTable());
+		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), options.getTagAttrId(),options.getTagTable());
 		if (itemTags == null || itemTags.size() == 0)
 		{
 			logger.debug("Failed to find recent tag items for client "+client);

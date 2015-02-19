@@ -284,9 +284,11 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				// add current item id if not in recent actions
 				if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
 					recentItemInteractions.add(0,currentItemId);
-				
+
+				RecommendationContext ctxt = RecommendationContext.buildContext(null, null,
+						options.getName(), user,clientUserId,currentItemId, dimension, lastRecListUUID,10, numRecommendations,options );
 				ItemRecommendationResultSet results = alg.recommend(options,options.getName(),user,dimension,
-                        numRecommendations, recentItemInteractions);
+                        numRecommendations, ctxt,recentItemInteractions);
 
                 for (ItemRecommendationResultSet.ItemRecommendationResult result : results.getResults()){
                     recommendations.put(result.item,result.score.doubleValue());

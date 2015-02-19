@@ -46,10 +46,8 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 	TopicFeaturesManager featuresManager;
 	RecentItemsWithTagsManager tagsManager;
 
-	public TopicModelRecommender(TopicFeaturesManager featuresManager,RecentItemsWithTagsManager tagsManager,
-								 List<ItemIncluder> producers, List<ItemFilter> filters)
+	public TopicModelRecommender(TopicFeaturesManager featuresManager,RecentItemsWithTagsManager tagsManager)
 	{
-		super(producers,filters);
 		this.featuresManager = featuresManager;
 		this.tagsManager = tagsManager;
 	}
@@ -64,13 +62,13 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
 		}
 		
-		if (ctxt == null || ctxt.contextItems == null || ctxt.contextItems.size() == 0)
+		if (ctxt == null || ctxt.getContextItems() == null || ctxt.getContextItems().size() == 0)
 		{
 			logger.warn("Not items passed in to recommend from. For client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
 		}
 		
-		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.contextItems, options.getTagAttrId(),options.getTagTable());
+		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), options.getTagAttrId(),options.getTagTable());
 		if (itemTags == null || itemTags.size() == 0)
 		{
 			logger.debug("Failed to find recent tag items for client "+client);
@@ -114,5 +112,9 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 		}
 		return sum;
 	}
-	
+
+	@Override
+	public String name() {
+		return "topic_model";
+	}
 }

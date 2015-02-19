@@ -21,22 +21,28 @@
  * ********************************************************************************************
  */
 
-package io.seldon.clustering.recommender;
-
-import java.util.List;
+package io.seldon.trust.impl.filters.base;
 
 import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.trust.impl.ItemFilter;
+import io.seldon.trust.impl.jdo.RecommendationUtils;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * Filter to exclude items that the user has been shown and yet ignored.
  * @author firemanphil
- *         Date: 09/10/2014
- *         Time: 15:05
+ *         Date: 10/12/14
+ *         Time: 14:47
  */
-public interface ItemRecommendationAlgorithm {
-
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, List<Long> recentItemInteractions);
-
-    String name();
-
+@Component
+public class IgnoredRecsFilter implements ItemFilter {
+    @Override
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId,
+                                           Long currentItem, String lastRecListUUID, int numRecommendations,
+                                           CFAlgorithm options) {
+        return new ArrayList<>(RecommendationUtils.getExclusions(false, client, clientUserId, currentItem, lastRecListUUID, options, 0));
+    }
 }

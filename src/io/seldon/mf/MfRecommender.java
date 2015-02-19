@@ -50,7 +50,6 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
 
 
     public MfRecommender(MfFeaturesManager store, List<ItemIncluder> producers, List<ItemFilter> filters){
-        super(producers,filters);
         this.store = store;
     }
 
@@ -66,9 +65,9 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
 
         float[] userVector =  clientStore.userFeatures.get(user);
         Set<ItemRecommendationResult> recs = new HashSet<ItemRecommendationResult>();
-        if(ctxt.mode== RecommendationContext.MODE.INCLUSION){
+        if(ctxt.getMode()== RecommendationContext.MODE.INCLUSION){
             // special case for INCLUSION as it's easier on the cpu.
-            for (Long item : ctxt.contextItems){
+            for (Long item : ctxt.getContextItems()){
             	if (!recentitemInteractions.contains(item))
             	{
             		float[] features = clientStore.productFeatures.get(item);
@@ -99,5 +98,10 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
             sum += vec1[i] * vec2[i];
         }
         return sum;
+    }
+
+    @Override
+    public String name() {
+        return "mf";
     }
 }
