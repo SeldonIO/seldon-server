@@ -43,7 +43,7 @@ public class NormalisingScoreBlender implements SocialFriendsBlender {
     public List<RecommendedUserBean> blendFriends(List<List<RecommendedUserBean>> rankedFriendsLists) {
         int noOfAlgs = rankedFriendsLists.size();
         logger.info("Considering "+noOfAlgs+" algorithm's results. ");
-        Map<String, RecommendedUserBean> toReturn = new HashMap<String, RecommendedUserBean>();
+        Map<String, RecommendedUserBean> toReturn = new HashMap<>();
         for(List<RecommendedUserBean> recommendedUserBeans : rankedFriendsLists){
             double maxScore = 0d;
             for(RecommendedUserBean recommendedUserBean: recommendedUserBeans){
@@ -55,7 +55,7 @@ public class NormalisingScoreBlender implements SocialFriendsBlender {
             recommendedUserBeans = normalise(recommendedUserBeans, maxScore);
             amalgamate(recommendedUserBeans, toReturn, noOfAlgs);
         }
-        ArrayList<RecommendedUserBean> beans = new ArrayList<RecommendedUserBean>(toReturn.values());
+        ArrayList<RecommendedUserBean> beans = new ArrayList<>(toReturn.values());
 
         return beans;
     }

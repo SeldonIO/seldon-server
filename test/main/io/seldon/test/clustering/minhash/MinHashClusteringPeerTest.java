@@ -100,7 +100,7 @@ public class MinHashClusteringPeerTest extends BasePeerTest {
 		MinHashClustering mh = new MinHashClustering(3,1,new StoredClusterPeer(pm));
 		Random r = new Random();
 		
-		Set<String> interests = new HashSet<String>();
+		Set<String> interests = new HashSet<>();
 		for(int i=10;i<=10;i++)
 			interests.add(""+i);
 		
@@ -127,7 +127,7 @@ public class MinHashClusteringPeerTest extends BasePeerTest {
 		MinHashClustering mh = new MinHashClustering(3,1,new StoredClusterPeer(pm));
 		Random r = new Random();
 		
-		Set<String> interests = new HashSet<String>();
+		Set<String> interests = new HashSet<>();
 		for(int i=0;i<10;i++)
 			interests.add(""+i);
 		

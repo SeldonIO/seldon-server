@@ -40,7 +40,7 @@ public class AlgorithmServiceTest {
 	{
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         aService.setAlgorithmMap(map);
         Util.setAlgorithmService(aService);
         

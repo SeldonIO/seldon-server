@@ -49,7 +49,7 @@ public class InteractionsDecayFunction implements  SocialFriendsScoreDecayFuncti
     public List<RecommendedUserBean> decayFriendsScore(ConsumerBean client, UserBean user, List<RecommendedUserBean> friendsList)
     {
         Set<Interaction> interactionsList = interactionService.retrieveInteractions(client, user.getId(), InteractionService.MGM_TYPE);
-        Set<String> decayFriendsList = new HashSet<String>();
+        Set<String> decayFriendsList = new HashSet<>();
 
         if (interactionsList != null)
         {

@@ -48,8 +48,8 @@ public class ZkSubscriptionHandler {
     @Autowired
     private ZkCuratorHandler curator;
 
-    private Set<PathChildrenCache> caches = new HashSet<PathChildrenCache>();
-    private Map<String, NodeCache> nodeCaches = new HashMap<String,NodeCache>();
+    private Set<PathChildrenCache> caches = new HashSet<>();
+    private Map<String, NodeCache> nodeCaches = new HashMap<>();
 
 
 

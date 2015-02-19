@@ -47,11 +47,11 @@ public class SocialRecommendationStrategy
 	
 	public SocialRecommendationStrategy() 
 	{
-		onlineAlgorithms  = new ArrayList<FacebookUsersAlgorithm>();
-		offlineAlgorithms = new ArrayList<FacebookUsersAlgorithm>();
-        inclusiveFilters  = new ArrayList<FacebookUsersAlgorithm>();
-        exclusiveFilters  = new ArrayList<FacebookUsersAlgorithm>();
-        decayFunctions    = new ArrayList<SocialFriendsScoreDecayFunction>();
+		onlineAlgorithms  = new ArrayList<>();
+		offlineAlgorithms = new ArrayList<>();
+        inclusiveFilters  = new ArrayList<>();
+        exclusiveFilters  = new ArrayList<>();
+        decayFunctions    = new ArrayList<>();
         uniqueCode = 0;
         // default is share pages
         aim = StrategyAim.SHARE_PAGES;

@@ -111,7 +111,7 @@ public class UserAttributePeerTest extends BasePeerTest {
         }
 
         Collection<UserAttribute> allAttributes = userAttributePeer.getAll();
-        Map<Integer, String> knownIds = new HashMap<Integer, String>();
+        Map<Integer, String> knownIds = new HashMap<>();
         for (UserAttribute userAttribute : allAttributes) {
             knownIds.put(userAttribute.getAttributeId(), userAttribute.getName());
         }
@@ -134,7 +134,7 @@ public class UserAttributePeerTest extends BasePeerTest {
         }
 
         Collection<UserAttribute> allAttributes = userAttributePeer.getAll();
-        Map<String, Integer> knownAttributes = new HashMap<String, Integer>();
+        Map<String, Integer> knownAttributes = new HashMap<>();
         for (UserAttribute userAttribute : allAttributes) {
             knownAttributes.put(userAttribute.getName(), userAttribute.getAttributeId());
         }

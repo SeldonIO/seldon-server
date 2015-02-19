@@ -38,7 +38,7 @@ public class CooccurrencePeerFactory {
 	public static final String STALE_SECS_SUFFIX = ".stale.secs";
 	public static final String CACHE_SIZE_SUFFIX = ".cache";
 
-	private static ConcurrentHashMap<String,CooccurrencePeer> peers = new ConcurrentHashMap<String,CooccurrencePeer>();
+	private static ConcurrentHashMap<String,CooccurrencePeer> peers = new ConcurrentHashMap<>();
 	
 	public static void initialise(Properties props)
 	{

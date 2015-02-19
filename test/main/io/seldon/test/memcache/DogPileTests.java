@@ -132,8 +132,8 @@ public class DogPileTests {
 		{
 		final int expireSecs = 5;
 		final int busyLoopDelayMillisecs = 100;
-		List<Thread> threads = new ArrayList<Thread>();
-		List<UpdaterTester> testers = new ArrayList<UpdaterTester>();
+		List<Thread> threads = new ArrayList<>();
+		List<UpdaterTester> testers = new ArrayList<>();
 		DogpileHandler.get().updated(key, expireSecs);
 		System.out.println("Start test "+System.currentTimeMillis());
 		for(int i=0;i<numThreads;i++)

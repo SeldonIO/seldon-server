@@ -74,7 +74,7 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 			itemsToScore = recentItemInteractions.subList(0, options.getNumRecentActions());
 		}
 		else
-			itemsToScore = new ArrayList<Long>(recentItemInteractions);
+			itemsToScore = new ArrayList<>(recentItemInteractions);
 
         double[] userVector;
         if (clientStore.productFeaturesInverse != null)
@@ -89,7 +89,7 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         	userVector = createAvgProductVector(itemsToScore, clientStore.productFeatures);
         }
         
-        Set<ItemRecommendationResult> recs = new HashSet<ItemRecommendationResult>();
+        Set<ItemRecommendationResult> recs = new HashSet<>();
         if(ctxt.getMode()== RecommendationContext.MODE.INCLUSION){
             // special case for INCLUSION as it's easier on the cpu.
             for (Long item : ctxt.getContextItems()){

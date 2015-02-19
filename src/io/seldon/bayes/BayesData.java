@@ -33,9 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BayesData {
 
-	Map<String,Double> pruMap = new ConcurrentHashMap<String,Double>();
-	Map<String,Double> priMap = new ConcurrentHashMap<String,Double>();
-	Map<Integer,Double> prMap = new ConcurrentHashMap<Integer,Double>();
+	Map<String,Double> pruMap = new ConcurrentHashMap<>();
+	Map<String,Double> priMap = new ConcurrentHashMap<>();
+	Map<Integer,Double> prMap = new ConcurrentHashMap<>();
 	
 	public BayesData(BayesDataProvider provider)
 	{

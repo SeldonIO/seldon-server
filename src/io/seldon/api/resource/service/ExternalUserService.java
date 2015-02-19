@@ -103,8 +103,8 @@ public class ExternalUserService {
     }
 
     public Map<Interaction, Boolean> retrieveAttrByInteraction(String consumer, Collection<Interaction> interactions) {
-        Map<Interaction, Boolean> toReturn = new HashMap<Interaction, Boolean>();
-        Map<String, Interaction> uidToInteraction = new HashMap<String, Interaction>();
+        Map<Interaction, Boolean> toReturn = new HashMap<>();
+        Map<String, Interaction> uidToInteraction = new HashMap<>();
 
         for (Interaction interaction : interactions) {
             uidToInteraction.put(interaction.getUser2FbId(), interaction);

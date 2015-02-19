@@ -79,7 +79,7 @@ public class MgmDailyStatsBusinessServiceImpl implements MgmDailyStatsBusinessSe
             PersistenceManager pm = JDOFactory.getPersistenceManager("mgmstats");
             String sql = "select day,impressions,shares,fbclicks,conversions from daily d where d.client=?;";
             Query query = pm.newQuery("javax.jdo.query.SQL", sql);
-            ArrayList<Object> args = new ArrayList<Object>();
+            ArrayList<Object> args = new ArrayList<>();
             args.add(client);
             Collection<Object[]> results = (Collection<Object[]>) query.executeWithArray(args.toArray());
             for (Object[] item : results) {

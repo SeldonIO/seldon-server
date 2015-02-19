@@ -107,7 +107,7 @@ public class SqlUserAttributePeer implements UserAttributePeer {
 
     @SuppressWarnings({"unchecked"})
     public Map<Integer, UserAttributeValueVo> getAttributesForUser(Long userId) {
-        Map<Integer, UserAttributeValueVo> userAttributeValueMap = new HashMap<Integer, UserAttributeValueVo>();
+        Map<Integer, UserAttributeValueVo> userAttributeValueMap = new HashMap<>();
 
         // (1) Deal with scalar types -- each table provides {attr_id,value}
         for (String type : scalarAttributeTypes) {
@@ -141,7 +141,7 @@ public class SqlUserAttributePeer implements UserAttributePeer {
     }
 
     public Map<Integer, Integer> getCompositeAttributesForUser(Long userId) {
-        Map<Integer, Integer> attributeValueMap = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> attributeValueMap = new HashMap<>();
         for (String compositeType : compositeAttributeTypes) {
             Collection<Object[]> items = findCompositeAttributeValuesForUser(userId, compositeType);
             for (Object[] item : items) {
@@ -158,7 +158,7 @@ public class SqlUserAttributePeer implements UserAttributePeer {
     }
 
     public Map<String, String> getCompositeAttributeNamesForUser(Long userId) {
-        Map<String, String> attributeValueNameMap = new HashMap<String, String>();
+        Map<String, String> attributeValueNameMap = new HashMap<>();
         for (String compositeType : compositeAttributeTypes) {
             Collection<Object[]> items = findCompositeAttributeValueNamesForUser(userId, compositeType);
             for (Object[] item : items) {
@@ -335,7 +335,7 @@ public class SqlUserAttributePeer implements UserAttributePeer {
     
     
 	public Map<String,String> getUserAttributesName(long userid) {
-		Map<String,String> attributes = new HashMap<String,String>();
+		Map<String,String> attributes = new HashMap<>();
 		String sql = "SELECT a.name attr_name, CASE WHEN imi.value IS NOT NULL THEN cast(imi.value as char) WHEN imd.value IS NOT NULL THEN cast(imd.value as char) WHEN imb.value IS NOT NULL THEN cast(imb.value as char) WHEN imboo.value IS NOT NULL and imboo.value=0 THEN 'false' WHEN imboo.value IS NOT NULL and imboo.value>0 THEN 'true' WHEN imt.value IS NOT NULL THEN imt.value WHEN imdt.value IS NOT NULL THEN cast(imdt.value as char) WHEN imv.value IS NOT NULL THEN imv.value WHEN e.value_name IS NOT NULL THEN e.value_name END value_id FROM  users u INNER JOIN user_attr a ON u.user_id=? LEFT JOIN user_map_int imi ON u.user_id=imi.user_id AND a.attr_id=imi.attr_id LEFT JOIN user_map_double imd ON u.user_id=imd.user_id AND a.attr_id=imd.attr_id LEFT JOIN user_map_enum ime ON u.user_id=ime.user_id AND a.attr_id=ime.attr_id LEFT JOIN user_map_bigint imb ON u.user_id=imb.user_id AND a.attr_id=imb.attr_id LEFT JOIN user_map_boolean imboo ON u.user_id=imboo.user_id AND a.attr_id=imboo.attr_id LEFT JOIN user_map_text imt ON u.user_id=imt.user_id AND a.attr_id=imt.attr_id LEFT JOIN user_map_datetime imdt ON u.user_id=imdt.user_id AND a.attr_id=imdt.attr_id LEFT JOIN user_map_varchar imv ON u.user_id=imv.user_id AND a.attr_id=imv.attr_id LEFT JOIN user_attr_enum e ON ime.attr_id=e.attr_id AND ime.value_id=e.value_id";
 		Query query = persistenceManager.newQuery( "javax.jdo.query.SQL", sql );
 		Collection<Object[]> c = (Collection<Object[]>) query.execute(userid);
@@ -348,7 +348,7 @@ public class SqlUserAttributePeer implements UserAttributePeer {
 	}
 
 	public Map<Integer,Integer> getUserAttributes(long userId) {
-		Map<Integer,Integer> attributes = new HashMap<Integer,Integer>();
+		Map<Integer,Integer> attributes = new HashMap<>();
 		Query query = persistenceManager.newQuery( "javax.jdo.query.SQL", "select a.attr_id,e.value_id from users u inner join user_attr a on u.user_id=? inner join user_map_enum ime on u.user_id=ime.user_id and a.attr_id=ime.attr_id inner join user_attr_enum e on ime.attr_id=e.attr_id and ime.value_id=e.value_id" );
 		Collection<Object[]> c = (Collection<Object[]>) query.execute(userId);
 		for(Object[] array : c) {

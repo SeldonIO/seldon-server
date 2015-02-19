@@ -44,7 +44,7 @@ public class SemVecSimilarityPeer implements SemanticVectorSimilarity {
 	
 	public ArrayList<SearchResult> getSimilar(long content)
 	{
-		ArrayList<SearchResult> res = new ArrayList<SearchResult>();
+		ArrayList<SearchResult> res = new ArrayList<>();
 		Query query = pm.newQuery("javax.jdo.query.SQL","select dst,similarity from content_similarity where src=? order by similarity desc");
 		Collection c = (Collection) query.execute(content);
 		for(Iterator i=c.iterator();i.hasNext();)

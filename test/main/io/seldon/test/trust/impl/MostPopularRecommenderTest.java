@@ -171,7 +171,7 @@ public class MostPopularRecommenderTest extends BasePeerTest {
 					
 					CFAlgorithm options = new CFAlgorithm();
 					options.setName(props.getClient());
-					List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+					List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 					recommenders.add(CFAlgorithm.CF_RECOMMENDER.MOST_POPULAR);
 					options.setRecommenders(recommenders);
 					options.setSorterStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);
@@ -216,7 +216,7 @@ public class MostPopularRecommenderTest extends BasePeerTest {
 					
 					CFAlgorithm options = new CFAlgorithm();
 					options.setName(props.getClient());
-					List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+					List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 					recommenders.add(CFAlgorithm.CF_RECOMMENDER.MOST_POPULAR);
 					options.setRecommenders(recommenders);
 					options.setSorterStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);
@@ -263,7 +263,7 @@ public class MostPopularRecommenderTest extends BasePeerTest {
 					
 					
 					options.setName(props.getClient());
-					List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+					List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 					recommenders.add(CFAlgorithm.CF_RECOMMENDER.MOST_POPULAR_ITEM_CATEGORY);
 					options.setRecommenders(recommenders);
 					options.setSorterStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);

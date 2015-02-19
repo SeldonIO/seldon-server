@@ -60,7 +60,7 @@ public class TestMgmConfService extends BaseTest {
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		MgmKeywordConfBean b = new MgmKeywordConfBean();
-		ConcurrentHashMap<String,String> m = new ConcurrentHashMap<String, String>();
+		ConcurrentHashMap<String,String> m = new ConcurrentHashMap<>();
 		String client = "testClient";
 		String langs = "en,es";
 		m.put(client, langs);

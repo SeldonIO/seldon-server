@@ -101,7 +101,7 @@ public class WeightedRecommendationsTest extends BasePeerTest {
 			TransactionPeer.runTransaction(new Transaction(pm) {
 				public void process() {
 					Query query = pm.newQuery("javax.jdo.query.SQL", "insert into actions values (0,?,?,99,1,now(),0,?,?)");
-					List<Object> args = new ArrayList<Object>();
+					List<Object> args = new ArrayList<>();
 					args.add(userId);
 					args.add(itemId);
 					args.add("" + userId);
@@ -241,7 +241,7 @@ public class WeightedRecommendationsTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_GLOBAL);
 			options.setMaxRecommendersToUse(2);
@@ -321,7 +321,7 @@ public class WeightedRecommendationsTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_GLOBAL);
 			options.setMaxRecommendersToUse(2);
@@ -331,7 +331,7 @@ public class WeightedRecommendationsTest extends BasePeerTest {
 			else
 				options.setRecommenderStrategy(CFAlgorithm.CF_STRATEGY.RANK_SUM);
 			System.out.println("Testing with strategy "+options.getRecommenderStrategy().name());
-			Map<CFAlgorithm.CF_RECOMMENDER,Double> weights = new HashMap<CFAlgorithm.CF_RECOMMENDER,Double>();
+			Map<CFAlgorithm.CF_RECOMMENDER,Double> weights = new HashMap<>();
 			weights.put(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS, 1.0D);
 			weights.put(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_GLOBAL, 0.01D);
 			options.setRecommendationWeightMap(weights);

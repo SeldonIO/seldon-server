@@ -47,7 +47,7 @@ public class WeightedMedianTest extends BasePredictionTest {
 	@Test
 	public void singleRating()
 	{
-		Map<Long,Double> weights = new HashMap<Long,Double>();
+		Map<Long,Double> weights = new HashMap<>();
 		weights.put(1L, 0.5); // just one weight
 		PersonalisedRatingCreator prc = new PersonalisedRatingCreator(new WMDummyResolver());
 		Recommendation rec = prc.weightedMedianPrediction(1L, 1L, Trust.TYPE_GENERAL, weights, 0.0);
@@ -59,7 +59,7 @@ public class WeightedMedianTest extends BasePredictionTest {
 	@Test
 	public void twoRatings()
 	{
-		Map<Long,Double> weights = new HashMap<Long,Double>();
+		Map<Long,Double> weights = new HashMap<>();
 		weights.put(1L, 0.5); 
 		weights.put(2L, 0.5); 
 		PersonalisedRatingCreator prc = new PersonalisedRatingCreator(new WMDummyResolver());

@@ -67,7 +67,7 @@ public class TagSimilarityPeer {
 	{
 		Map<String,Long> userTags = tagStore.getUserTags(user_id);
 		Map<String,Double> uVec = vectorUtils.getVector(userTags, this.documentOptions);
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		for(Long item_id : items)
 		{
 			Map<String,Long> itemTags = tagStore.getItemTags(item_id);

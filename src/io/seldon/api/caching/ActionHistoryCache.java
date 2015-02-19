@@ -42,8 +42,8 @@ public class ActionHistoryCache extends ClientPersistable {
 	private static Logger logger = Logger.getLogger(ActionHistoryCache.class.getName());
 	public static int CACHE_TIME = 1800;
 	
-	private static ConcurrentHashMap<String,Boolean> clients = new ConcurrentHashMap<String,Boolean>();
-	private static ConcurrentHashMap<String,Boolean> clientsUseDb = new ConcurrentHashMap<String,Boolean>();	
+	private static ConcurrentHashMap<String,Boolean> clients = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String,Boolean> clientsUseDb = new ConcurrentHashMap<>();
 	
 	public static void initalise(Properties props)
 	{
@@ -105,14 +105,14 @@ public class ActionHistoryCache extends ClientPersistable {
 			if (clientsUseDb.containsKey(clientName))
 			{
 				List<Long> transaction = Util.getActionPeer(getPM()).getRecentUserActions(userId);
-				res = new ArrayList<Long>(transaction);
+				res = new ArrayList<>(transaction);
 				MemCachePeer.put(mkey, res, CACHE_TIME);
 				logger.debug("Stored action history for user "+userId+" in memcache");
 			}
 			else
 			{
 				logger.debug("creating empty action history for user "+userId+" for client "+clientName);
-				res = new ArrayList<Long>();
+				res = new ArrayList<>();
 			}
 		}
 		else 
@@ -137,7 +137,7 @@ public class ActionHistoryCache extends ClientPersistable {
 	            return current;
             }
         };
-        List<Long> actions = new ArrayList<Long>();
+        List<Long> actions = new ArrayList<>();
         actions.add(itemId);
         String mkey = MemCacheKeys.getActionHistory(this.clientName, userId);
         List<Long> res = MemCachePeer.cas(mkey, mutation, actions,CACHE_TIME);
@@ -150,7 +150,7 @@ public class ActionHistoryCache extends ClientPersistable {
             transaction = Util.getActionPeer(getPM()).getRecentUserActions(userId);
             if(transaction != null && !transaction.isEmpty())
             {
-            	ArrayList<Long> transNew = new ArrayList<Long>(transaction);
+            	ArrayList<Long> transNew = new ArrayList<>(transaction);
             	if(!transaction.contains(res.get(0))) {
             		 transNew.add(0,res.get(0));
             	}

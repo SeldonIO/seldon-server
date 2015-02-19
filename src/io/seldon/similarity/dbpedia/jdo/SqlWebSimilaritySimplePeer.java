@@ -56,8 +56,8 @@ private static final String JDO_SQL = "javax.jdo.query.SQL";
 
 private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class.getName());
 	
-	private static Map<String,Set<Integer>> dimIdsMap = new ConcurrentHashMap<String,Set<Integer>>();
-	private static Map<String,Integer> clientToLikeActionType = new ConcurrentHashMap<String, Integer>();
+	private static Map<String,Set<Integer>> dimIdsMap = new ConcurrentHashMap<>();
+	private static Map<String,Integer> clientToLikeActionType = new ConcurrentHashMap<>();
 	
 	public static void initialise(Properties props)
 	{
@@ -71,7 +71,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 				if (dimIdsStr != null)
 				{
 					logger.info("Processing dim ids "+dimIdsStr+" for client "+clients[i]);
-					Set<Integer> dimIds = new HashSet<Integer>();
+					Set<Integer> dimIds = new HashSet<>();
 					String dimIdsStrParts[] = dimIdsStr.split(",");
 					for(int j=0;j<dimIdsStrParts.length;j++)
 					{
@@ -97,8 +97,8 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	
 	private List<SharingRecommendation> getSharingRecommendation(Collection<Object[]> results)
 	{
-		List<SharingRecommendation> res = new ArrayList<SharingRecommendation>();
-		Map<String,SharingRecommendation> userToShareRec = new HashMap<String,SharingRecommendation>();
+		List<SharingRecommendation> res = new ArrayList<>();
+		Map<String,SharingRecommendation> userToShareRec = new HashMap<>();
 		for(Object[] result : results)
 		{
 			Long userId = (Long) result[0]; // friend user id
@@ -143,7 +143,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	@Override
 	public List<SharingRecommendation> getSharingRecommendations(
 			List<Long> users, List<Long> items) {
-		List<SharingRecommendation> res = new ArrayList<SharingRecommendation>();
+		List<SharingRecommendation> res = new ArrayList<>();
 		if (users != null && users.size() > 0 && items != null && items.size() > 0)
 		{
 			String userSet = CollectionTools.join(users, ",");
@@ -164,7 +164,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	@Override
 	public List<SharingRecommendation> getSharingRecommendationsForFriends(
 			long userId, String linkType, List<Long> items) {
-		List<SharingRecommendation> res = new ArrayList<SharingRecommendation>();
+		List<SharingRecommendation> res = new ArrayList<>();
 		if (items != null && items.size() > 0)
 		{
 			String itemSet = CollectionTools.join(items,",");
@@ -207,7 +207,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	 */
 	public List<SharingRecommendation> getSharingRecommendationsForFriendsFull(
 			long userId, long itemId) {
-		List<SharingRecommendation> res = new ArrayList<SharingRecommendation>();
+		List<SharingRecommendation> res = new ArrayList<>();
 
 		String sql = "select l.u2,dit.item_id,a.item_id,tokens,a.client_item_id from dbpedia_item_tokens dit join dbpedia_token_token dtt on (dit.item_id="+itemId+" and dit.token_id=dtt.token_id1 and dtt.good>dtt.bad) join dbpedia_item_tokens dit2 on (dit2.token_id=dtt.token_id2) join dbpedia_token_hits dth on (dth.token_id=dit2.token_id) join ext_actions a on (a.item_id=dit2.item_id and a.type="+getLikeActionType()+") join links l on (a.user_id=l.u2 and l.u1="+userId+")";
 		logger.info("SQL get friends like matches is "+sql);
@@ -224,7 +224,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	@Override
 	public List<SharingRecommendation> getSharingRecommendationsForFriends(
 			long userId, long itemId) {
-		List<SharingRecommendation> res = new ArrayList<SharingRecommendation>();
+		List<SharingRecommendation> res = new ArrayList<>();
 
 		String sql = "select user_id,item_id,ex_item_id,tokens,ex_client_item_id from links join dbpedia_item_user diu where (u1="+userId+" and u2=user_id and item_id="+itemId+")";
 		logger.info("SQL get friends like matches is "+sql);
@@ -258,7 +258,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	@Override
 	public List<UserCluster> getUserDimClusters(long userid,
 			Set<String> clientItemIds) {
-		List<UserCluster> res = new ArrayList<UserCluster>();
+		List<UserCluster> res = new ArrayList<>();
 		if (clientItemIds != null &&  clientItemIds.size() > 0)
 		{
 			String itemSet = getIdsSQL(clientItemIds);
@@ -378,7 +378,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	
 	@Override
 	public Map<Long, Double> getSocialPredictionRecommendations(long userId,int limit) {
-		Map<Long,Double> res = new HashMap<Long, Double>();
+		Map<Long,Double> res = new HashMap<>();
 
 		String sql = "select item_id,sum(score) from dbpedia_item_user where user_id=? group by item_id order by item_id desc limit "+limit;
 		logger.info("Running Social predict SQL: "+sql);
@@ -394,7 +394,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 
 	@Override
 	public Map<Long, Double> getSimilarUsers(long userId, int type, int interactionFilterType) {
-		Map<Long,Double> similarUsers = new HashMap<Long,Double>();
+		Map<Long,Double> similarUsers = new HashMap<>();
 		Query query = getPM().newQuery( JDO_SQL, USER_SIMILARITY_QUERY);
 		long start = System.currentTimeMillis();	
 		Collection<Object[]> results = (Collection<Object[]>) query.execute(interactionFilterType, userId,type);
@@ -411,8 +411,8 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 	
 	private List<SharingRecommendation> getSharingRecommendationForKeywords(Collection<Object[]> results)
 	{
-		List<SharingRecommendation> res = new ArrayList<SharingRecommendation>();
-		Map<String,SharingRecommendation> userToShareRec = new HashMap<String,SharingRecommendation>();
+		List<SharingRecommendation> res = new ArrayList<>();
+		Map<String,SharingRecommendation> userToShareRec = new HashMap<>();
 		for(Object[] result : results)
 		{
 			Long userId = (Long) result[0]; // friend user id
@@ -441,7 +441,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 		{
 			String sqlArgs = getIdsSQL(tags);
 			String sql = "select u2,tokens,ex_client_item_id,score from dbpedia_keyword_user dku join dbpedia_keyword dk on (dk.k_id=dku.k_id and dku.u1=?) where dk.keyword in ("+sqlArgs+")";
-			List<Object> args = new ArrayList<Object>();
+			List<Object> args = new ArrayList<>();
 			args.add(userid);
 			for(String tag : tags)
 				args.add(tag);
@@ -453,7 +453,7 @@ private static Logger logger = Logger.getLogger(SqlWebSimilaritySimplePeer.class
 		else
 		{
 			logger.error("empty tags passed in for user "+userid);
-			return new ArrayList<SharingRecommendation>();
+			return new ArrayList<>();
 		}
 	}
 

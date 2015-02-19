@@ -33,7 +33,7 @@ public class RecommendationsBean extends ResourceBean {
 	
 	protected long size;
 	protected long requested;
-	protected List<RecommendationBean> list = new ArrayList<RecommendationBean>();
+	protected List<RecommendationBean> list = new ArrayList<>();
 
 	public List<RecommendationBean> getList() {
 		return list;
@@ -84,7 +84,7 @@ public class RecommendationsBean extends ResourceBean {
 	}
 	
 	public List<String> toItems() {
-		ArrayList<String> res = new ArrayList<String>();
+		ArrayList<String> res = new ArrayList<>();
 		for(RecommendationBean r : list) {
 			res.add(r.getItem());
 		}

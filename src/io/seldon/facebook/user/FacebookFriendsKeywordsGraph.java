@@ -74,7 +74,7 @@ public class FacebookFriendsKeywordsGraph {
         {
         	//no keywords, return empty list
         	logger.info("Retrieving facebook friends by keywords failed because of empty list of keywords");
-        	friendsPagesFansList = new ArrayList<FacebookFriendPageFan>();
+        	friendsPagesFansList = new ArrayList<>();
         }
         else
         {
@@ -94,11 +94,11 @@ public class FacebookFriendsKeywordsGraph {
     
     private static FacebookPagesFriendsResult getPagesFriendsFromFacebook(Collection<String> keywords, FacebookAppUserFilterType appUserFilterType, String fbToken, FacebookCallLogger fbCallLogger, AsyncFacebookClient asyncFacebookClient)
     {
-        List<FacebookPage> pages = new ArrayList<FacebookPage>();
-        List<Future<List<FacebookPage>>> futurePages = new ArrayList<Future<List<FacebookPage>>>();
+        List<FacebookPage> pages = new ArrayList<>();
+        List<Future<List<FacebookPage>>> futurePages = new ArrayList<>();
 
-        List<FacebookUser> friends = new ArrayList<FacebookUser>();
-        List<Future<List<FacebookUser>>> futureFriends = new ArrayList<Future<List<FacebookUser>>>();
+        List<FacebookUser> friends = new ArrayList<>();
+        List<Future<List<FacebookUser>>> futureFriends = new ArrayList<>();
 
         for (int i=0; i<5; i++)
         {
@@ -145,22 +145,22 @@ public class FacebookFriendsKeywordsGraph {
 
     private static List<String> formatPagesInStringList(List<FacebookPage> pagesPerKeyword)
     {
-    	List<String> pagesList = new ArrayList<String>();
+    	List<String> pagesList = new ArrayList<>();
     	for (FacebookPage page : pagesPerKeyword) pagesList.add(page.getPageId().toString());    		
     	return pagesList;
     }
 
     private static Set<String> formatFriendsInStringSet(List<FacebookUser> friends)
     {
-        Set<String> friendsList = new HashSet<String>();
+        Set<String> friendsList = new HashSet<>();
         for (FacebookUser friend : friends) friendsList.add(friend.getUid().toString());
         return friendsList;
     }
     
     private static List<FacebookFriendPageFan> getFriendsPagesFansFromFacebook(List<String> pagesList, Set<String> friendsList, String fbToken, FacebookCallLogger fbCallLogger, AsyncFacebookClient asyncFacebookClient)
     {
-        List<FacebookFriendPageFan> friendsPagesFans = new ArrayList<FacebookFriendPageFan>();
-        List<Future<List<FacebookFriendPageFan>>> futures = new ArrayList<Future<List<FacebookFriendPageFan>>>();
+        List<FacebookFriendPageFan> friendsPagesFans = new ArrayList<>();
+        List<Future<List<FacebookFriendPageFan>>> futures = new ArrayList<>();
 
         String fql = String.format(GET_FRIENDS_PAGES, StringUtils.join(pagesList, ','));
         futures.add(asyncFacebookClient.executeFqlQueryAsync(fql, FacebookFriendPageFan.class, fbToken));
@@ -179,7 +179,7 @@ public class FacebookFriendsKeywordsGraph {
         }
 
 
-        List<FacebookFriendPageFan> filteredFriendsPages = new ArrayList<FacebookFriendPageFan>();
+        List<FacebookFriendPageFan> filteredFriendsPages = new ArrayList<>();
         for (FacebookFriendPageFan friendPageFan : friendsPagesFans)
         {
             if (friendsList.contains(friendPageFan.getUid().toString()))

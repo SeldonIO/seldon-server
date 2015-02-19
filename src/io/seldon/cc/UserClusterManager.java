@@ -53,8 +53,8 @@ import io.seldon.sv.SemanticVectorsManager;
 public class UserClusterManager implements PerClientExternalLocationListener {
 
 	 private static Logger logger = Logger.getLogger(SemanticVectorsManager.class.getName());
-	 private final ConcurrentMap<String,MemoryUserClusterStore> clientStores = new ConcurrentHashMap<String,MemoryUserClusterStore>();
-	 private Set<NewResourceNotifier> notifiers = new HashSet<NewResourceNotifier>();
+	 private final ConcurrentMap<String,MemoryUserClusterStore> clientStores = new ConcurrentHashMap<>();
+	 private Set<NewResourceNotifier> notifiers = new HashSet<>();
 	 private final ExternalResourceStreamer featuresFileHandler;
 	 public static final String CLUSTER_NEW_LOC_PATTERN = "usercluster";
 
@@ -104,7 +104,7 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	 protected MemoryUserClusterStore loadUserClusters(String client,BufferedReader reader) throws IOException
 	 {
 		 String line;
-		 List<UserCluster> clusters = new ArrayList<UserCluster>();
+		 List<UserCluster> clusters = new ArrayList<>();
 		 ObjectMapper mapper = new ObjectMapper();
 		 int numUsers = 0;
 		 int numClusters = 0;
@@ -128,13 +128,13 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	 private void storeClusters(MemoryUserClusterStore store,List<UserCluster> clusters)
 		{
 			long currentUser = -1;
-			List<UserCluster> userClusters = new ArrayList<UserCluster>();
+			List<UserCluster> userClusters = new ArrayList<>();
 			for(UserCluster cluster : clusters)
 			{
 				if (currentUser != -1 && currentUser != cluster.getUser())
 				{
 					store.store(currentUser, userClusters);
-					userClusters = new ArrayList<UserCluster>();
+					userClusters = new ArrayList<>();
 				}
 				userClusters.add(cluster);
 				currentUser = cluster.getUser();

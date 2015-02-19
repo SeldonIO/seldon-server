@@ -49,7 +49,7 @@ public class GlobalWeightedMostPopularUtilsTest {
 		
 		GlobalWeightedMostPopularUtils utils = new GlobalWeightedMostPopularUtils(m, 1);
 		
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 
 		items.add(3L);
 		items.add(2L);
@@ -74,7 +74,7 @@ public class GlobalWeightedMostPopularUtilsTest {
 		
 		GlobalWeightedMostPopularUtils utils = new GlobalWeightedMostPopularUtils(m, 1);
 		
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 
 
 		items.add(2L);
@@ -106,7 +106,7 @@ public class GlobalWeightedMostPopularUtilsTest {
 			ItemsRankingManager.getInstance().Hit("test", item);
 		}
 		
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		for(long i=0;i<100;i++)
 			items.add(i);
 		

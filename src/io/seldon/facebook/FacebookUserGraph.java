@@ -34,8 +34,8 @@ import com.restfb.types.User;
 public class FacebookUserGraph {
 
     private User user;
-    private Map<String, Like> likes = new HashMap<String, Like>();
-    private Map<String, Like> groups = new HashMap<String, Like>();
+    private Map<String, Like> likes = new HashMap<>();
+    private Map<String, Like> groups = new HashMap<>();
     private Map<String, FacebookUserGraph> friends;
 
     public FacebookUserGraph(User user, Map<String, Like> likes) {

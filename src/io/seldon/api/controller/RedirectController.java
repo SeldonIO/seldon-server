@@ -54,7 +54,7 @@ import java.util.concurrent.ConcurrentMap;
 @RequestMapping("/redirect")
 public class RedirectController {
 
-    private ConcurrentMap<String, String> hostToTopPrivateDomain = new ConcurrentHashMap<String, String>();
+    private ConcurrentMap<String, String> hostToTopPrivateDomain = new ConcurrentHashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(RedirectController.class);
     @Autowired

@@ -49,7 +49,7 @@ public class FBToUserDimStore  extends ClientPersistable {
 	public Map<String,Set<Integer>> getMappings()
 	{
 		final PersistenceManager pm = getPM();
-		Map<String,Set<Integer>> map = new ConcurrentHashMap<String,Set<Integer>>();
+		Map<String,Set<Integer>> map = new ConcurrentHashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select category,dim_id from fbcat_map" );
 		Collection<Object[]> results = (Collection<Object[]>) query.execute();
 		for(Object[] res : results)

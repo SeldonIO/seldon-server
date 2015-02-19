@@ -37,7 +37,7 @@ public class FacebookFriendsKeywordsProcess
 {
     private static final Logger logger = Logger.getLogger(FacebookFriendsKeywordsProcess.class);
 
-    List<FacebookFriendPageFan> friendPageList = new ArrayList<FacebookFriendPageFan>();
+    List<FacebookFriendPageFan> friendPageList = new ArrayList<>();
 
     
     public FacebookFriendsKeywordsProcess(FacebookFriendsKeywordsGraph fbGraph) 
@@ -50,7 +50,7 @@ public class FacebookFriendsKeywordsProcess
     {
     	HashMap<FacebookUser, Double> fbIdPagesCount = countPagesForEveryUser(friendPageList);
         
-        List<HashMap<FacebookUser, Double>> countList = new ArrayList<HashMap<FacebookUser, Double>>();
+        List<HashMap<FacebookUser, Double>> countList = new ArrayList<>();
         countList.add(fbIdPagesCount);
         
         List<FacebookFriendsRanking> result = scoreCounts(countList);
@@ -61,7 +61,7 @@ public class FacebookFriendsKeywordsProcess
 
     private HashMap<FacebookUser, Double> countPagesForEveryUser(List<FacebookFriendPageFan> friendPageList)
     {
-        HashMap<FacebookUser, Double> fbIdCount = new HashMap<FacebookUser, Double>();
+        HashMap<FacebookUser, Double> fbIdCount = new HashMap<>();
     	
 	 	for (FacebookFriendPageFan item : friendPageList)
     	{
@@ -81,7 +81,7 @@ public class FacebookFriendsKeywordsProcess
     
     public List<FacebookFriendsRanking> scoreCounts(List<HashMap<FacebookUser, Double>> countList)
     {
-    	HashMap<FacebookUser, Double> fbUserCount = new HashMap<FacebookUser, Double>();
+    	HashMap<FacebookUser, Double> fbUserCount = new HashMap<>();
     	fbUserCount.putAll(countList.get(0));
     	
     	int i = 0;
@@ -110,7 +110,7 @@ public class FacebookFriendsKeywordsProcess
     	}
     	
     	//change hashmap to list of FacebookFriendsRanking
-    	List<FacebookFriendsRanking> fbIntResult = new ArrayList<FacebookFriendsRanking>();
+    	List<FacebookFriendsRanking> fbIntResult = new ArrayList<>();
     	for (Map.Entry<FacebookUser, Double> user : fbUserCount.entrySet()) 
     	{
     	    fbIntResult.add(new FacebookFriendsRanking(user.getKey(), user.getValue()));

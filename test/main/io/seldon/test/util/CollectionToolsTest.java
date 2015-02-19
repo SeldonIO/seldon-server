@@ -39,7 +39,7 @@ public class CollectionToolsTest {
 	@Test
 	public void rankedSortTest()
 	{
-		Map<Integer,Integer> map = new HashMap<Integer,Integer>();
+		Map<Integer,Integer> map = new HashMap<>();
 		map.put(1,10);
 		map.put(2,10);
 		map.put(3, 9);

@@ -55,7 +55,7 @@ public class CooccurrenceRecommender {
 	
 	public List<Long> mostPopular(List<Long> items)
 	{
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		Map<String,CooccurrenceCount> aaMap = coocPeer.getCountsAA(items, coocStore);
 		for(Long item : items)
 			scores.put(item, 0.0D);
@@ -69,12 +69,12 @@ public class CooccurrenceRecommender {
 
 	public List<Long> sort(long userId,List<Long> recentItemsForUser,List<Long> items)
 	{
-		List<Long> combinedItems = new ArrayList<Long>();
+		List<Long> combinedItems = new ArrayList<>();
 		combinedItems.addAll(recentItemsForUser);
 		combinedItems.addAll(items);
 		Map<String,CooccurrenceCount> aaMap = coocPeer.getCountsAA(combinedItems, coocStore);
 		Map<String,CooccurrenceCount> abMap = coocPeer.getCountsAB(recentItemsForUser, items, coocStore);
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		for(Long item : items)
 			scores.put(item, 0.0D);
 		for(Long item1 : recentItemsForUser)
@@ -89,7 +89,7 @@ public class CooccurrenceRecommender {
 		}
 		
 		//Remove zero scores
-		Map<Long,Double> scoresPos = new HashMap<Long,Double>();
+		Map<Long,Double> scoresPos = new HashMap<>();
 		for(Map.Entry<Long, Double> e : scores.entrySet())
 			if (e.getValue() > 0.0D)
 				scoresPos.put(e.getKey(), e.getValue());

@@ -47,7 +47,7 @@ public class FacebookInteractionsGraphStatusPhotoLike {
     private static final String GET_STATUS_LIKE = "SELECT user_id,object_id FROM like WHERE object_id IN (SELECT status_id FROM #status_query)";
     private static final String GET_PHOTO_LIKE = "SELECT user_id,object_id FROM like WHERE object_id IN (SELECT object_id FROM #photo_query)";
     private static final String GET_PERMISSIONS = "SELECT user_status, user_photos FROM permissions WHERE uid = me()";
-    private static final Map<String, String> queries = new HashMap<String, String>();
+    private static final Map<String, String> queries = new HashMap<>();
     private static final Logger logger = Logger.getLogger(FacebookInteractionsGraphStatusPhotoLike.class);
     
     static 

@@ -93,7 +93,7 @@ public class WebSearchResultsTest extends BasePeerTest {
 	 public void testStoreItem()
 	 {
 		 Collection<Item> items = itemPeer.getItems(0,10);
-		 List<ItemBean> itemBeans = new ArrayList<ItemBean>();
+		 List<ItemBean> itemBeans = new ArrayList<>();
 		 for(Item item : items)
 			 itemBeans.add(new ItemBean(item));
 		 webSearchResultsPeer.storeNewItems(itemBeans);

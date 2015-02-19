@@ -132,7 +132,7 @@ public class InteractionService {
 
     public Multimap<String, Interaction> retrieveUnconvertedInteractionsBySecondaryUser(String consumerName, Collection<UserBean> users, int type, int subType){
         Multimap<String, Interaction> toReturn = HashMultimap.create();
-        Collection<String> fbIds = new HashSet<String>();
+        Collection<String> fbIds = new HashSet<>();
         for(UserBean user : users){
             fbIds.add(user.getAttributesName().get(FBConstants.FB_ID));
         }

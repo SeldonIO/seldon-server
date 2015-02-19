@@ -42,7 +42,7 @@ public class MultiVariateTest<T> {
     private static final int HASH_SEED = 5795;
     private final String consumerName;
 
-    protected final Map<Range, MultiVariateTestVariation<T>> rateRangeToVariation = new HashMap<Range, MultiVariateTestVariation<T>>();
+    protected final Map<Range, MultiVariateTestVariation<T>> rateRangeToVariation = new HashMap<>();
     protected final BiMap<String, MultiVariateTestVariation<T>> labelToVariation = HashBiMap.create();
     private final UUID testId = UUID.randomUUID();
 
@@ -93,7 +93,7 @@ public class MultiVariateTest<T> {
     }
 
     public List<MultiVariateTestResult> retrieveResults() {
-        List<MultiVariateTestResult> results = new ArrayList<MultiVariateTestResult>();
+        List<MultiVariateTestResult> results = new ArrayList<>();
         for (Map.Entry<Range, MultiVariateTestVariation<T>> variation : rateRangeToVariation.entrySet()) {
             Map<MgmAction.MgmActionType, AtomicInteger> events = variation.getValue().getEvents();
             String label = variation.getValue().getLabel();

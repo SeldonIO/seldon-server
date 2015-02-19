@@ -55,7 +55,7 @@ public class TestCurator {
 	        client.start();
 	        try
 	        {
-	            final BlockingQueue<String> queue = new LinkedBlockingQueue<String>();
+	            final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 	            CuratorListener listener = new CuratorListener()
 	            {
 	                @Override
@@ -109,7 +109,7 @@ public class TestCurator {
 	        CuratorFramework client = builder.connectString("localhost").namespace("aisa").retryPolicy(new RetryOneTime(1)).build();
 	        client.start();
 			
-			final BlockingQueue<String> queue = new LinkedBlockingQueue<String>();
+			final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
             CuratorListener listener = new CuratorListener()
             {
                 @Override

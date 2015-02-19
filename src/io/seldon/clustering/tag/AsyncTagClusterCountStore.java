@@ -85,10 +85,10 @@ public class AsyncTagClusterCountStore implements Runnable {
         this.client = client;
         this.batchSize = batchSize;
         this.maxDBRetries = maxDBRetries;
-        this.queue = new LinkedBlockingQueue<ClusterCount>(maxQSize);
+        this.queue = new LinkedBlockingQueue<>(maxQSize);
         this.timeout = qTimeoutSecs;
         this.decay = decay;
-        clusterCounts = new TreeMap<String,TreeMap<Long,Double>>();
+        clusterCounts = new TreeMap<>();
         this.useDBTime = useDBTime;
         logger.info("Async tag cluster count created for client "+client+" qTimeout:"+qTimeoutSecs+" batchSize:"+batchSize+" maxQSize:"+maxQSize+" maxDBRetries:"+maxDBRetries+" decay:"+decay+" use DB Time:"+useDBTime);
     }
@@ -150,7 +150,7 @@ public class AsyncTagClusterCountStore implements Runnable {
     }
 
     private void resetState() {
-    	clusterCounts = new TreeMap<String,TreeMap<Long,Double>>();
+    	clusterCounts = new TreeMap<>();
         clearSQLState();
         countsAdded = 0;
         countsAddedTotal = 0;
@@ -280,7 +280,7 @@ public class AsyncTagClusterCountStore implements Runnable {
     	TreeMap<Long,Double> clusterMap = clusterCounts.get(count.tag);
     	if (clusterMap == null)
     	{
-    		clusterMap = new TreeMap<Long,Double>();
+    		clusterMap = new TreeMap<>();
     		clusterMap.put(count.itemId, 1D);
     		clusterCounts.put(count.tag, clusterMap);
     		countsAdded++;
@@ -322,7 +322,7 @@ public class AsyncTagClusterCountStore implements Runnable {
     		}
     	}
     	logger.info("Added "+added+" sql inserts to run ");
-    	clusterCounts = new TreeMap<String,TreeMap<Long,Double>>();
+    	clusterCounts = new TreeMap<>();
     	return added;
     }
     
@@ -370,7 +370,7 @@ public class AsyncTagClusterCountStore implements Runnable {
     	Set<String> tags = tagCache.getTags(itemId, this.tagAttrId);
     	if (tags != null && tags.size() > 0)
     	{
-    		Set<Long> items = new HashSet<Long>();
+    		Set<Long> items = new HashSet<>();
     		items.add(itemId);
     		if (userId != Constants.ANONYMOUS_USER && this.actionHistorySize > 0)
     		{

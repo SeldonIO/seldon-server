@@ -31,8 +31,8 @@ import org.apache.log4j.Logger;
 public class AsyncTagClusterCountFactory {
 	private static Logger logger = Logger.getLogger(AsyncTagClusterCountFactory.class.getName());
 
-	private ConcurrentHashMap<String,AsyncTagClusterCountStore> queues = new ConcurrentHashMap<String,AsyncTagClusterCountStore>();
-	private ConcurrentHashMap<String,Boolean> activeClients = new ConcurrentHashMap<String,Boolean>();
+	private ConcurrentHashMap<String,AsyncTagClusterCountStore> queues = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String,Boolean> activeClients = new ConcurrentHashMap<>();
 	private static AsyncTagClusterCountFactory factory;
 	
 	private static int DEF_QTIMEOUT_SECS = 5;

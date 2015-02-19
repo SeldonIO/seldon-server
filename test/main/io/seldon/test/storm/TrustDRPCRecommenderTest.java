@@ -44,7 +44,7 @@ public class TrustDRPCRecommenderTest {
 	public void simpleTestWithMockDRPC() throws TException, DRPCExecutionException
 	{
 		final String topology = "t";
-		List<Long> itemsToSort = new ArrayList<Long>();
+		List<Long> itemsToSort = new ArrayList<>();
 		itemsToSort.add(1L);
 		itemsToSort.add(2L);
 		final long userId = 1L;

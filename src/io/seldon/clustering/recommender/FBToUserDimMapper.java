@@ -52,8 +52,8 @@ public class FBToUserDimMapper {
 	
 	public List<UserCluster> suggestClusters(long userId,List<String> categories)
 	{
-		List<UserCluster> clusters = new ArrayList<UserCluster>();
-		Map<Integer,Integer> scores = new HashMap<Integer,Integer>();
+		List<UserCluster> clusters = new ArrayList<>();
+		Map<Integer,Integer> scores = new HashMap<>();
 		for(String category : categories)
 		{
 			logger.info("Trying to map " + category+" for user "+userId);

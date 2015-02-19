@@ -173,8 +173,8 @@ public class SortTest extends BasePeerTest {
 			removeClusters();
 			
 			
-			List<Long> recentActions = new ArrayList<Long>();
-			List<Long> items = new ArrayList<Long>();
+			List<Long> recentActions = new ArrayList<>();
+			List<Long> items = new ArrayList<>();
 			recentActions.add(1L); // i'm a celebrity
 			
 			items.add(2L); //i'm a celebrity
@@ -185,7 +185,7 @@ public class SortTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName("simple");
-			List<CF_SORTER> sorters = new ArrayList<CF_SORTER>();
+			List<CF_SORTER> sorters = new ArrayList<>();
 			//sorters.add(CF_SORTER.CLUSTER_COUNTS);
 			sorters.add(CF_SORTER.SEMANTIC_VECTORS);
 			options.setSorters(sorters);
@@ -215,8 +215,8 @@ public class SortTest extends BasePeerTest {
 			updateClusters(userId,1,0.5);
 			
 			
-			List<Long> recentActions = new ArrayList<Long>();
-			List<Long> items = new ArrayList<Long>();
+			List<Long> recentActions = new ArrayList<>();
+			List<Long> items = new ArrayList<>();
 			recentActions.add(36754L); // i'm a celebrity
 			recentActions.add(37272L); //big brother
 			recentActions.add(37428L); // x-factor
@@ -236,7 +236,7 @@ public class SortTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CF_SORTER> sorters = new ArrayList<CF_SORTER>();
+			List<CF_SORTER> sorters = new ArrayList<>();
 			sorters.add(CF_SORTER.CLUSTER_COUNTS);
 			//sorters.add(CF_SORTER.SEMANTIC_VECTORS);
 			options.setSorters(sorters);
@@ -266,8 +266,8 @@ public class SortTest extends BasePeerTest {
 			updateClusters(userId,1,0.5);
 			
 			
-			List<Long> recentActions = new ArrayList<Long>();
-			List<Long> items = new ArrayList<Long>();
+			List<Long> recentActions = new ArrayList<>();
+			List<Long> items = new ArrayList<>();
 			recentActions.add(1L); 
 			
 			items.add(2L); 
@@ -277,7 +277,7 @@ public class SortTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CF_SORTER> sorters = new ArrayList<CF_SORTER>();
+			List<CF_SORTER> sorters = new ArrayList<>();
 			sorters.add(CF_SORTER.CLUSTER_COUNTS);
 			sorters.add(CF_SORTER.SEMANTIC_VECTORS);
 			options.setSorters(sorters);

@@ -66,7 +66,7 @@ public class ClusterFromReferrerPeer {
 
 	private ClusterFromReferrerPeer (String[] clients)
 	{
-		referrerHandlerMap = new ConcurrentHashMap<String,IClusterFromReferrer>();
+		referrerHandlerMap = new ConcurrentHashMap<>();
 		for(int i=0;i<clients.length;i++)
 			referrerHandlerMap.put(clients[i], new JdoClusterFromReferrer(clients[i]));
 	}

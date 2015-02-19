@@ -55,7 +55,7 @@ public class StoredClusterPeer implements StoredClusterHandler {
 	@Override
 	public Map<Long, Integer> getUsersNonHash(Set<String> clientItemIds,int max) {
 		if (clientItemIds.size() == 0)
-			return new HashMap<Long,Integer>();
+			return new HashMap<>();
 		StringBuffer sql = new StringBuffer("select u.user_id,count(*) from actions a, items i, users u where i.item_id=a.item_id and i.item_id in (");
 		boolean first = true;
 		for(String id : clientItemIds)
@@ -73,7 +73,7 @@ public class StoredClusterPeer implements StoredClusterHandler {
 		logger.info(sqlStr);
 		Query query = pm.newQuery( "javax.jdo.query.SQL",sqlStr);
 		List<Object[]> users = (List<Object[]>) query.execute();
-		Map<Long,Integer> res = new HashMap<Long,Integer>();
+		Map<Long,Integer> res = new HashMap<>();
 		for(Object[] row : users)
 			res.put((Long)row[0], ((Long)row[1]).intValue());
 		return res;
@@ -85,7 +85,7 @@ public class StoredClusterPeer implements StoredClusterHandler {
 		Collection<UserMinHash> c = (Collection<UserMinHash>) query.execute(hash);
 		if (c != null)
 		{
-			Set<Long> users = new HashSet<Long>();
+			Set<Long> users = new HashSet<>();
 			for(UserMinHash u : c)
 				users.add(u.getUser());
 			return users;
@@ -98,7 +98,7 @@ public class StoredClusterPeer implements StoredClusterHandler {
 	public Set<Long> getUsers(String hash) {
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select user from minhashuser where hash like \""+hash+"%\"" );
 		Collection<Long> users = (Collection<Long>) query.execute();
-		Set<Long> res = new HashSet<Long>();
+		Set<Long> res = new HashSet<>();
 		for(Long user : users)
 			res.add(user);
 		return res;
@@ -108,7 +108,7 @@ public class StoredClusterPeer implements StoredClusterHandler {
 	public Set<Long> getUsers(Set<String> hashes) {
 		if (hashes.size() == 0)
 		{
-			return new HashSet<Long>();
+			return new HashSet<>();
 		}
 		else
 		{
@@ -128,7 +128,7 @@ public class StoredClusterPeer implements StoredClusterHandler {
 			logger.info(sql.toString());
 			Query query = pm.newQuery( "javax.jdo.query.SQL",sql.toString());
 			Collection<Long> users = (Collection<Long>) query.execute();
-			Set<Long> res = new HashSet<Long>();
+			Set<Long> res = new HashSet<>();
 			for(Long user : users)
 				res.add(user);
 			return res;

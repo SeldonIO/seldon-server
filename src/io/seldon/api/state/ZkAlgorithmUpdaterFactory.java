@@ -36,8 +36,8 @@ public class ZkAlgorithmUpdaterFactory {
 	
 	private final static String UPDATERS = "io.seldon.updater.clients";
 
-    private static Set<ZkAlgorithmUpdater> algorithmUpdaters = new HashSet<ZkAlgorithmUpdater>();
-    private static Set<ZkABTestingUpdater> abtestUpdaters = new HashSet<ZkABTestingUpdater>();
+    private static Set<ZkAlgorithmUpdater> algorithmUpdaters = new HashSet<>();
+    private static Set<ZkABTestingUpdater> abtestUpdaters = new HashSet<>();
 	private static ThreadGroup group = new ThreadGroup("ZkUpdaters");
 
 

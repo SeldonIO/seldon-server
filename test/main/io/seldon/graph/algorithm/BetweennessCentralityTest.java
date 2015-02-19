@@ -678,7 +678,7 @@ public class BetweennessCentralityTest {
             try{
             final BetweennessCentrality centrality = new BetweennessCentrality(executor1);
             ExecutorService executor = Executors.newFixedThreadPool(loadThreads);
-            List<Future<double[]>> futures = new ArrayList<Future<double[]>>(loadThreads);
+            List<Future<double[]>> futures = new ArrayList<>(loadThreads);
             for(int i = 0; i < loadThreads; i++){
                 futures.add(executor.submit(new CentralityCallable(centrality, graph)));
             }

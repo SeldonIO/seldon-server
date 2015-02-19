@@ -71,7 +71,7 @@ public class FacebookRandomFriendsGraph {
         {
             fbCallLogger.fbCallPerformed();
             fbCallLogger.fbCallPerformed();
-            Map<String, String> queries = new HashMap<String, String>(2);
+            Map<String, String> queries = new HashMap<>(2);
             queries.put("friends_query", GET_FRIENDS+appUserFilterType.toQuerySegment());
             queries.put("permissions_query", GET_PERMISSIONS);
             result = facebookApiClient.executeFqlMultiquery(queries, MultiQueryResult.class);

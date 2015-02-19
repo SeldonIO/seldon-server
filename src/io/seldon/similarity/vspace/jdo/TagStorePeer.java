@@ -51,7 +51,7 @@ public class TagStorePeer implements TagStore {
 	public Map<String, Long> getItemTags(long itemId) {
 		Query query = pm.newQuery("javax.jdo.query.SQL", "select tag,tf from item_tag where item_id="+itemId);
 		Collection<Object[]> c = (Collection<Object[]>) query.execute();
-		Map<String,Long> tags = new HashMap<String,Long>();
+		Map<String,Long> tags = new HashMap<>();
 		for(Object[] r : c)
 		{
 			long val = (Integer)r[1];
@@ -64,7 +64,7 @@ public class TagStorePeer implements TagStore {
 	public Map<String, Long> getUserTags(long userId) {
 		Query query = pm.newQuery("javax.jdo.query.SQL", "select tag,tf from user_tag where user_Id="+userId);
 		Collection<Object[]> c = (Collection<Object[]>) query.execute();
-		Map<String,Long> tags = new HashMap<String,Long>();
+		Map<String,Long> tags = new HashMap<>();
 		for(Object[] r : c)
 		{
 			long val = (Integer)r[1];

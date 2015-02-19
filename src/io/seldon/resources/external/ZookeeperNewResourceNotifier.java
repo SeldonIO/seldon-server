@@ -56,7 +56,7 @@ public class ZookeeperNewResourceNotifier implements NewResourceNotifier {
 
 
     private final ZkSubscriptionHandler zkSubHander;
-    private ConcurrentHashMap<String, Map<String,ZkNodeChangeListener>> clientWatches = new ConcurrentHashMap<String, Map<String,ZkNodeChangeListener>>();
+    private ConcurrentHashMap<String, Map<String,ZkNodeChangeListener>> clientWatches = new ConcurrentHashMap<>();
 
     @Autowired
     public ZookeeperNewResourceNotifier(ZkSubscriptionHandler zkSubHander) {
@@ -80,7 +80,7 @@ public class ZookeeperNewResourceNotifier implements NewResourceNotifier {
                     return;
                 clientWatches.putIfAbsent(nodePattern, new ConcurrentHashMap<String,ZkNodeChangeListener>());
                 String[] clients = value.split(",");
-                Set<String> clientsSet = new HashSet<String>(Arrays.asList(clients));
+                Set<String> clientsSet = new HashSet<>(Arrays.asList(clients));
                 Map<String,ZkNodeChangeListener> clientMap = clientWatches.get(nodePattern);
                 Collection<String> toRemove = CollectionUtils.subtract(clientMap.keySet(),clientsSet);
                 for (String toRemoveString : toRemove){

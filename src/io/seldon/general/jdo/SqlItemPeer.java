@@ -122,7 +122,7 @@ public class SqlItemPeer extends ItemPeer {
 	}
 
 	public Map<String,String> getItemAttributesName(long userid) {
-		Map<String,String> attributes = new HashMap<String,String>();
+		Map<String,String> attributes = new HashMap<>();
 		String sql = "SELECT a.name attr_name, CASE WHEN imi.value IS NOT NULL THEN cast(imi.value as char) WHEN imd.value IS NOT NULL THEN cast(imd.value as char) WHEN imb.value IS NOT NULL THEN cast(imb.value as char) WHEN imboo.value IS NOT NULL THEN cast(imboo.value as char) WHEN imt.value IS NOT NULL THEN imt.value WHEN imdt.value IS NOT NULL THEN cast(imdt.value as char) WHEN imv.value IS NOT NULL THEN imv.value WHEN e.value_name IS NOT NULL THEN e.value_name END value_id FROM  items i INNER JOIN item_attr a ON i.item_id=? and i.type=a.item_type LEFT JOIN item_map_int imi ON i.item_id=imi.item_id AND a.attr_id=imi.attr_id LEFT JOIN item_map_double imd ON i.item_id=imd.item_id AND a.attr_id=imd.attr_id LEFT JOIN item_map_enum ime ON i.item_id=ime.item_id AND a.attr_id=ime.attr_id LEFT JOIN item_map_bigint imb ON i.item_id=imb.item_id AND a.attr_id=imb.attr_id LEFT JOIN item_map_boolean imboo ON i.item_id=imboo.item_id AND a.attr_id=imboo.attr_id LEFT JOIN item_map_text imt ON i.item_id=imt.item_id AND a.attr_id=imt.attr_id LEFT JOIN item_map_datetime imdt ON i.item_id=imdt.item_id AND a.attr_id=imdt.attr_id LEFT JOIN item_map_varchar imv ON i.item_id=imv.item_id AND a.attr_id=imv.attr_id LEFT JOIN item_attr_enum e ON ime.attr_id =e.attr_id AND ime.value_id=e.value_id";
 		Query query = pm.newQuery( "javax.jdo.query.SQL", sql );
 		Collection<Object[]> c = (Collection<Object[]>) query.execute(userid);
@@ -138,7 +138,7 @@ public class SqlItemPeer extends ItemPeer {
 	}
 
 	public Map<Integer,Integer> getItemAttributes(long itemId) {
-		Map<Integer,Integer> attributes = new HashMap<Integer,Integer>();
+		Map<Integer,Integer> attributes = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select a.attr_id,e.value_id from items i inner join item_attr a on i.item_id=? inner join item_map_enum ime on i.item_id=ime.item_id and a.attr_id=ime.attr_id inner join item_attr_enum e on ime.attr_id=e.attr_id and ime.value_id=e.value_id" );
 		Collection<Object[]> c = (Collection<Object[]>) query.execute(itemId);
 		for(Object[] array : c) {
@@ -240,7 +240,7 @@ public class SqlItemPeer extends ItemPeer {
 
 	@Override
 	public Collection<Dimension> getDimensions() {
-		Collection<Dimension> res = new ArrayList<Dimension>();
+		Collection<Dimension> res = new ArrayList<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select d.dim_id,d.item_type,d.attr_id,d.value_id,a.name,e.value_name,d.trustnetwork from dimension d inner join item_attr_enum e on d.attr_id=e.attr_id and d.value_id=e.value_id inner join item_attr a on e.attr_id=a.attr_id union all select dim_id,d.item_type,attr_id,value_id,'itemType',name,trustnetwork from dimension d inner join item_type t on d.item_type=t.type_id and d.attr_id is null and d.value_id is null");
 		Collection<Object[]> c = (Collection<Object[]>) query.execute();
 		for(Object[] ores : c) {
@@ -328,7 +328,7 @@ public class SqlItemPeer extends ItemPeer {
 	@Override
 	public boolean addItemAttributeNames(long itemId, int itemType, Map<String, String> attributes, ConsumerBean c) throws APIException {
 		boolean res = true;
-        Map<String, String> failedMappings = new HashMap<String, String>();
+        Map<String, String> failedMappings = new HashMap<>();
 		for(Map.Entry<String, String> entry : attributes.entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
@@ -519,14 +519,14 @@ public class SqlItemPeer extends ItemPeer {
 
 	@Override
 	public Collection<Integer> getItemDimensions(long itemId) {
-		Collection<Integer> res = new ArrayList<Integer>();
+		Collection<Integer> res = new ArrayList<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select dim_id from item_map_enum e inner join dimension d on e.attr_id=d.attr_id and e.value_id=d.value_id where item_id="+itemId+" order by dim_id;");
 		return (Collection<Integer>) query.execute();
 	}
 	
 	
 	public Integer getItemCluster(long itemId) {
-		Collection<Integer> res = new ArrayList<Integer>();
+		Collection<Integer> res = new ArrayList<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select cluster_id from item_clusters where item_id="+itemId);
 		query.setResultClass(Integer.class);
 		query.setUnique(true);
@@ -580,9 +580,9 @@ public class SqlItemPeer extends ItemPeer {
 	@Override
 	public List<String> getItemSemanticAttributes(long itemId) {
 		Query query = pm.newQuery("javax.jdo.query.SQL","SELECT CASE WHEN imi.value IS NOT NULL THEN cast(imi.value as char) WHEN imd.value IS NOT NULL THEN cast(imd.value as char) WHEN imb.value IS NOT NULL THEN cast(imb.value as char) WHEN imboo.value IS NOT NULL THEN cast(imboo.value as char) WHEN imt.value IS NOT NULL THEN imt.value WHEN imdt.value IS NOT NULL THEN cast(imdt.value as char) WHEN imv.value IS NOT NULL THEN imv.value WHEN e.value_name IS NOT NULL THEN e.value_name END value_id FROM  items i INNER JOIN item_attr a ON i.item_id=? and a.semantic = true and i.type=a.item_type LEFT JOIN item_map_int imi ON i.item_id=imi.item_id AND a.attr_id=imi.attr_id LEFT JOIN item_map_double imd ON i.item_id=imd.item_id AND a.attr_id=imd.attr_id LEFT JOIN item_map_enum ime ON i.item_id=ime.item_id AND a.attr_id=ime.attr_id LEFT JOIN item_map_bigint imb ON i.item_id=imb.item_id AND a.attr_id=imb.attr_id LEFT JOIN item_map_boolean imboo ON i.item_id=imboo.item_id AND a.attr_id=imboo.attr_id LEFT JOIN item_map_text imt ON i.item_id=imt.item_id AND a.attr_id=imt.attr_id LEFT JOIN item_map_datetime imdt ON i.item_id=imdt.item_id AND a.attr_id=imdt.attr_id LEFT JOIN item_map_varchar imv ON i.item_id=imv.item_id AND a.attr_id=imv.attr_id LEFT JOIN item_attr_enum e ON ime.attr_id =e.attr_id AND ime.value_id=e.value_id order by imv.pos");
-		List<String> res = new ArrayList<String>();
+		List<String> res = new ArrayList<>();
 		Collection<String> col = (Collection<String>) query.execute(itemId);
-		if(col!=null && col.size()>0) { res = new ArrayList<String>(col); }
+		if(col!=null && col.size()>0) { res = new ArrayList<>(col); }
 		return res;
 
 	}
@@ -608,14 +608,14 @@ public class SqlItemPeer extends ItemPeer {
 		}
 		query.setResultClass(Long.class);
 		Collection<Long> res = (Collection<Long>) query.execute();
-		List<Long> resf = new ArrayList<Long>(res);
+		List<Long> resf = new ArrayList<>(res);
 		query.closeAll();
 		return resf;
 	}
 	
 	@Override
 	public Map<Long, List<String>> getRecentItemTags(Set<Long> ids, int attrId,String table) {
-		Map<Long,List<String>> res = new HashMap<Long,List<String>>();
+		Map<Long,List<String>> res = new HashMap<>();
 		if (ids != null && ids.size() > 0)
 		{
 			String idStr = CollectionTools.join(ids, ",");
@@ -627,7 +627,7 @@ public class SqlItemPeer extends ItemPeer {
 				Long itemId = (Long) r[0];
 				String tags = (String) r[1];
 				String[] parts = tags.split(",");
-				List<String> tagList = new ArrayList<String>();
+				List<String> tagList = new ArrayList<>();
 				for(int i=0;i<parts.length;i++)
 				{
 					String tag = StringUtils.trimToEmpty(parts[i]);

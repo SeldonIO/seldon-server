@@ -47,8 +47,8 @@ public class ZookeeperNewResourceNotifierTest {
 
     @Test
     public void testAddingSubscriber() throws Exception {
-        Capture<ZkNodeChangeListener> capturedAllClientListener = new Capture<ZkNodeChangeListener>();
-        Capture<ZkNodeChangeListener> capturedAClientListener = new Capture<ZkNodeChangeListener>();
+        Capture<ZkNodeChangeListener> capturedAllClientListener = new Capture<>();
+        Capture<ZkNodeChangeListener> capturedAClientListener = new Capture<>();
 
         mockZkSubHandler.addSubscription(eq("/clients/pattern"), capture(capturedAllClientListener));
         mockZkSubHandler.addSubscription(eq("/aclient/pattern"), capture(capturedAClientListener));
@@ -63,8 +63,8 @@ public class ZookeeperNewResourceNotifierTest {
 
     @Test
     public void testDeletingClient() throws Exception {
-        Capture<ZkNodeChangeListener> capturedAllClientListener = new Capture<ZkNodeChangeListener>();
-        Capture<ZkNodeChangeListener> capturedAClientListener = new Capture<ZkNodeChangeListener>();
+        Capture<ZkNodeChangeListener> capturedAllClientListener = new Capture<>();
+        Capture<ZkNodeChangeListener> capturedAClientListener = new Capture<>();
 
         mockZkSubHandler.addSubscription(eq("/clients/pattern"), capture(capturedAllClientListener));
         mockZkSubHandler.addSubscription(eq("/aclient/pattern"), capture(capturedAClientListener));

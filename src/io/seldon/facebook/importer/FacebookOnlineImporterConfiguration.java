@@ -36,7 +36,7 @@ public class FacebookOnlineImporterConfiguration {
 	 */
 	private static Logger logger = Logger.getLogger( FacebookOnlineImporterConfiguration.class.getName() );
 	private static final String PROPS_KEY = "io.seldon.facebook.online.clients";
-	static ConcurrentMap<String,Boolean> activeClients = new ConcurrentHashMap<String,Boolean>();
+	static ConcurrentMap<String,Boolean> activeClients = new ConcurrentHashMap<>();
 	
 	public static void initialise(Properties props)
 	{

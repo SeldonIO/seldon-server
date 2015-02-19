@@ -41,9 +41,9 @@ public class SharingRecommendation implements Comparable<SharingRecommendation>,
 		this.userId = userId;
 		this.itemId = itemId;
 		this.score = 0;
-		itemIds = new ArrayList<Long>();
-		clientItemIds = new ArrayList<String>();
-		reasons = new ArrayList<String>();
+		itemIds = new ArrayList<>();
+		clientItemIds = new ArrayList<>();
+		reasons = new ArrayList<>();
 	}
 	
 	public SharingRecommendation(Long userId, double score, List<Long> itemIds) {

@@ -55,7 +55,7 @@ public class StopWordPeer {
 	
 	private void loadEnglishStopWords(String path)
 	{
-		stopWords = new HashSet<String>();
+		stopWords = new HashSet<>();
         File dictFile = new File(path);
         BufferedReader input = null;
     	try {

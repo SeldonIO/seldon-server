@@ -43,7 +43,7 @@ public class CooccurrenceRecommenderTest {
 	@Test 
 	public void testSort()
 	{
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			map.put(CooccurrencePeer.getKey(i1, i1), new CooccurrenceCount(50,0));
 		
@@ -55,11 +55,11 @@ public class CooccurrenceRecommenderTest {
 		
 	ICooccurrenceStore store = new MockCooccurrenceStore(map);
 		
-	List<Long> itemsToSort = new ArrayList<Long>();
+	List<Long> itemsToSort = new ArrayList<>();
 	for(int i=4;i>=1;i--)
 		itemsToSort.add((long)i);
 		
-	List<Long> recentItems = new ArrayList<Long>();
+	List<Long> recentItems = new ArrayList<>();
 	recentItems.add(0L);
 	
 	CooccurrenceRecommender r = new CooccurrenceRecommender("TEST", new CooccurrencePeer("TEST",100,Long.MAX_VALUE), store);

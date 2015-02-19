@@ -37,7 +37,7 @@ public class FacebookRandomFriendsProcess
 {
     private static final Logger logger = Logger.getLogger(FacebookRandomFriendsProcess.class);
 
-    List<FacebookUser> friendList = new ArrayList<FacebookUser>();
+    List<FacebookUser> friendList = new ArrayList<>();
     
 
     public FacebookRandomFriendsProcess(FacebookRandomFriendsGraph fbGraph) 
@@ -48,7 +48,7 @@ public class FacebookRandomFriendsProcess
     
     public List<FacebookFriendsRanking> orderFriendsByRandom()
     {
-    	List<FacebookFriendsRanking> result = new ArrayList<FacebookFriendsRanking>();
+    	List<FacebookFriendsRanking> result = new ArrayList<>();
     	Random rand = new Random();
     	
     	for (FacebookUser friend : friendList)

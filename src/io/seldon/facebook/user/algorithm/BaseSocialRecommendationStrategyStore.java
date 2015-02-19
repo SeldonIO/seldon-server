@@ -46,7 +46,7 @@ public class BaseSocialRecommendationStrategyStore implements SocialRecommendati
     private Map<String, SocialRecommendationStrategy> clientToAlgorithmStore;
 
     private ConcurrentMap<String, MultiVariateTest<SocialRecommendationStrategy>> clientToTest
-            = new ConcurrentHashMap<String, MultiVariateTest<SocialRecommendationStrategy>>();
+            = new ConcurrentHashMap<>();
 
     @Override
     public SocialRecommendationStrategy getStrategy(String userId, String client) {

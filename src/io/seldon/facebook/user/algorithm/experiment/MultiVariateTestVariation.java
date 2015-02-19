@@ -46,7 +46,7 @@ public class MultiVariateTestVariation<T> {
 
     private final T data;
     private final ConcurrentMap<MgmAction.MgmActionType, AtomicInteger> events =
-            new ConcurrentHashMap<MgmAction.MgmActionType, AtomicInteger>();
+            new ConcurrentHashMap<>();
 
     public MultiVariateTestVariation(String label, T data) {
         this.label = label;
@@ -69,6 +69,6 @@ public class MultiVariateTestVariation<T> {
     }
 
     public Map<MgmAction.MgmActionType, AtomicInteger> getEvents(){
-        return new HashMap<MgmAction.MgmActionType, AtomicInteger>(events);
+        return new HashMap<>(events);
     }
 }

@@ -61,7 +61,7 @@ public class RemoveHistoryForSortsTest  extends BasePeerTest {
 		
 		CFAlgorithm options = new CFAlgorithm();
 		options.setName(props.getClient());
-		List<CFAlgorithm.CF_SORTER> sorters = new ArrayList<CFAlgorithm.CF_SORTER>();
+		List<CFAlgorithm.CF_SORTER> sorters = new ArrayList<>();
 		sorters.add(CFAlgorithm.CF_SORTER.COOCCURRENCE);
 		options.setSorters(sorters);
 		options.setPostprocessing(CFAlgorithm.CF_POSTPROCESSING.ADD_MISSING);
@@ -102,7 +102,7 @@ public class RemoveHistoryForSortsTest  extends BasePeerTest {
 		ClientIdCacheStore.get().putItemId(props.getClient(), clientItem2, item2);
 		
 		RecommendationsBean rbean = new RecommendationsBean();
-		List<RecommendationBean> itemList = new ArrayList<RecommendationBean>();
+		List<RecommendationBean> itemList = new ArrayList<>();
 		itemList.add(new RecommendationBean(clientItem1,1,null));
 		itemList.add(new RecommendationBean(clientItem2,2,null));
 		rbean.setList(itemList);
@@ -125,7 +125,7 @@ public class RemoveHistoryForSortsTest  extends BasePeerTest {
 		
 		CFAlgorithm options = new CFAlgorithm();
 		options.setName(props.getClient());
-		List<CFAlgorithm.CF_SORTER> sorters = new ArrayList<CFAlgorithm.CF_SORTER>();
+		List<CFAlgorithm.CF_SORTER> sorters = new ArrayList<>();
 		sorters.add(CFAlgorithm.CF_SORTER.COOCCURRENCE);
 		options.setSorters(sorters);
 		options.setPostprocessing(CFAlgorithm.CF_POSTPROCESSING.ADD_MISSING);
@@ -166,7 +166,7 @@ public class RemoveHistoryForSortsTest  extends BasePeerTest {
 		ClientIdCacheStore.get().putItemId(props.getClient(), clientItem2, item2);
 		
 		RecommendationsBean rbean = new RecommendationsBean(); 
-		List<RecommendationBean> itemList = new ArrayList<RecommendationBean>();
+		List<RecommendationBean> itemList = new ArrayList<>();
 		itemList.add(new RecommendationBean(clientItem1,1,null));
 		itemList.add(new RecommendationBean(clientItem2,2,null));
 		rbean.setList(itemList);

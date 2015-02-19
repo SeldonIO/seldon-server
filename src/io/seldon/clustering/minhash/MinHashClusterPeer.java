@@ -91,7 +91,7 @@ public class MinHashClusterPeer {
 				i++;
 				logger.info("Storing hashes for user "+user.getUserId() + " number:"+i);
 				Collection<Action> actions = a.getUserActions(user.getUserId(), 500000);
-				Set<String> interests = new HashSet<String>();
+				Set<String> interests = new HashSet<>();
 				for(Action action : actions)
 				{
 					interests.add(""+action.getItemId());
@@ -116,7 +116,7 @@ public class MinHashClusterPeer {
 	{
 		MinHashClustering mh = new MinHashClustering(maxSharedInterests,numKeyGroups,clusterStore);
 		//mh.setItemFreq(new ItemFrequencyPeer(oPeer));
-		Set<String> interests = new HashSet<String>();
+		Set<String> interests = new HashSet<>();
 		Collection<Opinion> opinions = oPeer.getUserOpinions(user, 5000000);
 		for(Opinion opinion : opinions)
 		{
@@ -150,8 +150,8 @@ public class MinHashClusterPeer {
 			}
 		}
 		Collection<User> usersAll = uPeer.getActiveUsers(5000);
-		Map<Long,Long> co = new HashMap<Long,Long>();
-		Map<Long,Double> ja = new HashMap<Long,Double>();
+		Map<Long,Long> co = new HashMap<>();
+		Map<Long,Double> ja = new HashMap<>();
 		for(User user2 : usersAll)
 		{
 			if (user2.getUserId() != user)
@@ -211,7 +211,7 @@ public class MinHashClusterPeer {
 		storeHashesForUser(user,interests);
 		MinHashClustering mh = new MinHashClustering(maxSharedInterests,numKeyGroups,clusterStore);
 		Map<Long,Integer> matches = mh.getSimilarUsers(user, interests, 20);
-		Map<Long,Double> trustedUsers = new HashMap<Long,Double>();
+		Map<Long,Double> trustedUsers = new HashMap<>();
 		for(Map.Entry<Long, Integer> match : matches.entrySet())
 		{
 			if (match.getKey() != user)

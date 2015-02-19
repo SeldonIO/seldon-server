@@ -66,7 +66,7 @@ public class ItemSimilarityRecommender {
 			else
 			{
 				logger.info("No recommendation results for user "+userId+" dimension "+dimension+" for client "+client);
-				return new HashMap<Long,Double>();
+				return new HashMap<>();
 			}
 		}
 
@@ -104,7 +104,7 @@ public class ItemSimilarityRecommender {
 		if(newRes==null && res == null)
 		{
 			logger.info("No similar item recommendation results for item "+itemId+" dimension "+dimension+" for client "+client);
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 		}
 
 
@@ -119,7 +119,7 @@ public class ItemSimilarityRecommender {
 
 	public Map<Long,Double> recommendSimilarItems(List<Long> items, int dimension, int numRecommendations, Set<Long> exclusions)
 	{
-		Map<Long,Double> res = new HashMap<Long,Double>();
+		Map<Long,Double> res = new HashMap<>();
 		for(Long itemId : items)
 		{
 			logger.debug("Finding similar items to "+itemId);

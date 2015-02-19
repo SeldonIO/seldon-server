@@ -61,8 +61,8 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
 
     private static Logger logger = Logger.getLogger(MfFeaturesManager.class.getName());
     private final ConcurrentMap<String, ClientMfFeaturesStore> clientStores
-            = new ConcurrentHashMap<String, ClientMfFeaturesStore>();
-    private Set<NewResourceNotifier> notifiers = new HashSet<NewResourceNotifier>();
+            = new ConcurrentHashMap<>();
+    private Set<NewResourceNotifier> notifiers = new HashSet<>();
     private final ExternalResourceStreamer featuresFileHandler;
     private static final String MF_NEW_LOC_PATTERN = "mf";
 
@@ -118,7 +118,7 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
 
 
     private Map<Long,float[]> readFeatures(BufferedReader reader) throws IOException {
-        Map<Long, float[]> toReturn = new HashMap<Long, float[]>();
+        Map<Long, float[]> toReturn = new HashMap<>();
         String line;
         while((line = reader.readLine()) !=null){
             String[] userAndFeatures = line.split("\\|");
@@ -158,7 +158,7 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
 
             int numProducts = productFeatures.size();
             int numLatentFactors = productFeatures.values().iterator().next().length;
-            idMap = new HashMap<Long,Integer>();
+            idMap = new HashMap<>();
         	double[][] itemFactorsDouble  = new double[numProducts][numLatentFactors];            
         	int i = 0;
         	for(Map.Entry<Long, float[]> e : productFeatures.entrySet())

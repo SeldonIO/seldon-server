@@ -63,7 +63,7 @@ public class TagClusterRecommender {
 
 	public Map<Long,Double> recommend(long userId,long itemId,Set<Long> userHistory,int dimension,int numRecommendations,Set<Long> exclusions,double decay)
 	{
-		Set<Long> items = new HashSet<Long>();
+		Set<Long> items = new HashSet<>();
 		items.add(itemId);
 		if (userHistory != null)
 			items.addAll(userHistory);
@@ -100,7 +100,7 @@ public class TagClusterRecommender {
 		if (counts == null)
 		{
 			logger.info("Getting form db counts for tags for item id "+itemId);
-			counts = new HashMap<Long,Double>();
+			counts = new HashMap<>();
 			for(String tag : tags)
 			{
 				Map<Long,Double> tagCounts = getCountsForTag(tag, maxItemCountsPerTag,dimension,decay);

@@ -35,7 +35,7 @@ import io.seldon.facebook.FBConstants;
 public class FBDataUtils {
 
 	public static Map<String, String> buildDemographicsFromUser(User user) {
-		Map<String, String> demographics = new HashMap<String, String>();
+		Map<String, String> demographics = new HashMap<>();
 		
 		String fbGender = fbGetGender( user.getGender() );
 		if (fbGender!=null) {

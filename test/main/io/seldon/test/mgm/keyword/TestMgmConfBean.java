@@ -42,7 +42,7 @@ public class TestMgmConfBean {
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		MgmKeywordConfBean b = new MgmKeywordConfBean();
-		ConcurrentHashMap<String,String> langs = new ConcurrentHashMap<String,String>();
+		ConcurrentHashMap<String,String> langs = new ConcurrentHashMap<>();
 		langs.put("testClient", "en,es");
 		b.setClientToLanguages(langs);
 		

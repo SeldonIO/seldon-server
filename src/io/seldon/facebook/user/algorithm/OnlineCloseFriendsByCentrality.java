@@ -72,7 +72,7 @@ public class OnlineCloseFriendsByCentrality implements FacebookUsersAlgorithm {
     @Override
     public List<RecommendedUserBean> recommendUsers(String userId, UserBean user, String serviceName, ConsumerBean client, int resultLimit, Multimap<String, String> dict, SocialRecommendationStrategy.StrategyAim aim) {
         logger.info("Retrieving close friends via online centrality algorithm for userid: "+userId + ", client: "+ client.getShort_name());
-        List<RecommendedUserBean> results = new ArrayList<RecommendedUserBean>();
+        List<RecommendedUserBean> results = new ArrayList<>();
         long before = System.currentTimeMillis();
        
         if(user==null){
@@ -115,7 +115,7 @@ public class OnlineCloseFriendsByCentrality implements FacebookUsersAlgorithm {
     }
 
     private <T extends FacebookUser> Collection<T> filterAppUsers(List<T> friends, FacebookAppUserFilterType appUserFilterType) {
-        List<T> toReturn = new ArrayList<T>(friends.size());
+        List<T> toReturn = new ArrayList<>(friends.size());
             switch (appUserFilterType){
                 case NONE:
                     return friends;

@@ -140,7 +140,7 @@ public class CreateClustersUtils {
 	
 	public List<UserCluster> merge(List<UserCluster> c1,List<UserCluster> c2)
 	{
-		List<UserCluster> res = new ArrayList<UserCluster>(c1);
+		List<UserCluster> res = new ArrayList<>(c1);
 		for(UserCluster c : c2)
 		{
 			int index;

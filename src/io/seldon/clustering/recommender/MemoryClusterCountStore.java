@@ -55,14 +55,14 @@ public class MemoryClusterCountStore implements ClusterCountStore {
 		this.cacheSize = cacheSize;
 		this.threshold = threshold;
 		this.alpha = alpha;
-		this.map = new ConcurrentHashMap<Integer,ClusterCounter>();
+		this.map = new ConcurrentHashMap<>();
 		this.counterType = counterType;
 	}
 	
 	@Override
 	public Map<Long, Double> getTopCounts(long time, int limit, double decay)
 			throws ClusterCountNoImplementationException {
-		Map<Long,Double> counts = new HashMap<Long,Double>();
+		Map<Long,Double> counts = new HashMap<>();
 		for(Integer c : map.keySet())
 		{
 			Map<Long,Double> countsCluster = map.get(c).getTopCounts(time, limit);
@@ -91,7 +91,7 @@ public class MemoryClusterCountStore implements ClusterCountStore {
 		if (c != null)
 			return c.getTopCounts(time, limit);
 		else
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 	}
 	
 	@Override
@@ -122,7 +122,7 @@ public class MemoryClusterCountStore implements ClusterCountStore {
 	{
 		if (timestamp > this.lastUpdateTime)
 		{
-			this.map = new ConcurrentHashMap<Integer,ClusterCounter>();
+			this.map = new ConcurrentHashMap<>();
 			this.lastUpdateTime = timestamp;
 		}
 	}

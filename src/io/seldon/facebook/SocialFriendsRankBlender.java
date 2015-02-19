@@ -65,7 +65,7 @@ public class SocialFriendsRankBlender implements SocialFriendsBlender {
 		}
 		
 		
-		Map<String,RecommendedUserBean> combinedFriends = new HashMap<String,RecommendedUserBean>();
+		Map<String,RecommendedUserBean> combinedFriends = new HashMap<>();
 		
 		for (List<RecommendedUserBean> algFriends : rankedFriendsLists)
 		{
@@ -87,7 +87,7 @@ public class SocialFriendsRankBlender implements SocialFriendsBlender {
 		}
 		
 		
-		List<RecommendedUserBean> rankedFriends = new ArrayList<RecommendedUserBean>(combinedFriends.values());
+		List<RecommendedUserBean> rankedFriends = new ArrayList<>(combinedFriends.values());
 		
 		return rankedFriends;
 		
@@ -104,9 +104,9 @@ public class SocialFriendsRankBlender implements SocialFriendsBlender {
             toReturn.addAll(recommended.iterator().next());
             return toReturn;
         }
-        Map<String, RecommendedUserBean> userToBeanExample = new HashMap<String, RecommendedUserBean>();
-        Map<String, Double> userToCount = new HashMap<String, Double>();
-        Map<String, Set<String>> userToReasons = new HashMap<String, Set<String>>();
+        Map<String, RecommendedUserBean> userToBeanExample = new HashMap<>();
+        Map<String, Double> userToCount = new HashMap<>();
+        Map<String, Set<String>> userToReasons = new HashMap<>();
 
         int maxSize = 0;
         for(List<RecommendedUserBean> l : recommended){
@@ -137,7 +137,7 @@ public class SocialFriendsRankBlender implements SocialFriendsBlender {
             String thisKey = userToCountSorted.lastKey();
             RecommendedUserBean bean = userToBeanExample.get(thisKey);
             bean.setScore(userToCountSorted.get(thisKey) / maxScore);
-            bean.setReasons(new ArrayList<String>(userToReasons.get(thisKey)));
+            bean.setReasons(new ArrayList<>(userToReasons.get(thisKey)));
             userToCountSorted = userToCountSorted.headMap(thisKey);
             toReturn.addBean(bean);
         }

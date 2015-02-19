@@ -83,7 +83,7 @@ abstract public class VectorStoreRecommender {
 	   * @param numResults the number of results / length of the result list.
 	   */
 	  public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
-	    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+	    LinkedList<SearchResult> results = new LinkedList<>();
 	    double score, threshold = -1;
 	    int duplicatesRemoved = 0;
 	    Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();

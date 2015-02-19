@@ -86,7 +86,7 @@ public class OnlineFriendsByCountry implements FacebookUsersAlgorithm {
     public List<RecommendedUserBean> recommendUsers(String userId, UserBean user, String serviceName, ConsumerBean client, int resultLimit, Multimap<String, String> dict, SocialRecommendationStrategy.StrategyAim aim) {
         logger.info("Retrieving friends with close location: "+userId + ", client: "+ client.getShort_name());
 
-        List<RecommendedUserBean> results = new ArrayList<RecommendedUserBean>();
+        List<RecommendedUserBean> results = new ArrayList<>();
 
         long before = System.currentTimeMillis();
 

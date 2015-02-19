@@ -79,9 +79,9 @@ public class SqlExtUserAttrPeer implements ExtUserAttrPeer {
 
     @Override
     public Map<String, Boolean> retrieve(Collection<String> userIds, String type){
-        Map<String, Boolean > toReturn = new HashMap<String, Boolean>();
+        Map<String, Boolean > toReturn = new HashMap<>();
         Query q = manager.newQuery(ExternalUserAttribute.class, ":p1.contains(uid) && type == :p2");
-        List<ExternalUserAttribute> objects = (List<ExternalUserAttribute>) q.execute(new ArrayList<String>(userIds), type);
+        List<ExternalUserAttribute> objects = (List<ExternalUserAttribute>) q.execute(new ArrayList<>(userIds), type);
         for(ExternalUserAttribute objectArr: objects){
             toReturn.put(objectArr.uid, Boolean.parseBoolean(objectArr.value));
         }

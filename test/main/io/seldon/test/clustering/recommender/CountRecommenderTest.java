@@ -107,7 +107,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		CountRecommender cr = new CountRecommender(props.getClient(),userClusters,clusterCount);
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         CFAlgorithm alg = new CFAlgorithm();
         alg.setUseBucketCluster(true);
         map.put(props.getClient(), alg);
@@ -135,7 +135,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		CountRecommender cr = new CountRecommender(props.getClient(),userClusters,clusterCount);
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         map.put(props.getClient(), new CFAlgorithm());
         aService.setAlgorithmMap(map);
         Util.setAlgorithmService(aService);
@@ -233,7 +233,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		cr.addCount(1L, 1L, 1L);
 		cr.addCount(3L, 1L, 1L);
 	
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		exclusions.add(1L);
 		Map<Long,Double> rMap =  cr.recommendGlobal(Constants.DEFAULT_DIMENSION, 1,exclusions,LONG_DECAY,null);
 		List<Long> recs = CollectionTools.sortMapAndLimitToList(rMap, rMap.size());
@@ -281,7 +281,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		cr.addCount(2L, 4L, 1L);
 		cr.addCount(2L, 4L, 1L);
 
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		Map<Long,Double> rMap =  cr.recommend(1L, 0, Constants.DEFAULT_DIMENSION, 1,exclusions,LONG_DECAY);
 		List<Long> recs = CollectionTools.sortMapAndLimitToList(rMap, rMap.size());
 		// odd users should prefer odd items
@@ -309,7 +309,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		cr.addCount(2L, 4L, 1L);
 		cr.addCount(2L, 4L, 1L);
 
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		exclusions.add(3L);
 		Map<Long,Double> rMap =  cr.recommend(1L, 0, Constants.DEFAULT_DIMENSION, 1,exclusions,LONG_DECAY);
 		List<Long> recs = CollectionTools.sortMapAndLimitToList(rMap, rMap.size());
@@ -336,7 +336,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		cr.addCount(1L, 1L, 1L);
 		cr.addCount(2L, 2L, 1L);
 		
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		items.add(1L);
 		items.add(2L);
 		
@@ -361,7 +361,7 @@ public class CountRecommenderTest extends BasePeerTest {
 		final int numThreads = 200;
 		final int numIterations = 1000;
 		final long maxUsers = 3;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		long start = System.currentTimeMillis();
 		for(int i=0;i<numThreads;i++)
 		{
@@ -384,7 +384,7 @@ public class CountRecommenderTest extends BasePeerTest {
 			t.join();
 		long end = System.currentTimeMillis();
 		System.out.println("Time taken msecs:"+(end-start));
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		items.add(1L);
 		items.add(2L);
 		
@@ -403,7 +403,7 @@ public class CountRecommenderTest extends BasePeerTest {
 
 		@Override
 		public List<UserCluster> getClusters(long userId) {
-			return new ArrayList<UserCluster>();
+			return new ArrayList<>();
 		}
 
 		@Override
@@ -435,7 +435,7 @@ public class CountRecommenderTest extends BasePeerTest {
 	public static class SimpleUserClusters implements UserClusterStore
 	{
 		int numClusters;
-		Map<Long,List<UserCluster>> map = new HashMap<Long,List<UserCluster>>();
+		Map<Long,List<UserCluster>> map = new HashMap<>();
 		public SimpleUserClusters(int numClusters)
 		{
 			this.numClusters = numClusters;
@@ -446,7 +446,7 @@ public class CountRecommenderTest extends BasePeerTest {
 			List<UserCluster> res = map.get(userId);
 			if (res == null)
 			{
-				res = new ArrayList<UserCluster>();
+				res = new ArrayList<>();
 				Random r = new Random();
 				for(int i=1;i<=numClusters;i++)
 				{

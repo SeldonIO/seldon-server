@@ -101,7 +101,7 @@ public class ClusterCountForItemCategoryTest  extends BasePeerTest {
 			TransactionPeer.runTransaction(new Transaction(pm) {
 				public void process() {
 					Query query = pm.newQuery("javax.jdo.query.SQL", "insert into actions values (0,?,?,99,1,now(),0,?,?)");
-					List<Object> args = new ArrayList<Object>();
+					List<Object> args = new ArrayList<>();
 					args.add(userId);
 					args.add(itemId);
 					args.add("" + userId);
@@ -436,7 +436,7 @@ public class ClusterCountForItemCategoryTest  extends BasePeerTest {
 
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_ITEM_CATEGORY);
 			options.setMaxRecommendersToUse(1);
 			options.setRecommenders(recommenders);

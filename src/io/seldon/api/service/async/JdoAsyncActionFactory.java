@@ -44,7 +44,7 @@ public class JdoAsyncActionFactory {
 	private static boolean active = false;
 	
 	
-	private ConcurrentHashMap<String,AsyncActionQueue> queues = new ConcurrentHashMap<String,AsyncActionQueue>();
+	private ConcurrentHashMap<String,AsyncActionQueue> queues = new ConcurrentHashMap<>();
 	private static JdoAsyncActionFactory factory;
 	Timer updateCheckTimer;
 	

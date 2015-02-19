@@ -70,7 +70,7 @@ public class DbUtils {
             public void process() {
                 String sql = "insert into user_similarity (u1,u2,type,score) values (?,?,?,?) on duplicate key update score=" + score;
                 Query query = pm.newQuery("javax.jdo.query.SQL", sql);
-                List<Object> args = new ArrayList<Object>();
+                List<Object> args = new ArrayList<>();
                 args.add(u1);
                 args.add(u2);
                 args.add(type);

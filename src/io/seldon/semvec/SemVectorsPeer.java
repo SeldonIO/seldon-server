@@ -276,7 +276,7 @@ public class SemVectorsPeer {
 			for(SearchResult r : results)
 			{
 				String filename = r.getObjectVector().getObject().toString();
-				docResult.add(new SemVectorResult<T>(termTransform.fromSV(filename),r.getScore()));
+				docResult.add(new SemVectorResult<>(termTransform.fromSV(filename),r.getScore()));
 			}
 		}
 		finally
@@ -296,7 +296,7 @@ public class SemVectorsPeer {
 			for(SearchResult r : results)
 			{
 				String filename = r.getObjectVector().getObject().toString();
-				docResult.add(new SemVectorResult<T>(docTransform.fromSV(filename),r.getScore()));
+				docResult.add(new SemVectorResult<>(docTransform.fromSV(filename),r.getScore()));
 			}
 		}
 		finally
@@ -312,11 +312,11 @@ public class SemVectorsPeer {
 		try
 		{
 			String query = termTransform.toSV(termQuery); 
-			Set<String> docExclusions = new HashSet<String>();
+			Set<String> docExclusions = new HashSet<>();
 			if (exclusions != null)
 				for(T i : exclusions)
 					docExclusions.add(docTransform.toSV(i));
-			Set<String> docInclusions = new HashSet<String>();
+			Set<String> docInclusions = new HashSet<>();
 			if (inclusions != null)
 				for(T i : inclusions)
 					docInclusions.add(docTransform.toSV(i));
@@ -324,7 +324,7 @@ public class SemVectorsPeer {
 			for(SearchResult r : results)
 			{
 				String filename = r.getObjectVector().getObject().toString();
-				docResult.add(new SemVectorResult<T>(docTransform.fromSV(filename),r.getScore()));
+				docResult.add(new SemVectorResult<>(docTransform.fromSV(filename),r.getScore()));
 			}
 		}
 		finally
@@ -352,14 +352,14 @@ public class SemVectorsPeer {
 		try
 		{
 			String docName = docTransform.toSV(docQuery);
-			Set<String> docExclusions = new HashSet<String>();
+			Set<String> docExclusions = new HashSet<>();
 			for(T i : exclusions)
 				docExclusions.add(docTransform.toSV(i));
 			LinkedList<SearchResult> results = recommend(docName,docVecReader,docVecReader,numResults,docExclusions,new HashSet<String>(),docTransform.toSV(minDoc));
 			for(SearchResult r : results)
 			{
 				String filename = r.getObjectVector().getObject().toString();
-				docResult.add(new SemVectorResult<T>(docTransform.fromSV(filename),r.getScore()));
+				docResult.add(new SemVectorResult<>(docTransform.fromSV(filename),r.getScore()));
 			}
 		}
 		finally
@@ -379,7 +379,7 @@ public class SemVectorsPeer {
 			for(SearchResult r : results)
 			{
 				String filename = r.getObjectVector().getObject().toString();
-				docResult.add(new SemVectorResult<T>(docTransform.fromSV(filename),r.getScore()));
+				docResult.add(new SemVectorResult<>(docTransform.fromSV(filename),r.getScore()));
 			}
 		}
 		finally
@@ -393,7 +393,7 @@ public class SemVectorsPeer {
 	private LinkedList<SearchResult> search(String query,VectorStore queryStore,VectorStore searchStore,int numResults)
 	{
 		 VectorSearcher vecSearcher;
-		 LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+		 LinkedList<SearchResult> results = new LinkedList<>();
 		 try 
 		 {
 			 String[] queryTerms = query.split("\\s+");
@@ -407,7 +407,7 @@ public class SemVectorsPeer {
 			 
 			 
 		 } catch (pitt.search.semanticvectors.vectors.ZeroVectorException e) {
-			 results = new LinkedList<SearchResult>();
+			 results = new LinkedList<>();
 
 		}
 		 return results;
@@ -417,7 +417,7 @@ public class SemVectorsPeer {
 	private LinkedList<SearchResult> recommend(String query,VectorStore queryStore,VectorStore searchStore,int numResults,Set<String> exclusions,Set<String> inclusions,String minDoc)
 	{
 	
-		 LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+		 LinkedList<SearchResult> results = new LinkedList<>();
 		 try 
 		 {
 			 String[] queryTerms = query.split("\\s+");
@@ -433,7 +433,7 @@ public class SemVectorsPeer {
 			 
 			 
 		 } catch (ZeroVectorException zve) {
-			 results = new LinkedList<SearchResult>();
+			 results = new LinkedList<>();
 		 }
 		 return results;
 	}
@@ -486,13 +486,13 @@ public class SemVectorsPeer {
 			boolean bestScore = false;
 			boolean useThreshold = false;
 			double threshold = 0.999;
-			List<T> result = new ArrayList<T>();
-			Map<Vector,T> sortVectors = new HashMap<Vector,T>();
-			Map<Vector,Double> scores = new HashMap<Vector,Double>();
+			List<T> result = new ArrayList<>();
+			Map<Vector,T> sortVectors = new HashMap<>();
+			Map<Vector,Double> scores = new HashMap<>();
 			boolean comparisonsMade = false;
 			boolean foundItemsToSort = false;
-			List<T> alreadySeen = new ArrayList<T>();
-			List<T> notFound = new ArrayList<T>();
+			List<T> alreadySeen = new ArrayList<>();
+			List<T> notFound = new ArrayList<>();
 			for(T item : sortItems)
 			{
 				if (!recentItems.contains(item) && !exclusions.contains(item))
@@ -519,7 +519,7 @@ public class SemVectorsPeer {
 			if (!foundItemsToSort)
 			{
 				logger.debug("No sort items so returning empty list");
-				return new ArrayList<T>();
+				return new ArrayList<>();
 			}
 			for(T recent : recentItems)
 			{
@@ -531,7 +531,7 @@ public class SemVectorsPeer {
 					comparisonsMade = true;
 					if (useRank)
 					{
-						Map<Vector,Double> scoresLocal = new HashMap<Vector,Double>();
+						Map<Vector,Double> scoresLocal = new HashMap<>();
 						for(Map.Entry<Vector, T> e : sortVectors.entrySet())
 							scoresLocal.put(e.getKey(), vectorRecent.measureOverlap(e.getKey()));
 						List<Vector> orderedLocal = CollectionTools.sortMapAndLimitToList(scoresLocal, scoresLocal.size());
@@ -602,7 +602,7 @@ public class SemVectorsPeer {
 			else
 			{
 				logger.debug("No comparisons made so returning empty list");
-				return new ArrayList<T>();
+				return new ArrayList<>();
 			}
 		}
 		finally
@@ -618,13 +618,13 @@ public class SemVectorsPeer {
 		lock.readLock().lock();
 		try
 		{
-			List<T> result = new ArrayList<T>();
-			Map<Vector,T> sortVectors = new HashMap<Vector,T>();
-			Map<Vector,Double> scores = new HashMap<Vector,Double>();
+			List<T> result = new ArrayList<>();
+			Map<Vector,T> sortVectors = new HashMap<>();
+			Map<Vector,Double> scores = new HashMap<>();
 			boolean comparisonsMade = false;
 			boolean foundItemsToSort = false;
-			List<T> alreadySeen = new ArrayList<T>();
-			List<T> notFound = new ArrayList<T>();
+			List<T> alreadySeen = new ArrayList<>();
+			List<T> notFound = new ArrayList<>();
 			for(T item : sortItems)
 			{
 				if (!recentItems.contains(item) && !exclusions.contains(item))
@@ -651,7 +651,7 @@ public class SemVectorsPeer {
 			if (!foundItemsToSort)
 			{
 				logger.debug("No sort items so returning empty list");
-				return new HashMap<T,Double>();
+				return new HashMap<>();
 			}
 			for(T recent : recentItems)
 			{
@@ -680,7 +680,7 @@ public class SemVectorsPeer {
 			}
 			if (comparisonsMade)
 			{
-				Map<T,Double> scoresRes = new HashMap<T,Double>();
+				Map<T,Double> scoresRes = new HashMap<>();
 				for(Map.Entry<Vector, Double> e : scores.entrySet())
 					scoresRes.put(sortVectors.get(e.getKey()), e.getValue());
 				return RecommendationUtils.rescaleScoresToOne(scoresRes, numRecommendations);
@@ -688,7 +688,7 @@ public class SemVectorsPeer {
 			else
 			{
 				logger.debug("No comparisons made so returning empty list");
-				return new HashMap<T,Double>();
+				return new HashMap<>();
 			}
 		}
 		finally
@@ -710,11 +710,11 @@ public class SemVectorsPeer {
 	//General recommendations
 	public <T extends Comparable<T>> Map<T,Double> recommendDocsUsingDocQuery(List<T> recentItems,QueryTransform<T> docTransform,int numResults,Set<T> exclusions,T minDoc,boolean ignorePerfectMatches)
 	{
-		Map<T,Double> scores = new HashMap<T,Double>();
+		Map<T,Double> scores = new HashMap<>();
 		
 		for(T recent : recentItems)
 		{
-			ArrayList<SemVectorResult<T>> docResult = new ArrayList<SemVectorResult<T>>();
+			ArrayList<SemVectorResult<T>> docResult = new ArrayList<>();
 			recommendDocsUsingDocQuery(recent,docResult,docTransform,numResults*10,exclusions,minDoc);
 			for(SemVectorResult<T> r : docResult)
 			{
@@ -740,12 +740,12 @@ public class SemVectorsPeer {
 	
 	public Map<Long,Double> recommendDocsFromItemTags(List<Long> items,int tagAttrId,IItemTagCache tagCache,int numResults,Set<Long> exclusions,Set<Long> inclusions,boolean ignorePerfectMatches)
 	{
-		Map<Long,Double> scores = new HashMap<Long,Double>();
-		Set<String> tags = new HashSet<String>();
+		Map<Long,Double> scores = new HashMap<>();
+		Set<String> tags = new HashSet<>();
 		for(Long item : items)
 			tags.addAll(tagCache.getTags(item, tagAttrId)); 
 		String query = StringUtils.join(tags, " ");
-		ArrayList<SemVectorResult<Long>> docResult = new ArrayList<SemVectorResult<Long>>();
+		ArrayList<SemVectorResult<Long>> docResult = new ArrayList<>();
 		recommendDocsUsingTermQuery(query, docResult, new LongIdTransform(), new StringTransform(), numResults, exclusions, inclusions, 1L);
 		int numScores = 0;
 		for(SemVectorResult<Long> r : docResult)
@@ -792,13 +792,13 @@ public class SemVectorsPeer {
 			results = vecSearcher.getNearestNeighbors(numResults);
 		} 
 		catch (pitt.search.semanticvectors.vectors.ZeroVectorException e) {
-			results = new LinkedList<SearchResult>();
+			results = new LinkedList<>();
 		}
 		for(SearchResult r : results)
 		{
 			String filename = r.getObjectVector().getObject().toString();
 			
-			docResult.add(new SemVectorResult<T>(docTransform.fromSV(filename),r.getScore()));
+			docResult.add(new SemVectorResult<>(docTransform.fromSV(filename),r.getScore()));
 		}
 	}
 	

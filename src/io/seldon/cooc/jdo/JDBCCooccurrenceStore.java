@@ -45,7 +45,7 @@ public class JDBCCooccurrenceStore extends ClientPersistable implements ICooccur
 
 	@Override
 	public Map<String, CooccurrenceCount> getCounts(List<Long> item1,List<Long> item2) {
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		if (item1 == null || item1.size() == 0)
 			return map;
 		if (item2 == null || item2.size() == 0)
@@ -68,7 +68,7 @@ public class JDBCCooccurrenceStore extends ClientPersistable implements ICooccur
 
 	@Override
 	public Map<String, CooccurrenceCount> getCounts(List<Long> item1) {
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		if (item1 == null || item1.size() == 0)
 			return map;
 		final PersistenceManager pm = getPM();

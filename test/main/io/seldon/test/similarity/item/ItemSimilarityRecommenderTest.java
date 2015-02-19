@@ -243,7 +243,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CF_RECOMMENDER> recommenders = new ArrayList<CF_RECOMMENDER>();
+			List<CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CF_RECOMMENDER.ITEM_SIMILARITY_RECOMENDER);
 			recommenders.add(CF_RECOMMENDER.RECENT_ITEMS);
 			options.setRecommenders(recommenders);
@@ -290,7 +290,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CF_RECOMMENDER> recommenders = new ArrayList<CF_RECOMMENDER>();
+			List<CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CF_RECOMMENDER.ITEM_SIMILARITY_RECOMENDER);
 			recommenders.add(CF_RECOMMENDER.RECENT_ITEMS);
 			options.setRecommenders(recommenders);
@@ -369,7 +369,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			addDimensionForItem(3, 1);
 			addItem(3);
 			
-			Set<Long> excl = new HashSet<Long>();
+			Set<Long> excl = new HashSet<>();
 			excl.add(1L);
 			IItemSimilarityPeer peer = new JdoItemSimilarityPeer(props.getClient());
 			ItemSimilarityRecommender recommender = new ItemSimilarityRecommender(props.getClient(),peer);
@@ -407,7 +407,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			addItem(3);
 			addRecommendation(user, 3, 0.25);
 			
-			Set<Long> excl = new HashSet<Long>();
+			Set<Long> excl = new HashSet<>();
 			excl.add(1L);
 			IItemSimilarityPeer peer = new JdoItemSimilarityPeer(props.getClient());
 			ItemSimilarityRecommender recommender = new ItemSimilarityRecommender(props.getClient(),peer);
@@ -481,7 +481,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			addItem(2);
 			addItemSimilarity(item, 2, 0.5);
 			
-			Set<Long> excl = new HashSet<Long>();
+			Set<Long> excl = new HashSet<>();
 			excl.add(1L);
 			IItemSimilarityPeer peer = new JdoItemSimilarityPeer(props.getClient());
 			ItemSimilarityRecommender recommender = new ItemSimilarityRecommender(props.getClient(),peer);
@@ -521,7 +521,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			addItem(3);
 			addItemSimilarity(item, 3, 0.25);
 			
-			Set<Long> excl = new HashSet<Long>();
+			Set<Long> excl = new HashSet<>();
 			excl.add(1L);
 			IItemSimilarityPeer peer = new JdoItemSimilarityPeer(props.getClient());
 			ItemSimilarityRecommender recommender = new ItemSimilarityRecommender(props.getClient(),peer);
@@ -561,7 +561,7 @@ public class ItemSimilarityRecommenderTest extends BasePeerTest {
 			addItem(3);
 			addItemSimilarity(3, item, 0.25);
 			
-			Set<Long> excl = new HashSet<Long>();
+			Set<Long> excl = new HashSet<>();
 			excl.add(1L);
 			IItemSimilarityPeer peer = new JdoItemSimilarityPeer(props.getClient());
 			ItemSimilarityRecommender recommender = new ItemSimilarityRecommender(props.getClient(),peer);

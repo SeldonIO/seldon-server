@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class ALSRecommenderStore {
 
-	static Map<String,ALSRecommender> recommenders = new HashMap<String,ALSRecommender>();
+	static Map<String,ALSRecommender> recommenders = new HashMap<>();
 	
 	public static void load(String clientStr,String baseDir)
 	{

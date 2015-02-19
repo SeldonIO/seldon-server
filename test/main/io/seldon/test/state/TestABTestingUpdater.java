@@ -165,7 +165,7 @@ public class TestABTestingUpdater extends BasePeerTest {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         final String abKey = "test1234";
@@ -216,7 +216,7 @@ public class TestABTestingUpdater extends BasePeerTest {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         final String abKey = "test1234";
@@ -268,7 +268,7 @@ public class TestABTestingUpdater extends BasePeerTest {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         alg.setAbTestingKey("B");
@@ -303,7 +303,7 @@ public class TestABTestingUpdater extends BasePeerTest {
         //2nd time
         alg = new CFAlgorithm();
         alg.setName(consumerName);
-        recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_DYNAMIC);
         alg.setAbTestingKey("B");
         alg.setRecommenders(recommenders);

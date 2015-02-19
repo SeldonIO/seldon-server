@@ -62,8 +62,8 @@ public class RecommendedUserBean extends ResourceBean {
 		this.clientUserId = clientUserId;
 		this.score = score;
 		this.items = items;
-		this.reasons = new ArrayList<String>();
-        this.reasonTranslations = new ArrayList<String>();
+		this.reasons = new ArrayList<>();
+        this.reasonTranslations = new ArrayList<>();
 	}
 
 
@@ -98,7 +98,7 @@ public class RecommendedUserBean extends ResourceBean {
 		}
 		else
 		{
-			List<String> items = new ArrayList<String>();
+			List<String> items = new ArrayList<>();
 			if (s.getItemIds() != null)
 				for(long itemId : s.getItemIds()) 
 					{ items.add(ItemService.getClientItemId(c, itemId)); }

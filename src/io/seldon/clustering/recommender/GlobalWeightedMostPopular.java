@@ -76,7 +76,7 @@ public class GlobalWeightedMostPopular {
 	
 	public GlobalWeightedMostPopular()
 	{
-		this.countStoreMap = new ConcurrentHashMap<String,MemoryWeightedClusterCountMap>();
+		this.countStoreMap = new ConcurrentHashMap<>();
 	}
 	
 

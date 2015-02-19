@@ -71,7 +71,7 @@ public class TestAlgorithmOptionsUpdater {
 		origService = Util.getAlgorithmService();
 
         AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         aService.setAlgorithmMap(map);
         Util.setAlgorithmService(aService);
 	}
@@ -109,7 +109,7 @@ public class TestAlgorithmOptionsUpdater {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         
@@ -162,7 +162,7 @@ public class TestAlgorithmOptionsUpdater {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         
@@ -200,7 +200,7 @@ public class TestAlgorithmOptionsUpdater {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         
@@ -246,7 +246,7 @@ public class TestAlgorithmOptionsUpdater {
         
         CFAlgorithm alg = new CFAlgorithm();
         alg.setName(consumerName);
-        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+        List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
         recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
         alg.setRecommenders(recommenders);
         

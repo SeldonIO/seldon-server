@@ -45,8 +45,8 @@ import org.junit.Test;
 public class AsyncActionQueueTest extends BaseServiceTest {
 
     private AsyncActionQueue actionQueue;
-    private List<String> ficticiousUsers = new LinkedList<String>();
-    private List<String> ficticiousItems = new LinkedList<String>();
+    private List<String> ficticiousUsers = new LinkedList<>();
+    private List<String> ficticiousItems = new LinkedList<>();
     private int userCount = 25;
     private int itemCount = 50;
 

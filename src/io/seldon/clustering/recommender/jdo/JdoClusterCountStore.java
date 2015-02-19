@@ -73,7 +73,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 					public void process() {
 
 						Query query = pm.newQuery("javax.jdo.query.SQL", "insert into cluster_counts values (?,?,?,unix_timestamp()) on duplicate key update count=?+exp(-(unix_timestamp()-t)/?)*count,t=unix_timestamp();");
-						ArrayList<Object> args = new ArrayList<Object>();
+						ArrayList<Object> args = new ArrayList<>();
 						args.add(clusterId);
 						args.add(itemId);
 						args.add(weight);
@@ -113,7 +113,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 				    { 
 				    
 				    	Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into cluster_counts values (?,?,?,unix_timestamp()) on duplicate key update count=?+exp(-(greatest(unix_timestamp()-t,0)/?))*count,t=unix_timestamp();");
-				    	ArrayList<Object> args = new ArrayList<Object>();
+				    	ArrayList<Object> args = new ArrayList<>();
 				    	args.add(clusterId);
 				    	args.add(itemId);
 				    	args.add(weight);
@@ -168,7 +168,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	public Map<Long, Double> getTopCounts(int clusterId, long timestamp,
 			long time, int limit, double decay) {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,exp(-(greatest(unix_timestamp()-t,0)/?))*count as decayedCount from cluster_counts where id=? order by decayedCount desc limit "+limit );
 		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,clusterId);
 		for(Object[] r : res)
@@ -186,7 +186,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	public Map<Long, Double> getTopCounts(long time, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedSumCount from cluster_counts group by item_id order by decayedSumCount desc limit "+limit );
 		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay);
 		for(Object[] r : res)
@@ -204,7 +204,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 			long timestamp, long time, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,exp(-(greatest(unix_timestamp()-t,0)/?))*count as decayedCount from cluster_counts natural join item_map_enum natural join dimension where id = ? and dim_id = "+dimension+" order by decayedCount desc limit "+limit );
 		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,clusterId);
 		for(Object[] r : res)
@@ -221,9 +221,9 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 			int dimension, long timestamp, long time, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,r.v*r.count as score from (select item_id,(count/sl-s/sg)/greatest(count/sl,s/sg) as v,count from (select exp(-(greatest(unix_timestamp()-c.t,0)/?))*c.count as count,cit.total as s,sl,cct.total as sg,c.item_id from cluster_counts c join (select sum(exp(-(greatest(unix_timestamp()-c.t,0)/?))) sl from cluster_counts c where id=?) t1 join cluster_counts_total cct join cluster_counts_item_total cit on (c.item_id=cit.item_id) where id=?) r1) r natural join item_map_enum natural join dimension where dim_id = ? order by score desc limit "+limit );
-		ArrayList<Object> args = new ArrayList<Object>();
+		ArrayList<Object> args = new ArrayList<>();
 		args.add(decay);
 		args.add(decay);
 		args.add(clusterId);
@@ -245,7 +245,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 		long time, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedSumCount from cluster_counts natural join item_map_enum natural join dimension where dim_id = ? group by item_id order by decayedSumCount desc limit "+limit );
 		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,dimension);
 		for(Object[] r : res)
@@ -263,9 +263,9 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 			int dimension2, long time, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select c.item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedCount from cluster_counts c natural join item_map_enum ime1 join dimension d1 on (d1.attr_id=ime1.attr_id and ime1.value_id=d1.value_id) join item_map_enum ime2 on (c.item_id=ime2.item_id) join dimension d2 on (d2.attr_id=ime2.attr_id and ime2.value_id=d2.value_id) where d1.dim_id = ? and d2.dim_id = ?  group by item_id order by decayedcount desc limit "+limit );
-		ArrayList<Object> args = new ArrayList<Object>();
+		ArrayList<Object> args = new ArrayList<>();
 		args.add(decay);
 		args.add(dimension1);
 		args.add(dimension2);

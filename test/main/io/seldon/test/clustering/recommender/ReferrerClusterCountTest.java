@@ -220,7 +220,7 @@ public class ReferrerClusterCountTest extends BasePeerTest {
 		CountRecommender cr = new CountRecommender(props.getClient(),userClusters,clusterCount);
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         CFAlgorithm alg = new CFAlgorithm();
         map.put(props.getClient(), alg);
         aService.setAlgorithmMap(map);
@@ -246,7 +246,7 @@ public class ReferrerClusterCountTest extends BasePeerTest {
 		CountRecommender cr = new CountRecommender(props.getClient(),userClusters,clusterCount);
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         CFAlgorithm alg = new CFAlgorithm();
         map.put(props.getClient(), alg);
         aService.setAlgorithmMap(map);
@@ -271,7 +271,7 @@ public class ReferrerClusterCountTest extends BasePeerTest {
 		CountRecommender cr = new CountRecommender(props.getClient(),userClusters,clusterCount);
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         CFAlgorithm alg = new CFAlgorithm();
         map.put(props.getClient(), alg);
         aService.setAlgorithmMap(map);
@@ -297,7 +297,7 @@ public class ReferrerClusterCountTest extends BasePeerTest {
 		CountRecommender cr = new CountRecommender(props.getClient(),userClusters,clusterCount);
 		
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         CFAlgorithm alg = new CFAlgorithm();
         map.put(props.getClient(), alg);
         aService.setAlgorithmMap(map);

@@ -57,7 +57,7 @@ public class TagCountRecommender {
 		if (userTagMap == null || userTagMap.size() == 0)
 		{
 			logger.debug("No tags found for user "+userId);
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 		}
 		else
 		{
@@ -65,11 +65,11 @@ public class TagCountRecommender {
 			if (itemTagMap == null || itemTagMap.size() == 0)
 			{
 				logger.warn("Found no recent items for client "+client);
-				return new HashMap<Long,Double>();
+				return new HashMap<>();
 			}
 			else
 			{
-				Map<Long,Double> scores = new HashMap<Long,Double>();
+				Map<Long,Double> scores = new HashMap<>();
 				double maxScore = 0;
 				long maxItemId = 0;
 				for(Map.Entry<String, Integer> utag : userTagMap.entrySet())
@@ -99,7 +99,7 @@ public class TagCountRecommender {
 						scores.put(item, scores.get(item) +  maxItemId/item.doubleValue());
 					}
 					List<Long> topN = CollectionTools.sortMapAndLimitToList(scores, numRecommendations, true);
-					Map<Long,Double> recMap = new HashMap<Long,Double>();
+					Map<Long,Double> recMap = new HashMap<>();
 					for(Long item : topN)
 					{
 						recMap.put(item, scores.get(item)/maxScore);
@@ -110,7 +110,7 @@ public class TagCountRecommender {
 				else
 				{
 					logger.info("Not enough recommendations for user "+userId+" for client "+client);
-					return new HashMap<Long,Double>();
+					return new HashMap<>();
 				}
 			}
 		}

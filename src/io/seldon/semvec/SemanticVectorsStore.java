@@ -39,7 +39,7 @@ public class SemanticVectorsStore {
 	public static final String PREFIX_USER_ITEMS = "user_items";
 	public static final String CLUSTER = "cluster";
 	
-	static ConcurrentHashMap<String,SemVectorsPeer> store = new ConcurrentHashMap<String,SemVectorsPeer>();
+	static ConcurrentHashMap<String,SemVectorsPeer> store = new ConcurrentHashMap<>();
 	static String baseDirectory = "";
 	private static int reloadSec = 60 * 5;
 	

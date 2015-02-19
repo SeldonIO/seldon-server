@@ -39,7 +39,7 @@ public class RankedItemTest {
 	@Test
 	public void testCreateFromList()
 	{
-		List<Integer> items = new ArrayList<Integer>();
+		List<Integer> items = new ArrayList<>();
 		items.add(1);
 		items.add(2);
 		items.add(3);
@@ -54,7 +54,7 @@ public class RankedItemTest {
 	@Test
 	public void testSortOrder()
 	{
-		List<Integer> items = new ArrayList<Integer>();
+		List<Integer> items = new ArrayList<>();
 		items.add(1);
 		items.add(2);
 		items.add(3);

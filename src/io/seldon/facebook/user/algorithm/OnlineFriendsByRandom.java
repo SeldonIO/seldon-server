@@ -65,7 +65,7 @@ public class OnlineFriendsByRandom implements FacebookUsersAlgorithm
     @Override
     public List<RecommendedUserBean> recommendUsers(String userId, UserBean user, String service, ConsumerBean client, int resultLimit, Multimap<String, String> dict, SocialRecommendationStrategy.StrategyAim aim)
     {
-        List<RecommendedUserBean> results = new ArrayList<RecommendedUserBean>();
+        List<RecommendedUserBean> results = new ArrayList<>();
         long before = System.currentTimeMillis();
 
         if(user==null)

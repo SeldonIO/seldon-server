@@ -53,13 +53,13 @@ public class KafkaTest {
 		ProducerConfig config = new ProducerConfig(props);
 		*/
         // send a message using default partitioner
-        Producer<String, String> producer = new Producer<String, String>(config);
+        Producer<String, String> producer = new Producer<>(config);
 
         for(int i=0;i<1;i++)
         {
             System.out.println("Sending..");
 
-            KeyedMessage<String,String> data = new KeyedMessage<String, String>("action_queue", "test-message-again"+i);
+            KeyedMessage<String,String> data = new KeyedMessage<>("action_queue", "test-message-again"+i);
             producer.send(data);
 
             Thread.sleep(10000);

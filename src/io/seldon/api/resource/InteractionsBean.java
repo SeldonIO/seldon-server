@@ -129,7 +129,7 @@ public class InteractionsBean extends ResourceBean {
     }
 
     public List<Interaction> toInteractions() {
-        List<Interaction> toReturn = new ArrayList<Interaction>(friendIds.size());
+        List<Interaction> toReturn = new ArrayList<>(friendIds.size());
         for(String friendId : friendIds){
             toReturn.add(new Interaction(userId, friendId, type, subType, date, null));
         }

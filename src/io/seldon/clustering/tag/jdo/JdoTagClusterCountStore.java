@@ -43,7 +43,7 @@ public class JdoTagClusterCountStore extends ClientPersistable implements ITagCl
 	@Override
 	public Map<Long, Double> getTopCounts(String tag) {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,count from tag_cluster_counts where tag=?" );
 		Collection<Object[]> res = (Collection<Object[]>)  query.execute(tag);
 		for(Object[] r : res)
@@ -59,7 +59,7 @@ public class JdoTagClusterCountStore extends ClientPersistable implements ITagCl
 	public Map<Long, Double> getTopCountsForDimension(String tag,
 			int dimension, int maxCounts,double decay) {
 		final PersistenceManager pm = getPM();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select t.item_id,exp(-(greatest(unix_timestamp()-t,0)/?))*count as decayedCount from tag_cluster_counts t join item_map_enum ime on (t.item_id=ime.item_id) natural join dimension d where tag=? and d.dim_id=? order by decayedCount desc limit "+maxCounts );
 		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,tag,dimension);
 		for(Object[] r : res)

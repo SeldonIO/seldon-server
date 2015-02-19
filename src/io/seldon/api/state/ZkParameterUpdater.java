@@ -51,7 +51,7 @@ public class ZkParameterUpdater implements PathChildrenCacheListener {
 	@Autowired
 	private ClientClusterTypeService clusterTypeService;
 
-	private Set<PathChildrenCache> caches = new HashSet<PathChildrenCache>();
+	private Set<PathChildrenCache> caches = new HashSet<>();
 	
 	 public void initialise(ZkCuratorHandler curator){
 	        logger.info("Starting zookeeper parameter server");
@@ -135,7 +135,7 @@ public class ZkParameterUpdater implements PathChildrenCacheListener {
 	                	String jsonStr = new String(json);
 	                	ClusterTypeDefn clusterTypeMessage = mapper.readValue(json, ClusterTypeDefn.class);
 						logger.info("Adding new types for client "+client);
-						clusterTypeService.addTypes(client, new HashSet<Integer>(clusterTypeMessage.types));
+						clusterTypeService.addTypes(client, new HashSet<>(clusterTypeMessage.types));
 					} catch (Exception e) 
 					{
 						logger.error("Failed to map json to ClusterTypeDefn " + json.toString());

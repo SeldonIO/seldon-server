@@ -44,7 +44,7 @@ public class ItemRecommendationResultSet implements Serializable {
     }
 
     public List<ItemRecommendationResult> getResults(){
-        return new ArrayList<ItemRecommendationResult>(results);
+        return new ArrayList<>(results);
     }
 
     @Override

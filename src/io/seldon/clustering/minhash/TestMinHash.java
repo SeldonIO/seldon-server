@@ -104,7 +104,7 @@ public class TestMinHash extends Thread {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(facebookDb);
 		UserPeer uPeer = Util.getUserPeer(pm);
 		Collection<User> users = uPeer.getActiveUsers(numUsers);
-		Set<Long> uIds = new HashSet<Long>(numUsers);
+		Set<Long> uIds = new HashSet<>(numUsers);
 		for(User u : users)
 			uIds.add(u.getUserId());
 		JDOFactory.cleanupPM();

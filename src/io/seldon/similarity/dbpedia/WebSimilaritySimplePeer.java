@@ -93,7 +93,7 @@ public class WebSimilaritySimplePeer {
 		if ( res != null)
 			return res;
 		else
-			return new ArrayList<SharingRecommendation>();
+			return new ArrayList<>();
 	}
 	
 	public  List<SharingRecommendation> getSharingRecommendationsForFriends(long userId,long itemId)
@@ -156,11 +156,11 @@ public class WebSimilaritySimplePeer {
 		List<Long> res = (List<Long>) MemCachePeer.get(memcacheKey);
 		if (res == null)
 		{
-			List<Long> users = new ArrayList<Long>();
+			List<Long> users = new ArrayList<>();
 			users.add(userId);
 			List<SharingRecommendation> shares = store.getSharingRecommendations(users, items);
-			res = new ArrayList<Long>();
-			Set<Long> found = new HashSet<Long>();
+			res = new ArrayList<>();
+			Set<Long> found = new HashSet<>();
 			if (shares != null && shares.size() > 0)
 			{
 				for(SharingRecommendation s : shares)
@@ -178,7 +178,7 @@ public class WebSimilaritySimplePeer {
 	
 	private Map<Long,Float> rank(List<Long> items)
 	{
-		Map<Long,Float> rankSorted = new HashMap<Long,Float>();
+		Map<Long,Float> rankSorted = new HashMap<>();
 		float r = 1;
 		for(Long item : items)
 			rankSorted.put(item, r++);
@@ -214,7 +214,7 @@ public class WebSimilaritySimplePeer {
 		Map<Long,Double> scores = (Map<Long,Double>) MemCachePeer.get(key);
 		if (scores == null)
 		{
-			List<Long> itemsToSearch = new ArrayList<Long>(items);
+			List<Long> itemsToSearch = new ArrayList<>(items);
 			itemsToSearch.removeAll(exclusions);
 			scores = store.getSocialPredictionRecommendations(userId, numRecommendations);
 			MemCachePeer.put(key, scores, cacheTimeSecs);
@@ -239,7 +239,7 @@ public class WebSimilaritySimplePeer {
 		else
 		{
 			logger.warn("Null recommendation list for social prediction for user "+userId+" for client "+client);
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 		}
 		
 	}
@@ -259,7 +259,7 @@ public class WebSimilaritySimplePeer {
 			logger.info("Got similar users for "+userId+" client "+client+" from memcache  of size "+similarUsers.size()+" with metric type "+similarityMetric);
 		
 		List<Long> sorted = CollectionTools.sortMapAndLimitToList(similarUsers, limit, true);
-		List<SearchResult> res = new ArrayList<SearchResult>();
+		List<SearchResult> res = new ArrayList<>();
 		for(Long u : sorted)
 		{
 			res.add(new SearchResult(u, similarUsers.get(u)));

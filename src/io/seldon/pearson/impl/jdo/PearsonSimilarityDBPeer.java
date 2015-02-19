@@ -51,13 +51,13 @@ public class PearsonSimilarityDBPeer implements PearsonSimilarityHandler {
 
     public Set<Long> getNeighbourhood(long content,long user, int k) {
 		Query query = pm.newQuery("javax.jdo.query.SQL","select m  from ((select m2 as m,p from pearson where m1=? order by p desc) union (select m1 as m,p from pearson where m2=? order by p desc) order by p desc) t,opinions r where r.item_id=? and r.user_id=t.m order by t.p desc limit ?;");
-		ArrayList<Object> args = new ArrayList<Object>();
+		ArrayList<Object> args = new ArrayList<>();
 		args.add(user);
 		args.add(user);
 		args.add(content);
 		args.add(k);
 		Collection<Long> c = (Collection<Long>) query.executeWithArray(args.toArray());
-		Set<Long> res = new HashSet<Long>();
+		Set<Long> res = new HashSet<>();
 		for(Long l : c)
 			res.add(l);
 		return res;

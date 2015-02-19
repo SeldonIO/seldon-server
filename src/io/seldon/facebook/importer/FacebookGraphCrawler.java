@@ -65,7 +65,7 @@ public class FacebookGraphCrawler {
             wallFriendIds = safeRecentFriendIds(); // time sensitive
         } catch (FacebookException e) {
             logger.warn("Problem retrieving wall friend ids: " + e.getMessage() + " for token " + fbToken, e);
-            wallFriendIds = new HashSet<String>();
+            wallFriendIds = new HashSet<>();
         }
     }
 
@@ -77,7 +77,7 @@ public class FacebookGraphCrawler {
         logger.info("FB importing likes for fbUser=" + fbUserId);
         String fbConn = fbUserId + "/likes";
         Connection<Like> likes = fbClient.fetchConnection(fbConn, Like.class, Parameter.with("limit", limit));
-        Map<String, Like> likesMap = new HashMap<String, Like>();
+        Map<String, Like> likesMap = new HashMap<>();
 
         for (Like like : likes.getData()) {
             likesMap.put(like.getId(), like);
@@ -107,13 +107,13 @@ public class FacebookGraphCrawler {
             return recentFriendIds();
         } catch (Exception e) {
             logger.warn("Could not fetch recent friend IDs: " + e.getMessage(), e);
-            return new HashSet<String>();
+            return new HashSet<>();
         }
     }
 
     private Set<String> recentFriendIds() {
         Connection<Post> myFeed = fbClient.fetchConnection("me/feed", Post.class, Parameter.with("limit", FEED_LIMIT));
-        Set<String> friends = new HashSet<String>();
+        Set<String> friends = new HashSet<>();
         final List<Post> data = myFeed.getData();
         for (Post post : data) {
             final CategorizedFacebookType from = post.getFrom();
@@ -163,8 +163,8 @@ public class FacebookGraphCrawler {
      */  
     private List<User> sampleFriends(List<User> allFriends, int friendsLimit){
     	List<FacebookSimpleUser> mutualFriends = fbClient.executeQuery(TOP_FRIENDS_BY_MUTUAL_FRIENDS_QUERY, FacebookSimpleUser.class, new Parameter[0]);
-        List<User> recentFriends = new LinkedList<User>();
-        List<User> remainingMutualFriends = new LinkedList<User>();
+        List<User> recentFriends = new LinkedList<>();
+        List<User> remainingMutualFriends = new LinkedList<>();
              
         for(FacebookSimpleUser mutualCand : mutualFriends){
         	for(User candidate : allFriends){       	
@@ -181,7 +181,7 @@ public class FacebookGraphCrawler {
     		}
     	}
     	   		
-    	List<User> merged = new LinkedList<User>(recentFriends);
+    	List<User> merged = new LinkedList<>(recentFriends);
     	final int count = remainingMutualFriends.size();
     	merged.addAll(remainingMutualFriends.subList(0, friendsLimit < count ? friendsLimit : count));
     	   
@@ -210,7 +210,7 @@ public class FacebookGraphCrawler {
         List<User> friendSample = sampleFriends(fbFriends.getData(), friendsLimit);
         final int friendCount = friendSample.size();
 
-        Map<String, FacebookUserGraph> friends = new HashMap<String, FacebookUserGraph>();
+        Map<String, FacebookUserGraph> friends = new HashMap<>();
 
         for (User fbFriend : friendSample) {
             try {

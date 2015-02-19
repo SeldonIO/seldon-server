@@ -64,7 +64,7 @@ public class BetweennessCentrality {
         if(noOfNodes>500 && executor.getQueue().remainingCapacity()>100 ){
 
             int capacity = Runtime.getRuntime().availableProcessors();
-            List<Future<double[]>> futures = new ArrayList<Future<double[]>>(capacity);
+            List<Future<double[]>> futures = new ArrayList<>(capacity);
             for(int i = 0; i< capacity; i++){
                 final int j = i;
                 boolean isFinal = j== capacity -1;
@@ -128,8 +128,8 @@ public class BetweennessCentrality {
             Arrays.fill(predecessors, null);
             shortestPathCounts[i]=1;
             distances[i]=0;
-            Deque<Integer> stack = new ArrayDeque<Integer>();
-            Deque<Integer> queue = new ArrayDeque<Integer>();
+            Deque<Integer> stack = new ArrayDeque<>();
+            Deque<Integer> queue = new ArrayDeque<>();
             queue.add(i);
             while (!queue.isEmpty()) {
                 final int v = queue.remove();

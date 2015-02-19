@@ -57,7 +57,7 @@ public class FPGrowthPeer implements FPGrowthStore {
 		String iSet = CollectionTools.join(items, ",");
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select consequent from assoc_rules natural join (select * from assoc_rules where item in ("+iSet+") group by set_id,consequent having count(*)=size) a where consequent not in ("+iSet+") group by consequent order by sum(lift) desc");
 		Collection<Long> rows = (Collection<Long>) query.execute(items.size());
-		return new ArrayList<Long>(rows);
+		return new ArrayList<>(rows);
 	}
 	
 	
@@ -81,7 +81,7 @@ public class FPGrowthPeer implements FPGrowthStore {
 		String sql = "select consequent from assoc_rules natural join (select * from assoc_rules where item in ("+tSet+") group by set_id,consequent having count(*)=size) a where consequent in ("+iSet+") group by consequent order by sum(lift) desc";
 		Query query = pm.newQuery( "javax.jdo.query.SQL", sql);
 		Collection<Long> rows = (Collection<Long>) query.execute();
-		return new ArrayList<Long>(rows);
+		return new ArrayList<>(rows);
 		//
 	}
 

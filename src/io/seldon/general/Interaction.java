@@ -36,7 +36,7 @@ public class Interaction implements Serializable {
     private int count;
     private int parameterId;
     private Date date;
-    private Set<InteractionEvent> interactionEvents = new HashSet<InteractionEvent>();
+    private Set<InteractionEvent> interactionEvents = new HashSet<>();
 
     public int getCount() {
         return count;

@@ -50,7 +50,7 @@ public class MockCooccurrenceStore implements ICooccurrenceStore {
 	@Override
 	public Map<String, CooccurrenceCount> getCounts(List<Long> item1,
 			List<Long> item2) {
-		Map<String,CooccurrenceCount> r = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> r = new HashMap<>();
 		for(Long i1 : item1)
 			for(Long i2 : item2)
 			{
@@ -63,7 +63,7 @@ public class MockCooccurrenceStore implements ICooccurrenceStore {
 
 	@Override
 	public Map<String, CooccurrenceCount> getCounts(List<Long> item1) {
-		Map<String,CooccurrenceCount> r = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> r = new HashMap<>();
 		for(Long i1 : item1)
 		{
 			String key = CooccurrencePeer.getKey(i1, i1);

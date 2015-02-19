@@ -47,8 +47,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class TopicFeaturesManager implements PerClientExternalLocationListener {
 	 private static Logger logger = Logger.getLogger(TopicFeaturesManager.class.getName());
-	 private final ConcurrentMap<String,TopicFeaturesStore> clientStores = new ConcurrentHashMap<String,TopicFeaturesStore>();
-	 private Set<NewResourceNotifier> notifiers = new HashSet<NewResourceNotifier>();
+	 private final ConcurrentMap<String,TopicFeaturesStore> clientStores = new ConcurrentHashMap<>();
+	 private Set<NewResourceNotifier> notifiers = new HashSet<>();
 	 private final ExternalResourceStreamer featuresFileHandler;
 	 public static final String TOPIC_NEW_LOC_PATTERN = "topics";
 
@@ -100,7 +100,7 @@ public class TopicFeaturesManager implements PerClientExternalLocationListener {
 	    }
 
 	    private Map<String,Map<Integer,Float>> readTopicFeatures(BufferedReader reader) throws IOException {
-	    	Map<String,Map<Integer,Float>> toReturn = new HashMap<String,Map<Integer,Float>>();
+	    	Map<String,Map<Integer,Float>> toReturn = new HashMap<>();
 	        String line;
 	        while((line = reader.readLine()) !=null){
 	        	String[] parts = line.split(",");
@@ -110,7 +110,7 @@ public class TopicFeaturesManager implements PerClientExternalLocationListener {
 	        	
 	        	Map<Integer,Float> topicToWeight = toReturn.get(keyword);
 	        	if (topicToWeight == null)
-	        		topicToWeight = new HashMap<Integer,Float>();
+	        		topicToWeight = new HashMap<>();
 	        	topicToWeight.put(topic, weight);
 	            toReturn.put(keyword, topicToWeight);
 	        }
@@ -118,10 +118,10 @@ public class TopicFeaturesManager implements PerClientExternalLocationListener {
 	    }
 
 	    private Map<Long,Map<Integer,Float>> readUserFeatures(BufferedReader reader) throws IOException {
-	    	Map<Long,Map<Integer,Float>> toReturn = new HashMap<Long,Map<Integer,Float>>();
+	    	Map<Long,Map<Integer,Float>> toReturn = new HashMap<>();
 	        String line;
 	        while((line = reader.readLine()) !=null){
-		        Map<Integer, Float> topicMap = new HashMap<Integer, Float>();
+		        Map<Integer, Float> topicMap = new HashMap<>();
 	        	String[] userAndTopics = line.split(",");
 	            Long user = Long.parseLong(userAndTopics[0]);
 
@@ -163,7 +163,7 @@ public class TopicFeaturesManager implements PerClientExternalLocationListener {
 	    	int numTopics;
 			Map<Long,Map<Integer,Float>> userTopicWeights;
 			Map<String,Map<Integer,Float>> tagTopicWeights;
-			Map<Long,TopicWeights> itemTopicWeights = new ConcurrentHashMap<Long,TopicWeights>();
+			Map<Long,TopicWeights> itemTopicWeights = new ConcurrentHashMap<>();
 
 			public TopicFeaturesStore(
 					Map<Long, Map<Integer, Float>> userTopicWeights,

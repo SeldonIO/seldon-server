@@ -45,7 +45,7 @@ public class VectorUtils {
 	
 	private Map<String,Double> createTermVector(Map<String,Long> tags,TagSimilarityPeer.VectorSpaceOptions.TF_TYPE tf_type)
 	{
-		Map<String,Double> v = new HashMap<String,Double>();
+		Map<String,Double> v = new HashMap<>();
 		double maxTF = 0;
 		if (tf_type == TagSimilarityPeer.VectorSpaceOptions.TF_TYPE.AUGMENTED)
 		{
@@ -81,7 +81,7 @@ public class VectorUtils {
 			return v;
 		else
 		{
-			Map<String,Double> vn = new HashMap<String,Double>();
+			Map<String,Double> vn = new HashMap<>();
 			for(Map.Entry<String, Double> e : v.entrySet())
 			{
 				switch(dt_type)
@@ -103,7 +103,7 @@ public class VectorUtils {
 		else if (norm_type == TagSimilarityPeer.VectorSpaceOptions.NORM_TYPE.COSINE)
 		{
 			double sum = getMagnitude(v);
-			Map<String,Double> vn = new HashMap<String,Double>();
+			Map<String,Double> vn = new HashMap<>();
 			for(Map.Entry<String, Double> e : v.entrySet())
 			{
 				double normFactor = 1/sum;

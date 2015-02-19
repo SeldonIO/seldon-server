@@ -100,7 +100,7 @@ public class ClusterCountForItemTest  extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into actions values (0,?,?,99,1,now(),0,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(userId);
 			    	args.add(itemId);
 			    	args.add(""+userId);

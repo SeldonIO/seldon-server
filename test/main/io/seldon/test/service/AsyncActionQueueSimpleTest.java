@@ -526,7 +526,7 @@ public class AsyncActionQueueSimpleTest extends BasePeerTest {
 		final long userId = 0L;
 		final int actionType = 95;
 		int numThreads = 20;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		
 		final JdoAsyncActionQueue actionQueue = new JdoAsyncActionQueue(props.getClient(), 1, 1000,Integer.MAX_VALUE,3,true,true,true);
 		Thread queueRunner = new Thread(actionQueue);
@@ -580,7 +580,7 @@ public class AsyncActionQueueSimpleTest extends BasePeerTest {
 		final long userId = 1L;
 		final int actionType = 94;
 		int numThreads = 20;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		
 		final JdoAsyncActionQueue actionQueue = new JdoAsyncActionQueue(props.getClient(), 1, 1000,Integer.MAX_VALUE,3,true,true,true);
 		Thread queueRunner = new Thread(actionQueue);
@@ -633,7 +633,7 @@ public class AsyncActionQueueSimpleTest extends BasePeerTest {
 		final int maxUsers = 100;
 		final int actionType = 93;
 		int numThreads = 20;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		
 		final JdoAsyncActionQueue actionQueue = new JdoAsyncActionQueue(props.getClient(), 1, 1000,Integer.MAX_VALUE,3,true,true,true);
 		Thread queueRunner = new Thread(actionQueue);

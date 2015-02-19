@@ -102,7 +102,7 @@ public class ClusterRecommenderTest extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into actions values (0,?,?,99,1,now(),0,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(userId);
 			    	args.add(itemId);
 			    	args.add(""+userId);
@@ -223,7 +223,7 @@ public class ClusterRecommenderTest extends BasePeerTest {
 		
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
 			options.setRecommenders(recommenders);
 			options.setRecommenderStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);
@@ -420,7 +420,7 @@ public class ClusterRecommenderTest extends BasePeerTest {
 		
 		CFAlgorithm options = new CFAlgorithm();
 		options.setName(props.getClient());
-		List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+		List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 		recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
 		options.setRecommenders(recommenders);
 		options.setRecommenderStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);
@@ -472,7 +472,7 @@ public class ClusterRecommenderTest extends BasePeerTest {
 		
 		CFAlgorithm options = new CFAlgorithm();
 		options.setName(props.getClient());
-		List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+		List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 		recommenders.add(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS);
 		options.setRecommenders(recommenders);
 		options.setRecommenderStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);

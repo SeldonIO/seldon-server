@@ -33,7 +33,7 @@ import java.util.Map;
  *
  */
 public class GraphLabRecommenderStore {
-	static Map<String,GraphLabRecommender> recommenders = new HashMap<String,GraphLabRecommender>();
+	static Map<String,GraphLabRecommender> recommenders = new HashMap<>();
 	
 	public static void load(String clientStr,String baseDir) throws IOException
 	{

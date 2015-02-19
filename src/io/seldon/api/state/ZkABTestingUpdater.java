@@ -109,7 +109,7 @@ public class ZkABTestingUpdater  implements Runnable {
        	 				logger.error("Failed to connect to zookeeper after multiple attempts - STOPPING");
        	 				return;
        	 			}
-       	 			queue = new LinkedBlockingQueue<String>();
+       	 			queue = new LinkedBlockingQueue<>();
        	 			Watcher watcher = new Watcher()
        	 			{
        	 				boolean expired;

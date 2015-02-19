@@ -208,7 +208,7 @@ public class RecommendationController {
         	MDCKeys.addKeys(co, userid, itemId);
     	    Multimap<String,String> dict = HashMultimap.create();
 
-            List<String> algorithmsArr = new LinkedList<String>();
+            List<String> algorithmsArr = new LinkedList<>();
             if(algorithms != null && algorithms.length() > 0)
             {
                 String[] parts = algorithms.split(",");
@@ -232,7 +232,7 @@ public class RecommendationController {
             
             //logic for the boolean ...
              if(!BooleanUtils.toBoolean(full)){
-                 List<String> usersList = new LinkedList<String>();
+                 List<String> usersList = new LinkedList<>();
                  //List<ResourceBean> beansList = new LinkedList<ResourceBean>();
                  
                  for (ResourceBean resourceBean : recommendedUsers.getList()) {
@@ -278,7 +278,7 @@ public class RecommendationController {
 		MDCKeys.addKeys(consumerBean, userId, itemId);
         final boolean impressionEnabled = BooleanUtils.toBoolean(impressionEnabledString);
         
-        List<String> algorithmsArr = new LinkedList<String>();
+        List<String> algorithmsArr = new LinkedList<>();
         if(algorithms != null && algorithms.length() > 0)
         {
             String[] parts = algorithms.split(",");
@@ -320,7 +320,7 @@ public class RecommendationController {
                 null, algorithmsArr, userLimit==null? Constants.DEFAULT_RESULT_LIMIT : userLimit, usersShown, dict, null, impressionEnabled
         );
         if(!BooleanUtils.toBoolean(full)){
-            List<ResourceBean> usersList = new ArrayList<ResourceBean>();
+            List<ResourceBean> usersList = new ArrayList<>();
             for (ResourceBean resourceBean : recommendedUsers.getList()) {
                 RecommendedUserBean recommendedUserBean = (RecommendedUserBean) resourceBean;
                 String friendId = recommendedUserBean.getUser();

@@ -52,7 +52,7 @@ public class JdoItemSimilarityPeer extends ClientPersistable implements IItemSim
 			if (max > 0)
 				sql = sql + " limit "+max;
 			query = getPM().newQuery( "javax.jdo.query.SQL", sql);
-			ArrayList<Object> args = new ArrayList<Object>();
+			ArrayList<Object> args = new ArrayList<>();
 			args.add(itemId);
 			args.add(itemId);
 			results = (Collection<Object[]>) query.executeWithArray(args.toArray());
@@ -63,14 +63,14 @@ public class JdoItemSimilarityPeer extends ClientPersistable implements IItemSim
 			if (max > 0)
 				sql = sql + " limit "+max;
 			query = getPM().newQuery( "javax.jdo.query.SQL", sql);
-			ArrayList<Object> args = new ArrayList<Object>();
+			ArrayList<Object> args = new ArrayList<>();
 			args.add(dimension);
 			args.add(itemId);
 			args.add(dimension);
 			args.add(itemId);
 			results = (Collection<Object[]>) query.executeWithArray(args.toArray());
 		}
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		for(Object[] res : results)
 		{
 			Long item = (Long) res[0];
@@ -88,7 +88,7 @@ public class JdoItemSimilarityPeer extends ClientPersistable implements IItemSim
 			sql = sql + " limit "+max;
 		Query query = getPM().newQuery( "javax.jdo.query.SQL", sql);
 		Collection<Object[]> results = (Collection<Object[]>) query.execute(dimension,userId);
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		for(Object[] res : results)
 		{
 			Long item = (Long) res[0];

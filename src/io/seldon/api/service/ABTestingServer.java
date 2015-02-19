@@ -36,7 +36,7 @@ public class ABTestingServer {
 
 	private static Logger logger = Logger.getLogger(ABTestingServer.class.getName());
 	
-	private static Map<String,ABTest> tests = new ConcurrentHashMap<String,ABTest>();
+	private static Map<String,ABTest> tests = new ConcurrentHashMap<>();
 	//max period for the a/b testing
 	private final static int CACHING_TIME = 86400;
 	

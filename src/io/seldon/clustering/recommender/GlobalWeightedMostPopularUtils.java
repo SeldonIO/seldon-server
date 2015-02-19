@@ -45,7 +45,7 @@ public class GlobalWeightedMostPopularUtils {
 	
 	private Map<Long,Float> rank(List<Long> items)
 	{
-		Map<Long,Float> rankSorted = new HashMap<Long,Float>();
+		Map<Long,Float> rankSorted = new HashMap<>();
 		float r = 1;
 		for(Long item : items)
 			rankSorted.put(item, r++);
@@ -67,7 +67,7 @@ public class GlobalWeightedMostPopularUtils {
 	
 	public List<Long> sort(List<Long> items)
 	{
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		for(Long item : items)
 		{
 			double score = counts.getCount(item, time);

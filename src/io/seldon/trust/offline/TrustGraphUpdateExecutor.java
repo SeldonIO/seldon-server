@@ -52,7 +52,7 @@ public class TrustGraphUpdateExecutor {
 		//BlockingQueue channel = new LinkedBlockingQueue();
 		
 		// Fixed length queue
-		BlockingQueue<Runnable> channel = new ArrayBlockingQueue<Runnable>(1000);
+		BlockingQueue<Runnable> channel = new ArrayBlockingQueue<>(1000);
 		 executor = new ThreadPoolExecutor(2,4,60,TimeUnit.SECONDS,channel)
 		 {
 			 protected void beforeExecute(Thread t, Runnable r) {

@@ -60,7 +60,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 	@Test
 	public void testNormalizeScores()
 	{
-		Map<Long,Double> scores1 = new HashMap<Long,Double>();
+		Map<Long,Double> scores1 = new HashMap<>();
 		scores1.put(1L, 0.1);
 		scores1.put(2L, 0.1);
 		scores1.put(3L, 0.05);
@@ -79,7 +79,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 	@Test
 	public void testRescaleScores()
 	{
-		Map<Long,Double> scores1 = new HashMap<Long,Double>();
+		Map<Long,Double> scores1 = new HashMap<>();
 		scores1.put(1L, 0.1);
 		scores1.put(2L, 0.1);
 		scores1.put(3L, 0.05);
@@ -102,11 +102,11 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(true);
-		List<Long> recList = new ArrayList<Long>();
+		List<Long> recList = new ArrayList<>();
 		for(Long r : recs)
 			recList.add(r);
 		String uuid = RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, userId,0,null, recList, alg,"",1L,0);
@@ -123,11 +123,11 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm  alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(true);
-		List<Long> recList = new ArrayList<Long>();
+		List<Long> recList = new ArrayList<>();
 		for(Long r : recs)
 			recList.add(r);
 		String uuid = RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, userId,0,"1", recList, alg,"",1L,0);
@@ -144,7 +144,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
 		Random rand = new Random();
-		List<Long> recs = new ArrayList<Long>();
+		List<Long> recs = new ArrayList<>();
 		for(int i=0;i<10;i++)
 			recs.add(rand.nextLong());
 		List<Long> recsFinal = RecommendationUtils.getDiverseRecommendations(5, recs,client,userId,dimension);
@@ -160,7 +160,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
 		Random rand = new Random();
-		List<Long> recs = new ArrayList<Long>();
+		List<Long> recs = new ArrayList<>();
 		for(int i=0;i<10;i++)
 			recs.add(rand.nextLong());
 		List<Long> recsFinal = RecommendationUtils.getDiverseRecommendations(5, recs,client,userId,dimension);
@@ -179,7 +179,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
 		Random rand = new Random();
-		List<Long> recs = new ArrayList<Long>();
+		List<Long> recs = new ArrayList<>();
 		for(int i=0;i<50;i++)//set to 50 as its not guaranteed will be different just unlikely
 			recs.add(rand.nextLong());
 		List<Long> recsFinal1 = RecommendationUtils.getDiverseRecommendations(5, recs,client,userId,dimension);
@@ -202,7 +202,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
 		Random rand = new Random();
-		List<Long> recs = new ArrayList<Long>();
+		List<Long> recs = new ArrayList<>();
 		for(int i=0;i<3;i++)
 			recs.add(rand.nextLong());
 
@@ -219,7 +219,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
 		Random rand = new Random();
-		List<Long> recs = new ArrayList<Long>();
+		List<Long> recs = new ArrayList<>();
 		for(int i=0;i<3;i++)
 			recs.add(rand.nextLong());
 		List<Long> recsFinal = RecommendationUtils.getDiverseRecommendations(5, recs,client,userId,dimension);
@@ -235,7 +235,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
 		Random rand = new Random();
-		List<Long> recs = new ArrayList<Long>();
+		List<Long> recs = new ArrayList<>();
 		for(int i=0;i<10;i++)
 			recs.add(rand.nextLong());
 		long start = System.currentTimeMillis();
@@ -253,11 +253,11 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm  alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(true);
-		List<Long> recList = new ArrayList<Long>();
+		List<Long> recList = new ArrayList<>();
 		for(Long r : recs)
 			recList.add(r);
 		String uuid = RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, userId,0,null, recList, alg,"",1L,0);
@@ -276,11 +276,11 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm  alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(true);
-		List<Long> recList = new ArrayList<Long>();
+		List<Long> recList = new ArrayList<>();
 		for(Long r : recs)
 			recList.add(r);
 		String uuid = RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, userId,0,"1", recList, alg,"",1L,0);
@@ -294,11 +294,11 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm  alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(false);
-		List<Long> recList = new ArrayList<Long>();
+		List<Long> recList = new ArrayList<>();
 		for(Long r : recs)
 			recList.add(r);
 		String uuid = RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, userId, 0,"", recList, alg,"",1L,0);
@@ -313,7 +313,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm  alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(false);
@@ -329,7 +329,7 @@ public class TestRecommendationUtils extends BasePeerTest {
 		String userId = ""+1L;
 		int dimension = 0;
 		clearMemcache(client, userId, dimension);
-		ArrayList<Long> recs = new ArrayList<Long>();
+		ArrayList<Long> recs = new ArrayList<>();
 		recs.add(1L); recs.add(2L); recs.add(3L);
 		CFAlgorithm  alg = new CFAlgorithm();
 		alg.setRemoveIgnoredRecommendations(false);

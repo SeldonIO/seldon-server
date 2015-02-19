@@ -260,7 +260,7 @@ public class TagCountRecommenderTest  extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CF_RECOMMENDER> recommenders = new ArrayList<CF_RECOMMENDER>();
+			List<CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CF_RECOMMENDER.TAG_CLUSTER_COUNTS);
 			options.setMaxRecommendersToUse(1);
 			options.setRecommenders(recommenders);

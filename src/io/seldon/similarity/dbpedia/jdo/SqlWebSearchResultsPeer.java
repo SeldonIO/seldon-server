@@ -131,10 +131,10 @@ public class SqlWebSearchResultsPeer extends ClientPersistable implements WebSea
 				return Arrays.asList(parts);
 			}
 			else 
-				return new ArrayList<String>();
+				return new ArrayList<>();
 		}
 		else
-			return new ArrayList<String>();
+			return new ArrayList<>();
 	}
 	
 	/**

@@ -49,7 +49,7 @@ public class MostPopularIncluder implements ItemIncluder {
         // first stab at this: lets return, say, the top 200 items.
         Collection<Long> itemsToConsider = retriever.retrieveMostPopularItems(client,numItems,dimension);
         return itemsToConsider.size() >= numItems ?
-                new ArrayList<Long>(itemsToConsider).subList(0,numItems) :
-                new ArrayList<Long>(itemsToConsider);
+                new ArrayList<>(itemsToConsider).subList(0,numItems) :
+                new ArrayList<>(itemsToConsider);
     }
 }

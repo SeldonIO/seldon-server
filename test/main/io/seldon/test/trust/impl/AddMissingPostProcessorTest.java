@@ -48,14 +48,14 @@ public class AddMissingPostProcessorTest extends BasePeerTest {
 		
 		CFAlgorithm options = new CFAlgorithm();
 		options.setName(props.getClient());
-		List<CFAlgorithm.CF_SORTER> sorters = new ArrayList<CFAlgorithm.CF_SORTER>();
+		List<CFAlgorithm.CF_SORTER> sorters = new ArrayList<>();
 		sorters.add(CFAlgorithm.CF_SORTER.COOCCURRENCE);
 		options.setSorters(sorters);
 		options.setPostprocessing(CFAlgorithm.CF_POSTPROCESSING.NONE);
 		RecommendationPeer recPeer = new RecommendationPeer();
 		
 		final long userId = 1L;
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		items.add(1L);
 		items.add(2L);
 		items.add(3L);

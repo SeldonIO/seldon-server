@@ -66,7 +66,7 @@ public class MemoryWeightedClusterCountMap implements ClusterCounter {
 	
 	@Override
 	public Map<Long, Double> getTopCounts(long time, int limit) {
-		Map<Long,Double> map  = new HashMap<Long,Double>();
+		Map<Long,Double> map  = new HashMap<>();
 		for(Map.Entry<Long, ExponentialCount> e : cache.entrySet())
 			map.put(e.getKey(), e.getValue().get(time));
 		return CollectionTools.sortMapAndLimit(map, limit);

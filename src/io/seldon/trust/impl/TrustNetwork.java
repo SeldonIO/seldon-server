@@ -66,12 +66,12 @@ public class TrustNetwork implements Serializable, RecommendationNetwork  {
 	public Map<Long,TrustNetworkMember> getTrustedFriends() { return this.trustedFriends; }	
 	public List<TrustNetworkMember> getNetwork() 
 	{ 
-		List<TrustNetworkMember> res = new ArrayList<TrustNetworkMember>(); 
+		List<TrustNetworkMember> res = new ArrayList<>();
 		res.addAll(this.trustedMembers.values());
 		return res;
 	}
-	public Set<Long> getMembers() { return new HashSet<Long>(trustedMembers.keySet()); }
-	public Set<Long> getFriends() { return new HashSet<Long>(trustedFriends.keySet()); }	
+	public Set<Long> getMembers() { return new HashSet<>(trustedMembers.keySet()); }
+	public Set<Long> getFriends() { return new HashSet<>(trustedFriends.keySet()); }
 	public int getSixd(Long member)
 	{
 		TrustNetworkMember tcm = trustedMembers.get(member);
@@ -120,10 +120,10 @@ public class TrustNetwork implements Serializable, RecommendationNetwork  {
 
 	@Override
 	public List<Long> getSimilarityNeighbourhood(int k) {
-		List<TrustNetworkMember> res = new ArrayList<TrustNetworkMember>(); 
+		List<TrustNetworkMember> res = new ArrayList<>();
 		res.addAll(this.trustedMembers.values());
 		Collections.sort(res);
-		List<Long> neighbourhood = new ArrayList<Long>();
+		List<Long> neighbourhood = new ArrayList<>();
 		int count = 0;
 		for(TrustNetworkMember m : res)
 		{

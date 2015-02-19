@@ -97,7 +97,7 @@ public class JdoUserClusterStoreTest extends BasePeerTest {
 		removeClusters();
 		
 		long userId = 1;
-		List<UserCluster> clusters = new ArrayList<UserCluster>();
+		List<UserCluster> clusters = new ArrayList<>();
 		for(int i=1;i<10;i++)
 			clusters.add(new UserCluster(userId,i,0.5,1,0));
 		TransientUserClusterStore tstore = (TransientUserClusterStore) userClusters;

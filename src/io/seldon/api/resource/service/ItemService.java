@@ -507,7 +507,7 @@ public class ItemService {
 	public static ItemBean filter(ItemBean itemBean, List<String> attributeList) {
 		if(attributeList != null && attributeList.size()>0) {
 			Map<String,String> oldAttributes = itemBean.getAttributesName();
-			Map<String,String> newAttributes = new HashMap<String,String>();
+			Map<String,String> newAttributes = new HashMap<>();
 			for(String attribute : attributeList) {
 				newAttributes.put(attribute, oldAttributes.get(attribute));
 			}

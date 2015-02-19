@@ -45,7 +45,7 @@ public class FacebookBetweenessCentrality {
 
     BiMap<FacebookUser, Integer> indexDict = HashBiMap.create();
 
-    Map<Long, FacebookUser> uidDict = new HashMap<Long, FacebookUser>();
+    Map<Long, FacebookUser> uidDict = new HashMap<>();
     int currentIndex = 0;
     private AdjacencyGraph adjacencyGraph;
 
@@ -95,7 +95,7 @@ public class FacebookBetweenessCentrality {
         });
 
         List<FacebookBetweennessCentralityResult> sortedUsers =
-                new ArrayList<FacebookBetweennessCentralityResult>(adjacencyGraph.noOfNodes());
+                new ArrayList<>(adjacencyGraph.noOfNodes());
         for(int index : indexes){
             FacebookUser facebookUser = indexRev.get(index);
             if (facebookUser == null) {

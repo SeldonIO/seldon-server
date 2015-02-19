@@ -38,7 +38,7 @@ public class MemoryClusterCountFactory {
 	public static final double DEF_TIME_WEIGHTING_SECS = 600; // number of secs before item count no important
 	public static final MemoryClusterCountStore.COUNTER_TYPE DEF_COUNTER_TYPE = MemoryClusterCountStore.COUNTER_TYPE.SIMPLE; // default type of memory counter
 	
-	private ConcurrentHashMap<String,MemoryClusterCountStore> stores = new ConcurrentHashMap<String,MemoryClusterCountStore>();
+	private ConcurrentHashMap<String,MemoryClusterCountStore> stores = new ConcurrentHashMap<>();
 	private MemoryClusterCountStore.COUNTER_TYPE counterType = DEF_COUNTER_TYPE;
 
 	private static MemoryClusterCountFactory factory;

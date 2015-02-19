@@ -37,7 +37,7 @@ public class FacebookFriendsAlphabetProcess
 {
     private static final Logger logger = Logger.getLogger(FacebookFriendsAlphabetProcess.class);
 
-    List<FacebookUser> friendList = new ArrayList<FacebookUser>();
+    List<FacebookUser> friendList = new ArrayList<>();
     
 
     public FacebookFriendsAlphabetProcess(FacebookFriendsAlphabetGraph fbGraph) 
@@ -48,7 +48,7 @@ public class FacebookFriendsAlphabetProcess
     
     public List<FacebookFriendsRanking> orderFriendsByAlphabet()
     {
-    	List<FacebookFriendsRanking> result = new ArrayList<FacebookFriendsRanking>();
+    	List<FacebookFriendsRanking> result = new ArrayList<>();
     	
     	int i = 10000;
     	

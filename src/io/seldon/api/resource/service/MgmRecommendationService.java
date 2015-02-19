@@ -71,11 +71,11 @@ public class MgmRecommendationService {
     
     public ListBean getRecommendedUsers(ConsumerBean c, String userName, int limit, int usersShown, List<String> algorithmType, Multimap<String, String> algParams, String facebookToken, Boolean impressionEnabled) {
         
-    	List<List<RecommendedUserBean>> algFriends = new ArrayList<List<RecommendedUserBean>>();
-    	List<RecommendedUserBean> filteredFriends = new ArrayList<RecommendedUserBean>();
-        List<RecommendedUserBean> decayedFriends  = new ArrayList<RecommendedUserBean>();
-    	List<RecommendedUserBean> blendedFriends = new ArrayList<RecommendedUserBean>();
-        List<RecommendedUserBean> sortedFriends = new ArrayList<RecommendedUserBean>();
+    	List<List<RecommendedUserBean>> algFriends = new ArrayList<>();
+    	List<RecommendedUserBean> filteredFriends = new ArrayList<>();
+        List<RecommendedUserBean> decayedFriends  = new ArrayList<>();
+    	List<RecommendedUserBean> blendedFriends = new ArrayList<>();
+        List<RecommendedUserBean> sortedFriends = new ArrayList<>();
     	ListBean resultFriends = new ListBean();
     	UserBean userBean = getUser(c,userName);
     	if (userBean == null)
@@ -104,15 +104,15 @@ public class MgmRecommendationService {
 	        //load filters
 	        List<FacebookUsersAlgorithm> exclusiveFilters = strategy.getExclusiveFilters();
             List<FacebookUsersAlgorithm> inclusiveFilters = strategy.getInclusiveFilters();
-            if(exclusiveFilters==null) exclusiveFilters = new ArrayList<FacebookUsersAlgorithm>();
-            if(inclusiveFilters==null) inclusiveFilters = new ArrayList<FacebookUsersAlgorithm>();
+            if(exclusiveFilters==null) exclusiveFilters = new ArrayList<>();
+            if(inclusiveFilters==null) inclusiveFilters = new ArrayList<>();
 
             //load blender
 	        SocialFriendsBlender blender = strategy.getBlender();
 
             //load impression decay function
             List<SocialFriendsScoreDecayFunction> decayFunctions = strategy.getDecayFunctions();
-            if(decayFunctions==null) decayFunctions = new ArrayList<SocialFriendsScoreDecayFunction>();
+            if(decayFunctions==null) decayFunctions = new ArrayList<>();
 
 
 
@@ -246,7 +246,7 @@ public class MgmRecommendationService {
 
 
     private Set<RecommendedUserBean> streamline(List<List<RecommendedUserBean>> filterFriends, boolean isExclusive) {
-        Set<RecommendedUserBean> streamlinedFilterFriends = new HashSet<RecommendedUserBean>();
+        Set<RecommendedUserBean> streamlinedFilterFriends = new HashSet<>();
         if (isExclusive)
         {
             for(List<RecommendedUserBean> recs : filterFriends)
@@ -272,7 +272,7 @@ public class MgmRecommendationService {
     private List<List<RecommendedUserBean>> getFriendsToRecommend(ConsumerBean c, UserBean userBean, int limit, List<? extends FacebookUsersAlgorithm> algs, Multimap<String, String> algParams, SocialRecommendationStrategy.StrategyAim aim)
     {
         //given a consumer, user and a list of algorithms with parameters, get friends recommended by each algorithm
-        List<List<RecommendedUserBean>> recommendations = new ArrayList<List<RecommendedUserBean>>();
+        List<List<RecommendedUserBean>> recommendations = new ArrayList<>();
         for (FacebookUsersAlgorithm alg : algs)
         {
             List<RecommendedUserBean> results = alg.recommendUsers(userBean.getId(), userBean, SERVICE_NAME, c, 9999, algParams, aim);
@@ -289,10 +289,10 @@ public class MgmRecommendationService {
     
     private List<RecommendedUserBean> filterRecommendedFriends(List<RecommendedUserBean> algsFriends, Set<RecommendedUserBean> friendsToFilter, boolean isExclusionFiltering)
     {
-    	List<RecommendedUserBean> recommendedFriends = new ArrayList<RecommendedUserBean>();
+    	List<RecommendedUserBean> recommendedFriends = new ArrayList<>();
 
     	
-    	List<RecommendedUserBean> filteredFriendsAlg = new ArrayList<RecommendedUserBean>();
+    	List<RecommendedUserBean> filteredFriendsAlg = new ArrayList<>();
         for (RecommendedUserBean algsFriend : algsFriends)
         {
             boolean friendInFilter = friendsToFilter.contains(algsFriend);

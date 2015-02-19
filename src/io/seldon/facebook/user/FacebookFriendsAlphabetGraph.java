@@ -73,7 +73,7 @@ public class FacebookFriendsAlphabetGraph {
 
         try 
         {
-            Map<String, String> queries = new HashMap<String, String>();
+            Map<String, String> queries = new HashMap<>();
             queries.put("friends_query", GET_FRIENDS +appUserFilterType.toQuerySegment() + ORDER_FRIENDS );
             queries.put("permissions_query", GET_PERMISSIONS);
 

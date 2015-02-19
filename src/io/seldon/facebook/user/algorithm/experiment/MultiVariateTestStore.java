@@ -47,7 +47,7 @@ public class MultiVariateTestStore {
     private ConcurrentMap<String,MultiVariateTest> clientKeyToTest;
 
     public MultiVariateTestStore(){
-        this.clientKeyToTest = new ConcurrentHashMap<String, MultiVariateTest>();
+        this.clientKeyToTest = new ConcurrentHashMap<>();
     }
     public MultiVariateTestStore(ConcurrentMap<String,MultiVariateTest> clientKeyToTest){
         this.clientKeyToTest = clientKeyToTest;

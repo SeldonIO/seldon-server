@@ -73,7 +73,7 @@ public class MemoryCachingClusterCountMap implements ClusterCounter {
 
 	@Override
 	public Map<Long, Double> getTopCounts(long time, int limit) {
-		Map<Long,Double> map  = new HashMap<Long,Double>();
+		Map<Long,Double> map  = new HashMap<>();
 		for(Map.Entry<Long, Double> e : cache.entrySet())
 			map.put(e.getKey(), e.getValue());
 		return CollectionTools.sortMapAndLimit(map, limit);

@@ -77,7 +77,7 @@ public class JDBCCooccurrenceStoreTest  extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL","insert into cooc_counts (item_id1,item_id2,count,time) values (?,?,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(item1);
 			    	args.add(item2);
 			    	args.add(count);
@@ -96,7 +96,7 @@ public class JDBCCooccurrenceStoreTest  extends BasePeerTest {
 	{
 		try
 		{
-			Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+			Map<String,CooccurrenceCount> map = new HashMap<>();
 			Random r = new Random();
 			for(int i1 = 0;i1<5;i1++)
 				for(int i2=0;i2<5;i2++)
@@ -110,7 +110,7 @@ public class JDBCCooccurrenceStoreTest  extends BasePeerTest {
 					}
 				}
 			
-			List<Long> item11 = new ArrayList<Long>();
+			List<Long> item11 = new ArrayList<>();
 			for(int i=0;i<5;i++)
 				item11.add((long)i);
 			

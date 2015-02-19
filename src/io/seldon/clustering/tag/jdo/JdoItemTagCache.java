@@ -48,7 +48,7 @@ public class JdoItemTagCache  extends ClientPersistable implements IItemTagCache
 	private static Set<String> getTags(String tagStr)
 	{
 		String parts[] = tagStr.split(",");
-		Set<String> res = new HashSet<String>();
+		Set<String> res = new HashSet<>();
 		for(int i=0;i<parts.length;i++)
 		{
 			res.add(parts[i].trim());
@@ -95,7 +95,7 @@ public class JdoItemTagCache  extends ClientPersistable implements IItemTagCache
 		if (itemTags.getTags() != null)
 			return itemTags.getTags();
 		else
-			return new HashSet<String>();
+			return new HashSet<>();
 	}
 
 	

@@ -37,8 +37,8 @@ public class FacebookInteractionsProcessStatusPhotoLike
 {
     private static final Logger logger = Logger.getLogger(FacebookInteractionsProcessStatusPhotoLike.class);
 
-    List<FacebookLike> userStatusLikeList = new ArrayList<FacebookLike>();
-    List<FacebookLike> userPhotoLikeList  = new ArrayList<FacebookLike>();
+    List<FacebookLike> userStatusLikeList = new ArrayList<>();
+    List<FacebookLike> userPhotoLikeList  = new ArrayList<>();
     
 
     public FacebookInteractionsProcessStatusPhotoLike(FacebookInteractionsGraphStatusPhotoLike fbGraph) 
@@ -53,7 +53,7 @@ public class FacebookInteractionsProcessStatusPhotoLike
     	HashMap<FacebookUser, Double> fbIdStatusLikeCount = countLikes(userStatusLikeList);
         HashMap<FacebookUser, Double> fbIdPhotoLikeCount = countLikes(userPhotoLikeList);
         
-        List<HashMap<FacebookUser, Double>> countList = new ArrayList<HashMap<FacebookUser, Double>>();
+        List<HashMap<FacebookUser, Double>> countList = new ArrayList<>();
         countList.add(fbIdStatusLikeCount);
         countList.add(fbIdPhotoLikeCount);
         
@@ -70,7 +70,7 @@ public class FacebookInteractionsProcessStatusPhotoLike
         //Input: list of FacebookLike items having at least [user_id]
         //Output: hashmap of friends having key [user_id], value [count]
     	
-    	HashMap<FacebookUser, Double> fbIdCount = new HashMap<FacebookUser, Double>();
+    	HashMap<FacebookUser, Double> fbIdCount = new HashMap<>();
     	
 	 	for (FacebookLike item : interactionList)
     	{
@@ -94,7 +94,7 @@ public class FacebookInteractionsProcessStatusPhotoLike
         //Input: list of hashmap of [facebookuser,score] items
         //Output: sorted list of FacebookInteractionsResult[facebookuser,score]
 
-    	HashMap<FacebookUser, Double> fbUserCount = new HashMap<FacebookUser, Double>();
+    	HashMap<FacebookUser, Double> fbUserCount = new HashMap<>();
     	fbUserCount.putAll(countList.get(0));
     	
     	int i = 0;
@@ -123,7 +123,7 @@ public class FacebookInteractionsProcessStatusPhotoLike
     	}
     	
     	//change hashmap to list of FacebookFriendsRanking
-    	List<FacebookFriendsRanking> fbIntResult = new ArrayList<FacebookFriendsRanking>();
+    	List<FacebookFriendsRanking> fbIntResult = new ArrayList<>();
     	for (Map.Entry<FacebookUser, Double> user : fbUserCount.entrySet()) 
     	{
     	    fbIntResult.add(new FacebookFriendsRanking(user.getKey(), user.getValue()));

@@ -218,7 +218,7 @@ public class RecommendationService {
 
         //INPUT LIST
         RummbleLabsAPI tp = Util.getLabsAPI(cfAlgorithm);
-        List<Long> items = new ArrayList<Long>();
+        List<Long> items = new ArrayList<>();
         for (RecommendationBean r : recs.getList()) {
             try {
                 items.add(ItemService.getInternalItemId(c, r.getItem()));
@@ -299,7 +299,7 @@ public class RecommendationService {
 
 
             //add also the attributes? (varchar, tags..)
-            List<String> itemKeywords = new ArrayList<String>();
+            List<String> itemKeywords = new ArrayList<>();
             Long internalItemId = null;
             if(itemId !=null && !itemId.isEmpty()) {
                 //try to get semantic attributes
@@ -313,10 +313,10 @@ public class RecommendationService {
 //                }
             }
             List<String> keywordsFinal;           
-            if(keywords != null && itemKeywords != null) { keywordsFinal = new ArrayList<String>(CollectionUtils.union(keywords, itemKeywords)); }
+            if(keywords != null && itemKeywords != null) { keywordsFinal = new ArrayList<>(CollectionUtils.union(keywords, itemKeywords)); }
             else if(keywords != null) { keywordsFinal = itemKeywords; }
             else if(itemKeywords != null) { keywordsFinal = itemKeywords; }
-            else { keywordsFinal  = new ArrayList<String>(); }
+            else { keywordsFinal  = new ArrayList<>(); }
             logger.info("Looking for user with "+c.getShort_name()+" and id "+userId);
             UserBean userBean = UserService.getUser(c, userId, true);
             String fbId = userBean.getAttributesName().get(FBConstants.FB_ID);
@@ -430,7 +430,7 @@ public class RecommendationService {
     private static void addUuidAttribute(ItemBean itemBean, RecommendationResult recResult) {
         Map<String,String> attributesName = itemBean.getAttributesName();
         if ( attributesName == null ) {
-            attributesName = new HashMap<String, String>();
+            attributesName = new HashMap<>();
         }
         attributesName.put(RECOMMENDATION_UUID_ATTR, recResult.getUuid());
     }

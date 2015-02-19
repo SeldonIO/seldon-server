@@ -75,7 +75,7 @@ public class SqlTagCountPeer  extends ClientPersistable implements ITagCountPeer
 	
 	private Map<String,Set<Long>> createResult(Collection<Object[]> results)
 	{
-		HashMap<String,Set<Long>> map = new HashMap<String,Set<Long>>();
+		HashMap<String,Set<Long>> map = new HashMap<>();
 		for(Object[] res : results)
 		{
 			Long itemId = (Long) res[0];
@@ -87,7 +87,7 @@ public class SqlTagCountPeer  extends ClientPersistable implements ITagCountPeer
 				Set<Long> items = map.get(tag);
 				if (items == null)
 				{
-					items = new HashSet<Long>();
+					items = new HashSet<>();
 					map.put(tag, items);
 				}
 				items.add(itemId);
@@ -116,7 +116,7 @@ public class SqlTagCountPeer  extends ClientPersistable implements ITagCountPeer
 		String sql = "select tag,count from user_tag where user_id=?";
 		Query query = getPM().newQuery( "javax.jdo.query.SQL", sql);
 		Collection<Object[]> results = (Collection<Object[]>) query.execute(userId);
-		Map<String,Integer> map = new HashMap<String,Integer>();
+		Map<String,Integer> map = new HashMap<>();
 		for(Object[] res : results)
 		{
 			String tag = (String) res[0];

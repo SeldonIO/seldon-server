@@ -83,7 +83,7 @@ public class SimilarUsersTest extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into user_similarity (u1,u2,type,score) values (?,?,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(u1);
 			    	args.add(u2);
 			    	args.add(type);
@@ -129,7 +129,7 @@ public class SimilarUsersTest extends BasePeerTest {
                 public void process()
                 { 
                     Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into interaction (u1,u2,type,sub_type, date) values (?,?,?,?,?)");
-                    List<Object> args = new ArrayList<Object>();
+                    List<Object> args = new ArrayList<>();
                     args.add(userId);
                     args.add(l);
                     args.add(1);

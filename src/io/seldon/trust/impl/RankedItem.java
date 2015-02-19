@@ -68,10 +68,10 @@ public class RankedItem<T> implements Comparable<RankedItem<T>> {
 	
 	public static <K> List<RankedItem<K>> createFromList(List<K> list)
 	{
-		List<RankedItem<K>> res = new ArrayList<RankedItem<K>>();
+		List<RankedItem<K>> res = new ArrayList<>();
 		int pos = 1;
 		for(K i : list)
-			res.add(new RankedItem<K>(i,pos++));
+			res.add(new RankedItem<>(i,pos++));
 		return res;
 	}
 

@@ -51,12 +51,12 @@ public class TopicFeaturesManagerTest implements PerClientExternalLocationListen
 	@Test
 	public void testTreeSet()
 	{
-		Set<Long> ids1 = new HashSet<Long>();
+		Set<Long> ids1 = new HashSet<>();
 		ids1.add(3L);
 		ids1.add(6L);
 		ids1.add(1L);
 		ids1.add(100L);
-		String v =  CollectionTools.join(new ArrayList<Long>(new TreeSet<Long>(ids1)), ",");
+		String v =  CollectionTools.join(new ArrayList<>(new TreeSet<>(ids1)), ",");
 		System.out.println("v is "+v);
 	}
 	

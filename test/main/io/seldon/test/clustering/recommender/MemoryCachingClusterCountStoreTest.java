@@ -40,7 +40,7 @@ public class MemoryCachingClusterCountStoreTest {
 		final double weight = 1D;
 		final long timestamp = 1;
 		final MemoryClusterCountStore store = new MemoryClusterCountStore(MemoryClusterCountStore.COUNTER_TYPE.SIMPLE,2,0,1);
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		for(int i=0;i<numThreads;i++)
 		{
 			Runnable r = new Runnable() { public void run()
@@ -71,7 +71,7 @@ public class MemoryCachingClusterCountStoreTest {
 		final long timestamp = 1;
 		final long time = 1;
 		final MemoryClusterCountStore store = new MemoryClusterCountStore(MemoryClusterCountStore.COUNTER_TYPE.DECAY,2,0D,1D);
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		for(int i=0;i<numThreads;i++)
 		{
 			Runnable r = new Runnable() { public void run()
@@ -103,7 +103,7 @@ public class MemoryCachingClusterCountStoreTest {
 		final long timestamp = 1;
 		final long time = 1;
 		final MemoryClusterCountStore store = new MemoryClusterCountStore(MemoryClusterCountStore.COUNTER_TYPE.DECAY,2,0D,1D);
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		for(int i=0;i<numThreads;i++)
 		{
 			Runnable r = new Runnable() { public void run()
@@ -132,7 +132,7 @@ public class MemoryCachingClusterCountStoreTest {
 		final double weight = 0.5D;
 		final long timestamp = 1;
 		final MemoryClusterCountStore store = new MemoryClusterCountStore(MemoryClusterCountStore.COUNTER_TYPE.SIMPLE,2,0,1);
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		for(int i=0;i<numThreads;i++)
 		{
 			Runnable r = new Runnable() { public void run()

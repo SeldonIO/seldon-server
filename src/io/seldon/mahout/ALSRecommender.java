@@ -61,8 +61,8 @@ public class ALSRecommender {
 
 	private static Logger logger = Logger.getLogger(ALSRecommender.class.getName());
 	
-	Map<Long,DenseVector> userFeatures = new HashMap<Long,DenseVector>();
-	Map<Long,DenseVector> itemFeatures = new HashMap<Long,DenseVector>();
+	Map<Long,DenseVector> userFeatures = new HashMap<>();
+	Map<Long,DenseVector> itemFeatures = new HashMap<>();
 	
 	
 	public ALSRecommender(String userDir,String itemDir)
@@ -115,20 +115,20 @@ public class ALSRecommender {
 	private void load(String userDir,String itemDir)
 	{
 		logger.info("Loading mahout ALS user features from " + userDir);
-		userFeatures = new HashMap<Long,DenseVector>();
+		userFeatures = new HashMap<>();
 		loadVectorFiles(userDir,userFeatures);
 		logger.info("Loading mahout ALS item features from " + itemDir);
-		itemFeatures = new HashMap<Long,DenseVector>();
+		itemFeatures = new HashMap<>();
 		loadVectorFiles(itemDir,itemFeatures);
 	}
 	
 	public List<Recommendation> recommend(long user,int dimension,int numRecommendations,OpinionPeer opPeer,ItemPeer iPeer)
 	{
 		Collection<Opinion> ops = opPeer.getUserOpinions(user, 10000);
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		for(Opinion op : ops)
 			exclusions.add(op.getItemId());
-		Map<Long,Double> best = new HashMap<Long,Double>(itemFeatures.size());
+		Map<Long,Double> best = new HashMap<>(itemFeatures.size());
 		boolean checkDimension = !(dimension == Constants.DEFAULT_DIMENSION || dimension == Constants.NO_TRUST_DIMENSION);
 		for(Long id : itemFeatures.keySet())
 		{
@@ -141,7 +141,7 @@ public class ALSRecommender {
 			}
 		}
 		List<Long> recIds = CollectionTools.sortMapAndLimitToList(best, numRecommendations);
-		List<Recommendation> recs = new ArrayList<Recommendation>();
+		List<Recommendation> recs = new ArrayList<>();
 		for(Long id : recIds)
 			recs.add(new Recommendation(id,dimension,null));
 		return recs;

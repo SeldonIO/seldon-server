@@ -31,8 +31,8 @@ import org.apache.log4j.Logger;
 public class ClientIdCacheStore {
 	private static Logger logger = Logger.getLogger(ClientIdCacheStore.class.getName());
 	
-	private ConcurrentHashMap<String,ClientIdCache> userCaches = new ConcurrentHashMap<String,ClientIdCache>();
-	private ConcurrentHashMap<String,ClientIdCache> itemCaches = new ConcurrentHashMap<String,ClientIdCache>();
+	private ConcurrentHashMap<String,ClientIdCache> userCaches = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String,ClientIdCache> itemCaches = new ConcurrentHashMap<>();
 	
 	private static final String PROP_PREFIX = "io.seldon.idstore";
 	private static final int DEF_USER_CACHE_SIZE = 10000;

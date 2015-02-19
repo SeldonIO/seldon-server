@@ -203,11 +203,11 @@ public class CountRecommender {
 		boolean checkDimension = !(dimension == Constants.DEFAULT_DIMENSION || dimension == Constants.NO_TRUST_DIMENSION);
 		int minAllowed = minNumItems < numRecommendations ? minNumItems : numRecommendations;
 		logger.debug("Recommend using items - dimension "+dimension+" num recomendations "+numRecommendations+" itemId "+itemId+" minAllowed:"+minAllowed+" client "+client);
-		Map<Long,Double> res = new HashMap<Long,Double>();
+		Map<Long,Double> res = new HashMap<>();
 		if (clusterAlg != null)
 		{
 			//get the cluster id from the item if possibl
-			List<UserCluster> clusters = new ArrayList<UserCluster>();
+			List<UserCluster> clusters = new ArrayList<>();
 			switch(clusterAlg)
 			{
 			case NONE:
@@ -232,7 +232,7 @@ public class CountRecommender {
 			
 			if (clusters.size() > 0)
 			{
-				Map<Long,Double> counts = new HashMap<Long,Double>();
+				Map<Long,Double> counts = new HashMap<>();
 				int numTopCounts = numRecommendations * 2; // number of counts to get - defaults to twice the final number recommendations to return
 				for(UserCluster cluster : clusters)
 				{
@@ -243,7 +243,7 @@ public class CountRecommender {
 				if (counts.keySet().size() < minAllowed)
 				{
 					logger.debug("Number of items found "+counts.keySet().size()+" is less than "+minAllowed+" so returning empty recommendation for cluster item recommender for item "+itemId);
-					return new HashMap<Long,Double>();
+					return new HashMap<>();
 				}
 				
 				res = RecommendationUtils.rescaleScoresToOne(counts, numRecommendations);
@@ -284,7 +284,7 @@ public class CountRecommender {
 			catch (ClusterCountNoImplementationException e) 
 			{
 				logger.error("Failed to get cluster counts as method not implemented",e);
-				itemCounts = new HashMap<Long,Double>();
+				itemCounts = new HashMap<>();
 			}
 		}
 		double maxCount = 0;
@@ -343,7 +343,7 @@ public class CountRecommender {
 			catch (ClusterCountNoImplementationException e) 
 			{
 				logger.error("Failed to get cluster counts as method not implemented",e);
-				itemCounts = new HashMap<Long,Double>();
+				itemCounts = new HashMap<>();
 			}
 		}
 		int excluded = 0;
@@ -389,8 +389,8 @@ public class CountRecommender {
 		List<UserCluster> shortTermClusters;
 		if (userId == Constants.ANONYMOUS_USER)
 		{
-			clusters = new ArrayList<UserCluster>();
-			shortTermClusters = new ArrayList<UserCluster>();
+			clusters = new ArrayList<>();
+			shortTermClusters = new ArrayList<>();
 		}	
 		else
 		{
@@ -398,7 +398,7 @@ public class CountRecommender {
 			if (includeShortTermClusters)
 				shortTermClusters = getShortTermClusters(userId, group);
 			else
-				shortTermClusters = new ArrayList<UserCluster>();
+				shortTermClusters = new ArrayList<>();
 		}
 		// fail early
 		Set<Integer> referrerClusters = getReferrerClusters();
@@ -407,16 +407,16 @@ public class CountRecommender {
 			if (!includeShortTermClusters && clusters.size() == 0)
 			{
 				logger.debug("User has no long term clusters and we are not including short term clusters - so returning empty recommendations");
-				return new HashMap<Long,Double>();
+				return new HashMap<>();
 			}
 			else if (includeShortTermClusters && clusters.size() == 0 && shortTermClusters.size() == 0)
 			{
 				logger.debug("User has no long or short term clusters - so returning empty recommendations");
-				return new HashMap<Long,Double>();
+				return new HashMap<>();
 			}
 		}
 		List<Long> res = null;
-		Map<Long,Double> counts = new HashMap<Long,Double>();
+		Map<Long,Double> counts = new HashMap<>();
 		int numTopCounts = numRecommendations * 5; // number of counts to get - defaults to twice the final number recommendations to return
 		logger.debug("recommending using long term cluster weight of "+longTermWeight+" and short term cluster weight "+shortTermWeight+" decay "+decay);
 		for(UserCluster cluster : clusters)
@@ -441,7 +441,7 @@ public class CountRecommender {
 		if (counts.keySet().size() < minAllowed)
 		{
 			logger.debug("Number of items found "+counts.keySet().size()+" is less than "+minAllowed+" so returning empty recommendation for user "+userId+" client "+client);
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 		}
 		
 		return RecommendationUtils.rescaleScoresToOne(counts, numRecommendations);
@@ -461,19 +461,19 @@ public class CountRecommender {
 		if (includeShortTermClusters)
 			shortTermClusters = getShortTermClusters(userId, group);
 		else
-			shortTermClusters = new ArrayList<UserCluster>();
+			shortTermClusters = new ArrayList<>();
 		if (!includeShortTermClusters && clusters.size() == 0)
 		{
 			logger.debug("User has no long term clusters and we are not including short term clusters - so returning empty recommendations");
-			return new ArrayList<Long>();
+			return new ArrayList<>();
 		}
 		else if (includeShortTermClusters && clusters.size() == 0 && shortTermClusters.size() == 0)
 		{
 			logger.debug("User has no long or short term clusters - so returning empty recommendations");
-			return new ArrayList<Long>();
+			return new ArrayList<>();
 		}
 		List<Long> res = null;
-		Map<Long,Double> counts = new HashMap<Long,Double>();
+		Map<Long,Double> counts = new HashMap<>();
 		for(long item : items) // initialise counts to zero
 			counts.put(item, 0D);
 		logger.debug("using long term cluster weight of "+longTermWeight+" and short term cluster weight "+shortTermWeight);
@@ -511,7 +511,7 @@ public class CountRecommender {
 		}
 		if (this.fillInZerosWithMostPopular)
 		{
-			res = new ArrayList<Long>();
+			res = new ArrayList<>();
 			List<Long> cRes = CollectionTools.sortMapAndLimitToList(counts, items.size()); 
 			for(Long item : cRes)
 				if (counts.get(item) > 0)
@@ -541,7 +541,7 @@ public class CountRecommender {
 		else
 		{
 			logger.debug("Got 0 short term clusters for user "+userId);
-			clusters = new ArrayList<UserCluster>();
+			clusters = new ArrayList<>();
 		}
 		return clusters;
 	}
@@ -700,7 +700,7 @@ public class CountRecommender {
 			return getClusterCounts(MemCacheKeys.getClusterCountForItems(client, clusterId, items, timestamp), new UpdateRetriever<ClustersCounts>() {
                 @Override
                 public ClustersCounts retrieve() throws Exception {
-                    Map<Long,Double> itemMap = new HashMap<Long,Double>();
+                    Map<Long,Double> itemMap = new HashMap<>();
                     for(Long itemId : items)
                     {
                         double count = clusterCounts.getCount(clusterId, itemId, timestamp,TestingUtils.getTime());

@@ -96,7 +96,7 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 			 itemsToScore = recentItemInteractions.subList(0, options.getNumRecentActions());
 		 }
 		 else
-			 itemsToScore = new ArrayList<Long>(recentItemInteractions);
+			 itemsToScore = new ArrayList<>(recentItemInteractions);
 		
 		//Create user topic weights
 		float[] userTopicWeight = createUserTopicsFromRecentItems(itemsToScore, store, itemTags,options.getMinNumTagsForTopicWeights());
@@ -106,7 +106,7 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
 		}
 
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		for(Map.Entry<Long, List<String>> e : itemTags.entrySet())
 		{
 			if (e.getValue().size() >= options.getMinNumTagsForTopicWeights() && !recentItemInteractions.contains(e.getKey()))
@@ -121,7 +121,7 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 	
 		
 		Map<Long,Double> scaledScores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
-		List<ItemRecommendationResult> results = new ArrayList<ItemRecommendationResult>();
+		List<ItemRecommendationResult> results = new ArrayList<>();
 		for(Map.Entry<Long, Double> e : scaledScores.entrySet())
 		{
 			results.add(new ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));

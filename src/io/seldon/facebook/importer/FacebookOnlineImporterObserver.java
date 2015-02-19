@@ -67,11 +67,11 @@ public class FacebookOnlineImporterObserver extends FacebookImporterObserver {
     protected void processGraph(UserBean userBean, ConsumerBean consumerBean, String facebookId, FacebookUserGraph userGraph) {
         CreateClustersUtils utils = createUtils(consumerBean.getShort_name());
 
-        final Set<String> likeIds = new HashSet<String>();
-        final Set<String> likeNames = new HashSet<String>();
+        final Set<String> likeIds = new HashSet<>();
+        final Set<String> likeNames = new HashSet<>();
 
         final Map<String, Like> likes = userGraph.getLikes();
-        final List<String> categories = new ArrayList<String>();
+        final List<String> categories = new ArrayList<>();
         // like contents
         if (likes != null) {
             for (Map.Entry<String, Like> entry : likes.entrySet()) {
@@ -137,7 +137,7 @@ public class FacebookOnlineImporterObserver extends FacebookImporterObserver {
         ItemBean item = new ItemBean();
         item.setName(like.getName());
         item.setId(Constants.FACEBOOK_ID_PREFIX + like.getId());
-        Map<String, String> attributesMap = new HashMap<String, String>();
+        Map<String, String> attributesMap = new HashMap<>();
         attributesMap.put("category", like.getCategory());
         item.setAttributesName(attributesMap);
         // TODO

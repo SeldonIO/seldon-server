@@ -290,7 +290,7 @@ public class MemCacheKeys {
 	
 	public static String getClusterCountForItems(String client,int clusterId,List<Long> items,long version)
 	{
-		ArrayList<Long> itemKeys = new ArrayList<Long>(items);
+		ArrayList<Long> itemKeys = new ArrayList<>(items);
 		Collections.sort(itemKeys); // to provide consistent order
 		StringBuffer b = new StringBuffer(""+keys.ClusterCountForItems);
 		b.append(":");
@@ -336,7 +336,7 @@ public class MemCacheKeys {
 	
 	public static String getSharingRecommendationKey(String client,long userId,List<Long> items)
 	{
-		ArrayList<Long> itemKeys = new ArrayList<Long>(items);
+		ArrayList<Long> itemKeys = new ArrayList<>(items);
 		Collections.sort(itemKeys);
 		return ""+keys.SharingRecommendation+":"+client+":"+userId+":"+CollectionTools.join(itemKeys, ",");
 	}
@@ -353,7 +353,7 @@ public class MemCacheKeys {
 	
 	public static String getRankedItemsKey(String client,long cfalgorithm, String userId,List<String> items)
 	{
-		ArrayList<String> itemKeys = new ArrayList<String>(items);
+		ArrayList<String> itemKeys = new ArrayList<>(items);
 		Collections.sort(itemKeys);
 		return ""+keys.RankedItems+":"+client+":" + cfalgorithm + ":"+userId+":"+CollectionTools.join(itemKeys, ",");
 	}
@@ -483,7 +483,7 @@ public class MemCacheKeys {
 	
 	public static String getTagsItemCounts(String client,Set<String> tags,int dimension)
 	{
-		ArrayList<String> tlist = new ArrayList<String>(tags);
+		ArrayList<String> tlist = new ArrayList<>(tags);
 		Collections.sort(tlist);
 		String normalizedTagKey = CollectionTools.join(tlist, ":");
 		return ""+keys.TagsItemCounts+":"+client+":"+dimension+":"+ normalizedTagKey;
@@ -500,7 +500,7 @@ public class MemCacheKeys {
 	}
 	public static String getSharingRecommendationForKeywords(String client,long userId,List<String> keywords)
     {
-        ArrayList<String> keywordSet = new ArrayList<String>(keywords);
+        ArrayList<String> keywordSet = new ArrayList<>(keywords);
         Collections.sort(keywordSet);
         return ""+keys.SharingRecommendationForKeywords+":"+client+":"+userId+CollectionTools.join(keywordSet, ",");
     }

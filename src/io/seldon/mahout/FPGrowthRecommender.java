@@ -48,7 +48,7 @@ public class FPGrowthRecommender {
 		public ItemSet(long support)
 		{
 			this.support = support;
-			items = new HashSet<Long>();
+			items = new HashSet<>();
 		}
 		
 		public ItemSet(int support, Set<Long> items) {
@@ -73,7 +73,7 @@ public class FPGrowthRecommender {
 	
 	public List<Recommendation> recommend(long userId,int type,List<Long> recentItems,int numRecommendations)
 	{
-		List<Recommendation> recs = new ArrayList<Recommendation>();
+		List<Recommendation> recs = new ArrayList<>();
 		List<Long> items = getRecommendations(recentItems,numRecommendations);
 		for(Long item : items)
 			recs.add(new Recommendation(item,type,1D));
@@ -83,7 +83,7 @@ public class FPGrowthRecommender {
 	public List<Long> sortBySimilarity(List<Long> recentItems,Collection<Long> items)
 	{
 		if (recentItems == null || recentItems.size() == 0 || items == null || items.size() == 0)
-			return new ArrayList<Long>();
+			return new ArrayList<>();
 		else
 			return store.getOrderedItems(recentItems, items);
 	}

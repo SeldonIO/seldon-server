@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 public class PoolExecutor {
     private static Logger logger = Logger.getLogger(PoolExecutor.class);
 
-    private BlockingQueue<Runnable> queue = new LinkedBlockingDeque<Runnable>();
+    private BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>();
     private ThreadPoolExecutor threadPoolExecutor;
 
     public PoolExecutor(int maxThreads) {

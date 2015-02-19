@@ -189,7 +189,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
     		recsFinal = recs;
 
     	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(options.getName(), clientUserId, dimension, currentRecUUID, recsFinal, options,algKey,currentItemId,numRecentActions);
-    	List<Recommendation> recBeans = new ArrayList<Recommendation>();
+    	List<Recommendation> recBeans = new ArrayList<>();
     	for(Long itemId : recsFinal)
     		recBeans.add(new Recommendation(itemId, 0, 0.0));
     	return new RecommendationResult(recBeans, uuid);
@@ -210,7 +210,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 
 		//Set base values - will be used for anonymous users
 		int numRecommendations = numRecommendationsAsked;
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		int numRecentActions = 0;
 
 
@@ -258,8 +258,8 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 			exclusions.add(currentItemId); // add current page to exclusions
 		}
 
-		Map<Long,Double> recommenderScores = new HashMap<Long,Double>();
-		Map<Long,Double> recommendations = new HashMap<Long,Double>();
+		Map<Long,Double> recommenderScores = new HashMap<>();
+		Map<Long,Double> recommendations = new HashMap<>();
 		int numSuccessfulRecommenders = 0;
 		boolean tryNext = true;
 		Double worstScore = null;
@@ -269,7 +269,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 			if (!tryNext)
 				break;
 
-			recommendations = new HashMap<Long,Double>();
+			recommendations = new HashMap<>();
             ItemRecommendationAlgorithm alg;
             if(recommendersByLabel != null && (alg = recommendersByLabel.get(recommender_type.name()))!=null){
                 logger.debug("Using recommender " + recommender_type.name());
@@ -277,9 +277,9 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				List<Long> recentItemInteractions;
 				// add items from recent history if there are any and algorithm options says to use them
 				if (recentActions != null && recentActions.size() > 0)
-					recentItemInteractions = new ArrayList<Long>(recentActions);
+					recentItemInteractions = new ArrayList<>(recentActions);
 				else
-					recentItemInteractions = new ArrayList<Long>();
+					recentItemInteractions = new ArrayList<>();
 
 				// add current item id if not in recent actions
 				if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
@@ -324,7 +324,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 								new JdoTagClusterCountStore(options.getName()),
 								new JdoItemTagCache(options.getName()),
 								options.getTagAttrId());
-						Set<Long> userTagHistory = new HashSet<Long>();
+						Set<Long> userTagHistory = new HashSet<>();
 						if (recentActions != null && options.getTagUserHistory() > 0)
 						{
 							if (recentActions.size() > options.getTagUserHistory())
@@ -492,9 +492,9 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					List<Long> recentItemInteractions;
 					// add items from recent history if there are any and algorithm options says to use them
 					if (recentActions != null && recentActions.size() > 0)
-						recentItemInteractions = new ArrayList<Long>(recentActions);
+						recentItemInteractions = new ArrayList<>(recentActions);
 					else
-						recentItemInteractions = new ArrayList<Long>();
+						recentItemInteractions = new ArrayList<>();
 
 					// add current item id if not in recent actions
 					if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
@@ -541,7 +541,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 						}
 						else
 						{
-							limitedRecentActions = new ArrayList<Long>();;
+							limitedRecentActions = new ArrayList<>();;
 							limitedRecentActions.add(currentItemId);
 						}
 
@@ -587,7 +587,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 						{
 							Set<Long> inclusions = null;
 							if (itemsToCompare != null)
-								inclusions = new HashSet<Long>(itemsToCompare);
+								inclusions = new HashSet<>(itemsToCompare);
 							recommendations = sem.recommendDocsFromItemTags(limitedRecentActions, options.getTagAttrId(), new JdoItemTagCache(options.getName()), numRecommendations, exclusions, inclusions, options.isIgnorePerfectSVMatches());
 						}
 					}
@@ -604,7 +604,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					{
 						Collections.shuffle(recList); //Randomize order
 					}
-					recommendations = new HashMap<Long,Double>();
+					recommendations = new HashMap<>();
 					if (recList.size() > 0)
 					{
 						double scoreIncr = 1.0/(double)recList.size();
@@ -809,9 +809,9 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 			ContentReviewPeer crp = new ContentReviewPeer(cp.getPM());
 			double ratingThreshold = options.getMaxRating() * HIGH_RATING_THRESHOLD;
 			int reviewsToGet = Math.round((float) (numRecommendations * INITIAL_REVIEW_SET_RATIO));
-			Collection<Long> contents = crp.getPopularTrustedContentTrustNet(new HashSet<Long>(trustNet.getSimilarityNeighbourhood(options.getRecommendK())),user,type, ratingThreshold, reviewsToGet);
+			Collection<Long> contents = crp.getPopularTrustedContentTrustNet(new HashSet<>(trustNet.getSimilarityNeighbourhood(options.getRecommendK())),user,type, ratingThreshold, reviewsToGet);
 			PersonalisedRatingCreator prc = new PersonalisedRatingCreator((ContentRatingResolver)cp);
-			List<Recommendation> recs = new ArrayList<Recommendation>();
+			List<Recommendation> recs = new ArrayList<>();
 			for(Long contentId : contents)
 			{
 				//Collection<Long> reviewers = cp.getContentReviewers(contentId);
@@ -1061,7 +1061,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 
 	@Override
 	public List<SearchResult> findSimilar(long content, int type, int numResults, CFAlgorithm options) {
-		List<SearchResult> res = new ArrayList<SearchResult>();
+		List<SearchResult> res = new ArrayList<>();
 		for(CF_ITEM_COMPARATOR comparator : options.getItemComparators())
 		{
 			switch(comparator)
@@ -1069,7 +1069,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 			case SEMANTIC_VECTORS:
 			{
 				SemVectorsPeer sem = SemanticVectorsStore.get(options.getName(),SemanticVectorsStore.PREFIX_FIND_SIMILAR,type);
-				ArrayList<SemVectorResult<Long>> results = new ArrayList<SemVectorResult<Long>>();
+				ArrayList<SemVectorResult<Long>> results = new ArrayList<>();
 				sem.searchDocsUsingDocQuery(content, results, new DocumentIdTransform(),numResults);
 
 				int count = 0;
@@ -1132,10 +1132,10 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
         logger.info("Getting sem vectors peer for user " + user + " query="+query+" dimension item_type:"+(d != null ? d.getItemType() : "null")+" dimension attr:"+(d != null ? d.getAttr() : "null")+" dimension value:"+(d != null ? d.getVal() : "null"));
 		SemVectorsPeer sem = SemanticVectorsStore.get(options.getName(),SemanticVectorsStore.PREFIX_KEYWORD_SEARCH,d != null ? d.getItemType() : null);
 		logger.info("Got sem vectors peer for user " + user + " query="+query);
-		List<SearchResult> res = new ArrayList<SearchResult>();
+		List<SearchResult> res = new ArrayList<>();
 		if (sem != null)
 		{
-			ArrayList<SemVectorResult<Long>> results = new ArrayList<SemVectorResult<Long>>();
+			ArrayList<SemVectorResult<Long>> results = new ArrayList<>();
 			logger.info("semvec search start " + user + " query="+query);
 			long t = System.currentTimeMillis();
 			sem.searchDocsUsingTermQuery(query, results, new DocumentIdTransform(),new StringTransform(),numResults);
@@ -1191,8 +1191,8 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 		{
 			if (debugging)
 				logger.debug("Trying sort for user "+userId);
-			Map<Long,Integer> results = new HashMap<Long,Integer>();
-			List<CF_SORTER> successfulMethods = new ArrayList<CF_SORTER>();
+			Map<Long,Integer> results = new HashMap<>();
+			List<CF_SORTER> successfulMethods = new ArrayList<>();
 			int successfulPrevAlg = 0;
 			for(CF_SORTER sortMethod : options.getSorters())
 			{
@@ -1343,7 +1343,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 						int pos = 0;
 						// update the counts for articles not seen in this algorithm set
 						int currentResultsSize = results.size();
-						Set<Long> missedItems = new HashSet<Long>(results.keySet());
+						Set<Long> missedItems = new HashSet<>(results.keySet());
 						for(Long itemId : res)
 						{
 							missedItems.remove(itemId);
@@ -1366,7 +1366,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 						if (debugging)
 							logger.debug("Adding missing items returned "+sortMethod.name()+" to global list: "+CollectionTools.join(res, ","));
 						successfulPrevAlg++;
-						Set<Long> currentItems = new HashSet<Long>(results.keySet());
+						Set<Long> currentItems = new HashSet<>(results.keySet());
 						int pos = currentItems.size();
 						for(Long itemId : res)
 						{
@@ -1445,7 +1445,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				}
 			}
 			if (res == null)
-				res = new ArrayList<Long>();
+				res = new ArrayList<>();
 			return new SortResult(res,successfulMethods,options.getSorterStrategy(),options.getPostprocessing());
 		}
 		else
@@ -1482,7 +1482,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 	@Override
 	public List<RecommendedUserBean> sharingRecommendation(String userFbId,long userId,Long itemId,String linkType,
 			List<String> tags,int limit,CFAlgorithm options) {
-		List<RecommendedUserBean> recUserList = new ArrayList<RecommendedUserBean>();
+		List<RecommendedUserBean> recUserList = new ArrayList<>();
 		if (Util.getMgmKeywordConf().isDBClient(options.getName())) {
 			List<SharingRecommendation> sharingRecs = sharingRecommendationFromDb(userId, itemId, linkType, tags, limit, options);
 			ConsumerBean c = new ConsumerBean();

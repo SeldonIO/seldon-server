@@ -299,7 +299,7 @@ public class JsClientController {
     	
         //Attributes
         final Map<String, String> attributes = item.getAttributesName();
-        final Map<String, String> newAttributes = new HashMap<String, String>();
+        final Map<String, String> newAttributes = new HashMap<>();
         //title
         if(title != null && title.length()>0 && !title.equals(attributes.get(Constants.ITEM_ATTR_TITLE))) {
         	newAttributes.put(Constants.ITEM_ATTR_TITLE, title.trim());
@@ -350,7 +350,7 @@ public class JsClientController {
 
     private UserBean createFacebookUser(String userId, Boolean facebookEnabled, String facebookId, String facebookToken,String client,String facebookAppId) {
         UserBean userBean = new UserBean(userId, userId);
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         if (facebookEnabled == null) {
             facebookEnabled = false;
         }

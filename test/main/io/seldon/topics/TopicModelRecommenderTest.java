@@ -84,7 +84,7 @@ public class TopicModelRecommenderTest {
 		final int limit = 10;
 		final int numRecentItems = 1000;
 		final String table = "varchar";
-		Set<Long> recentItems = new HashSet<Long>();
+		Set<Long> recentItems = new HashSet<>();
 		recentItems.add(1L);
 		CFAlgorithm options = new CFAlgorithm();
 		options.setNumRecentItems(numRecentItems);
@@ -119,32 +119,32 @@ public class TopicModelRecommenderTest {
 		final int limit = 10;
 		final int numRecentItems = 1000;
 		final String table = "varchar";
-		Set<Long> recentItems = new HashSet<Long>();
+		Set<Long> recentItems = new HashSet<>();
 
 		CFAlgorithm options = new CFAlgorithm();
 		options.setNumRecentItems(numRecentItems);
 		options.setTagAttrId(attrId);
 
-		Map<Long,List<String>> itemTags = new HashMap<Long,List<String>>();
+		Map<Long,List<String>> itemTags = new HashMap<>();
 		final String tag = "tag";
 		final Long itemId = 1L;
-		List<String> tags = new ArrayList<String>();
+		List<String> tags = new ArrayList<>();
 		tags.add(tag);
 		itemTags.put(itemId, tags);
 		recentItems.add(itemId);
 		expect(mockTagsManager.retrieveRecentItems(EasyMock.eq(client), EasyMock.eq(recentItems), EasyMock.eq(attrId),EasyMock.eq(table))).andReturn(itemTags);
 		replay(mockTagsManager);
 
-		Map<Long,Map<Integer,Float>> userTopicWeights = new HashMap<Long,Map<Integer,Float>>();
-		Map<Integer,Float> topicWeights = new HashMap<Integer,Float>();
+		Map<Long,Map<Integer,Float>> userTopicWeights = new HashMap<>();
+		Map<Integer,Float> topicWeights = new HashMap<>();
 		final Long user = 1L;
 		final Integer topic = 1;
 		final Float topicWeight = 0.5f;
 		topicWeights.put(topic, topicWeight);
 		userTopicWeights.put(user, topicWeights);
-		Map<String,Map<Integer,Float>> tagTopicWeights = new HashMap<String,Map<Integer,Float>>();
+		Map<String,Map<Integer,Float>> tagTopicWeights = new HashMap<>();
 		final Float tagWeight = 0.5f;
-		Map<Integer,Float> tagWeights = new HashMap<Integer, Float>();
+		Map<Integer,Float> tagWeights = new HashMap<>();
 		tagWeights.put(topic, tagWeight);
 		tagTopicWeights.put(tag, tagWeights);
 		TopicFeaturesStore tfs = new TopicFeaturesStore(userTopicWeights,tagTopicWeights);

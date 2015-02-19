@@ -259,10 +259,10 @@ public class GraphLabRecommender {
 	public List<Recommendation> recommend(long user,int dimension,int numRecommendations,OpinionPeer opPeer,ItemPeer iPeer)
 	{
 		Collection<Opinion> ops = opPeer.getUserOpinions(user, 10000);
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		for(Opinion op : ops)
 			exclusions.add(op.getItemId());
-		Map<Long,Double> best = new HashMap<Long,Double>(V.numRows());
+		Map<Long,Double> best = new HashMap<>(V.numRows());
 		Integer userIdGL = getGraphIdFromLabsId(userIdMap,user);
 		logger.info("Translated user id " + user + " to " + userIdGL);
 		boolean checkDimension = !(dimension == Constants.DEFAULT_DIMENSION || dimension == Constants.NO_TRUST_DIMENSION);
@@ -280,7 +280,7 @@ public class GraphLabRecommender {
 				}
 			}
 			List<Long> recIds = CollectionTools.sortMapAndLimitToList(best, numRecommendations);
-			List<Recommendation> recs = new ArrayList<Recommendation>();
+			List<Recommendation> recs = new ArrayList<>();
 			for(Long id : recIds)
 			{
 				recs.add(new Recommendation(id,dimension,null));

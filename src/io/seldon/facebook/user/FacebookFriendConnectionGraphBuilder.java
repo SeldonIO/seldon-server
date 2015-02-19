@@ -86,8 +86,8 @@ public class FacebookFriendConnectionGraphBuilder {
 
     private List<FacebookUser> getFacebookFriendsMultipleCalls(String fbToken)
     {
-        List<FacebookUser> toReturn = new ArrayList<FacebookUser>();
-        List<Future<List<FacebookUser>>> futures = new ArrayList<Future<List<FacebookUser>>>();
+        List<FacebookUser> toReturn = new ArrayList<>();
+        List<Future<List<FacebookUser>>> futures = new ArrayList<>();
         for(int i = 0; i< 5; i++){
             String fql = GET_FRIENDS + " LIMIT 1000 " + (i==0?"":("OFFSET "+i*1000))+" )";
             futures.add(facebookClient.executeFqlQueryAsync(fql, FacebookUser.class, fbToken));
@@ -110,7 +110,7 @@ public class FacebookFriendConnectionGraphBuilder {
     private List<FacebookFriendConnection> getFacebookConnectionsMultipleCalls(List<FacebookUser> friends, String accessToken, FacebookCallLogger fbCallLogger)
     {
         // plan is to query a few users at time for their connections. This way, the limit shouldn't get h    
-        friends = new ArrayList<FacebookUser>(friends);
+        friends = new ArrayList<>(friends);
         List<List<Long>> uidsToQueryList = splitFriendsIntoChunksByMutualFriendCount(friends);
         List<FacebookFriendConnection> listOfConns = doAsyncConnectionRequests(uidsToQueryList, accessToken, fbCallLogger);
 
@@ -157,11 +157,11 @@ public class FacebookFriendConnectionGraphBuilder {
 
 
     private static List<List<Long>> splitFriendsIntoChunksByMutualFriendCount(List<FacebookUser> friends) {
-        List<List<Long>> uidsToQueryList = new ArrayList<List<Long>>();
+        List<List<Long>> uidsToQueryList = new ArrayList<>();
         // split the uids into manageable bite sizes so that Facebook doesn't choke on them.
         int friendsCount = 0;
         Iterator<FacebookUser> iter = friends.iterator();
-        List<Long> uidsToQuery = new LinkedList<Long>();
+        List<Long> uidsToQuery = new LinkedList<>();
         while (iter.hasNext())
         {
             FacebookUser friend = iter.next();
@@ -169,7 +169,7 @@ public class FacebookFriendConnectionGraphBuilder {
             {
                 uidsToQuery.add(friend.getUid());
                 uidsToQueryList.add(uidsToQuery);
-                uidsToQuery = new LinkedList<Long>();
+                uidsToQuery = new LinkedList<>();
                 friendsCount = 0;
             }
             else
@@ -189,8 +189,8 @@ public class FacebookFriendConnectionGraphBuilder {
 
     public List<FacebookFriendConnection> doAsyncConnectionRequests(Collection<List<Long>> uidsToQueryList, String accessToken, FacebookCallLogger fbCallLogger)
     {
-        List<FacebookFriendConnection> listOfConns = new ArrayList<FacebookFriendConnection>();
-        List<Future<List<FacebookFriendConnection>>> futures = new ArrayList<Future<List<FacebookFriendConnection>>>();
+        List<FacebookFriendConnection> listOfConns = new ArrayList<>();
+        List<Future<List<FacebookFriendConnection>>> futures = new ArrayList<>();
         for (List<Long> uids : uidsToQueryList) {
             final String query = GET_FRIENDS_FRIENDS_PART_1 + StringUtils.join(uids, ',') + GET_FRIENDS_FRIENDS_PART_2;
             fbCallLogger.fbCallPerformed();

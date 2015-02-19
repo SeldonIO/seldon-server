@@ -67,7 +67,7 @@ public abstract class SimilarFriendsAlgorithm implements FacebookUsersAlgorithm 
         if (user != null)
         {
         	List<SearchResult> similarUsers = wpeer.getSimilarUsers(user, resultLimit, getSimilarityMetric(), similarityType);
-        	List<RecommendedUserBean> toReturn = new ArrayList<RecommendedUserBean>(similarUsers.size());
+        	List<RecommendedUserBean> toReturn = new ArrayList<>(similarUsers.size());
         	for(SearchResult result : similarUsers){
         		RecommendedUserBean recommendedUserBean = new RecommendedUserBean(client, result);
         		recommendedUserBean.setReasons(Arrays.<String>asList(getMessageKey()));
@@ -79,7 +79,7 @@ public abstract class SimilarFriendsAlgorithm implements FacebookUsersAlgorithm 
         else
         {
         	logger.warn("No internal user id for user "+userId+" for client "+client);
-        	return new ArrayList<RecommendedUserBean>();
+        	return new ArrayList<>();
         }
     }
 

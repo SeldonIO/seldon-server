@@ -81,20 +81,20 @@ public class SqlInteractionPeer implements InteractionPeer{
     public Set<Interaction> getInteractions(String user1Id, int type, int subType) {
         Query q = manager.newQuery(Interaction.class, "user1Id == i && type == k && subType == j");
         q.declareParameters("String i, int k, int j");
-        return new HashSet<Interaction>((List<Interaction>) q.execute(user1Id, type, subType));
+        return new HashSet<>((List<Interaction>) q.execute(user1Id, type, subType));
     }
 
     @Override
     public Set<Interaction> getInteractions(String user1Id, int type) {
         Query q = manager.newQuery(Interaction.class, "user1Id == i && type == k");
         q.declareParameters("String i, int k");
-        return new HashSet<Interaction>((List<Interaction>) q.execute(user1Id, type));
+        return new HashSet<>((List<Interaction>) q.execute(user1Id, type));
     }
 
     @Override
     public Set<Interaction> getUnconvertedInteractionsByInteractedWithUsers(Collection<String> userFbIds, int type, int subType){
         Query q = manager.newQuery(Interaction.class, ":p1.contains(user2FbId) && type == :p2 && subType == :p3 && interactionEvents.isEmpty()");
-        return new HashSet<Interaction>((List<Interaction>) q.execute(userFbIds, type, subType));
+        return new HashSet<>((List<Interaction>) q.execute(userFbIds, type, subType));
     }
 
     @Override
@@ -109,7 +109,7 @@ public class SqlInteractionPeer implements InteractionPeer{
                         Set<InteractionEvent> events = interaction.getInteractionEvents();
                         Interaction persistentInteraction = new Interaction(interaction.getUser1Id(), interaction.getUser2FbId(),
                                 interaction.getType(), interaction.getSubType(), interaction.getDate(),
-                                events == null? null : new HashSet<InteractionEvent>(events));
+                                events == null? null : new HashSet<>(events));
                         manager.makePersistent(persistentInteraction);
                     }
                 });

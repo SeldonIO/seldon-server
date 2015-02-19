@@ -102,7 +102,7 @@ public class AcquireController {
     
     private UserBean createFacebookUser(String userId, Boolean facebookEnabled, String facebookId, String facebookToken,String client,String facebookAppId) {
         UserBean userBean = new UserBean(userId, userId);
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         if (facebookEnabled == null) {
             facebookEnabled = false;
         }
@@ -191,7 +191,7 @@ public class AcquireController {
         
         final boolean impressionEnabled = BooleanUtils.toBoolean(impressionEnabledString);
 
-        List<String> algorithmsArr = new LinkedList<String>();
+        List<String> algorithmsArr = new LinkedList<>();
         if(algorithms != null && algorithms.length() > 0)
         {
             String[] parts = algorithms.split(",");
@@ -276,7 +276,7 @@ public class AcquireController {
         }
         
         if(!BooleanUtils.toBoolean(full)){
-            List<String> usersList = new LinkedList<String>();
+            List<String> usersList = new LinkedList<>();
             for (ResourceBean resourceBean : recommendedUsers.getList()) {
                 RecommendedUserBean recommendedUserBean = (RecommendedUserBean) resourceBean;
                 String friendId = recommendedUserBean.getUser();

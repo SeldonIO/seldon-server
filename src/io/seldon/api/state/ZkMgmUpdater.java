@@ -82,10 +82,10 @@ public class ZkMgmUpdater implements ApplicationContextAware, PathChildrenCacheL
     private CacheExpireService cacheExpireService;
 
 
-    private Set<PathChildrenCache> caches = new HashSet<PathChildrenCache>();
+    private Set<PathChildrenCache> caches = new HashSet<>();
 
-    private Map<String, MultiVariateTest<SocialRecommendationStrategy>> suspendedTests = new HashMap<String, MultiVariateTest<SocialRecommendationStrategy>>();
-    private Map<String, Boolean> testingOnOrOff = new HashMap<String, Boolean>();
+    private Map<String, MultiVariateTest<SocialRecommendationStrategy>> suspendedTests = new HashMap<>();
+    private Map<String, Boolean> testingOnOrOff = new HashMap<>();
 
     private ApplicationContext applicationContext;
 
@@ -375,7 +375,7 @@ public class ZkMgmUpdater implements ApplicationContextAware, PathChildrenCacheL
 
 
     public MultiVariateTest<SocialRecommendationStrategy> toTest(String client, ZkMgmAlgMvTestMessage test, byte[] json) throws Exception {
-        Map<MultiVariateTestVariation<SocialRecommendationStrategy>, BigDecimal> realRateToVariation = new HashMap<MultiVariateTestVariation<SocialRecommendationStrategy>, BigDecimal>();
+        Map<MultiVariateTestVariation<SocialRecommendationStrategy>, BigDecimal> realRateToVariation = new HashMap<>();
         for(ZkMgmTestVariation entry : test.variations)
         {
             SocialRecommendationStrategy.StrategyAim aim = entry.aim==null? null : SocialRecommendationStrategy.StrategyAim.valueOf(entry.aim);
@@ -390,11 +390,11 @@ public class ZkMgmUpdater implements ApplicationContextAware, PathChildrenCacheL
                 new String (json)
             );
 
-            MultiVariateTestVariation<SocialRecommendationStrategy> variation = new MultiVariateTestVariation<SocialRecommendationStrategy>(
+            MultiVariateTestVariation<SocialRecommendationStrategy> variation = new MultiVariateTestVariation<>(
                     entry.label, strategy);
             realRateToVariation.put( variation, entry.size);
         }
-        MultiVariateTest<SocialRecommendationStrategy> outputTest = new MultiVariateTest<SocialRecommendationStrategy>(client, realRateToVariation);
+        MultiVariateTest<SocialRecommendationStrategy> outputTest = new MultiVariateTest<>(client, realRateToVariation);
         return outputTest;
     }
 
@@ -409,7 +409,7 @@ public class ZkMgmUpdater implements ApplicationContextAware, PathChildrenCacheL
 
     private <T> List<T> algsFromString(List<String> algs, Class<T> type) throws Exception {
         if(algs==null) return null;
-        List<T> realAlgs = new ArrayList<T>();
+        List<T> realAlgs = new ArrayList<>();
         for(String alg : algs){
             T readAlg = (T) applicationContext.getBean(alg);
             if(readAlg==null){
@@ -423,7 +423,7 @@ public class ZkMgmUpdater implements ApplicationContextAware, PathChildrenCacheL
 
     private <T> List<T> decayFunctionsFromString(List<String> decayFunctions, Class<T> type) throws Exception {
         if(decayFunctions==null) return null;
-        List<T> realDecayFunctions = new ArrayList<T>();
+        List<T> realDecayFunctions = new ArrayList<>();
         for(String decayFunction : decayFunctions){
             T readDecayFunction = (T) applicationContext.getBean(decayFunction);
             if(readDecayFunction==null){

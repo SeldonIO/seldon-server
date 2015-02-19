@@ -231,7 +231,7 @@ public class AsyncClusterCountStoreTest extends BasePeerTest {
 	public void checkContinuousWritesSingleClusterSingleItemMultipleThreads() throws InterruptedException
 	{
 		int numThreads = 40;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		Random rand = new Random();
 		final AsyncClusterCountStore asyncStore = new AsyncClusterCountStore(props.getClient(), 1, 1000, Integer.MAX_VALUE, 3, 360000000,true);
 		
@@ -279,7 +279,7 @@ public class AsyncClusterCountStoreTest extends BasePeerTest {
 	public void checkContinuousWritesSingleClusterMultipleThreads() throws InterruptedException
 	{
 		int numThreads = 40;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 	
 		
 		final AsyncClusterCountStore asyncStore = new AsyncClusterCountStore(props.getClient(), 1, 10000, Integer.MAX_VALUE, 3, 360000000,true);

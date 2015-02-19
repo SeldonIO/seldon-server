@@ -70,9 +70,9 @@ public class MgmInteractionsConversionService extends ConversionService{
     private final InteractionService interactionService;
     private final ExternalUserService extUsrService;
     private final Boolean useAmazonQueue;
-    private final ConcurrentMap<String,ConcurrentMap<String, ConversionCandidate>> fbIdToCandidate = new ConcurrentHashMap<String, ConcurrentMap<String,ConversionCandidate>>();
-    private ConcurrentMap<String,BlockingQueue<ConversionCandidate>> toCheckQueues = new ConcurrentHashMap<String, BlockingQueue<ConversionCandidate>>();
-    private ConcurrentMap<String, Integer> consumerToDays = new ConcurrentHashMap<String, Integer>();
+    private final ConcurrentMap<String,ConcurrentMap<String, ConversionCandidate>> fbIdToCandidate = new ConcurrentHashMap<>();
+    private ConcurrentMap<String,BlockingQueue<ConversionCandidate>> toCheckQueues = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Integer> consumerToDays = new ConcurrentHashMap<>();
 
     @Autowired
     public MgmInteractionsConversionService(@Value("${interactions.conversion.use.queue:false}") Boolean useAmazonQueue,
@@ -102,7 +102,7 @@ public class MgmInteractionsConversionService extends ConversionService{
         int size = queue.size();
         if(size>50){
             logger.info("Queue size is "+size + ", draining 50 users to check for conversion.");
-            Set<ConversionCandidate> candidatesToCheck = new HashSet<ConversionCandidate>(50);
+            Set<ConversionCandidate> candidatesToCheck = new HashSet<>(50);
             queue.drainTo(candidatesToCheck, 50);
             doCheck(candidatesToCheck, consumer.getShort_name(), daysOfHistoryToConsider);
         }
@@ -115,7 +115,7 @@ public class MgmInteractionsConversionService extends ConversionService{
             BlockingQueue<ConversionCandidate> queue = toCheckQueues.get(consumer);
             while(queue.size()>0){
                 logger.info(consumer + " queue size = "+queue.size());
-                Set<ConversionCandidate> candidatesToCheck = new HashSet<ConversionCandidate>(50);
+                Set<ConversionCandidate> candidatesToCheck = new HashSet<>(50);
                 queue.drainTo(candidatesToCheck, 50);
                 doCheck(candidatesToCheck, consumer, defaultDaysOfHistoryToConsider);
             }
@@ -123,7 +123,7 @@ public class MgmInteractionsConversionService extends ConversionService{
     }
 
     private void doCheck(Set<ConversionCandidate> candidatesToCheck, String consumer, int daysOfHistoryToConsider){
-        Collection<UserBean> usersToCheck = new ArrayList<UserBean>();
+        Collection<UserBean> usersToCheck = new ArrayList<>();
         for(ConversionCandidate candidateToTest : candidatesToCheck){
             usersToCheck.add(candidateToTest.user);
         }
@@ -145,7 +145,7 @@ public class MgmInteractionsConversionService extends ConversionService{
 
         Set<String> keys = interactions.keySet();
         for(String key : keys){
-            List<Interaction> interactionList = new ArrayList<Interaction>(interactions.get(key));
+            List<Interaction> interactionList = new ArrayList<>(interactions.get(key));
             if(interactionList == null || interactionList.isEmpty()){
                 continue;
             }

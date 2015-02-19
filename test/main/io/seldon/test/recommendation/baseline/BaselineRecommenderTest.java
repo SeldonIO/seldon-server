@@ -190,7 +190,7 @@ public class BaselineRecommenderTest extends BasePeerTest {
 			addItemPopularity(item2, 5);
 			addItemPopularity(item3, 1);
 			
-			Set<Long> excl = new HashSet<Long>();
+			Set<Long> excl = new HashSet<>();
 			excl.add(item1);
 			excl.add(item2);
 			IBaselineRecommenderUtils b = new SqlBaselineRecommenderUtils(props.getClient());
@@ -266,7 +266,7 @@ public class BaselineRecommenderTest extends BasePeerTest {
 			IBaselineRecommenderUtils b = new SqlBaselineRecommenderUtils(props.getClient());
 			BaselineRecommender r = new BaselineRecommender(props.getClient(), b);
 			
-			Map<Long,Double> recs = new HashMap<Long,Double>();
+			Map<Long,Double> recs = new HashMap<>();
 			recs.put(item1, 0.1D);
 			recs.put(item2, 0.2D);
 			recs.put(item3, 0.3D);

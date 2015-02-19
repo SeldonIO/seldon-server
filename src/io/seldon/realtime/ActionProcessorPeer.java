@@ -36,7 +36,7 @@ import io.seldon.realtime.kestrel.KestrelActionProcessor;
 public class ActionProcessorPeer {
 private static Logger logger = Logger.getLogger(ActionProcessorPeer.class.getName());
 	
-	static ConcurrentHashMap<String,IActionProcessor> store = new ConcurrentHashMap<String,IActionProcessor>();
+	static ConcurrentHashMap<String,IActionProcessor> store = new ConcurrentHashMap<>();
 	
 	private static final int DEF_KAFKA_PORT = 9092;
 	private static final String DEF_TYPE = "kafka";

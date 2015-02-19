@@ -84,7 +84,7 @@ public class ItemRecommender {
 	
 	public List<Recommendation> recommend(long userId,int type,int numRecommendations)
 	{
-		List<Recommendation> rumRs = new ArrayList<Recommendation>();
+		List<Recommendation> rumRs = new ArrayList<>();
 		try 
 		{
 			List<RecommendedItem> recs = recommender.recommend(userId, numRecommendations);
@@ -108,11 +108,11 @@ public class ItemRecommender {
 		{
 			long[] ids = similarity.allSimilarItemIDs(itemId);
 			double[] similarities = similarity.itemSimilarities(itemId, ids);
-			Map<Long,Double> simMap = new HashMap<Long,Double>();
+			Map<Long,Double> simMap = new HashMap<>();
 			for(int i=0;i<ids.length;i++)
 				simMap.put(ids[i], similarities[i]);
 			List<Long> ordered = CollectionTools.sortMapAndLimitToList(simMap, numResults, true);
-			List<SearchResult> res = new ArrayList<SearchResult>();
+			List<SearchResult> res = new ArrayList<>();
 			for(Long key : ordered)
 				res.add(new SearchResult(key,simMap.get(key)));
 			return res;

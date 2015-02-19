@@ -55,7 +55,7 @@ public class KafkaActionProcessor implements IActionProcessor {
 		props.put("producer.type", "async");
 		//props.put("queue.size", "10000");
 		ProducerConfig config = new ProducerConfig(props);
-		producer = new Producer<String, String>(config);
+		producer = new Producer<>(config);
 	}
 
 
@@ -66,7 +66,7 @@ public class KafkaActionProcessor implements IActionProcessor {
         //messages.add(""+userId+","+itemId+","+value+","+time+","+type);
         String message = ""+userId+","+itemId+","+value+","+time+","+type;
         //ProducerData<String, String> data = new ProducerData<String, String>(qName, messages);
-        KeyedMessage<String,String> data = new KeyedMessage<String, String>(qName, message);
+        KeyedMessage<String,String> data = new KeyedMessage<>(qName, message);
 
         producer.send(data);
 	}

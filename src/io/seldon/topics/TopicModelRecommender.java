@@ -82,7 +82,7 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
 		}
 
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		for(Map.Entry<Long, List<String>> e : itemTags.entrySet()) // for all items
 		{
 			if (e.getValue().size() >= options.getMinNumTagsForTopicWeights() && !recentitemInteractions.contains(e.getKey()))
@@ -96,7 +96,7 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 	
 		
 		Map<Long,Double> scaledScores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
-		List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<ItemRecommendationResultSet.ItemRecommendationResult>();
+		List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
 		for(Map.Entry<Long, Double> e : scaledScores.entrySet())
 		{
 			results.add(new ItemRecommendationResultSet.ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));

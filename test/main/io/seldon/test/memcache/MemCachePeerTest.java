@@ -54,7 +54,7 @@ public class MemCachePeerTest extends BasePeerTest {
 
 	    };
 	    
-	    List<String> initial = new ArrayList<String>();
+	    List<String> initial = new ArrayList<>();
 	    initial.add(x);
 	    
 	    Random r = new Random();
@@ -90,7 +90,7 @@ public class MemCachePeerTest extends BasePeerTest {
 		    int numThreads = 10;
 		    final int numIterations = 10;
 		  
-		    List<Thread> threads = new ArrayList<Thread>();
+		    List<Thread> threads = new ArrayList<>();
 			long start = System.currentTimeMillis();
 			MemCachePeer.delete(key);
 			for(int i=0;i<numThreads;i++)
@@ -101,7 +101,7 @@ public class MemCachePeerTest extends BasePeerTest {
 					for(int j=0;j<numIterations;j++)
 					{
 						
-						 List<String> initial = new ArrayList<String>();
+						 List<String> initial = new ArrayList<>();
 						 initial.add(x);
 						 MemCachePeer.cas(key, mutation, initial,1000);
 					}
@@ -145,7 +145,7 @@ public class MemCachePeerTest extends BasePeerTest {
 
 	    };
 	    
-	    List<String> initial = new ArrayList<String>();
+	    List<String> initial = new ArrayList<>();
 	    initial.add(x);
 	    Random r = new Random();
 	    String key = ""+r.nextInt();
@@ -166,7 +166,7 @@ public class MemCachePeerTest extends BasePeerTest {
 		
 		MemCachePeer.put("mykey", 10L);
 		
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 		long start = System.currentTimeMillis();
 		for(int i=0;i<numThreads;i++)
 		{

@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AsyncClusterCountFactory {
 private static boolean active = false;
 	
-	private ConcurrentHashMap<String,AsyncClusterCountStore> queues = new ConcurrentHashMap<String,AsyncClusterCountStore>();
+	private ConcurrentHashMap<String,AsyncClusterCountStore> queues = new ConcurrentHashMap<>();
 	private static AsyncClusterCountFactory factory;
 	
 	private static int DEF_QTIMEOUT_SECS = 5;

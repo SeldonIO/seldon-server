@@ -56,7 +56,7 @@ public class SqlElphPredictionPeer  extends ClientPersistable implements IElphPr
 		Query query = getPM().newQuery( "javax.jdo.query.SQL", sql);
 		Collection<Object[]> results = (Collection<Object[]>) query.execute(queryStr,queryStr);
 		logger.info("Got "+results.size()+" results");
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		double topScore1 = -1;
 		double topScore2 = -1;
 		double lastScore1 = -1; 

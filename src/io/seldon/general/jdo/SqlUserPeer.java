@@ -185,7 +185,7 @@ public class SqlUserPeer extends UserPeer {
         stringBuilder.append("select user_id from user_map_").append(type).append(" where attr_id = ? and value = ?");
         Query query = pm.newQuery("javax.jdo.query.SQL", stringBuilder.toString());
 
-        Collection<User> users = new LinkedList<User>();
+        Collection<User> users = new LinkedList<>();
         @SuppressWarnings({"unchecked"})
         Collection<Object> rows = (Collection<Object>) query.execute(attributeId, value);
         for (Object id : rows) {
@@ -240,7 +240,7 @@ public class SqlUserPeer extends UserPeer {
     @Override
     public boolean addUserAttributeNames(final long userId, final int typeId, Map<String, String> attributes, ConsumerBean c) throws APIException {
         boolean res = true;
-        Map<String, String> failedMappings = new HashMap<String, String>();
+        Map<String, String> failedMappings = new HashMap<>();
         UserAttributePeer userAttributePeer = Util.getUserAttributePeer(c);
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
             String name = entry.getKey();

@@ -48,7 +48,7 @@ public class RecommendationUtils {
 	
 	public static List<Long> getDiverseRecommendations(int numRecommendationsAsked,List<Long> recs,String client,String clientUserId,int dimension)
 	{		
-		List<Long> recsFinal = new ArrayList<Long>(recs.subList(0, Math.min(numRecommendationsAsked,recs.size())));
+		List<Long> recsFinal = new ArrayList<>(recs.subList(0, Math.min(numRecommendationsAsked,recs.size())));
 		String rrkey = MemCacheKeys.getRecentRecsForUser(client, clientUserId, dimension);
 		Set<Integer> lastRecs = (Set<Integer>) MemCachePeer.get(rrkey);
 		int hashCode = recsFinal.hashCode();
@@ -57,10 +57,10 @@ public class RecommendationUtils {
 			if (lastRecs.contains(hashCode))
 			{
 				logger.debug("Trying to diversity recs for user "+clientUserId+" dimension "+dimension+" client"+client+" #recs "+recs.size());
-				List<Long> shuffled = new ArrayList<Long>(recs);
+				List<Long> shuffled = new ArrayList<>(recs);
 				Collections.shuffle(shuffled); //shuffle 
 				shuffled = shuffled.subList(0, Math.min(numRecommendationsAsked,recs.size())); //limit to size of recs asked for
-				recsFinal = new ArrayList<Long>();
+				recsFinal = new ArrayList<>();
 				// add back in original order
 				for(Long r : recs)
 					if (shuffled.contains(r))
@@ -75,7 +75,7 @@ public class RecommendationUtils {
 			logger.debug("Will not diversity recs for user "+clientUserId+" dimension "+dimension+" as lasRecs is null");
 		}
 		if (lastRecs == null)
-			lastRecs = new HashSet<Integer>();
+			lastRecs = new HashSet<>();
 		lastRecs.add(hashCode);
 		MemCachePeer.put(rrkey, lastRecs,RECENT_RECS_EXPIRE_SECS);
 		return recsFinal;
@@ -83,7 +83,7 @@ public class RecommendationUtils {
 	
 	public static Set<Long> getExclusions(boolean recordCTR,String client,String clientUserId,Long currentItem,String lastRecUUID,CFAlgorithm algorithm,int numRecentActions)
 	{
-		Set<Long> exclusions = new HashSet<Long>();
+		Set<Long> exclusions = new HashSet<>();
 		int clickIndex = -1;
 		String algorithmKey="UNKNOWN";
 		logger.debug("Exclusions with currentItemId:"+currentItem+" lastRecUUID:"+lastRecUUID+" for user "+clientUserId);
@@ -121,7 +121,7 @@ public class RecommendationUtils {
 							final String exKey = MemCacheKeys.getExcludedItemsForRecommendations(client, clientUserId);
 							Set<Long> currentExclusions = (Set<Long>) MemCachePeer.get(exKey);
 							if (currentExclusions == null)
-								currentExclusions = new HashSet<Long>();
+								currentExclusions = new HashSet<>();
 							logger.debug("Current exclusion list for user "+clientUserId+" for client "+client+" is "+currentExclusions.size());
 							currentExclusions.addAll(itemsToAdd);
 							MemCachePeer.put(exKey, currentExclusions, MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
@@ -207,7 +207,7 @@ public class RecommendationUtils {
 		else
 		{
 			logger.debug("Zero sum in counts - returning empty score map");
-			return new HashMap<T,Double>();
+			return new HashMap<>();
 		}
 	}
 	
@@ -229,7 +229,7 @@ public class RecommendationUtils {
 		else
 		{
 			logger.debug("Zero sum in counts - returning empty score map");
-			return new HashMap<T,Double>();
+			return new HashMap<>();
 		}
 	}
 

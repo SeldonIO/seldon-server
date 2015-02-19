@@ -65,7 +65,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 	public Collection<Opinion> getContentReviews()
 	{
 		Extent<Opinion> e = pm.getExtent(Opinion.class);
-		ArrayList<Opinion> a = new ArrayList<Opinion>();
+		ArrayList<Opinion> a = new ArrayList<>();
 		for(Iterator<Opinion> i = e.iterator();i.hasNext();)
 			a.add(i.next());
 		e.closeAll();
@@ -82,7 +82,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			return c;
 		}
 		else
-			return new HashSet<Long>();
+			return new HashSet<>();
 	}
 	
 	public Collection<Long> getContentTrustNet(TrustNetwork trustNet,long src,int type,double minTrust,double minRating,int max)
@@ -98,7 +98,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			return c;
 		}
 		else
-			return new HashSet<Long>();
+			return new HashSet<>();
 	}
 	
 	private String getSQLSet(Set<Long> ids)
@@ -169,7 +169,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 					sql = "select a.item_id from (select item_id,sum(trust) t from (select o.item_id,trust from (select u2 as user_id,trust from network where u1=? order by trust desc limit ?) a1 natural join opinions o inner join items on o.item_id=items.item_id and items.type=" + type +" left join (select item_id from opinions where user_id=?) a2 on o.item_id=a2.item_id where a2.item_id is null) a group by item_id) a left join item_map_enum m on a.item_id=m.item_id left join dimension d on m.attr_id=d.attr_id and m.value_id=d.value_id left join user_dim ud on ud.user_id=? and d.dim_id=ud.dim_id group by a.item_id order by t*coalesce(1 + sum(relevance),1) desc,item_id desc limit ?";
 				}
 				Query query = pm.newQuery("javax.jdo.query.SQL", sql);
-				ArrayList<Object> args = new ArrayList<Object>();
+				ArrayList<Object> args = new ArrayList<>();
 				args.add(src);
 				args.add(k);
 				args.add(src);
@@ -182,7 +182,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			else if(dimension == Constants.NO_TRUST_DIMENSION)
 			{
 				Query query = pm.newQuery("javax.jdo.query.SQL", "select item_id from (select o.item_id,trust from opinions o inner join items on o.item_id=items.item_id and items.type=" + type +" natural join (select u2 as user_id,trust from network where u1=? order by trust desc limit ?) a1 left join	(select item_id from opinions where user_id=?) a2 on o.item_id=a2.item_id where a2.item_id is null) a group by item_id order by sum(trust) desc limit ?");
-				ArrayList<Object> args = new ArrayList<Object>();
+				ArrayList<Object> args = new ArrayList<>();
 				args.add(src);
 				args.add(k);
 				args.add(src);
@@ -195,7 +195,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			{
 				//SPECIFIC CATEGORY
 				Query query = pm.newQuery("javax.jdo.query.SQL", "select a.item_id from (select item_id,sum(trust) t from (select o.item_id,trust from (select u2 as user_id,trust from network where u1=? order by trust desc limit ?) a1 natural join opinions o inner join items on o.item_id=items.item_id and items.type=" + type +" INNER JOIN item_map_enum M ON o.item_id=M.item_id INNER JOIN dimension d ON M.attr_id = d.attr_id AND M.value_id=d.value_id AND d.dim_id=? left join	(select item_id from opinions where user_id=?) a2 on o.item_id=a2.item_id where a2.item_id is null) a group by item_id) a left join item_map_enum m on a.item_id=m.item_id left join dimension d on m.attr_id=d.attr_id and m.value_id=d.value_id left join user_dim ud on ud.user_id=? and d.dim_id=ud.dim_id group by a.item_id order by t*coalesce(1 + sum(relevance),1) desc,item_id desc limit ?");
-				ArrayList<Object> args = new ArrayList<Object>();
+				ArrayList<Object> args = new ArrayList<>();
 				args.add(src);
 				args.add(k);
 				args.add(dimension);
@@ -212,7 +212,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			if (dimension == Constants.DEFAULT_DIMENSION)
 			{
 				Query query = pm.newQuery("javax.jdo.query.SQL", "select a.item_id from (select item_id,sum(trust) t from (select o.item_id,trust from (select u2 as user_id,trust from network where u1=? order by trust desc limit ?) a1 natural join opinions o left join	(select item_id from opinions where user_id=?) a2 on o.item_id=a2.item_id where a2.item_id is null) a group by item_id) a left join item_map_enum m on a.item_id=m.item_id left join dimension d on m.attr_id=d.attr_id and m.value_id=d.value_id left join user_dim ud on ud.user_id=? and d.dim_id=ud.dim_id group by a.item_id order by t*coalesce(1 + sum(relevance),1) desc,item_id desc limit ?");
-				ArrayList<Object> args = new ArrayList<Object>();
+				ArrayList<Object> args = new ArrayList<>();
 				args.add(src);
 				args.add(k);
 				args.add(src);
@@ -225,7 +225,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			else if(dimension == Constants.NO_TRUST_DIMENSION)
 			{
 				Query query = pm.newQuery("javax.jdo.query.SQL", "select item_id from (select o.item_id,trust from opinions o natural join (select u2 as user_id,trust from network where u1=? order by trust desc limit ?) a1 left join	(select item_id from opinions where user_id=?) a2 on o.item_id=a2.item_id where a2.item_id is null) a group by item_id order by sum(trust) desc limit ?");
-				ArrayList<Object> args = new ArrayList<Object>();
+				ArrayList<Object> args = new ArrayList<>();
 				args.add(src);
 				args.add(k);
 				args.add(src);
@@ -238,7 +238,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			{
 				//SPECIFIC CATEGORY
 				Query query = pm.newQuery("javax.jdo.query.SQL", "select a.item_id from (select item_id,sum(trust) t from (select o.item_id,trust from (select u2 as user_id,trust from network where u1=? order by trust desc limit ?) a1 natural join opinions o INNER JOIN item_map_enum M ON o.item_id=M.item_id INNER JOIN dimension d ON M.attr_id = d.attr_id AND M.value_id=d.value_id AND d.dim_id=? left join	(select item_id from opinions where user_id=?) a2 on o.item_id=a2.item_id where a2.item_id is null) a group by item_id) a left join item_map_enum m on a.item_id=m.item_id left join dimension d on m.attr_id=d.attr_id and m.value_id=d.value_id left join user_dim ud on ud.user_id=? and d.dim_id=ud.dim_id group by a.item_id order by t*coalesce(1 + sum(relevance),1) desc,item_id desc limit ?");
-				ArrayList<Object> args = new ArrayList<Object>();
+				ArrayList<Object> args = new ArrayList<>();
 				args.add(src);
 				args.add(k);
 				args.add(dimension);
@@ -261,7 +261,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 			return c;
 		}
 		else
-			return new HashSet<Long>();
+			return new HashSet<>();
 	}
 	
 	
@@ -271,7 +271,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 		if (dimension == Constants.DEFAULT_DIMENSION)
 		{
 			Query query = pm.newQuery("javax.jdo.query.SQL", "select p.item_id from (select * from items_popular limit 1000) p left join item_map_enum m on p.item_id=m.item_id inner join dimension d on m.attr_id=d.attr_id and m.value_id=d.value_id left join user_dim ud on ud.user_id=? and d.dim_id=ud.dim_id left join (select item_id from opinions where user_id=?) a2 on p.item_id=a2.item_id where a2.item_id is null group by p.item_id order by opsum*coalesce(1 + sum(relevance),1) desc,item_id desc limit ?");
-			ArrayList<Object> args = new ArrayList<Object>();
+			ArrayList<Object> args = new ArrayList<>();
 			args.add(src);
 			args.add(src);
 			args.add(numRecommendations);
@@ -282,7 +282,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 		else if(dimension == Constants.NO_TRUST_DIMENSION)
 		{
 			Query query = pm.newQuery("javax.jdo.query.SQL", "select p.item_id from items_popular p left join  (select item_id from opinions where user_id=?) a on p.item_id=a.item_id where a.item_id is null order by opsum desc,item_id desc limit ?");
-			ArrayList<Object> args = new ArrayList<Object>();
+			ArrayList<Object> args = new ArrayList<>();
 			args.add(src);
 			args.add(numRecommendations);
 			Collection<Long> c = (Collection<Long>) query.executeWithArray(args.toArray());
@@ -292,7 +292,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 		else
 		{
 			Query query = pm.newQuery("javax.jdo.query.SQL", "select p.item_id from items_popular p natural join item_map_enum m natural join dimension d left join (select item_id from opinions where user_id=?) a on p.item_id=a.item_id  where a.item_id is null and d.dim_id=? order by opsum desc,item_id desc limit ?");
-			ArrayList<Object> args = new ArrayList<Object>();
+			ArrayList<Object> args = new ArrayList<>();
 			args.add(src);
 			args.add(dimension);
 			args.add(numRecommendations);
@@ -310,7 +310,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 	
 	public Collection<Long> getContentReviewers(long contentId)
 	{
-		ArrayList<Long> reviewers = new ArrayList<Long>();
+		ArrayList<Long> reviewers = new ArrayList<>();
 		Collection<Opinion> c = getContent(contentId);
 		for(Opinion r : c)
 			reviewers.add(r.getUserId());
@@ -367,7 +367,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 	public Collection<Long> getContentIdsForUser(long userId)
 	{
 		Collection<Opinion> c = getContentForUser(userId);
-		Set<Long> cids = new HashSet<Long>();
+		Set<Long> cids = new HashSet<>();
 		for(Iterator<Opinion> i = c.iterator();i.hasNext();)
 			cids.add(i.next().getItemId());
 		return cids;
@@ -467,7 +467,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 	public void updateUserUserAvg(long m1,long m2)
 	{
 		Query query = pm.newQuery("javax.jdo.query.SQL","insert into user_user_avg  select t1.m1,t1.m2,t1.avgm1,t2.avgm2 from (select o1.user_id as m1,o2.user_id as m2,avg(o1.value) as avgm1  from opinions o1,opinions o2 where o1.user_id=? and o2.user_id=? and o1.item_id=o2.item_id group by o1.user_id,o2.user_id) t1, (select o1.user_id as m1,o2.user_id as m2,avg(o2.value) as avgm2  from opinions o1,opinions o2 where o1.user_id=? and o2.user_id=? and o1.item_id=o2.item_id group by o1.user_id,o2.user_id) t2 on duplicate key update avgm1=t1.avgm1,avgm2=t2.avgm2");
-		ArrayList<Object> args = new ArrayList<Object>();
+		ArrayList<Object> args = new ArrayList<>();
 		args.add(m1 < m2 ? m1 : m2);
 		args.add(m1 < m2 ? m2 : m1);
 		args.add(m1 < m2 ? m1 : m2);
@@ -478,7 +478,7 @@ public class ContentReviewPeer implements ContentRatingResolver {
 		if (avg == null)
 		{
 			query = pm.newQuery("javax.jdo.query.SQL","insert into user_user_avg  select t1.m1,t2.m2,t1.avgm1,t2.avgm2 from (select user_id as m1,avgrating as avgm1 from users where user_id=?) t1, (select user_id as m2,avgrating as avgm2 from users where user_id=?) t2 on duplicate key update avgm1=t1.avgm1,avgm2=t2.avgm2");
-			args = new ArrayList<Object>();
+			args = new ArrayList<>();
 			args.add(m1 < m2 ? m1 : m2);
 			args.add(m1 < m2 ? m2 : m1);
 			args.add(m1 < m2 ? m1 : m2);

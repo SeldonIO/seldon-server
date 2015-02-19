@@ -57,7 +57,7 @@ public class TrustDRPCRecommender {
 		try 
 		{
 			String result = client.execute(settings.getRecommendationTopologyName(), getSortMessage(userId,dimension,items));
-			List<Long> sorted = new ArrayList<Long>();
+			List<Long> sorted = new ArrayList<>();
 			if (result != null && !result.equals(""))
 			{
 				String[] itemIds = result.split(",");

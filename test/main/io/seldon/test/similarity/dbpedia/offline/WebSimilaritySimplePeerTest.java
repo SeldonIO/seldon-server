@@ -117,7 +117,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL","insert into dbpedia_item_user (user_id,item_id,ex_item_id,tokens,ex_client_item_id,score) values (?,?,?,?,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(userId);
 			    	args.add(itemId);
 			    	args.add(exItemId);
@@ -271,7 +271,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into ext_actions values (0,?,?,1,1,now(),0,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(userId);
 			    	args.add(itemId);
 			    	args.add(""+userId);
@@ -311,7 +311,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL","insert ignore into dbpedia_keyword values (0,?,unix_timestamp())");
 					query.execute(keyword);
 					query = pm.newQuery( "javax.jdo.query.SQL","insert into dbpedia_keyword_user select k_id,?,?,?,1,? from dbpedia_keyword where keyword=?");
-					List<Object> args = new ArrayList<Object>();
+					List<Object> args = new ArrayList<>();
 			    	args.add(u1);
 			    	args.add(u2);
 			    	args.add(matchStr);
@@ -340,7 +340,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			createFbId(u2, u2FbId);
 			final String keyword = "david bowie";
 			final String matchStr = "ziggy stardust";
-			List<String> tags = new ArrayList<String>();
+			List<String> tags = new ArrayList<>();
 			tags.add(keyword);
 			createKeywordMatches(u1, u2, keyword, matchStr, 1);
 			CFAlgorithm options = new CFAlgorithm();
@@ -373,7 +373,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			createFbId(u2, u2FbId);
 			final String keyword = "david bowie";
 			final String matchStr = "ziggy stardust";
-			List<String> tags = new ArrayList<String>();
+			List<String> tags = new ArrayList<>();
 			tags.add(keyword);
 			createKeywordMatches(u1, u2, keyword, matchStr, 1);
 			CFAlgorithm options = new CFAlgorithm();
@@ -403,7 +403,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final long u2 = 2;
 			final String keyword = "david bowie";
 			final String matchStr = "ziggy stardust";
-			List<String> tags = new ArrayList<String>();
+			List<String> tags = new ArrayList<>();
 			tags.add(keyword);
 			createKeywordMatches(u1, u2, keyword, matchStr, 1);
 			List<SharingRecommendation> recs = webSimilaritySimpleStore.getSharingRecommendationsForFriends(u1, tags);
@@ -429,7 +429,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final long u3 = 3;
 			final String keyword = "david bowie";
 			final String matchStr = "ziggy stardust";
-			List<String> tags = new ArrayList<String>();
+			List<String> tags = new ArrayList<>();
 			tags.add(keyword);
 			createKeywordMatches(u1, u2, keyword, matchStr, 1);
 			createKeywordMatches(u1, u3, keyword, matchStr, 0.5);
@@ -457,7 +457,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final long[] itemIds = new long[]{1,2,3};
 			final double[] scores = new double[] {1.0, 3.0, 1.5};
 			Random r = new Random();
-			List<Long> items = new ArrayList<Long>();
+			List<Long> items = new ArrayList<>();
 			double max = 0;
 			for(int i=0;i<itemIds.length;i++)
 			{
@@ -491,8 +491,8 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final double[] scores = new double[] {1.0, 3.0, 1.5};
 			final boolean[] excluded = new boolean[] {false,true,false};
 			Random r = new Random();
-			List<Long> items = new ArrayList<Long>();
-			Set<Long> excludedItems = new HashSet<Long>();
+			List<Long> items = new ArrayList<>();
+			Set<Long> excludedItems = new HashSet<>();
 			double max = 0;
 			int numNonExcluded = 0;
 			for(int i=0;i<itemIds.length;i++)
@@ -535,8 +535,8 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final double[] scores = new double[] {1.0, 3.0, 1.5};
 			final boolean[] excluded = new boolean[] {false,true,false};
 
-			List<Long> items = new ArrayList<Long>();
-			Set<Long> excludedItems = new HashSet<Long>();
+			List<Long> items = new ArrayList<>();
+			Set<Long> excludedItems = new HashSet<>();
 			double max = 0;
 			int numNonExcluded = 0;
 			for(int i=0;i<itemIds.length;i++)
@@ -632,7 +632,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final long[] itemIds = new long[]{1,2,3};
 			final double[] scores = new double[] {1.0, 3.0, 1.5};
 			Random r = new Random();
-			List<Long> items = new ArrayList<Long>();
+			List<Long> items = new ArrayList<>();
 			for(int i=0;i<itemIds.length;i++)
 			{
 				items.add(itemIds[i]);
@@ -661,7 +661,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 			final long[] itemIds = new long[]{1,2,2,3};
 			final double[] scores = new double[] {1.0, 1.0, 2.0, 1.5};
 			Random r = new Random();
-			List<Long> items = new ArrayList<Long>();
+			List<Long> items = new ArrayList<>();
 			for(int i=0;i<itemIds.length;i++)
 			{
 				items.add(itemIds[i]);
@@ -715,9 +715,9 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 		try
 		{
 			SharingRecommendation share = new SharingRecommendation(userId,itemId);
-			List<SharingRecommendation> l = new ArrayList<SharingRecommendation>();
+			List<SharingRecommendation> l = new ArrayList<>();
 			l.add(share);
-			Map<Long,List<SharingRecommendation>> map = new HashMap<Long,List<SharingRecommendation>>();
+			Map<Long,List<SharingRecommendation>> map = new HashMap<>();
 			map.put(itemId, l);
 			MemCachePeer.put(memcacheKey,map);
 		
@@ -737,7 +737,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 	public void mergeTestForUnknownItems() // for postprocessing
 	{
 		WebSimilaritySimplePeer p = new WebSimilaritySimplePeer("test", webSimilaritySimpleStore);
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		items.add(-1L); 
 		items.add(-2L); 
 		items.add(-3L); 
@@ -761,7 +761,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 		{
 		Random r = new Random();
 		WebSimilaritySimplePeer p = new WebSimilaritySimplePeer("test", webSimilaritySimpleStore);
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		long userId = r.nextLong();
 		long item1 = r.nextLong();
 		long token1 = 1;
@@ -797,7 +797,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 		{
 		Random r = new Random();
 		WebSimilaritySimplePeer p = new WebSimilaritySimplePeer("test", webSimilaritySimpleStore);
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		long userId = r.nextLong();
 		long item1 = r.nextLong();
 		long token1 = 1;
@@ -833,7 +833,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 		{
 		Random r = new Random();
 		WebSimilaritySimplePeer p = new WebSimilaritySimplePeer("test", webSimilaritySimpleStore);
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		long userId = r.nextLong();
 		long item1 = r.nextLong();
 		long token1 = 1;
@@ -870,7 +870,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 		try
 		{
 		WebSimilaritySimplePeer p = new WebSimilaritySimplePeer("test", webSimilaritySimpleStore);
-		List<Long> items = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
 		items.add(1995963L); //random other article
 		items.add(2001083L); //Facebook related article
 		items.add(2035300L); //Lady GaGa article
@@ -893,7 +893,7 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 	public void getUserDimClusters()
 	{
 		long userid = 2724;
-		Set<String> clientItemIds = new HashSet<String>();
+		Set<String> clientItemIds = new HashSet<>();
 		clientItemIds.add("164232989253");
 		clientItemIds.add("19691681472");
 		List<UserCluster> clusters = this.webSimilaritySimpleStore.getUserDimClusters(userid, clientItemIds);
@@ -906,8 +906,8 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 	{
 		try
 		{
-		List<Long> users = new ArrayList<Long>();
-		List<Long> items = new ArrayList<Long>();
+		List<Long> users = new ArrayList<>();
+		List<Long> items = new ArrayList<>();
 		
 		Random ran = new Random();
 		long userId = ran.nextLong();
@@ -948,8 +948,8 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 	{
 		try
 		{
-		List<Long> users = new ArrayList<Long>();
-		List<Long> items = new ArrayList<Long>();
+		List<Long> users = new ArrayList<>();
+		List<Long> items = new ArrayList<>();
 		
 		Random ran = new Random();
 		long userId = ran.nextLong();
@@ -994,8 +994,8 @@ public class WebSimilaritySimplePeerTest extends BasePeerTest {
 		clearState();
 		try
 		{
-		List<Long> items = new ArrayList<Long>();
-		List<Long> users = new ArrayList<Long>();
+		List<Long> items = new ArrayList<>();
+		List<Long> users = new ArrayList<>();
 		
 		Random ran = new Random();
 		long user1 = ran.nextLong();

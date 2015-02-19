@@ -153,7 +153,7 @@ public class FacebookIndividualController {
 							name = name.substring(0, 250);
 						item = new ItemBean(like.getId(), name);
 
-						Map<String, String> attr = new HashMap<String, String>();
+						Map<String, String> attr = new HashMap<>();
 						attr.put("category", like.getCategory());
 
 						item.setAttributesName(attr);

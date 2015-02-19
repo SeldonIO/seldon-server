@@ -31,7 +31,7 @@ import io.seldon.db.jdo.JDOFactory;
 
 public class ItemRecommenderPeer {
 
-	static ConcurrentHashMap<String,ItemRecommender> store = new ConcurrentHashMap<String,ItemRecommender>();
+	static ConcurrentHashMap<String,ItemRecommender> store = new ConcurrentHashMap<>();
 	private static final String MAHOUT_JNDI_PREFIX = "java:comp/env/";
 	public static ItemRecommender get(String client)
 	{

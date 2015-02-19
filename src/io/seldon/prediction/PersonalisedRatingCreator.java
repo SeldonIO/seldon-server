@@ -73,7 +73,7 @@ public class PersonalisedRatingCreator {
 	public Recommendation weightedMedianPrediction(Long src,Long contentId,int type,Map<Long,Double> weights,double weightCutoff)
 	{
 		
-		ArrayList<WeightedRating> ratings = new ArrayList<WeightedRating>();
+		ArrayList<WeightedRating> ratings = new ArrayList<>();
 			
 		for(Long user : weights.keySet())
 		{
@@ -88,7 +88,7 @@ public class PersonalisedRatingCreator {
 
 		Collections.sort(ratings);
 		
-		ArrayList<Double> weightSum = new ArrayList<Double>();
+		ArrayList<Double> weightSum = new ArrayList<>();
 		for(int i=0;i<ratings.size();i++)
 			if (i==0)
 				weightSum.add(ratings.get(i).weight);

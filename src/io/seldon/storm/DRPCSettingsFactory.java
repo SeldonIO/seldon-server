@@ -39,7 +39,7 @@ public class DRPCSettingsFactory {
 	public static final String DRPC_TIMEOUT_SUFFIX = ".timeout";
 	public static final String DRPC_REC_SUFFIX = ".rec.topology";
 	
-	private static ConcurrentHashMap<String,DRPCSettings> peers = new ConcurrentHashMap<String,DRPCSettings>();
+	private static ConcurrentHashMap<String,DRPCSettings> peers = new ConcurrentHashMap<>();
 	
 	public static void initialise(Properties props)
 	{

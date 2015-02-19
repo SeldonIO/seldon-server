@@ -83,12 +83,12 @@ public class TagToClusterPeer {
 	
 	public List<UserCluster> suggestClusters(long userId,Set<String> tags)
 	{
-		List<UserCluster> clusters = new ArrayList<UserCluster>();
+		List<UserCluster> clusters = new ArrayList<>();
 		//TODO code needs to be Springified so static method below can be removed
 		SemanticVectorsStore sem = SemanticVectorsManager.getManager().getStore(client,SemanticVectorsManager.SV_CLUSTER_NEW_LOC_PATTERN);
 		if (sem != null)
 		{
-			Map<Long,Double> scores = new HashMap<Long,Double>();
+			Map<Long,Double> scores = new HashMap<>();
 			for(String tag : tags)
 			{
 				logger.info("For user "+userId+" checking ["+tag+"]");
@@ -96,7 +96,7 @@ public class TagToClusterPeer {
 				if (searchTerm != null)
 				{
 					logger.info("Will search with term "+searchTerm);
-					ArrayList<SemVectorResult<Long>> results = new ArrayList<SemVectorResult<Long>>();
+					ArrayList<SemVectorResult<Long>> results = new ArrayList<>();
 					sem.searchDocsUsingTermQuery(searchTerm, results, new DocumentIdTransform(),new StringTransform(),NUM_CLUSTERS_PER_SEARCH);
 					for(SemVectorResult<Long> r : results)
 					{

@@ -62,7 +62,7 @@ public class TestSqlElphPredictionPeer  extends BasePeerTest {
 			    public void process()
 			    { 
 			    	Query query = pm.newQuery( "javax.jdo.query.SQL", "insert into elph_hypothesis values (?,?,?,?,?)");
-			    	List<Object> args = new ArrayList<Object>();
+			    	List<Object> args = new ArrayList<>();
 			    	args.add(itemId);
 			    	args.add(hypothesis);
 			    	args.add(prob);
@@ -140,7 +140,7 @@ public class TestSqlElphPredictionPeer  extends BasePeerTest {
 	{
 		SqlElphPredictionPeer p = new SqlElphPredictionPeer(props.getClient());
 		
-		ArrayList<Long> recentItems = new ArrayList<Long>();
+		ArrayList<Long> recentItems = new ArrayList<>();
 		recentItems.add(127844L);
 		Map<Long,Double> scores = p.getPredictions(recentItems,1);
 		
@@ -161,7 +161,7 @@ public class TestSqlElphPredictionPeer  extends BasePeerTest {
 			
 			SqlElphPredictionPeer p = new SqlElphPredictionPeer(props.getClient());
 			
-			ArrayList<Long> recentItems = new ArrayList<Long>();
+			ArrayList<Long> recentItems = new ArrayList<>();
 			recentItems.add(12345L);
 			Map<Long,Double> scores = p.getPredictions(recentItems,1);
 			
@@ -191,7 +191,7 @@ public class TestSqlElphPredictionPeer  extends BasePeerTest {
 		
 		SqlElphPredictionPeer p = new SqlElphPredictionPeer(props.getClient());
 		
-		ArrayList<Long> recentItems = new ArrayList<Long>();
+		ArrayList<Long> recentItems = new ArrayList<>();
 		recentItems.add(12345L);
 		recentItems.add(67890L);
 		Map<Long,Double> scores = p.getPredictions(recentItems,1);
@@ -223,7 +223,7 @@ public class TestSqlElphPredictionPeer  extends BasePeerTest {
 		
 		SqlElphPredictionPeer p = new SqlElphPredictionPeer(props.getClient());
 		
-		ArrayList<Long> recentItems = new ArrayList<Long>();
+		ArrayList<Long> recentItems = new ArrayList<>();
 		recentItems.add(12345L);
 		recentItems.add(67890L);
 		ElphRecommender e = new ElphRecommender(props.getClient(), p);

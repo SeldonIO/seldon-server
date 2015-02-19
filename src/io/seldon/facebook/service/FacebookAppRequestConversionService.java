@@ -55,7 +55,7 @@ public class FacebookAppRequestConversionService  extends ConversionService {
             "and strpos(data,'rummble') >= 0 " +
             "and app_id = ";
     private final AsyncFacebookClient fbClient;
-    private BlockingQueue<Runnable> tasksToRun = new LinkedBlockingQueue<Runnable>();
+    private BlockingQueue<Runnable> tasksToRun = new LinkedBlockingQueue<>();
 
     private final ExecutorService executorService;
 

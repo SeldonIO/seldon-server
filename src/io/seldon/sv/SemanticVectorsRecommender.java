@@ -83,7 +83,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 			itemsToScore = recentItemInteractions.subList(0, options.getNumRecentActions());
 		}
 		else
-			itemsToScore = new ArrayList<Long>(recentItemInteractions);
+			itemsToScore = new ArrayList<>(recentItemInteractions);
 
 		
 		Map<Long,Double> recommendations;
@@ -91,7 +91,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 		if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
 		{
 			// compare recentItemInteractions against.getContextItems() and choose best
-			recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, new HashSet<Long>(recentItemInteractions),ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,options.isIgnorePerfectSVMatches());
+			recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, new HashSet<>(recentItemInteractions),ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,options.isIgnorePerfectSVMatches());
 		}
 		else 
 		{
@@ -99,7 +99,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 			Set<Long> itemExclusions = ctxt.getMode() == RecommendationContext.MODE.INCLUSION ? Collections.<Long>emptySet() : ctxt.getContextItems();
 			recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, new LongIdTransform(), maxRecsCount, itemExclusions, null, options.isIgnorePerfectSVMatches());
 		}
-		List<ItemRecommendationResult> results = new ArrayList<ItemRecommendationResult>();
+		List<ItemRecommendationResult> results = new ArrayList<>();
 		for(Map.Entry<Long, Double> e : recommendations.entrySet())
 		{
 			results.add(new ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));

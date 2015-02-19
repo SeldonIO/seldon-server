@@ -76,7 +76,7 @@ public class TestMD5 {
 		final String stuff = "safaf afafas fasf saf sa fsa fsa f saf safasewwegfewgew";
 		final int numThreads = 200;
 		final int numIterations = 10000;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 
 		long start = System.currentTimeMillis();
 		for(int i=0;i<numThreads;i++)

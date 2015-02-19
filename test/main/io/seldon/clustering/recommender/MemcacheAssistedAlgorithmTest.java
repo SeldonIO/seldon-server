@@ -67,7 +67,7 @@ public class MemcacheAssistedAlgorithmTest {
     @Test
     public void testThatCachedRecsAreReturnedWhenAvailable() throws Exception {
         MemcacheAlgTestExample alg = new MemcacheAlgTestExample(mockClient);
-        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<ItemRecommendationResultSet.ItemRecommendationResult>();
+        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(1L,1.0f));
         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(2L,1.0f));
         ItemRecommendationResultSet resultsInMemcache = new ItemRecommendationResultSet(results);
@@ -85,7 +85,7 @@ public class MemcacheAssistedAlgorithmTest {
     @Test
     public void testThatFilteringRecsWorks() throws Exception {
         MemcacheAlgTestExample alg = new MemcacheAlgTestExample(mockClient, null, mockFilter);
-        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<ItemRecommendationResultSet.ItemRecommendationResult>();
+        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(1L,1.0f));
         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(2L,1.0f));
         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(3L,1.0f));
@@ -133,7 +133,7 @@ public class MemcacheAssistedAlgorithmTest {
     @Test
     public void testThatCachedRecAreNotReturnedWhenThereArentEnough() {
         MemcacheAlgTestExample alg = new MemcacheAlgTestExample(mockClient);
-        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<ItemRecommendationResultSet.ItemRecommendationResult>();
+        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(1L,1.0f));
         ItemRecommendationResultSet resultsInMemcache = new ItemRecommendationResultSet(results);
         expect(mockClient.get(SecurityHashPeer.md5digest("RecommendedItems:example:MemcacheAlgTestExample:1:0"))).andReturn(resultsInMemcache);

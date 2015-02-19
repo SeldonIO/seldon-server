@@ -64,13 +64,13 @@ public class InteractionFilter implements FacebookUsersAlgorithm {
     @Override
     public List<RecommendedUserBean> recommendUsers(String userId, UserBean userbean, String serviceName, ConsumerBean client,
                                                     int resultLimit, Multimap<String, String> dict, SocialRecommendationStrategy.StrategyAim aim) {
-        if(aim == SocialRecommendationStrategy.StrategyAim.SHARE_PAGES) return new ArrayList<RecommendedUserBean>();
+        if(aim == SocialRecommendationStrategy.StrategyAim.SHARE_PAGES) return new ArrayList<>();
         Set<Interaction> interactions = interactionService.retrieveInteractions(client, userId, InteractionService.MGM_TYPE);
         return convertToRecUserBeans(client, interactions);
     }
 
     private List<RecommendedUserBean> convertToRecUserBeans(ConsumerBean client, Set<Interaction> interactions) {
-        List<RecommendedUserBean> toReturn = new ArrayList<RecommendedUserBean>();
+        List<RecommendedUserBean> toReturn = new ArrayList<>();
         for(Interaction interaction : interactions){
             RecommendedUserBean userBean = new RecommendedUserBean(interaction.getUser2FbId(), null, 1.0D, null);
             toReturn.add(userBean);

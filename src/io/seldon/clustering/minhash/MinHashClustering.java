@@ -174,7 +174,7 @@ public class MinHashClustering {
 	
 	private List<String> frequencyLimit(Set<String> interests)
 	{
-		Map<String,Long> f = new HashMap<String,Long>();
+		Map<String,Long> f = new HashMap<>();
 		for(String id : interests)
 		{
 			long freq = itemFreq.getFrequency(id);
@@ -187,7 +187,7 @@ public class MinHashClustering {
 	private Set<String> getHashes(int maxSharedValues,int maxKeyGroups)
 	{
 		logger.info("Get hashes with "+numHashFunctions+" num hash functions and "+maxKeyGroups+" max key groups");
-		Set<String> hashes = new HashSet<String>(numHashFunctions);
+		Set<String> hashes = new HashSet<>(numHashFunctions);
 		//output MinHashes
 		for (int i = 0; i < numHashFunctions; i++) 
 		{
@@ -231,7 +231,7 @@ public class MinHashClustering {
 	{
 		int dbCalls = 0;
 		createHashesIfNeeded(interests);
-		Map<Long,Integer> matches = new HashMap<Long,Integer>();
+		Map<Long,Integer> matches = new HashMap<>();
 		boolean stop = false;
 		//assumes numItems or numKeyGroups = 1
 		int limit = this.numItems > 1 ? this.numItems : this.numKeyGroups;

@@ -175,7 +175,7 @@ public class RecentItemsRecommenderTest  extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.RECENT_ITEMS);
 			options.setRecommenders(recommenders);
 			options.setSorterStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);
@@ -209,7 +209,7 @@ public class RecentItemsRecommenderTest  extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.RECENT_ITEMS);
 			options.setRecommenders(recommenders);
 			options.setSorterStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);
@@ -248,7 +248,7 @@ public class RecentItemsRecommenderTest  extends BasePeerTest {
 			
 			CFAlgorithm options = new CFAlgorithm();
 			options.setName(props.getClient());
-			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<CFAlgorithm.CF_RECOMMENDER>();
+			List<CFAlgorithm.CF_RECOMMENDER> recommenders = new ArrayList<>();
 			recommenders.add(CFAlgorithm.CF_RECOMMENDER.RECENT_ITEMS);
 			options.setRecommenders(recommenders);
 			options.setSorterStrategy(CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL);

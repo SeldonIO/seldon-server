@@ -43,11 +43,11 @@ public class CooccurrencePeerTest {
 	public void testZeroCounts()
 	{
 		CooccurrencePeer p = new CooccurrencePeer("TEST",100,Long.MAX_VALUE);
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		
 		ICooccurrenceStore store = new MockCooccurrenceStore(map);
 		
-		List<Long> item11 = new ArrayList<Long>();
+		List<Long> item11 = new ArrayList<>();
 		for(int i=0;i<5;i++)
 			item11.add((long)i);
 		
@@ -70,13 +70,13 @@ public class CooccurrencePeerTest {
 	public void testCacheSize() throws InterruptedException
 	{
 		CooccurrencePeer p = new CooccurrencePeer("TEST",1,Long.MAX_VALUE);
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
 				map.put(CooccurrencePeer.getKey(i1, i2), new CooccurrenceCount(1,0));
 		MockCooccurrenceStore store = new MockCooccurrenceStore(map);
 		
-		List<Long> item11 = new ArrayList<Long>();
+		List<Long> item11 = new ArrayList<>();
 		for(int i=0;i<5;i++)
 			item11.add((long)i);
 		
@@ -87,7 +87,7 @@ public class CooccurrencePeerTest {
 		for(Map.Entry<String, CooccurrenceCount> e : counts.entrySet())
 			Assert.assertEquals(map.get(e.getKey()), e.getValue());
 		
-		Map<String,CooccurrenceCount> map2 = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map2 = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
 				map2.put(CooccurrencePeer.getKey(i1, i2), new CooccurrenceCount(2,0));
@@ -117,13 +117,13 @@ public class CooccurrencePeerTest {
 	public void testDecay() throws InterruptedException
 	{
 		CooccurrencePeer p = new CooccurrencePeer("TEST",100,1);
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
 				map.put(CooccurrencePeer.getKey(i1, i2), new CooccurrenceCount(1,0));
 		MockCooccurrenceStore store = new MockCooccurrenceStore(map);
 		
-		List<Long> item11 = new ArrayList<Long>();
+		List<Long> item11 = new ArrayList<>();
 		for(int i=0;i<5;i++)
 			item11.add((long)i);
 		
@@ -134,7 +134,7 @@ public class CooccurrencePeerTest {
 		for(Map.Entry<String, CooccurrenceCount> e : counts.entrySet())
 			Assert.assertEquals(map.get(e.getKey()), e.getValue());
 		
-		Map<String,CooccurrenceCount> map2 = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map2 = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
 				map2.put(CooccurrencePeer.getKey(i1, i2), new CooccurrenceCount(2,0));
@@ -155,13 +155,13 @@ public class CooccurrencePeerTest {
 	public void testDecay2() throws InterruptedException
 	{
 		CooccurrencePeer p = new CooccurrencePeer("TEST",100,Long.MAX_VALUE);
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
 				map.put(CooccurrencePeer.getKey(i1, i2), new CooccurrenceCount(1,0));
 		MockCooccurrenceStore store = new MockCooccurrenceStore(map);
 		
-		List<Long> item11 = new ArrayList<Long>();
+		List<Long> item11 = new ArrayList<>();
 		for(int i=0;i<5;i++)
 			item11.add((long)i);
 		
@@ -172,7 +172,7 @@ public class CooccurrencePeerTest {
 		for(Map.Entry<String, CooccurrenceCount> e : counts.entrySet())
 			Assert.assertEquals(map.get(e.getKey()), e.getValue());
 		
-		Map<String,CooccurrenceCount> map2 = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map2 = new HashMap<>();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
 				map2.put(CooccurrencePeer.getKey(i1, i2), new CooccurrenceCount(2,0));
@@ -193,7 +193,7 @@ public class CooccurrencePeerTest {
 	public void testCounts()
 	{
 		CooccurrencePeer p = new CooccurrencePeer("TEST",100,Long.MAX_VALUE);
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		Random r = new Random();
 		for(int i1 = 0;i1<5;i1++)
 			for(int i2=0;i2<5;i2++)
@@ -201,7 +201,7 @@ public class CooccurrencePeerTest {
 		
 		ICooccurrenceStore store = new MockCooccurrenceStore(map);
 		
-		List<Long> item11 = new ArrayList<Long>();
+		List<Long> item11 = new ArrayList<>();
 		for(int i=0;i<5;i++)
 			item11.add((long)i);
 		

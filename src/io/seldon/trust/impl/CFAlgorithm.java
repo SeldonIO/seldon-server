@@ -138,21 +138,21 @@ public class CFAlgorithm implements Cloneable,Serializable {
 	private static Logger logger = Logger.getLogger(CFAlgorithm.class.getName());
 	
 
-	private List<CF_ITEM_COMPARATOR> itemComparators = new ArrayList<CF_ITEM_COMPARATOR>();
+	private List<CF_ITEM_COMPARATOR> itemComparators = new ArrayList<>();
 	private CF_STRATEGY itemComparatorStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
-	private List<CF_RECOMMENDER> recommenders = new ArrayList<CF_RECOMMENDER>();
+	private List<CF_RECOMMENDER> recommenders = new ArrayList<>();
 	private CF_STRATEGY recommenderStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
-	private List<CF_PREDICTOR> predictors = new ArrayList<CF_PREDICTOR>();
+	private List<CF_PREDICTOR> predictors = new ArrayList<>();
 	private CF_STRATEGY predictorStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
-	private List<CF_SORTER> sorters  = new ArrayList<CF_SORTER>();
+	private List<CF_SORTER> sorters  = new ArrayList<>();
 	private CF_STRATEGY sorterStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
 	private CF_POSTPROCESSING postprocessing =  CF_POSTPROCESSING.NONE;
 	
-	Map<CF_RECOMMENDER,Double> recommendationWeightMap = new HashMap<CF_RECOMMENDER,Double>();
+	Map<CF_RECOMMENDER,Double> recommendationWeightMap = new HashMap<>();
 	int maxRecommendersToUse = 2;
 	
 	private Date date; // base algorithm to run as if from this date
@@ -773,7 +773,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 			if(values != null && !values.isEmpty()) {
 				String value = values.iterator().next();
 				if("item_comparators".equals(field)) {
-					List<CF_ITEM_COMPARATOR> list = new ArrayList<CF_ITEM_COMPARATOR>();
+					List<CF_ITEM_COMPARATOR> list = new ArrayList<>();
 					for(String val : values) {
 						list.add(CF_ITEM_COMPARATOR.valueOf(val));
 					}   
@@ -783,7 +783,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 					setItemComparatorStrategy(CF_STRATEGY.valueOf(value));
 				}
 				else if("recommenders".equals(field)) {
-					List<CF_RECOMMENDER> list = new ArrayList<CF_RECOMMENDER>();
+					List<CF_RECOMMENDER> list = new ArrayList<>();
 					for(String val : values) {
 						list.add(CF_RECOMMENDER.valueOf(val));
 					}   
@@ -793,7 +793,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 					setRecommenderStrategy(CF_STRATEGY.valueOf(value));
 				}
 				else if("predictors".equals(field)) {
-					List<CF_PREDICTOR> list = new ArrayList<CF_PREDICTOR>();
+					List<CF_PREDICTOR> list = new ArrayList<>();
 					for(String val : values) {
 						list.add(CF_PREDICTOR.valueOf(val));
 					}   
@@ -803,7 +803,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 					setPredictorStrategy(CF_STRATEGY.valueOf(value));
 				}
 				else if("sorters".equals(field)) {
-					List<CF_SORTER> list = new ArrayList<CF_SORTER>();
+					List<CF_SORTER> list = new ArrayList<>();
 					for(String val : values) {
 						list.add(CF_SORTER.valueOf(val));
 					}   

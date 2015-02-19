@@ -40,7 +40,7 @@ public class MemoryClusterStoreTest {
 	public void testStoreRetrieveClusters()
 	{
 		MemoryUserClusterStore m = new MemoryUserClusterStore("",1);
-		ArrayList<UserCluster> clusters = new ArrayList<UserCluster>();
+		ArrayList<UserCluster> clusters = new ArrayList<>();
 		clusters.add(new UserCluster(1L,2,0.75,1,1));
 		clusters.add(new UserCluster(1L,14561,0.4,1,1));
 		clusters.add(new UserCluster(1L,62421,0,1,1));
@@ -69,7 +69,7 @@ public class MemoryClusterStoreTest {
 		try
 		{
 			MemoryUserClusterStore m = new MemoryUserClusterStore("",1);
-			ArrayList<UserCluster> clusters = new ArrayList<UserCluster>();
+			ArrayList<UserCluster> clusters = new ArrayList<>();
 			clusters.add(new UserCluster(1L,90000,0.75,1,1));
 			System.out.println("Clusters created:");
 			for(UserCluster cluster : clusters)

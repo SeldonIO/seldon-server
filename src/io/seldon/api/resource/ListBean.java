@@ -34,7 +34,7 @@ public class ListBean extends ResourceBean {
 	protected List<ResourceBean> list;
 	
 	public ListBean() {
-		list = new ArrayList<ResourceBean>();
+		list = new ArrayList<>();
 	}
 	
 	public long getSize() {

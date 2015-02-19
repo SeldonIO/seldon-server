@@ -66,7 +66,7 @@ public class OpinionBean extends ResourceBean {
 		this.value = value;
 		this.prediction = prediction;
 		this.time = time;
-		srcUsers = new ArrayList<Long>();
+		srcUsers = new ArrayList<>();
 	}
 
 	public OpinionBean(Opinion o,ConsumerBean c,boolean full) throws APIException {
@@ -76,7 +76,7 @@ public class OpinionBean extends ResourceBean {
 		prediction = false;
 		time  = o.getTime();
 		if(full) {
-			srcUsers = new ArrayList<Long>();
+			srcUsers = new ArrayList<>();
 			//TODO
 		}
 	}
@@ -136,7 +136,7 @@ public class OpinionBean extends ResourceBean {
 	}
 
 	public void initSrcUsers() {
-		srcUsers = new ArrayList<Long>();
+		srcUsers = new ArrayList<>();
 		
 	}
 

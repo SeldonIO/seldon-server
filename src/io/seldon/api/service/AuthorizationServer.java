@@ -54,7 +54,7 @@ public class AuthorizationServer {
     private final static Pattern pattern = Pattern.compile("/S+");
     private final static Logger logger = Logger.getLogger(AuthorizationServer.class);
 
-    private final static Map<String, ScopedConsumerBean> consumerCache = new ConcurrentHashMap<String, ScopedConsumerBean>();
+    private final static Map<String, ScopedConsumerBean> consumerCache = new ConcurrentHashMap<>();
     public static final int CONSUMER_REFRESH_INTERVAL = 300000;
 
     //METHODS

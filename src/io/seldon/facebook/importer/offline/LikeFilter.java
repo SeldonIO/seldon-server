@@ -36,7 +36,7 @@ import org.apache.commons.collections.Predicate;
  * Created by: marc on 15/05/2012 at 17:14
  */
 public class LikeFilter {
-    private List<Predicate> predicates = new LinkedList<Predicate>();
+    private List<Predicate> predicates = new LinkedList<>();
 
     public LikeFilter addPredicate(Predicate predicate) {
         predicates.add(predicate);
@@ -50,7 +50,7 @@ public class LikeFilter {
     }
 
     public Collection<Like> filterLikes(Collection<Like> likes) {
-        List<Like> result = new LinkedList<Like>(likes);
+        List<Like> result = new LinkedList<>(likes);
         for (Predicate predicate : predicates) {
             CollectionUtils.filter(result, predicate);
         }

@@ -57,9 +57,9 @@ public class ItemsRankingManager {
 	
 	
 	//Popularity Items Map
-	private final static ConcurrentMap<String,ConcurrentMap<Long,MutableInt>> itemsByHits = new ConcurrentHashMap<String,ConcurrentMap<Long,MutableInt>>();
+	private final static ConcurrentMap<String,ConcurrentMap<Long,MutableInt>> itemsByHits = new ConcurrentHashMap<>();
 	//Recent Items Map
-	private final static ConcurrentMap<String,ConcurrentMap<Long,Long>> itemsByDate = new ConcurrentHashMap<String,ConcurrentMap<Long, Long>>();
+	private final static ConcurrentMap<String,ConcurrentMap<Long,Long>> itemsByDate = new ConcurrentHashMap<>();
 	private static ItemsRankingManager instance = null;
 	
 	private ItemsRankingManager() {};
@@ -115,8 +115,8 @@ public class ItemsRankingManager {
 	
 	//sort the input by popularity
 	public List<RankedItem<Long>> getRankedItemsByHits(String consumer, List<Long> items) {
-		List<ScoreItem> list = new ArrayList<ScoreItem>();
-		List<RankedItem<Long>> result = new ArrayList<RankedItem<Long>>();
+		List<ScoreItem> list = new ArrayList<>();
+		List<RankedItem<Long>> result = new ArrayList<>();
 		if(items != null) {
 			for(Long item : items) {
 				long hits;
@@ -140,8 +140,8 @@ public class ItemsRankingManager {
 	
 	//sort the input by date
 	public List<RankedItem<Long>> getRankedItemsByDate(String consumer, List<Long> items) {
-		List<ScoreItem> list = new ArrayList<ScoreItem>();
-		List<RankedItem<Long>> result = new ArrayList<RankedItem<Long>>();
+		List<ScoreItem> list = new ArrayList<>();
+		List<RankedItem<Long>> result = new ArrayList<>();
 		if(items != null) {
 			for(Long item : items) {
 				long time;
@@ -156,7 +156,7 @@ public class ItemsRankingManager {
 			Collections.sort(list);
 			int pos = 1;
 			for(ScoreItem item : list) {
-				result.add(new RankedItem<Long>(item.getItemId(),pos++));
+				result.add(new RankedItem<>(item.getItemId(),pos++));
 			}
 		}
 		return result;
@@ -165,7 +165,7 @@ public class ItemsRankingManager {
 	//return the most recent items
 	public List<Long> getItemsSortedByDate(String consumer, int limit) {
 		ConcurrentMap<Long,Long> items = itemsByDate(consumer);
-		List<ScoreItem> list = new ArrayList<ScoreItem>();
+		List<ScoreItem> list = new ArrayList<>();
 		if(items == null || items.isEmpty()) { return null; }
 		for(Long item : items.keySet()) { list.add(new ScoreItem(item,items.get(item))); }
 		Collections.sort(list);
@@ -176,7 +176,7 @@ public class ItemsRankingManager {
 	//return the most popular items
 	public List<Long> getItemsSortedByPopularity(String consumer, int limit) {
 		ConcurrentMap<Long,MutableInt> items = itemsByHits(consumer);
-		List<ScoreItem> list = new ArrayList<ScoreItem>();
+		List<ScoreItem> list = new ArrayList<>();
 		if(items == null || items.isEmpty()) { return null; }
 		for(Long item : items.keySet()) { list.add(new ScoreItem(item,(long)items.get(item).get())); }
 		Collections.sort(list);
@@ -187,8 +187,8 @@ public class ItemsRankingManager {
 	
 	//combine the popularity, relevance and time factors to rank the input item set
 	public List<RankedItem<Long>> getCombinedList(List<Long> itemsToRank, List<RankedItem<Long>> itemsByHits, List<RankedItem<Long>> itemsByDate, List<RankedItem<Long>> itemsByRelevance) {
-		HashMap<Long,Integer> items = new HashMap<Long,Integer>();
-		List<RankedItem<Long>> rankedItems = new ArrayList<RankedItem<Long>>();
+		HashMap<Long,Integer> items = new HashMap<>();
+		List<RankedItem<Long>> rankedItems = new ArrayList<>();
 		if(itemsToRank == null || itemsToRank.isEmpty()) { return rankedItems; }
 		int ndate = 0;
 		int nhits = 0;
@@ -245,7 +245,7 @@ public class ItemsRankingManager {
 	
 	public List<RankedItem<Long>> getCombinedRankedList(String consumer, List<Long> itemsToRank, List<Long> itemsByRelevance) {
 		Date start = new Date();
-		if(itemsToRank == null || itemsToRank.isEmpty()) { return new ArrayList<RankedItem<Long>>(); }
+		if(itemsToRank == null || itemsToRank.isEmpty()) { return new ArrayList<>(); }
 		List<RankedItem<Long>> listByHits = getRankedItemsByHits(consumer, itemsToRank);
 		List<RankedItem<Long>> listByDate = getRankedItemsByDate(consumer, itemsToRank);
 		List<RankedItem<Long>> res = getCombinedList(itemsToRank, listByHits, itemsToRankedList(itemsByRelevance), listByDate);
@@ -255,7 +255,7 @@ public class ItemsRankingManager {
 	
 	public List<RankedItem<Long>> getCombinedRankedListWithHits(String consumer, List<Long> itemsToRank, List<Long> itemsByRelevance) {
 		Date start = new Date();
-		if(itemsToRank == null || itemsToRank.isEmpty()) { return new ArrayList<RankedItem<Long>>(); }
+		if(itemsToRank == null || itemsToRank.isEmpty()) { return new ArrayList<>(); }
 		List<RankedItem<Long>> listByHits = getRankedItemsByHits(consumer, itemsToRank);
 		List<RankedItem<Long>> res = getCombinedList(itemsToRank, listByHits, itemsToRankedList(itemsByRelevance), null);
 		logger.info("ItemRankingManager.getCombinedList: " + ( new Date().getTime() - start.getTime()) + " ms.");
@@ -279,21 +279,21 @@ public class ItemsRankingManager {
 	}
 	
 	public List<Long> rankListToItems(List<RankedItem<Long>> items) {
-		List<Long> res = new ArrayList<Long>();
+		List<Long> res = new ArrayList<>();
 		if(items == null) { return res; }
 		for(RankedItem<Long> i : items) { res.add(i.getItemId()); }
 		return res;
 	}
 	
 	public List<Long> scoreListToItems(List<ScoreItem> items) {
-		List<Long> res = new ArrayList<Long>();
+		List<Long> res = new ArrayList<>();
 		if(items == null) { return res; }
 		for(ScoreItem i : items) { res.add(i.getItemId()); }
 		return res;
 	}
 	
 	public List<RankedItem<Long>> itemsToRankedList(List<Long> items) {
-		List<RankedItem<Long>> res = new ArrayList<RankedItem<Long>>();
+		List<RankedItem<Long>> res = new ArrayList<>();
 		if(items == null) { return res; }
 		int pos = 1;
 		for(Long i : items) { res.add(new RankedItem(i,pos++)); }

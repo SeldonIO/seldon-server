@@ -89,9 +89,9 @@ public class CooccurrencePeer {
 	 */
 	public Map<String,CooccurrenceCount> getCountsAA(List<Long> items1,ICooccurrenceStore coocStore)
 	{
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		//get what we can from cache and modify lists to whats left (remove from cache stale items)
-		List<Long> items1DB = new ArrayList<Long>();
+		List<Long> items1DB = new ArrayList<>();
 		long now = TestingUtils.getTime();
 		for(Long i1 : items1)
 		{
@@ -134,12 +134,12 @@ public class CooccurrencePeer {
 	 */
 	public Map<String,CooccurrenceCount> getCountsAB(List<Long> items1,List<Long> items2,ICooccurrenceStore coocStore)
 	{
-		Map<String,CooccurrenceCount> map = new HashMap<String,CooccurrenceCount>();
+		Map<String,CooccurrenceCount> map = new HashMap<>();
 		
 		//get what we can from cache and modify lists to whats left (remove from cache stale items)
-		List<Long> items1DB = new ArrayList<Long>();
-		List<Long> items2DB = new ArrayList<Long>();
-		Set<Long> items2ForDB = new HashSet<Long>();
+		List<Long> items1DB = new ArrayList<>();
+		List<Long> items2DB = new ArrayList<>();
+		Set<Long> items2ForDB = new HashSet<>();
 		long now = TestingUtils.getTime();
 		for(Long i1 : items1)
 		{

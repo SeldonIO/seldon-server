@@ -33,7 +33,7 @@ public class MemcacheClusterCountFactory {
 
 	public enum MEMCACHE_COUNTER_TYPE {SIMPLE,DECAY};
 	
-	private ConcurrentHashMap<String,ClusterCountStore> stores = new ConcurrentHashMap<String,ClusterCountStore>();
+	private ConcurrentHashMap<String,ClusterCountStore> stores = new ConcurrentHashMap<>();
 
 	private static final String PROP_PREFIX = "io.seldon.memcache.clusters.";
 	public static final int DEF_CACHE_TIMEOUT_SECS = 60*60*24; // default number of article to keep in each cluster

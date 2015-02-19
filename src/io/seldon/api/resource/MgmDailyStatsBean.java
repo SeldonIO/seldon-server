@@ -33,7 +33,7 @@ public class MgmDailyStatsBean extends ResourceBean {
 
     private static final long serialVersionUID = 1L;
 
-    final private List<MgmDailyStatBean> days = new ArrayList<MgmDailyStatBean>();
+    final private List<MgmDailyStatBean> days = new ArrayList<>();
     final private String client;
 
     public MgmDailyStatsBean(String client) {

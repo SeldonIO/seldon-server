@@ -45,6 +45,6 @@ public class RecentItemsIncluder implements ItemIncluder {
 
     @Override
     public List<Long> generateIncludedItems(String client, int dimension, int numItems) {
-        return new ArrayList<Long>(retriever.retrieveRecentlyAddedItems(client, numItems, dimension));
+        return new ArrayList<>(retriever.retrieveRecentlyAddedItems(client, numItems, dimension));
     }
 }

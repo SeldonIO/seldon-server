@@ -105,7 +105,7 @@ public class FacebookBaseTest extends BaseTest {
 
     private UserBean facebookUserBean(String facebookId, String facebookToken) {
         UserBean userBean = new UserBean("_fb_" + facebookId);
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         attributes.put("facebook", "1");
         attributes.put("facebookId", facebookId);
         attributes.put("facebookToken", facebookToken);
@@ -156,7 +156,7 @@ public class FacebookBaseTest extends BaseTest {
                 String facebookId = account.getFbId().toString();
                 String facebookToken = account.getoAuthToken();
                 UserBean userBean = createUserBean();
-                final HashMap<String, String> attributes = new HashMap<String, String>();
+                final HashMap<String, String> attributes = new HashMap<>();
                 userBean.setAttributesName(attributes);
                 attributes.put("facebook", "1");
                 attributes.put("facebookId", facebookId);

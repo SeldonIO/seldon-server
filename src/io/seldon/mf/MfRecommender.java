@@ -64,7 +64,7 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
         }
 
         float[] userVector =  clientStore.userFeatures.get(user);
-        Set<ItemRecommendationResult> recs = new HashSet<ItemRecommendationResult>();
+        Set<ItemRecommendationResult> recs = new HashSet<>();
         if(ctxt.getMode()== RecommendationContext.MODE.INCLUSION){
             // special case for INCLUSION as it's easier on the cpu.
             for (Long item : ctxt.getContextItems()){

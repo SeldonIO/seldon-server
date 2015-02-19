@@ -42,18 +42,18 @@ public class FBToUserDimMapperTest {
 	@Test
 	public void test()
 	{
-		Map<String,Set<Integer>> map = new HashMap<String,Set<Integer>>();
+		Map<String,Set<Integer>> map = new HashMap<>();
 		final String filmCat = "Film";
 		final String healthCat = "Health and beauty";
 		final int dim1 = 1;
 		final int dim2 = 2;
-		Set<Integer> dims = new HashSet<Integer>();
+		Set<Integer> dims = new HashSet<>();
 		dims.add(dim1);
 		dims.add(dim2);
 		map.put(filmCat, dims);
 		FBToUserDimMapper mapper = new FBToUserDimMapper(map);
 		
-		List<String> userCategories = new ArrayList<String>();
+		List<String> userCategories = new ArrayList<>();
 		userCategories.add(filmCat);
 		userCategories.add(healthCat);
 		

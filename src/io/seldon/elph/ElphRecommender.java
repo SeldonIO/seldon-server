@@ -52,8 +52,8 @@ public class ElphRecommender {
 	
 	public static ArrayList<Long> getSortedUniqueItems(List<Long> recentItems)
 	{
-		Set<Long> set = new HashSet<Long>(recentItems);
-		ArrayList<Long> sorted = new ArrayList<Long>(set);
+		Set<Long> set = new HashSet<>(recentItems);
+		ArrayList<Long> sorted = new ArrayList<>(set);
 		Collections.sort(sorted);
 		return sorted;
 	}
@@ -67,7 +67,7 @@ public class ElphRecommender {
 		{
 			scores = predictionPeer.getPredictions(sortedUnique, dimension);
 			if (scores != null)
-				MemCachePeer.put(mkey, new HashMap<Long,Double>(scores), MEMCACHE_EXPIRE_SEC);
+				MemCachePeer.put(mkey, new HashMap<>(scores), MEMCACHE_EXPIRE_SEC);
 		}
 		else
 			logger.info("Got recommendations from memcache for recent items "+ CollectionTools.join(recentItems, ","));

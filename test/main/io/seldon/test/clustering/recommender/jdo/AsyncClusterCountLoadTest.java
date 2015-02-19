@@ -83,7 +83,7 @@ public class AsyncClusterCountLoadTest extends BasePeerTest {
 	public void testLoad() throws InterruptedException
 	{
 		int numThreads = 40;
-		List<Thread> threads = new ArrayList<Thread>();
+		List<Thread> threads = new ArrayList<>();
 	
 		
 		final AsyncClusterCountStore asyncStore = new AsyncClusterCountStore(props.getClient(), 3, 10000, Integer.MAX_VALUE, 3, 22400,true);

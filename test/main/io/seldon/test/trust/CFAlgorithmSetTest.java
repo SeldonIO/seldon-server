@@ -49,7 +49,7 @@ public class CFAlgorithmSetTest extends BaseTest {
 	public void setup()
 	{
 		AlgorithmServiceImpl aService = new AlgorithmServiceImpl();
-        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<String, CFAlgorithm>();
+        ConcurrentHashMap<String, CFAlgorithm> map = new ConcurrentHashMap<>();
         map.put(props.getClient(), new CFAlgorithm());
         aService.setAlgorithmMap(map);
         Util.setAlgorithmService(aService);
@@ -59,7 +59,7 @@ public class CFAlgorithmSetTest extends BaseTest {
 	public void testSetRecommender() throws CloneNotSupportedException
 	{
 		String alg = "recommenders:CLUSTER_COUNTS|SEMANTIC_VECTORS_SORT";
-		List<String> settings = new ArrayList<String>();
+		List<String> settings = new ArrayList<>();
 		settings.add(alg);
 		CFAlgorithm c = Util.getAlgorithmOptions(new ConsumerBean(props.getClient()),settings,null);
 		Assert.assertEquals(2, c.getRecommenders().size());
@@ -73,7 +73,7 @@ public class CFAlgorithmSetTest extends BaseTest {
 	{
 		String alg = "recommenders:CLUSTER_COUNTS_ITEM_CATEGORY|SEMANTIC_VECTORS_SORT|CLUSTER_COUNTS_GLOBAL";
 		String strategy = "recommender_strategy:RANK_SUM";
-		List<String> settings = new ArrayList<String>();
+		List<String> settings = new ArrayList<>();
 		settings.add(alg);
 		settings.add(strategy);
 		CFAlgorithm c = Util.getAlgorithmOptions(new ConsumerBean(props.getClient()),settings,null);
@@ -89,7 +89,7 @@ public class CFAlgorithmSetTest extends BaseTest {
 	public void testSetRecommenderClusterItemCategory() throws CloneNotSupportedException
 	{
 		String alg = "recommenders:CLUSTER_COUNTS_ITEM_CATEGORY";
-		List<String> settings = new ArrayList<String>();
+		List<String> settings = new ArrayList<>();
 		settings.add(alg);
 		CFAlgorithm c = Util.getAlgorithmOptions(new ConsumerBean(props.getClient()),settings,null);
 		Assert.assertEquals(1, c.getRecommenders().size());
@@ -102,7 +102,7 @@ public class CFAlgorithmSetTest extends BaseTest {
 	{
 		String alg = "recommenders:SEMANTIC_VECTORS_SORT|CLUSTER_COUNTS|CLUSTER_COUNTS_FOR_ITEM|CLUSTER_COUNTS_GLOBAL,recommender_strategy:RANK_SUM";
 		String[] algs = alg.split(",");
-		List<String> settings = new ArrayList<String>();
+		List<String> settings = new ArrayList<>();
 		for(int i=0;i<algs.length;i++) settings.add(algs[i]);
 		CFAlgorithm c = Util.getAlgorithmOptions(new ConsumerBean(props.getClient()),settings,null);
 		Assert.assertEquals(4, c.getRecommenders().size());
