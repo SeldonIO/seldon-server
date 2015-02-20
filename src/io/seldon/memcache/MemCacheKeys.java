@@ -104,18 +104,7 @@ public class MemCacheKeys {
     	return "" + keys.ItemSimilarityGraphBean + ":" + client + ":" + id ;
     }
     
-    public static String getOpinionBeanKey(String client,String userId, String itemId) {
-    	return "" + keys.OpinionBean + ":" + client + ":" + userId + ":" + itemId;
-    }
-    
-    
-    public static String getUserOpinionBeansKey(String client,String id, boolean full) {
-    	return "" + keys.OpinionBean + ":" + client + ":" + id + ":" + full;
-    }
-    
-    public static String getItemOpinionBeansKey(String client,String id, boolean full) {
-    	return "" + keys.OpinionBean + ":" + client + ":" + full + ":" + id;
-    }
+
     
     public static String getTokenBeanKey(String key) {
     	return "" + keys.TokenBean + ":" + key;

@@ -38,7 +38,6 @@ import io.seldon.general.jdo.SqlActionPeer;
 import io.seldon.general.jdo.SqlExtActionPeer;
 import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.general.jdo.SqlNetworkPeer;
-import io.seldon.general.jdo.SqlOpinionPeer;
 import io.seldon.general.jdo.SqlUserAttributePeer;
 import io.seldon.general.jdo.SqlUserPeer;
 import io.seldon.general.jdo.SqlVersionPeer;
@@ -139,20 +138,7 @@ public class Util {
 		return new SqlUserPeer(pm);
 	}
 	
-	public static SqlOpinionPeer getOpinionPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlOpinionPeer(pm);
-	}
-	
-	public static SqlOpinionPeer getOpinionPeer(PersistenceManager pm) throws APIException {
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlOpinionPeer(pm);
-	}
+
 	
 	public static SqlActionPeer getActionPeer(ConsumerBean c) throws APIException {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());

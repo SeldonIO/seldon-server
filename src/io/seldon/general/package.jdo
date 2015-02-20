@@ -34,13 +34,6 @@
             <field name="avgRating"/>
             <field name="stdDevRating"/>
         </class>
-        <class name="Opinion" identity-type="application">
-            <field name="opId" primary-key="true" value-strategy="identity"/>
-            <field name="userId"/>
-            <field name="itemId"/>
-            <field name="value"/>
-            <field name="time"/>
-        </class>
         <class name="UserDimension" identity-type="application">
             <field name="userId" primary-key="true"/>
             <field name="dimId" primary-key="true"/>

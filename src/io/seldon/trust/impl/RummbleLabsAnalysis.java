@@ -30,7 +30,6 @@ import io.seldon.api.resource.RecommendedUserBean;
 
 public interface RummbleLabsAnalysis {
 	
-	public Recommendation getPersonalisedRating(long userId,long itemId,int type,CFAlgorithm options);
 	public RecommendationResult getRecommendations(long userId,String clientUserId,Integer type,int dimension,int numRecommendations,CFAlgorithm options,String lastRecListUUID,Long currentItemId, String referrer);
 	public List<SearchResult> searchContent(String query,Long userId,DimensionBean d,int numResults,CFAlgorithm options);
 	public List<SearchResult> findSimilar(long itemId,int itemType,int numResults,CFAlgorithm options);

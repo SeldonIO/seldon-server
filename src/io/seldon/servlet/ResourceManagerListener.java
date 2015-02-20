@@ -52,7 +52,6 @@ import io.seldon.api.state.ZkMgmUpdater;
 import io.seldon.api.state.ZkParameterUpdater;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.clustering.minhash.MinHashClusterPeer;
 import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
 import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
@@ -65,8 +64,6 @@ import io.seldon.cooc.CooccurrencePeerFactory;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.facebook.importer.FacebookOnlineImporterConfiguration;
 import io.seldon.facebook.user.algorithm.experiment.MultiVariateTestOutputResultsTimer;
-import io.seldon.graphlab.GraphLabRecommenderStore;
-import io.seldon.mahout.ALSRecommenderStore;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.realtime.ActionProcessorPeer;
@@ -163,24 +160,11 @@ public class ResourceManagerListener  implements ServletContextListener {
     		GlobalWeightedMostPopular.initialise(props);
     		
     		ActionHistoryCache.initalise(props);
+
     		
-    		//Mahout ALS
-    		String alsClients = props.getProperty("io.seldon.mahout.als.clients");
-    		String alsBase = props.getProperty("io.seldon.mahout.als.dir");
-    		if (alsClients != null && alsBase != null)
-    			ALSRecommenderStore.load(alsClients, alsBase);
+
     		
-    		//Graphlab PMF
-    		String graphlabClients = props.getProperty("io.seldon.graphlab.clients");
-    		String graphlabBase = props.getProperty("io.seldon.graphlab.dir");
-    		if (graphlabClients != null && graphlabBase != null)
-    			GraphLabRecommenderStore.load(graphlabClients, graphlabBase);
-    		
-    		//MinHash fast user matching
-    		String minHashActive = props.getProperty("io.seldon.minhash.active");
-    		if ("true".equals(minHashActive))
-    			MinHashClusterPeer.initialise(props);
-    		
+
     		SqlWebSimilaritySimplePeer.initialise(props);
 
     		DynamicParameterServer.startReloadTimer();

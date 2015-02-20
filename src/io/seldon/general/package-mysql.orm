@@ -34,13 +34,6 @@
             <field name="avgRating" column="AVGRATING"/>
             <field name="stdDevRating" column="STDDEVRATING"/>
         </class>
-        <class name="Opinion" table="OPINIONS">
-            <field name="opId" column="OP_ID"/>
-            <field name="userId" column="USER_ID"/>
-            <field name="itemId" column="ITEM_ID"/>
-            <field name="value" column="VALUE"/>
-            <field name="time" column="TIME"/>
-        </class>
         <class name="UserDimension" table="USER_DIM">
             <field name="userId" column="USER_ID"/>
     	    <field name="dimId" column="DIM_ID"/>

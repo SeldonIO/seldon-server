@@ -49,18 +49,11 @@ import io.seldon.elph.IElphPredictionPeer;
 import io.seldon.elph.jdo.SqlElphPredictionPeer;
 import io.seldon.facebook.FBUtils;
 import io.seldon.general.ItemPeer;
-import io.seldon.general.Opinion;
-import io.seldon.graphlab.GraphLabRecommender;
-import io.seldon.graphlab.GraphLabRecommenderStore;
-import io.seldon.mahout.*;
-import io.seldon.mahout.jdo.FPGrowthPeer;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
 
-import io.seldon.prediction.ContentRatingResolver;
-import io.seldon.prediction.PersonalisedRatingCreator;
 import io.seldon.recommendation.baseline.BaselineRecommender;
 import io.seldon.recommendation.baseline.IBaselineRecommenderUtils;
 import io.seldon.recommendation.baseline.jdo.SqlBaselineRecommenderUtils;
@@ -87,7 +80,6 @@ import io.seldon.trust.impl.CFAlgorithm.CF_PREDICTOR;
 import io.seldon.trust.impl.CFAlgorithm.CF_RECOMMENDER;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
 import io.seldon.trust.impl.TrustNetworkSupplier.CF_TYPE;
-import io.seldon.trust.impl.jdo.generic.ContentReviewPeer;
 import io.seldon.util.CollectionTools;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -797,257 +789,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 
 
 
-	private List<Recommendation> getRecommendationsPredictive(long user,int type,int numRecommendations,CFAlgorithm options) {
-        ClientPersistable cp = new ClientPersistable(options.getName());
-
-        Map<Long,Double> weights = null;
-		RecommendationNetwork trustNet = getNetwork(user,type, options);
-		if (trustNet != null)
-			weights = trustNet.getSimilarityNeighbourhoodMap(options.getPredictK());
-		if (weights != null)
-		{
-			ContentReviewPeer crp = new ContentReviewPeer(cp.getPM());
-			double ratingThreshold = options.getMaxRating() * HIGH_RATING_THRESHOLD;
-			int reviewsToGet = Math.round((float) (numRecommendations * INITIAL_REVIEW_SET_RATIO));
-			Collection<Long> contents = crp.getPopularTrustedContentTrustNet(new HashSet<>(trustNet.getSimilarityNeighbourhood(options.getRecommendK())),user,type, ratingThreshold, reviewsToGet);
-			PersonalisedRatingCreator prc = new PersonalisedRatingCreator((ContentRatingResolver)cp);
-			List<Recommendation> recs = new ArrayList<>();
-			for(Long contentId : contents)
-			{
-				//Collection<Long> reviewers = cp.getContentReviewers(contentId);
-				Recommendation prediction = null;
-				boolean stop = false;
-				for(CF_PREDICTOR predictor : options.getPredictors())
-				{
-					switch(predictor)
-					{
-					case GRAPHLAB_PMF:
-					{
-						GraphLabRecommender recommender = GraphLabRecommenderStore.get(options.getName());
-						if (recommender != null)
-						{
-							prediction = recommender.getPrediction(user,type, contentId);
-						}
-						else
-							logger.warn("Can't get GraphLabRecommender for client " + options.getName());
-					}
-					break;
-					case MAHOUT_ALS:
-					{
-						ALSRecommender recommender = ALSRecommenderStore.get(options.getName());
-						if (recommender != null)
-							prediction = recommender.getPrediction(user,type, contentId);
-						else
-							logger.warn("Can't get ALSRecommender for client " + options.getName());
-					}
-					break;
-					case RESNICK:
-						prediction = prc.ResnickPrediction(user, contentId, type, weights, options.getMinRating(), options.getMaxRating(), false, false);
-						break;
-					case RESNICK_SARIC:
-						prediction = prc.ModifiedResnickPrediction(user, contentId, type, weights,options.getPredictK(),options.getMinRating(),options.getMaxRating(),false,false,options.getPredictMinTrust(),false);
-						break;
-					case WEIGHTED_MEDIAN:
-						prediction = prc.weightedMedianPrediction(user, contentId, type, weights, options.getPredictMinTrust());
-						break;
-					case WEIGHTED_MEAN:
-						prediction = prc.weightedAveragePrediction(user, contentId, type, weights,options.getMinRating(),options.getMaxRating(),false,false,options.getPredictMinTrust());
-						break;
-					}
-
-					switch (options.getPredictorStrategy())
-					{
-					case FIRST_SUCCESSFUL:
-						if (prediction != null && prediction.getPrediction() >= ratingThreshold)
-						{
-							logger.info("Adding prediction " + prediction.getPrediction() + " for user " + user + " for content " + contentId);
-							recs.add(prediction);
-							stop = true;
-						}
-						break;
-					}
-					if (stop)
-						break;
-				}
-			}
-			Collections.sort(recs);
-			while(recs.size() > numRecommendations)
-				recs.remove(recs.size()-1);
-			return recs;
-		}
-		else
-			return null;
-	}
-
-	@Override
-	public Recommendation getPersonalisedRating(long user, long content,
-			int type,CFAlgorithm options) {
-		Recommendation r = null;
-		for(CF_PREDICTOR predictor : options.getPredictors())
-		{
-			switch(predictor)
-			{
-			case USER_AVG:
-			case ITEM_AVG:
-			case NAIVE_BAYES:
-			case MID_RATING:
-			case MAX_RATING:
-				r = getDefaultPrediction(user,content,type,predictor,options);
-				break;
-			case RESNICK_ITEM:
-				r = getPersonalisedRatingItemBased(user,content,type, options);
-				break;
-			case GRAPHLAB_PMF:
-			case MAHOUT_ALS:
-			case RESNICK:
-			case RESNICK_SARIC:
-			case WEIGHTED_MEDIAN:
-			case WEIGHTED_MEAN:
-				r = getPersonalisedUserRating(user,content,type,predictor, options);
-				break;
-			}
-
-			switch (options.getPredictorStrategy())
-			{
-			case FIRST_SUCCESSFUL:
-				if (r != null)
-				{
-					logger.info("Succesful call to " + predictor.name() + " strategy is "+options.getPredictorStrategy().name() + " returning recommendations");
-					return r;
-				}
-				else
-					logger.info("Unsuccessful call to " + predictor.name() + " will try next");
-				break;
-			case WEIGHTED:
-				//FIXME
-				break;
-			}
-		}
-		if (r != null) {
-            final String message = "Present logic should return a successful call within loop";
-            logger.error(message, new Exception(message));
-        }
-		return r;
-	}
-
-	private Recommendation getDefaultPrediction(long user, long content,int type,CF_PREDICTOR predictor, CFAlgorithm options)
-	{
-        ClientPersistable cp = new ClientPersistable(options.getName());
-
-        ContentReviewPeer crp = new ContentReviewPeer(cp.getPM());
-		Double pred = null;
-		switch(predictor)
-		{
-		case USER_AVG:
-			pred = crp.getAvgRating(user, type);
-			break;
-		case ITEM_AVG:
-			pred = crp.getAvgContentRating(content, type);
-			break;
-		case NAIVE_BAYES:
-			break;
-		case MID_RATING:
-			pred =  options.getMaxRating()/2;
-			break;
-		case MAX_RATING:
-			pred = options.getMaxRating();
-			break;
-		}
-		if (pred != null)
-			return new Recommendation(content,type,pred,null,null,null);
-		else
-			return null;
-	}
-
-	private Recommendation getPersonalisedRatingItemBased(long userId,long itemId,int type, CFAlgorithm options)
-	{
-        ClientPersistable cp = new ClientPersistable(options.getName());
-
-        ContentReviewPeer crp = new ContentReviewPeer(cp.getPM());
-		Opinion o = crp.getContent(itemId, userId);
-		if (o != null)
-			return new Recommendation(itemId,type,o.getValue(),null,userId,null);
-		else
-		{
-			PersonalisedRatingCreator prc = new PersonalisedRatingCreator((ContentRatingResolver)cp);
-			RecommendationNetwork trustNet = new SimpleTrustNetworkProvider(options).getTrustNetwork(itemId,type,false,CF_TYPE.ITEM);
-			if (trustNet.getSimilarityNetwork().size() == 0 && type != Trust.TYPE_GENERAL)
-				trustNet = getNetwork(userId,Trust.TYPE_GENERAL, options);
-			Map<Long,Double> weights = null;
-			if (trustNet != null)
-				weights = trustNet.getSimilarityNeighbourhoodMap(options.getPredictK());
-			if (weights != null)
-			{
-				return prc.ResnickItemBasedPrediction(userId, itemId, type, weights, options.getMinRating(),options.getMaxRating(),options.getPredictMinTrust());
-			}
-			else
-				return null;
-		}
-	}
-
-	public Recommendation getPersonalisedUserRating(long user,long content,int type,CF_PREDICTOR predictor, CFAlgorithm options)
-	{
-        ClientPersistable cp = new ClientPersistable(options.getName());
-
-        logger.info("Get prediction for " + user + " for content " + content + " with: " + predictor.name());
-		ContentReviewPeer crp = new ContentReviewPeer(cp.getPM());
-		Opinion o = crp.getContent(content, user);
-		if (o != null)
-			return new Recommendation(content,type,o.getValue(),null,user,null);
-		else
-		{
-			Map<Long,Double> weights = null;
-			RecommendationNetwork trustNet = getNetwork(user,type, options);
-			if (trustNet != null)
-				weights = trustNet.getSimilarityNeighbourhoodMap(options.getPredictK());
-			PersonalisedRatingCreator prc = new PersonalisedRatingCreator((ContentRatingResolver)cp);
-			if (weights != null)
-			{
-				Recommendation prediction = null;
-
-				switch(predictor)
-				{
-				case GRAPHLAB_PMF:
-				{
-					GraphLabRecommender recommender = GraphLabRecommenderStore.get(options.getName());
-					if (recommender != null)
-					{
-						prediction = recommender.getPrediction(user,type, content);
-					}
-					else
-						logger.warn("Can't get GraphLabRecommender for client " + options.getName());
-				}
-				break;
-				case MAHOUT_ALS:
-				{
-					ALSRecommender recommender = ALSRecommenderStore.get(options.getName());
-					if (recommender != null)
-						prediction = recommender.getPrediction(user,type, content);
-					else
-						logger.warn("Can't get ALSRecommender for client " + options.getName());
-				}
-				break;
-				case RESNICK:
-					prediction = prc.ResnickPrediction(user, content, type, weights, options.getMinRating(), options.getMaxRating(), false, false);
-				case RESNICK_SARIC:
-					prediction = prc.ModifiedResnickPrediction(user, content, type, weights,options.getPredictK(),options.getMinRating(),options.getMaxRating(),false,false,options.getPredictMinTrust(),false);
-					break;
-				case WEIGHTED_MEDIAN:
-					prediction = prc.weightedMedianPrediction(user, content, type, weights, options.getPredictMinTrust());
-					break;
-				case WEIGHTED_MEAN:
-					prediction = prc.weightedAveragePrediction(user, content, type, weights,options.getMinRating(),options.getMaxRating(),false,false,options.getPredictMinTrust());
-					break;
-				}
-				return prediction;
-			}
-			else
-				return null;
-
-		}
-	}
-
-
 	@Override
 	public RecommendationNetwork getNetwork(long user, int type, CFAlgorithm cfAlgorithm) {
 		return new SimpleTrustNetworkProvider(cfAlgorithm).getTrustNetwork(user, type);
@@ -1095,14 +836,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				}
 			}
 			break;
-			case MAHOUT_ITEM:
-			{
-				ItemRecommender ir = ItemRecommenderPeer.get(options.getName());
-				res = ir.findSimilar(content, type, numResults);
 			}
-			break;
-			}
-
 			switch (options.getItemComparatorStrategy())
 			{
 			case FIRST_SUCCESSFUL:
@@ -1159,20 +893,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					break;
 			}
 
-			for(SearchResult r : res)
-			{
-				Recommendation rec = this.getAnalysis(options).getPersonalisedRating(user, r.getId(), Trust.TYPE_GENERAL, options);
-				if (rec != null)
-				{
-					logger.info("Content: " + r.getId() + " SearchResult score: " + r.getScore() + " Prediction: " + rec.getPrediction());
-					r.setScore(r.getScore() * rec.getPrediction());
-				}
-				else
-				{
-					logger.warn("Content: " + r.getId() + " SearchResult score: " + r.getScore() + " Default Prediction: " + (options.getMaxRating()/2));
-					r.setScore(r.getScore() * (options.getMaxRating()/2));
-				}
-			}
 
 			Collections.sort(res);
 		}
@@ -1240,10 +960,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				case MOST_POP_RECENT_MEMBASED:
 					res = ItemsRankingManager.getInstance().getCombinedList(options.getName(), items, null);
 					break;
-				case RELEVANCE:
-					ContentReviewPeer crp = new ContentReviewPeer(cp.getPM());
-					res = (List<Long>)crp.sort(userId,items);
-					break;
 				case TAG_SIMILARITY:
 					TagStore tstore = new TagStorePeer(cp.getPM());
         			VectorSpaceOptions dOptions = new VectorSpaceOptions(VectorSpaceOptions.TF_TYPE.LOGTF,VectorSpaceOptions.DF_TYPE.NONE,VectorSpaceOptions.NORM_TYPE.COSINE);
@@ -1251,13 +967,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
         			TagSimilarityPeer tsp = new TagSimilarityPeer(dOptions,qOptions,tstore);
         			res = tsp.sortBySimilarity(userId, items);
         			break;
-				case MAHOUT_FPGROWTH:
-				{
-					List<Long> transaction = Util.getActionPeer(cp.getPM()).getRecentUserActions(userId);
-					FPGrowthRecommender r = new FPGrowthRecommender(new FPGrowthPeer(cp.getPM()));
-					res = r.sortBySimilarity(transaction, items);
-				}
-					break;
 				case SEMANTIC_VECTORS:
 				{
 					if (debugging)
