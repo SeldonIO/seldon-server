@@ -34,7 +34,6 @@ import io.seldon.api.resource.RecommendedUserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.clustering.recommender.*;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
-import io.seldon.clustering.tag.IItemTagCache;
 import io.seldon.clustering.tag.TagClusterRecommender;
 import io.seldon.clustering.tag.jdo.JdoItemTagCache;
 import io.seldon.clustering.tag.jdo.JdoTagClusterCountStore;
@@ -44,9 +43,6 @@ import io.seldon.cooc.CooccurrenceRecommender;
 import io.seldon.cooc.ICooccurrenceStore;
 import io.seldon.cooc.jdo.JDBCCooccurrenceStore;
 import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.elph.ElphRecommender;
-import io.seldon.elph.IElphPredictionPeer;
-import io.seldon.elph.jdo.SqlElphPredictionPeer;
 import io.seldon.facebook.FBUtils;
 import io.seldon.general.ItemPeer;
 import io.seldon.memcache.DogpileHandler;
@@ -407,16 +403,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 						ITagCountPeer tPeer = new SqlTagCountPeer(options.getName());
 						TagCountRecommender r = new TagCountRecommender(options.getName(), tPeer);
 						recommendations = r.recommend(user, dimension, exclusions, options.getUserTagAttrId(), 500, numRecommendations);
-					}
-				}
-				break;
-				case ELPH:
-				{
-					if (user != Constants.ANONYMOUS_USER)
-					{
-						IElphPredictionPeer p = new SqlElphPredictionPeer(options.getName());
-						ElphRecommender r = new ElphRecommender(options.getName(), p);
-						recommendations = r.recommend(recentActions, exclusions, dimension);
 					}
 				}
 				break;
