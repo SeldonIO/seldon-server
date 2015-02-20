@@ -43,7 +43,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 	
 	SemanticVectorsManager svManager;
 
-	public SemanticVectorsRecommender(SemanticVectorsManager svManager, List<ItemIncluder> producers, List<ItemFilter> filters)
+	public SemanticVectorsRecommender(SemanticVectorsManager svManager)
 	{
 		this.svManager = svManager;
 	}

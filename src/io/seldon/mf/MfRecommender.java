@@ -49,7 +49,7 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
     private final MfFeaturesManager store;
 
 
-    public MfRecommender(MfFeaturesManager store, List<ItemIncluder> producers, List<ItemFilter> filters){
+    public MfRecommender(MfFeaturesManager store){
         this.store = store;
     }
 
