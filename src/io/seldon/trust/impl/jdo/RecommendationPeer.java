@@ -60,9 +60,6 @@ import io.seldon.similarity.dbpedia.jdo.SqlWebSimilaritySimplePeer;
 import io.seldon.similarity.item.IItemSimilarityPeer;
 import io.seldon.similarity.item.ItemSimilarityRecommender;
 import io.seldon.similarity.item.JdoItemSimilarityPeer;
-import io.seldon.similarity.tagcount.ITagCountPeer;
-import io.seldon.similarity.tagcount.TagCountRecommender;
-import io.seldon.similarity.tagcount.jdo.SqlTagCountPeer;
 import io.seldon.similarity.vspace.TagSimilarityPeer;
 import io.seldon.similarity.vspace.TagSimilarityPeer.VectorSpaceOptions;
 import io.seldon.similarity.vspace.TagStore;
@@ -394,16 +391,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					else
 						logger.info("Can't cluster count for item for user "+user+" client user id "+clientUserId+" as no current item passed in");
 
-				}
-				break;
-				case USER_TAG_COUNT:
-				{
-					if (user != Constants.ANONYMOUS_USER)
-					{
-						ITagCountPeer tPeer = new SqlTagCountPeer(options.getName());
-						TagCountRecommender r = new TagCountRecommender(options.getName(), tPeer);
-						recommendations = r.recommend(user, dimension, exclusions, options.getUserTagAttrId(), 500, numRecommendations);
-					}
 				}
 				break;
 				case MOST_POPULAR_ITEM_CATEGORY:
