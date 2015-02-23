@@ -12,9 +12,6 @@
     <task:executor id="normalExecutor" pool-size="1"/>
     <!-- Pull in algorithm configuration context (to be refactored into the above) -->
     <import resource="classpath:api-algorithm-ctx.xml"/>
-    <import resource="classpath*:mgm-algorithm-ctx.xml"/>
-     <import resource="classpath*:mgm-keyword-ctx.xml"/>
-    <import resource="classpath*:alg-names-ctx.xml"/>
     <context:component-scan base-package="io.seldon" >
         <context:exclude-filter type="annotation"
                             expression="org.springframework.stereotype.Controller" />

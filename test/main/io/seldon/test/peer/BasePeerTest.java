@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import io.seldon.clustering.recommender.ClusterCountStore;
 import io.seldon.clustering.recommender.TransientUserClusterStore;
 import io.seldon.clustering.recommender.UserClusterStore;
-import io.seldon.cooc.ICooccurrenceStore;
 import io.seldon.general.ItemPeer;
 import io.seldon.general.NetworkPeer;
 import io.seldon.general.UserAttributePeer;
@@ -79,8 +78,6 @@ public abstract class BasePeerTest extends BaseTest {
     protected TransientUserClusterStore transientClusterStore;
     
 
-    @Autowired
-    protected ICooccurrenceStore coocStore;
-    
+
    
 }

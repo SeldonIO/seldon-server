@@ -53,7 +53,7 @@ public class JdoMemoryUserClusterFactory {
     private Set<Timer> timers = new HashSet<>();
 
     @Value("${io.seldon.memoryuserclusters.clients:}")
-    private String clients;
+    private String clients = "";
 
 	private static JdoMemoryUserClusterFactory factory;
     private List<String> clientsSplit = new ArrayList<>();
@@ -66,7 +66,7 @@ public class JdoMemoryUserClusterFactory {
     @PostConstruct
     public void initialise(){
         factory = this;
-        if (clients != null)
+        if (clients != null && !clients.isEmpty())
         {
             clientsSplit = Arrays.asList(clients.split(","));
             for(String client : clientsSplit)

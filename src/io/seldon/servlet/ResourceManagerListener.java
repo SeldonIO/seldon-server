@@ -98,7 +98,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		JDOStartup.contextInitialized(sce);
     		MemCachePeer.initialise(props);
     		
-    		TrustGraphUpdateExecutor.initialise();
     		baseDir = sce.getServletContext().getRealPath("/");
     		SemanticVectorsStore.initialise(props);
     		String dbPediaIndexPath = props.getProperty("dbpedia.index.path");
