@@ -28,13 +28,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import io.seldon.api.resource.service.ItemService;
-import io.seldon.api.resource.service.UserService;
-import io.seldon.facebook.FBConstants;
-import io.seldon.facebook.user.FacebookFriendsRanking;
-import io.seldon.trust.impl.SearchResult;
-import io.seldon.trust.impl.SharingRecommendation;
-
 /**
  * @author claudio
  */
@@ -76,44 +69,6 @@ public class RecommendedUserBean extends ResourceBean {
 		this.reasons = reasons;
 	}
 
-    public RecommendedUserBean(FacebookFriendsRanking userScore, String clientUserId, List<String> items, List<String> reasons) {
-		super();
-		this.user = userScore.user.getUid().toString();
-		this.score = userScore.score;
-		this.clientUserId = clientUserId;
-		this.items = items;
-		this.reasons = reasons;
-    }
-
-    public RecommendedUserBean(ConsumerBean c,SharingRecommendation s) {
-		this.clientUserId = UserService.getClientUserId(c, s.getUserId());
-		UserBean bean = UserService.getUser(c, clientUserId, true);
-		//storing as user the external user id (the FB ID)
-		this.user = bean.getAttributesName().get(FBConstants.FB_ID);
-		this.score = s.getScore();
-		if (s.getClientItemIds() != null && s.getClientItemIds().size() > 0)
-		{
-			this.items = s.getClientItemIds();
-			this.reasons = s.getReasons();
-		}
-		else
-		{
-			List<String> items = new ArrayList<>();
-			if (s.getItemIds() != null)
-				for(long itemId : s.getItemIds()) 
-					{ items.add(ItemService.getClientItemId(c, itemId)); }
-			this.items = items;
-			this.reasons = s.getReasons();
-		}
-	}
-
-	public RecommendedUserBean(ConsumerBean c, SearchResult m) {
-		this.clientUserId = UserService.getClientUserId(c, m.getId());
-		UserBean bean = UserService.getUser(c, clientUserId, true);
-		//storing as user the external user id (the FB ID)
-		this.user = bean.getAttributesName().get(FBConstants.FB_ID);
-		this.score = m.getScore();
-	}
 
 	public String getUser() {
 		return user;

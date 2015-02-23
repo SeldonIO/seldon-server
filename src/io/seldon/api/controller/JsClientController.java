@@ -34,18 +34,14 @@ import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ItemBean;
 import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.resource.service.UserService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
 import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
-import io.seldon.api.resource.service.business.TrackingBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.db.jdo.JDOFactory;
-import io.seldon.facebook.FBConstants;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
 
@@ -91,8 +87,6 @@ public class JsClientController {
     @Autowired
     private RecommendationBusinessService recommendationBusinessService;
     
-    @Autowired
-    private TrackingBusinessService trackingBusinessService;
     
     @Autowired
     private MessageSource messageSource;
@@ -355,29 +349,7 @@ public class JsClientController {
         return a;
     }
 
-    private UserBean createFacebookUser(String userId, Boolean facebookEnabled, String facebookId, String facebookToken,String client,String facebookAppId) {
-        UserBean userBean = new UserBean(userId, userId);
-        Map<String, String> attributes = new HashMap<>();
-        if (facebookEnabled == null) {
-            facebookEnabled = false;
-        }
-        attributes.put(FBConstants.FB, facebookEnabled ? "1" : "0");
-        if (facebookId != null) {
-            attributes.put(FBConstants.FB_ID, facebookId);
-        }
-        if (facebookToken != null) {
-            attributes.put(FBConstants.FB_TOKEN, facebookToken);
-        }
-        if (JDOFactory.isDefaultClient(client))
-        	attributes.put(FBConstants.FB_CLIENT, client);
-        if (facebookAppId != null)
-        	attributes.put(FBConstants.FB_APP_ID, facebookAppId);
-        
-        
-        
-        userBean.setAttributesName(attributes);
-        return userBean;
-    }
+    
 
     private JSONPObject asCallback(String callbackName, Object valueObject) {
         return new JSONPObject(callbackName, valueObject);

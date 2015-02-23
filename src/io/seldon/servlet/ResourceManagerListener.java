@@ -46,7 +46,6 @@ import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
 import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.db.jdo.servlet.JDOStartup;
-import io.seldon.facebook.importer.FacebookOnlineImporterConfiguration;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.semvec.SemanticVectorsStore;
@@ -92,7 +91,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		String defClientName = props.getProperty("io.seldon.labs.default.client");
     		if(defClientName !=null && defClientName.length() > 0) { Constants.DEFAULT_CLIENT = defClientName; }
 
-    		FacebookOnlineImporterConfiguration.initialise(props);
     		CountRecommender.initialise(props);
     		
     		TestingUtils.initialise(props);

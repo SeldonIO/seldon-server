@@ -30,7 +30,7 @@
 
     <!-- Declare properties files -->
     <context:property-placeholder
-            location="classpath:version.properties,classpath:facebook.properties,classpath:labs.properties"/>
+            location="classpath:version.properties,classpath:labs.properties"/>
 
     <!-- Pull in version info -->
     <import resource="api-version-ctx.xml"/>
