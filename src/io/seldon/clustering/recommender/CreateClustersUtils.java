@@ -23,14 +23,14 @@
 
 package io.seldon.clustering.recommender;
 
+import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
-import io.seldon.similarity.dbpedia.jdo.SqlWebSimilaritySimplePeer;
 import org.apache.log4j.Logger;
 
 /**
@@ -90,17 +90,6 @@ public class CreateClustersUtils {
 		storeClusters(userId,clusters);
 	}
 	
-	/**
-	 * Create user clusters from a set of facebook like ids
-	 * @param userId - internal user id
-	 * @param ids - facebook like ids
-	 */
-	public void createClustersFromFBIDs(long userId,Set<String> ids)
-	{
-		SqlWebSimilaritySimplePeer p = new SqlWebSimilaritySimplePeer(client);
-		List<UserCluster> clusters = p.getUserDimClusters(userId, ids);
-		storeClusters(userId,clusters);
-	}
 	
 	/**
 	 * Create clusters for user from the tags (e.g. facebook like names "Elton John") and the

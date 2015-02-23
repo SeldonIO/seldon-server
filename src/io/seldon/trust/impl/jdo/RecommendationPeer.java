@@ -23,62 +23,71 @@
 
 package io.seldon.trust.impl.jdo;
 
-import backtype.storm.utils.DRPCClient;
 import io.seldon.api.Constants;
 import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.DimensionBean;
-import io.seldon.api.resource.RecommendedUserBean;
 import io.seldon.api.resource.service.ItemService;
-import io.seldon.clustering.recommender.*;
+import io.seldon.clustering.recommender.CountRecommender;
+import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
+import io.seldon.clustering.recommender.GlobalWeightedMostPopularUtils;
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.MemoryWeightedClusterCountMap;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.clustering.tag.TagClusterRecommender;
 import io.seldon.clustering.tag.jdo.JdoItemTagCache;
 import io.seldon.clustering.tag.jdo.JdoTagClusterCountStore;
-import io.seldon.cooc.CooccurrencePeer;
-import io.seldon.cooc.CooccurrencePeerFactory;
-import io.seldon.cooc.CooccurrenceRecommender;
-import io.seldon.cooc.ICooccurrenceStore;
-import io.seldon.cooc.jdo.JDBCCooccurrenceStore;
 import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.facebook.FBUtils;
 import io.seldon.general.ItemPeer;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
-
 import io.seldon.recommendation.baseline.BaselineRecommender;
 import io.seldon.recommendation.baseline.IBaselineRecommenderUtils;
 import io.seldon.recommendation.baseline.jdo.SqlBaselineRecommenderUtils;
-import io.seldon.semvec.*;
-import io.seldon.similarity.dbpedia.WebSimilaritySimplePeer;
-import io.seldon.similarity.dbpedia.WebSimilaritySimpleStore;
-import io.seldon.similarity.dbpedia.jdo.SqlWebSimilaritySimplePeer;
+import io.seldon.semvec.DocumentIdTransform;
+import io.seldon.semvec.LongIdTransform;
+import io.seldon.semvec.SemVectorResult;
+import io.seldon.semvec.SemVectorsPeer;
+import io.seldon.semvec.SemanticVectorsStore;
+import io.seldon.semvec.StringTransform;
 import io.seldon.similarity.item.IItemSimilarityPeer;
 import io.seldon.similarity.item.ItemSimilarityRecommender;
 import io.seldon.similarity.item.JdoItemSimilarityPeer;
-import io.seldon.similarity.vspace.TagSimilarityPeer;
-import io.seldon.similarity.vspace.TagSimilarityPeer.VectorSpaceOptions;
-import io.seldon.similarity.vspace.TagStore;
-import io.seldon.similarity.vspace.jdo.TagStorePeer;
-import io.seldon.storm.DRPCSettings;
-import io.seldon.storm.DRPCSettingsFactory;
-import io.seldon.storm.TrustDRPCRecommender;
-import io.seldon.trust.impl.*;
+import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm.CF_ITEM_COMPARATOR;
-import io.seldon.trust.impl.CFAlgorithm.CF_PREDICTOR;
 import io.seldon.trust.impl.CFAlgorithm.CF_RECOMMENDER;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
+import io.seldon.trust.impl.ItemsRankingManager;
+import io.seldon.trust.impl.Recommendation;
+import io.seldon.trust.impl.RecommendationNetwork;
+import io.seldon.trust.impl.RecommendationResult;
+import io.seldon.trust.impl.RummbleLabsAPI;
+import io.seldon.trust.impl.RummbleLabsAnalysis;
+import io.seldon.trust.impl.SearchResult;
+import io.seldon.trust.impl.SortResult;
+import io.seldon.trust.impl.Trust;
 import io.seldon.trust.impl.TrustNetworkSupplier.CF_TYPE;
 import io.seldon.util.CollectionTools;
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
-import java.util.*;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 /**
  * Core recommendation algorithm selection. Calls particular classes and methods to carry out the various API methods
@@ -416,18 +425,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					recommendations = br.mostPopularRecommendations(exclusions, dimension, numRecommendations);
 				}
 				break;
-				case SOCIAL_PREDICT:
-				{
-					if (user != Constants.ANONYMOUS_USER)
-					{
-						WebSimilaritySimpleStore wstore = new SqlWebSimilaritySimplePeer(options.getName());
-						WebSimilaritySimplePeer wpeer = new WebSimilaritySimplePeer(options.getName(), wstore);
-						recommendations = wpeer.getRecommendedItems(user, dimension, getRecentItems(dimension,500, options), exclusions, MEMCACHE_RECENT_ITEMS_EXPIRE_SECS, numRecommendations);
-						if (debugging)
-							logger.debug("Social predict for user "+user+" returned "+recommendations.size());
-					}
-				}
-				break;
+				
 				case ITEM_SIMILARITY_RECOMENDER:
 				{
 					if (user != Constants.ANONYMOUS_USER)
@@ -897,25 +895,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				case NOOP:
 					res = items;
 					break;
-				case COOCCURRENCE:
-					{
-						CooccurrencePeer p = CooccurrencePeerFactory.get(options.getName());
-						ICooccurrenceStore store = new JDBCCooccurrenceStore(options.getName());
-						CooccurrenceRecommender recommender = new CooccurrenceRecommender(options.getName(), p, store);
-						res = recommender.sort(userId, recentActions, items);
-					}
-					break;
-				case STORM_TRUST:
-					{
-						DRPCSettings drpcSettings = DRPCSettingsFactory.get(options.getName());
-						if (drpcSettings != null)
-						{
-							DRPCClient drpcClient = new DRPCClient(drpcSettings.getHost(), drpcSettings.getPort(), drpcSettings.getTimeout());
-							TrustDRPCRecommender r = new TrustDRPCRecommender(drpcSettings, drpcClient);
-							res = r.sort(userId, -1, items);
-						}
-					}
-					break;
+				
 				case MOST_POPULAR_WEIGHTED_MEMBASED:
 					MemoryWeightedClusterCountMap map = GlobalWeightedMostPopular.get(options.getName());
 					if (map != null)
@@ -933,13 +913,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 				case MOST_POP_RECENT_MEMBASED:
 					res = ItemsRankingManager.getInstance().getCombinedList(options.getName(), items, null);
 					break;
-				case TAG_SIMILARITY:
-					TagStore tstore = new TagStorePeer(cp.getPM());
-        			VectorSpaceOptions dOptions = new VectorSpaceOptions(VectorSpaceOptions.TF_TYPE.LOGTF,VectorSpaceOptions.DF_TYPE.NONE,VectorSpaceOptions.NORM_TYPE.COSINE);
-        			VectorSpaceOptions qOptions = new VectorSpaceOptions(VectorSpaceOptions.TF_TYPE.LOGTF,VectorSpaceOptions.DF_TYPE.NONE,VectorSpaceOptions.NORM_TYPE.COSINE);
-        			TagSimilarityPeer tsp = new TagSimilarityPeer(dOptions,qOptions,tstore);
-        			res = tsp.sortBySimilarity(userId, items);
-        			break;
+				
 				case SEMANTIC_VECTORS:
 				{
 					if (debugging)
@@ -989,21 +963,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					}
 				}
 					break;
-				case WEB_SIMILARITY:
-				{
-					boolean isFacebookActive = FBUtils.isFacebookActive(new ConsumerBean(options.getName()), userId);
-					if (isFacebookActive)
-					{
-						if (debugging)
-							logger.debug("User "+userId+" is facebook user");
-						WebSimilaritySimpleStore wstore = new SqlWebSimilaritySimplePeer(options.getName());
-						WebSimilaritySimplePeer wpeer = new WebSimilaritySimplePeer(options.getName(), wstore);
-						res = wpeer.sort(userId, items);
-					}
-					else if (debugging)
-						logger.debug("User "+userId+" is not a facebook user");
-				}
-					break;
+				
 				case DEMOGRAPHICS:
 					res = null;
 					break;
@@ -1102,28 +1062,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 						res = countUtils.merge(res,0.5f);
 					}
 					break;
-				case WEB_SIMILARITY:
-				{
-					/*
-					 * Presently hardwired to only be active if cluster counts was successfil. Facebook users
-					 * will always have a cluster (at present). This should be made more customizable.
-					 */
-					if (successfulMethods.contains(CF_SORTER.CLUSTER_COUNTS))
-					{
-						boolean isFacebookActive = FBUtils.isFacebookActive(new ConsumerBean(options.getName()), userId);
-						if (isFacebookActive)
-						{
-							logger.info("User "+userId+" is a facebook user. Running web similarity post processing");
-							WebSimilaritySimpleStore wstore = new SqlWebSimilaritySimplePeer(options.getName());
-							WebSimilaritySimplePeer wpeer = new WebSimilaritySimplePeer(options.getName(), wstore);
-							//weight is how much weight to give sorted items ..so 0.1 would be low and thus post processing
-							// would be given more weight. For web simialrity where matches are rare, this would mean those
-							// matches that are found are given high weight
-							res = wpeer.merge(userId, res, 0.1f);
-						}
-					}
-				}
-					break;
+				
 				}
 			}
 			if (res == null)
@@ -1138,53 +1077,8 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 	}
 
 
-	private  List<SharingRecommendation> sharingRecommendationFromDb(long userId,Long itemId,String linkType,List<String> tags,int limit,CFAlgorithm options)
-	{
-		WebSimilaritySimpleStore wstore = new SqlWebSimilaritySimplePeer(options.getName());
-		WebSimilaritySimplePeer wpeer = new WebSimilaritySimplePeer(options.getName(), wstore,linkType,options.isAllowFullSocialPredictSearch());
-		List<SharingRecommendation> res;
-		if (tags != null && tags.size() > 0)
-		{
-			logger.info("As keywords is not null will call get sharing recommendation using tags for user "+userId);
-			res = wpeer.getSharingRecommendationsForFriends(userId, tags);
-		}
-		else
-		{
-			logger.info("Calling item based sharing recommendations for user "+userId);
-			res = wpeer.getSharingRecommendationsForFriends(userId, itemId);
-		}
-		if (res != null)
-			logger.info("Social prediction result for "+options.getName()+" user "+userId+" of size "+res.size());
-		if (res != null && res.size() > limit)
-			return res.subList(0, limit);
-		else
-			return res;
-	}
+	
 
-	@Override
-	public List<RecommendedUserBean> sharingRecommendation(String userFbId,long userId,Long itemId,String linkType,
-			List<String> tags,int limit,CFAlgorithm options) {
-		List<RecommendedUserBean> recUserList = new ArrayList<>();
-		if (Util.getMgmKeywordConf().isDBClient(options.getName())) {
-			List<SharingRecommendation> sharingRecs = sharingRecommendationFromDb(userId, itemId, linkType, tags, limit, options);
-			ConsumerBean c = new ConsumerBean();
-			c.setShort_name(options.getName());
-			for (SharingRecommendation s : sharingRecs) {
-				try {
-					recUserList.add(new RecommendedUserBean(c, s));
-				} catch (Exception e) {
-					logger.error("Not able to retrieve FB ID for internal user ID" + s.getUserId(), e);
-				}
-			}
-		}
-		return recUserList;
-	}
 
-	@Override
-	public List<SearchResult> getSimilarUsers(long userId, int limit, int filterType, CFAlgorithm options) {
-		WebSimilaritySimpleStore wstore = new SqlWebSimilaritySimplePeer(options.getName());
-		WebSimilaritySimplePeer wpeer = new WebSimilaritySimplePeer(options.getName(), wstore);
-		return wpeer.getSimilarUsers(userId, limit, options.getSimilarUsersMetric(), filterType);
-	}
 
 }

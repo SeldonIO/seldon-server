@@ -23,20 +23,18 @@
 
 package io.seldon.test.peer;
 
-import io.seldon.general.ActionPeer;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import io.seldon.clustering.recommender.ClusterCountStore;
 import io.seldon.clustering.recommender.TransientUserClusterStore;
 import io.seldon.clustering.recommender.UserClusterStore;
-import io.seldon.cooc.ICooccurrenceStore;
+import io.seldon.general.ActionPeer;
 import io.seldon.general.ItemPeer;
 import io.seldon.general.NetworkPeer;
 import io.seldon.general.UserAttributePeer;
 import io.seldon.general.UserPeer;
 import io.seldon.general.VersionPeer;
-import io.seldon.similarity.dbpedia.WebSimilaritySimpleStore;
 import io.seldon.test.BaseTest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by: marc on 05/08/2011 at 13:21
@@ -79,11 +77,7 @@ public abstract class BasePeerTest extends BaseTest {
     @Autowired
     protected TransientUserClusterStore transientClusterStore;
     
-    @Autowired
-    protected WebSimilaritySimpleStore webSimilaritySimpleStore;
     
-    @Autowired
-    protected ICooccurrenceStore coocStore;
     
    
 }
