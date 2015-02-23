@@ -44,11 +44,11 @@ public class MemCacheKeys {
 			DimensionByItemType,DemographicBean,DBPediaHits, ItemSemanticAttribute, CooccurenceNetwork,
 			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
-			FBUser,RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
+			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUID, RecommendationUUIDDim,
 			RecentRecsForUsers, RecentItems, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems, MgmMultivariateTestVariation, PopularItems
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItems
 			};
 
 	
@@ -334,11 +334,7 @@ public class MemCacheKeys {
 	{
 		return ""+keys.ActionHistory+":"+client+":"+userId;
 	}
-	
-	public static String getFBUserKey(String client,long userId)
-	{
-		return ""+keys.FBUser+":"+client+":"+userId;
-	}
+
 	
 	public static String getRankedItemsKey(String client,long cfalgorithm, String userId,List<String> items)
 	{
@@ -528,8 +524,5 @@ public class MemCacheKeys {
     	return ""+keys.MostPopularItems+":"+client;
     }
 
-    public static String getMgmMultivariateTestKey(String client, String userId, String testId){
-        return keys.MgmMultivariateTestVariation.name()+":"+client+":"+userId+ ":" + testId;
-    }
 }
 

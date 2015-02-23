@@ -46,7 +46,7 @@ public class Action {
 		date = new Date();
 		value = null;
 		comment = null;
-	};
+	}
 	
 	public String toString()
 	{

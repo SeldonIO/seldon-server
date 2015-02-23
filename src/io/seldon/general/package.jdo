@@ -108,27 +108,5 @@
            <field name="clientItemId"/>
            <field name="tags" persistence-modifier="none"/>
        </class>
-       <class name="Interaction" identity-type="application">
-            <field name="id" primary-key="true" value-strategy="identity"/>
-            <field name="user1Id" />
-            <field name="user2FbId"/>
-            <field name="type" />
-            <field name="subType" />
-            <field name="parameterId"/>
-            <field name="count"/>
-            <field name="date"/>
-            <field name="interactionEvents"/>
-        </class>
-        <class name="InteractionEvent" identity-type="application">
-            <field name="id" primary-key="true" value-strategy="identity"/>
-            <field name="type" />
-            <field name="date" />
-        </class>
-        <class name="ExternalUserAttribute" identity-type="application">
-            <field name="id" primary-key="true" value-strategy="identity"/>
-            <field name="type" />
-            <field name="uid" />
-            <field name="value" />
-         </class>
 	</package>
 </jdo>

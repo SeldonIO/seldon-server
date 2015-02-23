@@ -32,14 +32,9 @@ import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.api.service.async.JdoAsyncActionFactory;
 import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
-import io.seldon.api.state.ZkParameterUpdater;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
-import io.seldon.clustering.recommender.CountRecommender;
-import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
-import io.seldon.clustering.recommender.MemcacheClusterCountFactory;
-import io.seldon.clustering.recommender.MemoryClusterCountFactory;
+import io.seldon.clustering.recommender.*;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
@@ -49,24 +44,21 @@ import io.seldon.db.jdo.servlet.JDOStartup;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.semvec.SemanticVectorsStore;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
 import org.apache.log4j.Logger;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class ResourceManagerListener  implements ServletContextListener {
 
 	private static Logger logger = Logger.getLogger( ResourceManagerListener.class.getName() );
 	public static String baseDir = "";
 
-    private ZkParameterUpdater parameterUpdater;
     private ZkSubscriptionHandler zkSubHandler;
 
     public void contextInitialized(ServletContextEvent sce)
@@ -76,8 +68,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     	{  
     		final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
            
-            parameterUpdater = (ZkParameterUpdater) springContext.getBean("zkParameterUpdater");
-            
+
        
     		zkSubHandler =(ZkSubscriptionHandler) springContext.getBean("zkSubscriptionHandler");
     		//InputStream propStream = sce.getServletContext().getResourceAsStream("/WEB-INF/labs.properties");
@@ -151,7 +142,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		if (curatorHandler != null)
     		{
     			ZkAlgorithmUpdaterFactory.initialise(props,curatorHandler);
-    			parameterUpdater.initialise(curatorHandler);
     		}
     		
     		logger.info("**********************  ENDING API-SERVER INITIALISATION **********************");

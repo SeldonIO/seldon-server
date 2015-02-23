@@ -179,21 +179,7 @@ public class JsClientController {
         return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean));
     }
     
-    @RequestMapping("/interaction/new")
-    public 
-    String registerInteraction(HttpSession session, 
-                                    @RequestParam(value = "user1", required = true) String user1,
-                                    @RequestParam(value = "user2", required = true) String user2,
-                                    @RequestParam(value = "keywords", required = false) String keywords,
-                                    @RequestParam(value = "locations", required = false) String locations,
-                                    @RequestParam(value = "categories", required = false) String categories,
-                                    @RequestParam(value = "demographics", required = false) String demographics,
-                                    @RequestParam(value = "type", required = true) Integer type,
-                                    @RequestParam(value = "subtype") Integer subType,
-                                    @RequestParam("jsonpCallback") String callback) {
-        
-        return "forward:/acquire/interaction/new";
-    }
+
 
     @RequestMapping("/share")
     public

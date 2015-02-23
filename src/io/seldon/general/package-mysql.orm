@@ -112,30 +112,5 @@
             <field name="name" column="NAME"/>
             <field name="defValue" column="DEF_VALUE"/>
         </class>
-        <class name="Interaction" table="MGM_INTERACTION">
-            <field name="id" column="ID"/>
-            <field name="user1Id" column="U1_USERID"/>
-            <field name="user2FbId" column="U2_FBID"/>
-            <field name="type" column="TYPE"/>
-            <field name="subType" column="SUB_TYPE"/>
-            <field name="date" column="DATE"/>
-            <field name="count" column="COUNT"/>
-            <field name="parameterId" column="parameter_id"/>
-            <field name="interactionEvents" >
-                <collection element-type="io.seldon.general.InteractionEvent"/>
-                <element column="INTERACTION_ID"/>
-            </field>
-        </class>
-        <class name="InteractionEvent" table="MGM_INTERACTION_EVENT">
-            <field name="id" column="ID"/>
-            <field name="type" column="TYPE"/>
-            <field name="date" column="DATE"/>
-        </class>
-        <class name="ExternalUserAttribute" table="EXT_USR_ATTR">
-            <field name="id" column="ID"/>
-            <field name="type" column="TYPE"/>
-            <field name="uid" column="UID"/>
-            <field name="value" column="VALUE"/>
-        </class>
 	</package>
 </orm>
