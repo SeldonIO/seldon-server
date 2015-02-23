@@ -23,14 +23,12 @@
 
 package io.seldon.api.resource.service.business;
 
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.ResourceBean;
+
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-
-import com.google.common.collect.Multimap;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ListBean;
-import io.seldon.api.resource.ResourceBean;
 
 /**
  * Created by: marc on 14/08/2012 at 16:05
@@ -45,5 +43,4 @@ public interface RecommendationBusinessService {
 
     ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, int dimensionId, String uuid, int limit, String attributes,List<String> algorithms, String referrer,String recTag);
 
-    ListBean recommendUsers(ConsumerBean c, String userId, String itemId, String linkType, List<String> algorithms, int limit, int usersShown, Multimap<String, String> dict,String facebookToken, boolean impressionEnabled);
 }

@@ -23,38 +23,50 @@
 
 package io.seldon.api.controller;
 
-import java.util.*;
+import io.seldon.api.APIException;
+import io.seldon.api.Constants;
+import io.seldon.api.Util;
+import io.seldon.api.caching.ActionHistoryCache;
+import io.seldon.api.logging.CtrFullLogger;
+import io.seldon.api.logging.MDCKeys;
+import io.seldon.api.resource.ActionBean;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.ErrorBean;
+import io.seldon.api.resource.ItemBean;
+import io.seldon.api.resource.ResourceBean;
+import io.seldon.api.resource.service.ItemService;
+import io.seldon.api.resource.service.RecommendationService;
+import io.seldon.api.resource.service.UserService;
+import io.seldon.api.resource.service.business.ActionBusinessService;
+import io.seldon.api.resource.service.business.ItemBusinessService;
+import io.seldon.api.resource.service.business.RecommendationBusinessService;
+import io.seldon.api.resource.service.business.UserBusinessService;
+import io.seldon.api.statsd.StatsdPeer;
+import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.trust.impl.jdo.RecommendationUtils;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import io.seldon.api.Constants;
-import io.seldon.api.logging.MDCKeys;
-import io.seldon.api.resource.*;
-import io.seldon.api.resource.service.RecommendationService;
-
-import io.seldon.facebook.service.FacebookAppRequestConversionService;
-import io.seldon.api.APIException;
-import io.seldon.api.Util;
-import io.seldon.api.logging.CtrFullLogger;
-import io.seldon.api.resource.service.ItemService;
-import io.seldon.api.resource.service.business.*;
-import io.seldon.facebook.FBConstants;
-import io.seldon.trust.impl.CFAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.resource.service.UserService;
-import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.db.jdo.JDOFactory;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 
 /**
  * Created by: marc on 05/07/2012 at 11:17
@@ -75,18 +87,7 @@ public class JsClientController {
     @Autowired
     private RecommendationBusinessService recommendationBusinessService;
     
-    @Autowired
-    private TrackingBusinessService trackingBusinessService;
     
-    @Autowired
-    private InteractionBusinessService interactionBusinessService;
-
-    @Autowired
-    private ConversionBusinessService conversionBusinessService;
-
-    @Autowired
-    private FacebookAppRequestConversionService facebookAppRequestConversionService;
-
     @Autowired
     private MessageSource messageSource;
 
@@ -348,29 +349,7 @@ public class JsClientController {
         return a;
     }
 
-    private UserBean createFacebookUser(String userId, Boolean facebookEnabled, String facebookId, String facebookToken,String client,String facebookAppId) {
-        UserBean userBean = new UserBean(userId, userId);
-        Map<String, String> attributes = new HashMap<>();
-        if (facebookEnabled == null) {
-            facebookEnabled = false;
-        }
-        attributes.put(FBConstants.FB, facebookEnabled ? "1" : "0");
-        if (facebookId != null) {
-            attributes.put(FBConstants.FB_ID, facebookId);
-        }
-        if (facebookToken != null) {
-            attributes.put(FBConstants.FB_TOKEN, facebookToken);
-        }
-        if (JDOFactory.isDefaultClient(client))
-        	attributes.put(FBConstants.FB_CLIENT, client);
-        if (facebookAppId != null)
-        	attributes.put(FBConstants.FB_APP_ID, facebookAppId);
-        
-        
-        
-        userBean.setAttributesName(attributes);
-        return userBean;
-    }
+    
 
     private JSONPObject asCallback(String callbackName, Object valueObject) {
         return new JSONPObject(callbackName, valueObject);

@@ -23,32 +23,15 @@
 
 package io.seldon.servlet;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import io.seldon.api.Util;
-import io.seldon.api.state.ZkCuratorHandler;
-import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
-import io.seldon.db.jdo.servlet.JDOStartup;
-import io.seldon.mgm.keyword.ZkMgmKeywordConfUpdater;
-import io.seldon.nlp.StopWordPeer;
-import io.seldon.trust.offline.TrustGraphUpdateExecutor;
-import org.apache.log4j.Logger;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-
 import io.seldon.api.Constants;
 import io.seldon.api.TestingUtils;
+import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.caching.ClientIdCacheStore;
 import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.api.service.async.JdoAsyncActionFactory;
 import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
-import io.seldon.api.state.ZkMgmUpdater;
+import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.ZkParameterUpdater;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
@@ -59,25 +42,30 @@ import io.seldon.clustering.recommender.MemcacheClusterCountFactory;
 import io.seldon.clustering.recommender.MemoryClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
+import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
 import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
-import io.seldon.cooc.CooccurrencePeerFactory;
 import io.seldon.db.jdo.JDOFactory;
-import io.seldon.facebook.importer.FacebookOnlineImporterConfiguration;
-import io.seldon.facebook.user.algorithm.experiment.MultiVariateTestOutputResultsTimer;
+import io.seldon.db.jdo.servlet.JDOStartup;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
-import io.seldon.realtime.ActionProcessorPeer;
 import io.seldon.semvec.SemanticVectorsStore;
-import io.seldon.storm.DRPCSettingsFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+import org.apache.log4j.Logger;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 public class ResourceManagerListener  implements ServletContextListener {
 
 	private static Logger logger = Logger.getLogger( ResourceManagerListener.class.getName() );
 	public static String baseDir = "";
-	static ZkMgmKeywordConfUpdater mgmKeywordConfUpdater;
 
-    private ZkMgmUpdater mgmMultivariateTestUpdater;
-    private MultiVariateTestOutputResultsTimer mvTestLogTimer;
     private ZkParameterUpdater parameterUpdater;
     private ZkSubscriptionHandler zkSubHandler;
 
@@ -87,11 +75,10 @@ public class ResourceManagerListener  implements ServletContextListener {
     	try
     	{  
     		final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
-            mgmMultivariateTestUpdater =
-                    (ZkMgmUpdater)springContext.getBean("zkMgmUpdater");
+           
             parameterUpdater = (ZkParameterUpdater) springContext.getBean("zkParameterUpdater");
-            mvTestLogTimer = (MultiVariateTestOutputResultsTimer) springContext.getBean("multiVariateTestOutputResultsTimer");
-            mgmKeywordConfUpdater = (ZkMgmKeywordConfUpdater)springContext.getBean("zkMgmKeywordConfUpdater");
+            
+       
     		zkSubHandler =(ZkSubscriptionHandler) springContext.getBean("zkSubscriptionHandler");
     		//InputStream propStream = sce.getServletContext().getResourceAsStream("/WEB-INF/labs.properties");
     		InputStream propStream = getClass().getClassLoader().getResourceAsStream("/labs.properties");
@@ -103,7 +90,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		String defClientName = props.getProperty("io.seldon.labs.default.client");
     		if(defClientName !=null && defClientName.length() > 0) { Constants.DEFAULT_CLIENT = defClientName; }
 
-    		FacebookOnlineImporterConfiguration.initialise(props);
     		CountRecommender.initialise(props);
     		
     		TestingUtils.initialise(props);
@@ -121,7 +107,8 @@ public class ResourceManagerListener  implements ServletContextListener {
     			String useRamDirectoryStr = props.getProperty("dbpedia.index.ramdirectory");
     			boolean useRamDirectory = "true".equals(useRamDirectoryStr);
     		}
-    		StopWordPeer.initialise(sce.getServletContext().getRealPath("/WEB-INF/nlp/stopwords.txt"));
+    		
+    
     		String backend = props.getProperty("io.seldon.labs.backend");
     		String caching = props.getProperty("io.seldon.labs.caching");
     		if(caching !=null && caching.length() > 0) 
@@ -156,18 +143,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     		
     		ActionHistoryCache.initalise(props);
 
-    		
-
-    		
-
-
     		DynamicParameterServer.startReloadTimer();
-    		
-    		ActionProcessorPeer.initialise(props);
-    		
-    		CooccurrencePeerFactory.initialise(props);
-    		
-    		DRPCSettingsFactory.initialise(props);
     		
     		StatsdPeer.initialise(props);
     		JdoUserDimCache.initialise(props);
@@ -177,8 +153,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		{
     			ZkAlgorithmUpdaterFactory.initialise(props,curatorHandler);
     			parameterUpdater.initialise(curatorHandler);
-    			mgmKeywordConfUpdater.initialise(curatorHandler);
-                mgmMultivariateTestUpdater.initialise(curatorHandler);
     		}
     		
     		logger.info("**********************  ENDING API-SERVER INITIALISATION **********************");
@@ -214,7 +188,6 @@ public class ResourceManagerListener  implements ServletContextListener {
         } catch (InterruptedException e) {
 
         }
-        mgmMultivariateTestUpdater.shutdown();
         ZkCuratorHandler.shutdown();
     }
 

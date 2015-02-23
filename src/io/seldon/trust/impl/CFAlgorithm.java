@@ -23,6 +23,8 @@
 
 package io.seldon.trust.impl;
 
+import io.seldon.sv.SemanticVectorsManager;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-
-import io.seldon.sv.SemanticVectorsManager;
 
 /**
  * @author rummble
@@ -47,12 +47,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		RELEVANCE, 
 		TRUST_ITEMBASED,
 		BEST_PREDICTION, 
-		SEMANTIC_VECTORS_USER_KNN, 
-		SEMANTIC_VECTORS_ITEM_KNN,
-		MAHOUT_ITEMBASED, 
-		GRAPHLAB_PMF, 
-		MAHOUT_ALS, 
-		MAHOUT_FPGROWTH,
 		MOST_POPULAR,
 		MOST_POPULAR_ITEM_CATEGORY,
 		CLUSTER_COUNTS,
@@ -65,9 +59,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		CLUSTER_COUNTS_FOR_ITEM,
 		CLUSTER_COUNTS_FOR_ITEM_SIGNIFICANT,
 		RECENT_ITEMS,
-		SOCIAL_PREDICT,
-		USER_TAG_COUNT,
-		ELPH,
 		SIMILAR_ITEMS,
 		RECENT_SIMILAR_ITEMS,
 		ITEM_SIMILARITY_RECOMENDER,
@@ -78,19 +69,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
         TOPIC_MODEL,
         RECENT_TOPIC_MODEL,
         SEMANTIC_VECTORS}
-	public enum CF_PREDICTOR { RESNICK, 
-		RESNICK_ITEM,
-		RESNICK_SARIC, 
-		WEIGHTED_MEDIAN, 
-		WEIGHTED_MEAN, 
-		SEMANTIC_VECTORS, 
-		MAHOUT_ALS, 
-		GRAPHLAB_PMF,
-		USER_AVG, 
-		ITEM_AVG, 
-		NAIVE_BAYES, 
-		MID_RATING, 
-		MAX_RATING }
+	
 	public enum CF_SORTER { 
 		RELEVANCE, 
 		TAG_SIMILARITY, 
@@ -109,8 +88,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		STORM_TRUST}
 	public enum CF_ITEM_COMPARATOR { 
 		SEMANTIC_VECTORS, 
-		TRUST_ITEM, 
-		MAHOUT_ITEM }
+		TRUST_ITEM }
 	public enum CF_STRATEGY {
 		FIRST_SUCCESSFUL,
 		ORDERED,
@@ -143,9 +121,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 
 	private List<CF_RECOMMENDER> recommenders = new ArrayList<>();
 	private CF_STRATEGY recommenderStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
-
-	private List<CF_PREDICTOR> predictors = new ArrayList<>();
-	private CF_STRATEGY predictorStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
 	private List<CF_SORTER> sorters  = new ArrayList<>();
 	private CF_STRATEGY sorterStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
@@ -387,21 +362,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		this.recommenderStrategy = recommenderStrategy;
 	}
 
-	public List<CF_PREDICTOR> getPredictors() {
-		return predictors;
-	}
-
-	public void setPredictors(List<CF_PREDICTOR> predictors) {
-		this.predictors = predictors;
-	}
-
-	public CF_STRATEGY getPredictorStrategy() {
-		return predictorStrategy;
-	}
-
-	public void setPredictorStrategy(CF_STRATEGY predictorStrategy) {
-		this.predictorStrategy = predictorStrategy;
-	}
 
 	public List<CF_SORTER> getSorters() {
 		return sorters;
@@ -674,10 +634,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
     for (CF_RECOMMENDER recommender : recommenders)
     buf.append(" Recommender").append(count++).append(":").append(recommender.name());
 
-    count = 1;
-    for (CF_PREDICTOR predictor : predictors)
-    buf.append(" Predictor").append(count++).append(":").append(predictor.name());
-
+    
     count = 1;
     for (CF_SORTER sorter : sorters)
     buf.append(" Sorter").append(count++).append(":").append(sorter.name());
@@ -714,8 +671,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
         if (itemComparators != null ? !itemComparators.equals(that.itemComparators) : that.itemComparators != null)
             return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (predictorStrategy != that.predictorStrategy) return false;
-        if (predictors != null ? !predictors.equals(that.predictors) : that.predictors != null) return false;
         if (recommendAfter != null ? !recommendAfter.equals(that.recommendAfter) : that.recommendAfter != null)
             return false;
         if (recommenderStrategy != that.recommenderStrategy) return false;
@@ -738,8 +693,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
         result = 31 * result + (itemComparatorStrategy != null ? itemComparatorStrategy.hashCode() : 0);
         result = 31 * result + (recommenders != null ? recommenders.hashCode() : 0);
         result = 31 * result + (recommenderStrategy != null ? recommenderStrategy.hashCode() : 0);
-        result = 31 * result + (predictors != null ? predictors.hashCode() : 0);
-        result = 31 * result + (predictorStrategy != null ? predictorStrategy.hashCode() : 0);
         result = 31 * result + (sorters != null ? sorters.hashCode() : 0);
         result = 31 * result + (sorterStrategy != null ? sorterStrategy.hashCode() : 0);
         result = 31 * result + (postprocessing != null ? postprocessing.hashCode() : 0);
@@ -791,16 +744,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 				}
 				else if("recommender_strategy".equals(field)) {
 					setRecommenderStrategy(CF_STRATEGY.valueOf(value));
-				}
-				else if("predictors".equals(field)) {
-					List<CF_PREDICTOR> list = new ArrayList<>();
-					for(String val : values) {
-						list.add(CF_PREDICTOR.valueOf(val));
-					}   
-					setPredictors(list);
-				}
-				else if("predictor_strategy".equals(field)) {
-					setPredictorStrategy(CF_STRATEGY.valueOf(value));
 				}
 				else if("sorters".equals(field)) {
 					List<CF_SORTER> list = new ArrayList<>();

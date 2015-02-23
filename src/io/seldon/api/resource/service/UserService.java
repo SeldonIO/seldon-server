@@ -31,17 +31,16 @@ import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.DemographicBean;
 import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.UserBean;
-import io.seldon.db.jdo.JDOFactory;
-import io.seldon.facebook.FBConstants;
 import io.seldon.general.User;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 /**
  * @author claudio
@@ -217,8 +216,6 @@ public class UserService {
 		
 		//attributes
 		if(bean.getAttributesName() != null && bean.getAttributesName().size()>0) {
-			if (JDOFactory.isDefaultClient(c.getShort_name()))
-				bean.getAttributesName().put(FBConstants.FB_CLIENT, c.getShort_name());
 			Util.getUserPeer(c).addUserAttributeNames(userId,bean.getType(),bean.getAttributesName(),c);
 		} else if(bean.getAttributes() != null && bean.getAttributes().size()>0) {
 			Util.getUserPeer(c).addUserAttribute(userId, bean.getType(), bean.getAttributes(),c);

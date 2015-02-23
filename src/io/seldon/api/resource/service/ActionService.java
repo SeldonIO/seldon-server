@@ -23,30 +23,12 @@
 
 package io.seldon.api.resource.service;
 
-import java.util.Collection;
-
 import io.seldon.api.APIException;
+import io.seldon.api.Constants;
+import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.logging.ActionLogger;
-import io.seldon.api.resource.service.exception.ActionTypeNotFoundException;
-import io.seldon.api.service.async.AsyncActionQueue;
-import io.seldon.clustering.recommender.ClientClusterTypeService;
-import io.seldon.clustering.recommender.CountRecommender;
-import io.seldon.clustering.recommender.MemoryWeightedClusterCountMap;
-import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
-import io.seldon.general.ActionType;
-import io.seldon.general.ExtAction;
-import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
-import io.seldon.realtime.ActionProcessorPeer;
-import io.seldon.realtime.IActionProcessor;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.resource.ActionBean;
 import io.seldon.api.resource.ActionTypeBean;
 import io.seldon.api.resource.ConsumerBean;
@@ -54,13 +36,29 @@ import io.seldon.api.resource.ItemBean;
 import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.UserBean;
+import io.seldon.api.resource.service.exception.ActionTypeNotFoundException;
+import io.seldon.api.service.async.AsyncActionQueue;
 import io.seldon.api.service.async.JdoAsyncActionFactory;
+import io.seldon.clustering.recommender.ClientClusterTypeService;
+import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
+import io.seldon.clustering.recommender.MemoryWeightedClusterCountMap;
+import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
 import io.seldon.clustering.tag.AsyncTagClusterCountStore;
 import io.seldon.general.Action;
+import io.seldon.general.ActionType;
+import io.seldon.general.ExtAction;
 import io.seldon.general.Item;
 import io.seldon.general.User;
+import io.seldon.memcache.MemCacheKeys;
+import io.seldon.memcache.MemCachePeer;
 import io.seldon.trust.impl.ItemsRankingManager;
+
+import java.util.Collection;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author claudio
@@ -282,24 +280,7 @@ public class ActionService {
 					ah.addAction(userId, itemId);
 				}
 				
-				IActionProcessor actionProcessor = ActionProcessorPeer.getActionProcessor(c.getShort_name());
-				if (actionProcessor != null)
-				{
-					// send value of 1 if value is null
-					double val = 1;
-					if (a.getValue() != null)
-						val = a.getValue();
-					
-					// send type of 0 if type is null
-					int type = 0;
-					if (a.getType() != null)
-						type = a.getType();
-					
-					if (a.getDate() != null)
-						actionProcessor.addAction(userId, itemId, val, a.getDate().getTime()/1000,type);
-					else
-						actionProcessor.addAction(userId, itemId, val, System.currentTimeMillis()/1000,type);
-				}
+				
 			}
 			
 			//add item to the global lists

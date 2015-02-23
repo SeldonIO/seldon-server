@@ -23,12 +23,6 @@
 
 package io.seldon.api;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.jdo.PersistenceManager;
-import javax.servlet.http.HttpServletRequest;
-
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ListBean;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
@@ -41,10 +35,15 @@ import io.seldon.general.jdo.SqlNetworkPeer;
 import io.seldon.general.jdo.SqlUserAttributePeer;
 import io.seldon.general.jdo.SqlUserPeer;
 import io.seldon.general.jdo.SqlVersionPeer;
-import io.seldon.mgm.keyword.MgmKeywordConfService;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.RummbleLabsAPI;
 import io.seldon.trust.impl.jdo.RecommendationPeer;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.jdo.PersistenceManager;
+import javax.servlet.http.HttpServletRequest;
 
 
 public class Util {
@@ -52,21 +51,7 @@ public class Util {
 	public enum BackEnd { MYSQL, MONGO };
 	private static BackEnd backEnd = BackEnd.MYSQL;
     private static AlgorithmService algorithmService;
-    private static MgmKeywordConfService mgmKeywordConf;
-    
-    public static void setMgmKeywordConf(MgmKeywordConfService s)
-    {
-    	Util.mgmKeywordConf = s;
-    }
-    
-    
-    
-    public static MgmKeywordConfService getMgmKeywordConf() {
-		return mgmKeywordConf;
-	}
-
-
-
+ 
 	public static void setAlgorithmService(AlgorithmService algorithmService) {
         Util.algorithmService = algorithmService;
     }

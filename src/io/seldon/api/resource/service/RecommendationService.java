@@ -23,35 +23,19 @@
 
 package io.seldon.api.resource.service;
 
-import java.util.*;
-
-import javax.jdo.JDODataStoreException;
-
-import io.seldon.trust.impl.jdo.RecommendationPeer;
-import io.seldon.api.Util;
-import io.seldon.api.resource.RecommendationBean;
-import io.seldon.api.resource.RecommendedUserBean;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.google.common.collect.Multimap;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.TestingUtils;
+import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ItemBean;
 import io.seldon.api.resource.ListBean;
+import io.seldon.api.resource.RecommendationBean;
 import io.seldon.api.resource.RecommendationsBean;
 import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.resource.UserBean;
 import io.seldon.api.service.ABTestingServer;
 import io.seldon.api.service.DynamicParameterServer;
-import io.seldon.facebook.FBConstants;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.trust.impl.CFAlgorithm;
@@ -61,6 +45,22 @@ import io.seldon.trust.impl.RecommendationResult;
 import io.seldon.trust.impl.RummbleLabsAPI;
 import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.SortResult;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import javax.jdo.JDODataStoreException;
+
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author claudio
@@ -272,65 +272,7 @@ public class RecommendationService {
     }
 
 
-    @SuppressWarnings("unchecked")
-    public ListBean getRecommendedUsers(ConsumerBean c,String userId, String itemId, String linkType, List<String> algorithms, int limit, int shown, Multimap<String,String> dict, Boolean impressionEnabled) {
-        if(linkType == null || linkType.isEmpty()) {
-        //    //TODO Cache in a Bean
-        //   LinkType lt = Util.getNetworkPeer(c).getLinkType(Constants.DEFAULT_LINK_TYPE);
-        //    if(lt!=null) {linkType = lt.getName(); }
-        	//Hardwire linktype to facebook for now
-        	linkType = "facebook";
-        }
-        
-        Collection<String> keywords = dict.get(KEYWORD_PAR);
-        
-        ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getRecommendedUsers(c.getShort_name(), userId, itemId, linkType, StringUtils.join(keywords,",")));
-        bean = Util.getLimitedBean(bean, limit);
-        if(bean == null) {
-            bean = new ListBean();
-            CFAlgorithm cfAlgorithm;
-            try {
-                cfAlgorithm = Util.getAlgorithmService().getAlgorithmOptions(c);
-            } catch (CloneNotSupportedException e) {
-                throw new APIException(APIException.CANNOT_CLONE_CFALGORITHM);
-            }
-
-
-            //add also the attributes? (varchar, tags..)
-            List<String> itemKeywords = new ArrayList<>();
-            Long internalItemId = null;
-            if(itemId !=null && !itemId.isEmpty()) {
-                //try to get semantic attributes
-                //if the semantic attributes list is null then the name is retrieved
-                internalItemId = ItemService.getInternalItemId(c, itemId);
-//                itemKeywords =  ItemService.getItemSemanticAttributes(c,internalItemId);
-//                if (itemKeywords.size() == 0)
-//                {
-//                    ItemBean i = ItemService.getItem(c, itemId, false);
-//                    itemKeywords.add(i.getName());
-//                }
-            }
-            List<String> keywordsFinal;           
-            if(keywords != null && itemKeywords != null) { keywordsFinal = new ArrayList<>(CollectionUtils.union(keywords, itemKeywords)); }
-            else if(keywords != null) { keywordsFinal = itemKeywords; }
-            else if(itemKeywords != null) { keywordsFinal = itemKeywords; }
-            else { keywordsFinal  = new ArrayList<>(); }
-            logger.info("Looking for user with "+c.getShort_name()+" and id "+userId);
-            UserBean userBean = UserService.getUser(c, userId, true);
-            String fbId = userBean.getAttributesName().get(FBConstants.FB_ID);
-            List<RecommendedUserBean> recs = recommender.sharingRecommendation(fbId,UserService.getInternalUserId(c, userId), internalItemId, linkType, keywordsFinal, limit, cfAlgorithm);
-            for(RecommendedUserBean s : recs) 
-            {
-                    bean.addBean(s);
-            }
-        }
-        bean.setRequested(limit);
-        bean.setSize(bean.getList().size());
-        if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getRecommendedUsers(c.getShort_name(), userId, itemId, linkType, StringUtils.join(keywords,",")),bean,Constants.CACHING_TIME);
-
-
-        return bean;
-    }
+   
 
     public static CFAlgorithm getAlgorithmOptions(ConsumerBean c,String userId,List<String> algorithms,String recTag)
     {
