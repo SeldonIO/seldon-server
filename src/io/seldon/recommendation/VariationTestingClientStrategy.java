@@ -23,6 +23,7 @@
 
 package io.seldon.recommendation;
 
+import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import org.apache.commons.lang.math.NumberRange;
 import org.apache.commons.lang.math.Range;
 import org.apache.mahout.math.MurmurHash;
@@ -52,6 +53,11 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     @Override
     public List<AlgorithmStrategy> getAlgorithms(String userId) {
         return sample(userId).getAlgorithms(userId);
+    }
+
+    @Override
+    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId) {
+        return sample(userId).getAlgorithmResultsCombiner(userId);
     }
 
     public ClientStrategy sample(String userId) {

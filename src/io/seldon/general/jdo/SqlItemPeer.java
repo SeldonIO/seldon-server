@@ -23,6 +23,7 @@
 
 package io.seldon.general.jdo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -651,19 +652,41 @@ public class SqlItemPeer extends ItemPeer {
 	}
 
 	@Override
-	public Collection<Long> retrieveMostPopularItems(int numItems, int dimension){
+	public List<ItemAndScore> retrieveMostPopularItems(int numItems, int dimension){
 		Query query;
+		Collection<Object[]> results;
+		List<ItemAndScore> toReturn = new ArrayList<>();
 		if (dimension != Constants.DEFAULT_DIMENSION) {
-			query = pm.newQuery("javax.jdo.query.SQL", "select i.item_id " +
+			query = pm.newQuery("javax.jdo.query.SQL", "select i.item_id, p.score " +
 					"from items i " +
 					"natural join item_map_enum e " +
 					"join dimension d on (d.dim_id=? and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) " +
 					"natural join items_recent_popularity p ORDER BY p.score desc LIMIT ?");
-			return (Collection<Long>) query.execute(dimension, numItems);
+
+			results = (Collection<Object[]>) query.execute(dimension, numItems);
 		}
 		else {
-			query = pm.newQuery("javax.jdo.query.SQL", "select p.item_id from items_recent_popularity p order by p.score desc limit ?");
-			return (Collection<Long>) query.execute(numItems);
+			query = pm.newQuery("javax.jdo.query.SQL", "select p.item_id, p.score from items_recent_popularity p order by p.score desc limit ?");
+			results = (Collection<Object[]>) query.execute(numItems);
+		}
+		for(Object[] r : results)
+		{
+			Long itemId = (Long) r[0];
+			Double score =  ((Float)r[1]).doubleValue();
+			toReturn.add(new ItemAndScore(itemId, score));
+		}
+
+		return toReturn;
+	}
+
+
+	public static class ItemAndScore implements Serializable {
+		public final Long item;
+		public final Double score;
+
+		public ItemAndScore(Long item, Double score) {
+			this.item = item;
+			this.score = score;
 		}
 	}
 

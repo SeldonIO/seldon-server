@@ -23,6 +23,8 @@
 
 package io.seldon.recommendation;
 
+import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+
 import java.util.List;
 
 /**
@@ -34,4 +36,6 @@ import java.util.List;
 public interface ClientStrategy {
 
     List<AlgorithmStrategy> getAlgorithms(String userId);
+
+    AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId);
 }

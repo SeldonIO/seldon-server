@@ -147,7 +147,6 @@ public class RecommendationService {
                 internalUserId = Constants.ANONYMOUS_USER;
             }
 
-            RummbleLabsAPI tp = Util.getLabsAPI(cfAlgorithm);
             RecommendationResult recResult = recommender.getRecommendations(internalUserId, userId, type, dimensionId, limit, cfAlgorithm,null,null, null);//FIXME
             List<Recommendation> recs = recResult.getRecs();
             long pos = 1;
@@ -177,7 +176,7 @@ public class RecommendationService {
 
     //Object[0] = RecommendationsBean (result)
     //Object[1] = String representing the algorithm used
-    public static Object[] sort(ConsumerBean c,String userId,RecommendationsBean recs, List<String> algorithms) {
+    public Object[] sort(ConsumerBean c,String userId,RecommendationsBean recs, List<String> algorithms) {
         //ALGORITHM
         CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
 
@@ -217,7 +216,6 @@ public class RecommendationService {
         //if(recentActions.size() < cfAlgorithm.getMinNumTxsForSV()) { return res; }
 
         //INPUT LIST
-        RummbleLabsAPI tp = Util.getLabsAPI(cfAlgorithm);
         List<Long> items = new ArrayList<>();
         for (RecommendationBean r : recs.getList()) {
             try {
@@ -246,7 +244,7 @@ public class RecommendationService {
         }
 
         //SORT
-        SortResult sortResult = tp.getAnalysis(cfAlgorithm).sort(intUserId, filteredItems, cfAlgorithm,recentActions);
+        SortResult sortResult = recommender.sort(intUserId, filteredItems, cfAlgorithm,recentActions);
         List<Long> itemsSorted = sortResult.getSortedItems();
         sortAlg = sortResult.toLog();
         logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));

@@ -27,8 +27,10 @@ import java.util.*;
 
 
 import io.seldon.api.Util;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.seldon.api.APIException;
@@ -65,6 +67,9 @@ public class ItemService {
     private static Logger logger = Logger.getLogger(ItemService.class.getName());
     public static final int ITEM_NAME_LENGTH = 255;
     private static final int ITEMS_CACHING_TIME_SECS = 300;
+
+	@Autowired
+	private RecommendationPeer recommendationPeer;
     
     public static ItemBean getItem(final ConsumerBean c, final String iid, final boolean full) throws APIException
     {
@@ -136,7 +141,7 @@ public class ItemService {
 		return bean;
 	} 
 	
-	public static ListBean getItemsByKeyword(ConsumerBean c, List<String> keywords, int limit,boolean full,int dimension) throws APIException {
+	public ListBean getItemsByKeyword(ConsumerBean c, List<String> keywords, int limit,boolean full,int dimension) throws APIException {
 		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getItemsBeanKey(c.getShort_name(),keywords.toString(), full));
 		bean = Util.getLimitedBean(bean, limit);
 		if(bean == null) {
@@ -147,10 +152,9 @@ public class ItemService {
             } catch (CloneNotSupportedException e) {
                 throw new APIException(APIException.CANNOT_CLONE_CFALGORITHM);
             }
-			RummbleLabsAPI tp = Util.getLabsAPI(cfAlgorithm);
             int counter = 1;
             for(String k : keywords) {
-				List<SearchResult> res = tp.getAnalysis(cfAlgorithm).searchContent(k,null,ItemService.getDimension(c, dimension),limit,cfAlgorithm);
+				List<SearchResult> res = recommendationPeer.searchContent(k,null,ItemService.getDimension(c, dimension),limit,cfAlgorithm);
 				for(SearchResult r : res) {
 					Item i = null;
 					ItemBean ib = null;

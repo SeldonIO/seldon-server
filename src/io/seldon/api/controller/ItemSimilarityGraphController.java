@@ -34,6 +34,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ItemSimilarityGraphService;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -50,6 +51,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 @Controller
 public class ItemSimilarityGraphController {
 
+	@Autowired
+	ItemSimilarityGraphService graphService;
+
 	@RequestMapping(value="/items/{itemId}/similaritygraph", method = RequestMethod.GET)
 	public @ResponseBody
 	ResourceBean retrieveSimilarityGraph(@PathVariable String itemId, HttpServletRequest req) {
@@ -59,7 +63,7 @@ public class ItemSimilarityGraphController {
 		//request authorized
 		if(con instanceof ConsumerBean) {
 			try {
-				res = ItemSimilarityGraphService.getGraph((ConsumerBean) con, itemId, Util.getLimit(req));
+				res = graphService.getGraph((ConsumerBean) con, itemId, Util.getLimit(req));
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);
@@ -87,7 +91,7 @@ public class ItemSimilarityGraphController {
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {
-				res = ItemSimilarityGraphService.getNode((ConsumerBean)con,itemId, fromItemId);
+				res = graphService.getNode((ConsumerBean)con,itemId, fromItemId);
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);

@@ -21,37 +21,27 @@
  * ********************************************************************************************
  */
 
-package io.seldon.recommendation;
+package io.seldon.clustering.recommender;
 
-import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+import io.seldon.trust.impl.CFAlgorithm;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * A client strategy that provides the same algorithm strategies for every user.
- *
  * @author firemanphil
- *         Date: 01/12/14
- *         Time: 14:35
+ *         Date: 10/12/14
+ *         Time: 11:25
  */
-public class SimpleClientStrategy implements ClientStrategy {
-
-    private final List<AlgorithmStrategy> strategies;
-
-    private final AlgorithmResultsCombiner algResultsCombiner;
-    public SimpleClientStrategy(List<AlgorithmStrategy> strategies, AlgorithmResultsCombiner algResultsCombiner) {
-        this.strategies = strategies;
-        this.algResultsCombiner = algResultsCombiner;
+@Component
+public class SignificantClusterCountsRecommender extends  BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
+    @Override
+    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return this.recommend(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_SIGNIFICANT,options,user,dimensionId,maxRecsCount,ctxt);
     }
 
     @Override
-    public List<AlgorithmStrategy> getAlgorithms(String userId) {
-        return strategies;
+    public String name() {
+        return CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_FOR_ITEM_SIGNIFICANT.name();
     }
-
-    @Override
-    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId) {
-        return algResultsCombiner;
-    }
-
 }

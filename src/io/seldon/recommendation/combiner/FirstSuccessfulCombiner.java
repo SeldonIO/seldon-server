@@ -21,37 +21,41 @@
  * ********************************************************************************************
  */
 
-package io.seldon.recommendation;
+package io.seldon.recommendation.combiner;
 
-import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 
 import java.util.List;
 
 /**
- * A client strategy that provides the same algorithm strategies for every user.
+ *
+ * Yields the results from the first alg that produces enough results.
  *
  * @author firemanphil
- *         Date: 01/12/14
- *         Time: 14:35
+ *         Date: 23/02/15
+ *         Time: 10:37
  */
-public class SimpleClientStrategy implements ClientStrategy {
-
-    private final List<AlgorithmStrategy> strategies;
-
-    private final AlgorithmResultsCombiner algResultsCombiner;
-    public SimpleClientStrategy(List<AlgorithmStrategy> strategies, AlgorithmResultsCombiner algResultsCombiner) {
-        this.strategies = strategies;
-        this.algResultsCombiner = algResultsCombiner;
+public class FirstSuccessfulCombiner implements AlgorithmResultsCombiner {
+    @Override
+    public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
+        for (ItemRecommendationResultSet set : resultsSets){
+            if (set.getResults().size() >= numRecsRequired)
+                return true;
+        }
+        return false;
     }
 
     @Override
-    public List<AlgorithmStrategy> getAlgorithms(String userId) {
-        return strategies;
-    }
+    public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
+        for (ItemRecommendationResultSet set : resultsSets){
+            if(set.getResults().size() >= numRecsRequired)
+                return set;
+        }
+        if(resultsSets.isEmpty()){
+            return new ItemRecommendationResultSet();
+        } else {
+            return resultsSets.get(0);
+        }
 
-    @Override
-    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId) {
-        return algResultsCombiner;
     }
-
 }

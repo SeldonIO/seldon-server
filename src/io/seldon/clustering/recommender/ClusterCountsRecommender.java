@@ -21,52 +21,28 @@
  * ********************************************************************************************
  */
 
-package io.seldon.similarity.dbpedia;
+package io.seldon.clustering.recommender;
 
-import java.io.Serializable;
+import io.seldon.trust.impl.CFAlgorithm;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
- * Data object for the db searches held in the DB
- * @author rummble
- *
+ * @author firemanphil
+ *         Date: 10/12/14
+ *         Time: 11:18
  */
-public class DBpediaItemSearch implements Serializable {
+@Component
+public class ClusterCountsRecommender extends BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
 
-	long userId;
-	long itemId;
-	String name;
-	int hits;
-	public DBpediaItemSearch(long userId, long itemId, String name, int hits) {
-		super();
-		this.userId = userId;
-		this.itemId = itemId;
-		this.name = name;
-		this.hits = hits;
-	}
-	public long getUserId() {
-		return userId;
-	}
-	public void setUserId(long userId) {
-		this.userId = userId;
-	}
-	public long getItemId() {
-		return itemId;
-	}
-	public void setItemId(long itemId) {
-		this.itemId = itemId;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public int getHits() {
-		return hits;
-	}
-	public void setHits(int hits) {
-		this.hits = hits;
-	}
-	
-	
+    @Override
+    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return this.recommend(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS,options,user,dimensionId,maxRecsCount,ctxt);
+    }
+
+    @Override
+    public String name() {
+        return CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS.name();
+    }
 }

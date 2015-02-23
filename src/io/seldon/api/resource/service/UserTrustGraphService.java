@@ -36,7 +36,9 @@ import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.trust.impl.RecommendationNetwork;
 import io.seldon.trust.impl.RummbleLabsAPI;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.seldon.api.Constants;
@@ -48,8 +50,10 @@ import io.seldon.api.Constants;
 @Service
 public class UserTrustGraphService {
 	private static Logger logger = Logger.getLogger(UserTrustGraphService.class.getName());
-	
-	public static UserTrustNodeBean getNode(ConsumerBean c, String user, String fromUser) throws APIException {
+
+	@Autowired
+	private RecommendationPeer recommendationPeer;
+	public UserTrustNodeBean getNode(ConsumerBean c, String user, String fromUser) throws APIException {
 		ListBean graph = getGraph(c,fromUser,Constants.DEFAULT_BIGRESULT_LIMIT);
 		UserTrustNodeBean bean = (UserTrustNodeBean)graph.getElement(user);
 		if(bean == null) {
@@ -58,7 +62,7 @@ public class UserTrustGraphService {
 		return bean;
 	}
 	
-	public static ListBean getGraph(ConsumerBean c, String user, int limit) throws APIException {
+	public ListBean getGraph(ConsumerBean c, String user, int limit) throws APIException {
 		logger.info("Get TrustGraphBean for " + user);
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getUserTrustGraphBeanKey(c.getShort_name(), user));
 		bean = Util.getLimitedBean(bean, limit);
@@ -68,11 +72,10 @@ public class UserTrustGraphService {
             CFAlgorithm cfAlgorithm;
             try {
                 cfAlgorithm = Util.getAlgorithmService().getAlgorithmOptions(c);
-                tp = Util.getLabsAPI(cfAlgorithm);
             } catch (CloneNotSupportedException e) {
                 throw new APIException(APIException.CANNOT_CLONE_CFALGORITHM);
             }
-            RecommendationNetwork trustNet = tp.getAnalysis(cfAlgorithm)
+            RecommendationNetwork trustNet =recommendationPeer
                     .getNetwork(UserService.getInternalUserId(c, user), Constants.DEFAULT_DIMENSION, cfAlgorithm);
             List<Long> network = trustNet.getSimilarityNeighbourhood(limit);
             int count = 1;

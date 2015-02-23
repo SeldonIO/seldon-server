@@ -21,9 +21,27 @@
  * ********************************************************************************************
  */
 
-package io.seldon.similarity.dbpedia;
+package io.seldon.clustering.recommender;
 
-public interface ISemanticSimilarityOfflineMatching {
+import io.seldon.trust.impl.CFAlgorithm;
+import org.springframework.stereotype.Component;
 
-	public void startOfflineMatching(long userId);
+import java.util.List;
+
+/**
+ * @author firemanphil
+ *         Date: 11/12/14
+ *         Time: 15:54
+ */
+@Component
+public class ItemSignificantCountsRecommender extends BaseItemClusterCountsRecommender implements ItemRecommendationAlgorithm {
+    @Override
+    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return recommend(options,user,dimensionId,maxRecsCount,ctxt, CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_FOR_ITEM_SIGNIFICANT);
+    }
+
+    @Override
+    public String name() {
+        return CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_FOR_ITEM_SIGNIFICANT.name();
+    }
 }

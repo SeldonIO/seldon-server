@@ -30,6 +30,7 @@ import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.ClientStrategy;
 import io.seldon.recommendation.SimpleClientStrategy;
 import io.seldon.recommendation.VariationTestingClientStrategy;
+import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.trust.impl.ItemFilter;
 import io.seldon.trust.impl.ItemIncluder;
 import io.seldon.trust.impl.filters.base.CurrentItemFilter;
@@ -143,7 +144,9 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                     strategies.add(strategy);
                     stratMap.put(algorithm.tag, strategy);
                 }
-                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies)));
+                AlgorithmResultsCombiner combiner = applicationContext.getBean(
+                        config.combiner,AlgorithmResultsCombiner.class);
+                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner));
                 storeMap.put(client, Collections.unmodifiableMap(stratMap));
                 logger.info("Successfully added new algorithm config for "+client);
             } catch (IOException | BeansException e) {
@@ -173,8 +176,10 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                             AlgorithmStrategy strategy = toAlgorithmStrategy(alg,var.label);
                             strategies.add(strategy);
                         }
+                        AlgorithmResultsCombiner combiner = applicationContext.getBean(
+                                var.config.combiner,AlgorithmResultsCombiner.class);
                         variations.add(new VariationTestingClientStrategy.Variation(
-                                new SimpleClientStrategy(Collections.unmodifiableList(strategies)),
+                                new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner),
                                 new BigDecimal(var.ratio)));
 
                     }
@@ -253,7 +258,9 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
             for (Algorithm alg : config.algorithms){
                 strategies.add(toAlgorithmStrategy(alg, alg.tag));
             }
-            ClientStrategy strat = new SimpleClientStrategy(strategies);
+            AlgorithmResultsCombiner combiner = applicationContext.getBean(
+                    config.combiner,AlgorithmResultsCombiner.class);
+            ClientStrategy strat = new SimpleClientStrategy(strategies, combiner);
             defaultStrategy = strat;
             logger.info("Successfully changed default strategy.");
         } catch (IOException e){
@@ -273,6 +280,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     }
     public static class AlgorithmConfig {
         public List<Algorithm> algorithms;
+        public String combiner;
     }
 
     public static class Algorithm {

@@ -26,6 +26,8 @@ package io.seldon.api.resource.service;
 import java.util.List;
 
 import io.seldon.api.Util;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.seldon.api.APIException;
@@ -46,8 +48,11 @@ import io.seldon.trust.impl.SearchResult;
 
 @Service
 public class ItemSimilarityGraphService {
+
+    @Autowired
+    private RecommendationPeer recommendationPeer;
 	
-	public static ItemSimilarityNodeBean getNode(ConsumerBean c, String itemId, String fromItemId) throws APIException {
+	public ItemSimilarityNodeBean getNode(ConsumerBean c, String itemId, String fromItemId) throws APIException {
 		ListBean sims = getGraph(c,fromItemId,Constants.DEFAULT_BIGRESULT_LIMIT);
 		ItemSimilarityNodeBean bean = (ItemSimilarityNodeBean)sims.getElement(itemId);
 		if(bean == null) {
@@ -56,7 +61,7 @@ public class ItemSimilarityGraphService {
 		return bean;
 	}
 	
-	public static ListBean getGraph(ConsumerBean c, String itemId, int limit) throws APIException {
+	public ListBean getGraph(ConsumerBean c, String itemId, int limit) throws APIException {
 		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getItemSimilarityGraphBeanKey(c.getShort_name(), itemId));
 		bean = Util.getLimitedBean(bean, limit);
 		if(bean == null) {
@@ -67,9 +72,8 @@ public class ItemSimilarityGraphService {
             } catch (CloneNotSupportedException e) {
                 throw new APIException(APIException.CANNOT_CLONE_CFALGORITHM);
             }
-            RummbleLabsAPI tp = Util.getLabsAPI(cfAlgorithm);
             ItemBean ib = ItemService.getItem(c, itemId, false);
-            List<SearchResult> res = tp.getAnalysis(cfAlgorithm).findSimilar(ItemService.getInternalItemId(c, itemId), ib.getType(), limit, cfAlgorithm);
+            List<SearchResult> res = recommendationPeer.findSimilar(ItemService.getInternalItemId(c, itemId), ib.getType(), limit, cfAlgorithm);
             for (SearchResult r : res) {
                 bean.addBean(new ItemSimilarityNodeBean(ItemService.getClientItemId(c, r.getId()), r.getScore()));
             }

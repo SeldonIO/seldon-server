@@ -80,16 +80,7 @@ public class Util {
 		Util.backEnd = backEnd;
 	}
 	
-	public static RummbleLabsAPI getLabsAPI(CFAlgorithm cfAlgorithm) throws APIException {
-		switch (backEnd)
-		{
-		default:
-		case MYSQL:
-		{
-			return new RecommendationPeer();
-		}
-		}
-	}
+
 
 	
 	public static JdoCountRecommenderUtils getCountRecommenderUtils(ConsumerBean c) throws APIException {

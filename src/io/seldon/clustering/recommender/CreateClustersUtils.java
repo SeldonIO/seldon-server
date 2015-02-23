@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
-import io.seldon.similarity.dbpedia.jdo.SqlWebSimilaritySimplePeer;
 import org.apache.log4j.Logger;
 
 /**
@@ -78,29 +77,7 @@ public class CreateClustersUtils {
 	}
 	
 
-	/**
-	 * Create clusters from a set of tags passed in, e.g. Facebook like names
-	 * @param userId - internal user id
-	 * @param tags - facebook likes
-	 */
-	public void createClustersFromTags(long userId,Set<String> tags)
-	{
-		TagToClusterPeer tc = new TagToClusterPeer(client);
-		List<UserCluster> clusters = tc.suggestClusters(userId, tags);
-		storeClusters(userId,clusters);
-	}
-	
-	/**
-	 * Create user clusters from a set of facebook like ids
-	 * @param userId - internal user id
-	 * @param ids - facebook like ids
-	 */
-	public void createClustersFromFBIDs(long userId,Set<String> ids)
-	{
-		SqlWebSimilaritySimplePeer p = new SqlWebSimilaritySimplePeer(client);
-		List<UserCluster> clusters = p.getUserDimClusters(userId, ids);
-		storeClusters(userId,clusters);
-	}
+
 	
 	/**
 	 * Create clusters for user from the tags (e.g. facebook like names "Elton John") and the
@@ -108,7 +85,6 @@ public class CreateClustersUtils {
 	 * Will first attempt to use WebSimilaritySimplePeer and if that fails try the tags.
 	 * @param userId - internal user id
 	 * @param tags - facebook likes
-	 * @param ids - facebook like ids
 	 */
 	public void createClustersFromCategoriesOrTags(long userId,Set<String> tags,List<String> categories)
 	{

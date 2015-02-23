@@ -35,7 +35,6 @@ import io.seldon.general.NetworkPeer;
 import io.seldon.general.UserAttributePeer;
 import io.seldon.general.UserPeer;
 import io.seldon.general.VersionPeer;
-import io.seldon.similarity.dbpedia.WebSimilaritySimpleStore;
 import io.seldon.test.BaseTest;
 
 /**
@@ -79,9 +78,7 @@ public abstract class BasePeerTest extends BaseTest {
     @Autowired
     protected TransientUserClusterStore transientClusterStore;
     
-    @Autowired
-    protected WebSimilaritySimpleStore webSimilaritySimpleStore;
-    
+
     @Autowired
     protected ICooccurrenceStore coocStore;
     

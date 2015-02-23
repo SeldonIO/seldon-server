@@ -21,24 +21,27 @@
  * ********************************************************************************************
  */
 
-package io.seldon.similarity.dbpedia;
+package io.seldon.clustering.recommender;
 
-import java.util.Collection;
+import io.seldon.trust.impl.CFAlgorithm;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 
-import io.seldon.api.resource.ItemBean;
-
 /**
- * Store for web searches against lucene dbpedia index
- * @author rummble
- *
+ * @author firemanphil
+ *         Date: 10/12/14
+ *         Time: 11:23
  */
-public interface WebSearchResultsPeer {
+@Component
+public class DynamicClusterCountsRecommender  extends  BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
+    @Override
+    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return this.recommend(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_DYNAMIC,options,user,dimensionId,maxRecsCount,ctxt);
+    }
 
-	public Integer getHits(long itemId);
-	public List<DBpediaItemSearch> getHitsInRange(int hits, int oom);
-	public List<DBpediaItemSearch> getHitsInRange(int hits, long minItemId, int oom);
-	public List<DBpediaItemSearch> getHitsInRange(long userId,String linkType,int hits,int oom);
-	public List<DBpediaItemSearch> getHitsForUser(long userId,String linkType);
-	public void storeNewItems(Collection<ItemBean> items);
+    @Override
+    public String name() {
+        return CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_DYNAMIC.name();
+    }
 }

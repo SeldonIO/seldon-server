@@ -132,7 +132,7 @@ public class RecommendationController {
 			}
 			try {
 				List<String> algorithms = Util.getAlgorithms(req);
-				Object[] pair = RecommendationService.sort((ConsumerBean) con, userId, recs, algorithms);
+				Object[] pair = recommendationService.sort((ConsumerBean) con, userId, recs, algorithms);
 				res = (RecommendationsBean)pair[0];
 				usedAlgorithm = (String)pair[1];
 			}

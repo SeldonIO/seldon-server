@@ -68,8 +68,6 @@ import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.realtime.ActionProcessorPeer;
 import io.seldon.semvec.SemanticVectorsStore;
-import io.seldon.similarity.dbpedia.DBpediaVectorStore;
-import io.seldon.similarity.dbpedia.jdo.SqlWebSimilaritySimplePeer;
 import io.seldon.storm.DRPCSettingsFactory;
 
 public class ResourceManagerListener  implements ServletContextListener {
@@ -123,9 +121,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     			String useRamDirectoryStr = props.getProperty("dbpedia.index.ramdirectory");
     			boolean useRamDirectory = "true".equals(useRamDirectoryStr);
     		}
-    		String dbPediaVectorsPath = props.getProperty("dbpedia.semvectors.terms");
-    		if (dbPediaVectorsPath != null)
-    			DBpediaVectorStore.initialise(dbPediaVectorsPath);
     		StopWordPeer.initialise(sce.getServletContext().getRealPath("/WEB-INF/nlp/stopwords.txt"));
     		String backend = props.getProperty("io.seldon.labs.backend");
     		String caching = props.getProperty("io.seldon.labs.caching");
@@ -165,7 +160,6 @@ public class ResourceManagerListener  implements ServletContextListener {
 
     		
 
-    		SqlWebSimilaritySimplePeer.initialise(props);
 
     		DynamicParameterServer.startReloadTimer();
     		

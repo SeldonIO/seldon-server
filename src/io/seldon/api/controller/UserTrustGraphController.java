@@ -60,6 +60,9 @@ public class UserTrustGraphController {
     @Autowired
     private RecommendationService recommendationService;
 
+	@Autowired
+	private UserTrustGraphService userTrustGraphService;
+
 	@RequestMapping(value="/users/{userId}/trustgraph", method = RequestMethod.GET)
 	public @ResponseBody
 	ResourceBean retrieveTrustGraph(@PathVariable String userId,HttpServletRequest req) {
@@ -72,7 +75,7 @@ public class UserTrustGraphController {
 				//if there are keywords the result would be a list of RecommendedUserBean instead of UserTrustNodeBean
 				List<String> keywords = Util.getKeywords(req);
 				if(keywords == null || keywords.isEmpty()) {
-					res = UserTrustGraphService.getGraph((ConsumerBean)con,userId,Util.getLimit(req));
+					res = userTrustGraphService.getGraph((ConsumerBean)con,userId,Util.getLimit(req));
 				}
 				else {
 					res = recommendationService.getRecommendedUsers((ConsumerBean)con,userId,null,Util.getLinkType(req),Util.getKeywords(req),Util.getLimit(req));
@@ -99,7 +102,7 @@ public class UserTrustGraphController {
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {
-				res = UserTrustGraphService.getNode((ConsumerBean)con,userId,fromUser);
+				res = userTrustGraphService.getNode((ConsumerBean)con,userId,fromUser);
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);

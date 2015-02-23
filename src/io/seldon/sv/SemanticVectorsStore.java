@@ -372,7 +372,7 @@ public class SemanticVectorsStore {
 	
 	
 	
-	public <T extends Comparable<T>> Map<T,Double> recommendDocsUsingDocQuery(List<T> recentItems,Set<T> exclusions,Set<T> sortItems,QueryTransform<T> docTransform,
+	public <T extends Comparable<T>> Map<T,Double> recommendDocsUsingDocQuery(List<T> recentItems,Set<T> sortItems,QueryTransform<T> docTransform,
 																			  int numRecommendations,boolean ignorePerfectMatches)
 	{
 		List<T> result = new ArrayList<>();
@@ -384,7 +384,7 @@ public class SemanticVectorsStore {
 		List<T> notFound = new ArrayList<>();
 		for(T item : sortItems)
 		{
-			if (!recentItems.contains(item) && !exclusions.contains(item))
+			if (!recentItems.contains(item))
 			{
 				Vector v = docVecReader.getVector(docTransform.toSV(item));
 				if (v != null && !v.isZeroVector())

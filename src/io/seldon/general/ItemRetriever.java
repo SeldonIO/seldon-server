@@ -24,6 +24,7 @@
 package io.seldon.general;
 
 import io.seldon.api.resource.service.PersistenceProvider;
+import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.UpdateRetriever;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author firemanphil
@@ -61,12 +63,12 @@ public class ItemRetriever {
         this.dogpileHandler = dogpileHandler;
     }
 
-    public Collection<Long> retrieveMostPopularItems(final String client, final int numItems, final int dimension){
+    public List<SqlItemPeer.ItemAndScore> retrieveMostPopularItems(final String client, final int numItems, final int dimension){
 
         String key = MemCacheKeys.getPopularItems(client, dimension, numItems);
-        Collection<Long> retrievedItems = retrieve(key, numItems, new UpdateRetriever<Collection<Long>>() {
+        List<SqlItemPeer.ItemAndScore> retrievedItems = retrieve(key, numItems, new UpdateRetriever<List<SqlItemPeer.ItemAndScore>>() {
             @Override
-            public Collection<Long> retrieve() throws Exception {
+            public List<SqlItemPeer.ItemAndScore> retrieve() throws Exception {
                 return provider.getItemPersister(client).retrieveMostPopularItems(numItems, dimension);
             }
         }, MOST_POPULAR_EXPIRE_TIME);

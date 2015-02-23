@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.seldon.api.resource.ConsumerBean;
+import io.seldon.general.jdo.SqlItemPeer;
 
 public abstract class ItemPeer {
 	
@@ -73,5 +74,5 @@ public abstract class ItemPeer {
 	
 	public abstract Integer getDimensionForAttrName(long itemId,String name);
 
-	public abstract Collection<Long> retrieveMostPopularItems(int numItems, int dimension);
+	public abstract List<SqlItemPeer.ItemAndScore> retrieveMostPopularItems(int numItems, int dimension);
 }

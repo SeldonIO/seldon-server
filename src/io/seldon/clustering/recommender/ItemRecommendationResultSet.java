@@ -25,6 +25,7 @@ package io.seldon.clustering.recommender;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,6 +39,10 @@ public class ItemRecommendationResultSet implements Serializable {
 
     private final List<ItemRecommendationResult> results;
 
+
+    public ItemRecommendationResultSet(){
+        this.results = Collections.emptyList();
+    }
 
     public ItemRecommendationResultSet(List<ItemRecommendationResult> results) {
         this.results = results;

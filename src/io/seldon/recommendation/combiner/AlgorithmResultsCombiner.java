@@ -21,37 +21,20 @@
  * ********************************************************************************************
  */
 
-package io.seldon.recommendation;
+package io.seldon.recommendation.combiner;
 
-import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 
 import java.util.List;
 
 /**
- * A client strategy that provides the same algorithm strategies for every user.
- *
  * @author firemanphil
- *         Date: 01/12/14
- *         Time: 14:35
+ *         Date: 23/02/15
+ *         Time: 10:07
  */
-public class SimpleClientStrategy implements ClientStrategy {
+public interface AlgorithmResultsCombiner {
 
-    private final List<AlgorithmStrategy> strategies;
+    public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets);
 
-    private final AlgorithmResultsCombiner algResultsCombiner;
-    public SimpleClientStrategy(List<AlgorithmStrategy> strategies, AlgorithmResultsCombiner algResultsCombiner) {
-        this.strategies = strategies;
-        this.algResultsCombiner = algResultsCombiner;
-    }
-
-    @Override
-    public List<AlgorithmStrategy> getAlgorithms(String userId) {
-        return strategies;
-    }
-
-    @Override
-    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId) {
-        return algResultsCombiner;
-    }
-
+    public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets);
 }
