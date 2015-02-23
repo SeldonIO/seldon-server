@@ -24,6 +24,7 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ import java.util.List;
  *         Date: 23/02/15
  *         Time: 10:37
  */
+@Component
 public class FirstSuccessfulCombiner implements AlgorithmResultsCombiner {
     @Override
     public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
