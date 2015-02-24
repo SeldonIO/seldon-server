@@ -23,6 +23,24 @@
 
 package io.seldon.general.jdo;
 
+import io.seldon.api.APIException;
+import io.seldon.api.Constants;
+import io.seldon.api.TestingUtils;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.DimensionBean;
+import io.seldon.api.resource.service.ItemService;
+import io.seldon.db.jdo.DatabaseException;
+import io.seldon.db.jdo.SQLErrorPeer;
+import io.seldon.db.jdo.Transaction;
+import io.seldon.db.jdo.TransactionPeer;
+import io.seldon.general.Dimension;
+import io.seldon.general.Item;
+import io.seldon.general.ItemAttr;
+import io.seldon.general.ItemDemographic;
+import io.seldon.general.ItemPeer;
+import io.seldon.general.ItemType;
+import io.seldon.util.CollectionTools;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,27 +53,8 @@ import java.util.Set;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
-import io.seldon.db.jdo.SQLErrorPeer;
-
-import io.seldon.api.APIException;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.DimensionBean;
-import io.seldon.api.resource.service.ItemService;
-import io.seldon.db.jdo.Transaction;
-import io.seldon.db.jdo.TransactionPeer;
-import io.seldon.general.Dimension;
-import io.seldon.general.ItemDemographic;
-import io.seldon.general.ItemPeer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
-import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
-import io.seldon.db.jdo.DatabaseException;
-import io.seldon.general.Item;
-import io.seldon.general.ItemAttr;
-import io.seldon.general.ItemType;
-import io.seldon.util.CollectionTools;
 
 public class SqlItemPeer extends ItemPeer {
 
@@ -233,11 +232,6 @@ public class SqlItemPeer extends ItemPeer {
 		}
 	}
 
-	public void updateItemStat(long id) {
-		Query query = pm.newQuery("javax.jdo.query.SQL","update (select item_id,avg(value) a,stddev(value) s from opinions where item_id=?) t natural join items set avgrating=a,stddevrating=s");
-		query.execute(id);
-		query.closeAll();
-	}
 
 	@Override
 	public Collection<Dimension> getDimensions() {

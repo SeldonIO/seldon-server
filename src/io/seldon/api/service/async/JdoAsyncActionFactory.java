@@ -23,16 +23,9 @@
 
 package io.seldon.api.service.async;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 import org.apache.log4j.Logger;
 
@@ -46,7 +39,6 @@ public class JdoAsyncActionFactory {
 	
 	private ConcurrentHashMap<String,AsyncActionQueue> queues = new ConcurrentHashMap<>();
 	private static JdoAsyncActionFactory factory;
-	Timer updateCheckTimer;
 	
 	private static int DEF_QTIMEOUT_SECS = 5;
 	private static int DEF_MAXQSIZE = 100000;
@@ -62,42 +54,12 @@ public class JdoAsyncActionFactory {
 	private static boolean asyncUserWrites = false;
 	private static boolean asyncItemWrites = false;
 	
-	private static String localHostname;
-	private static boolean updateIdsActionTable = true;
-	
-	private static String getHostname()
-	{
-		try
-		{
-			String EC2Id = "";
-			String inputLine;
-			URL EC2MetaData = new URL("http://169.254.169.254/latest/meta-data/local-hostname");
-			HttpURLConnection EC2MD = (HttpURLConnection) EC2MetaData.openConnection();
-			HttpURLConnection.setFollowRedirects(false);
-			EC2MD.setConnectTimeout(5 * 1000);
-			BufferedReader in = new BufferedReader(new InputStreamReader(EC2MD.getInputStream()));
-			while ((inputLine = in.readLine()) != null)
-			{
-				EC2Id = inputLine;
-			}
-			in.close();
-			logger.info("Local hostname is "+EC2Id);
-			return EC2Id;
-		}
-		catch (IOException e)
-		{
-			logger.warn("Failed to get EC2 local hostname",e);
-			return DEF_HOSTNAME;
-		}
-	}
-	
 	public static boolean isActive() {
 		return active;
 	}
 
 	public static JdoAsyncActionFactory create(Properties properties)
 	{
-		localHostname = getHostname();
 		props = properties;
 		asyncUserWrites = "true".equals(props.getProperty(ASYNC_PROP_PREFIX+".users"));
 		asyncItemWrites = "true".equals(props.getProperty(ASYNC_PROP_PREFIX+".items"));
@@ -126,7 +88,6 @@ public class JdoAsyncActionFactory {
 	{
 		if (factory != null)
 		{
-			factory.cancelTimer();
 			factory.shutdownQueues();
 		}
 	}
@@ -220,12 +181,7 @@ public class JdoAsyncActionFactory {
 		}
 	}
 	
-	private void cancelTimer()
-	{
-		if (updateCheckTimer != null)
-			updateCheckTimer.cancel();
-	}
-
+	
 	
 	
 }

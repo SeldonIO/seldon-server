@@ -56,10 +56,6 @@ public class Constants {
 	public final static String ERROR_RESOURCE_NAME = "error";
 	public final static String USER_RESOURCE_NAME = "user";
 	public final static String USERS_RESOURCE_NAME = "users";
-	public final static String USERTRUSTNODE_RESOURCE_NAME = "usertrustnode";
-	public final static String USERTRUSTGRAPH_RESOURCE_NAME = "usertrustgraph";
-	public final static String OPINION_RESOURCE_NAME = "opinion";
-	public final static String OPINIONS_RESOURCE_NAME = "opinions";
 	public final static String RECOMMENDATION_RESOURCE_NAME = "recommendation";
 	public final static String RECOMMENDATIONS_RESOURCE_NAME = "recommendations";
 	public final static String ITEM_RESOURCE_NAME = "item";
@@ -93,7 +89,6 @@ public class Constants {
 	public static final String URL_NAME = "name";
 	public static final String URL_SORT = "sort";
 	public static final String URL_TYPE = "type";
-	public static final String URL_LINK_TYPE = "linktype";
 	public static final String URL_ALGORITHMS = "algorithms";
 	//SORT FIELDs
 	public final static String SORT_ID = "id";
@@ -122,7 +117,6 @@ public class Constants {
 	//attribute id defining the item type
 	public final static int ATTRIBUTE_TYPE = 0;
 	public static final int VARCHAR_SIZE = 255;
-	public static final int DEFAULT_LINK_TYPE = 1;
 	
 	//Default item attributes
 	public final static String ITEM_ATTR_TITLE = "title";

@@ -23,13 +23,6 @@
 
 package io.seldon.general.jdo;
 
-import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
@@ -39,7 +32,20 @@ import io.seldon.db.jdo.DatabaseException;
 import io.seldon.db.jdo.SQLErrorPeer;
 import io.seldon.db.jdo.Transaction;
 import io.seldon.db.jdo.TransactionPeer;
-import io.seldon.general.*;
+import io.seldon.general.User;
+import io.seldon.general.UserAttribute;
+import io.seldon.general.UserAttributePeer;
+import io.seldon.general.UserDimension;
+import io.seldon.general.UserPeer;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
+
 import org.apache.log4j.Logger;
 
 public class SqlUserPeer extends UserPeer {
@@ -99,29 +105,7 @@ public class SqlUserPeer extends UserPeer {
 		return c;
 	}
 
-	public Double getUserAvgRating(long id,int dimension)  {
-		if(dimension == Constants.DEFAULT_DIMENSION) {
-			return getUser(id).getAvgRating();
-		}
-		else {
-			Query query = pm.newQuery("javax.jdo.query.SQL", "select avg(value) from opinions natural join users natural join item_map_enum where user_id=? and attr_id=? and value_id=?" );
-			Integer[] attr;
-			try {
-				attr = Util.getItemPeer(pm).getAttributes(dimension);
-				Collection<Double> c = (Collection<Double>) query.execute(id, attr[0],attr[1]);
-				return c.iterator().next();
-			} catch (APIException e) {
-				return getUser(id).getAvgRating();
-			}
 
-		}
-	}
-
-	public void updateUserStat(long id) {
-		Query query = pm.newQuery("javax.jdo.query.SQL","update (select user_id,avg(value) a,stddev(value)s from opinions where user_id=?) t natural join users set avgrating=a,stddevrating=s;");
-		query.execute(id);
-		query.closeAll();
-	}
 
     @Override
     public User saveOrUpdate(final User user) {

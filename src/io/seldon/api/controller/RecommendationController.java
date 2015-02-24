@@ -144,37 +144,4 @@ public class RecommendationController {
 		return res;
 	}
 
-	
-	//Method to retrieve a list of users from the user trust graph that might like a specific item (recommended users)
-	//the linktype parameter will filter for a specific type of link in the trustgraph and a specific set of actionType
-	// the keyword parameter will add further keyword to use in the algorithm
-	@RequestMapping(value="/users/{userId}/recommendations/{itemId}/trustgraph", method = RequestMethod.GET)
-	public @ResponseBody ResourceBean getRecommendedUsers(@PathVariable String userId, @PathVariable String itemId,HttpServletRequest req) {
-		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
-		ResourceBean res = con;
-		if(con instanceof ConsumerBean) {
-			try {
-				MDCKeys.addKeys((ConsumerBean)con, userId, itemId);
-				res = recommendationService.getRecommendedUsers((ConsumerBean)con,userId,itemId,Util.getLinkType(req),Util.getKeywords(req),Util.getLimit(req));
-			}
-			catch(APIException e) {
-				ApiLoggerServer.log(this, e);
-				res = new ErrorBean(e);
-			}
-			catch(Exception e) {
-				ApiLoggerServer.log(this, e);
-				APIException apiEx = new APIException(APIException.GENERIC_ERROR);
-				res = new ErrorBean(apiEx);
-			}
-		}
-		ApiLogger.log("users.user_id.recommendations.item_id.trustgraph",start,new Date(),con,res,req);
-		return res;
-	}
-	
-	
-	
-	
-	
-
 }

@@ -29,15 +29,11 @@ import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.general.UserAttributePeer;
 import io.seldon.general.jdo.SqlActionPeer;
-import io.seldon.general.jdo.SqlExtActionPeer;
 import io.seldon.general.jdo.SqlItemPeer;
-import io.seldon.general.jdo.SqlNetworkPeer;
 import io.seldon.general.jdo.SqlUserAttributePeer;
 import io.seldon.general.jdo.SqlUserPeer;
 import io.seldon.general.jdo.SqlVersionPeer;
 import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.RummbleLabsAPI;
-import io.seldon.trust.impl.jdo.RecommendationPeer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -132,35 +128,7 @@ public class Util {
 	}
 	
 	
-	public static SqlExtActionPeer getExtActionPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlExtActionPeer(pm);
-	}
 	
-	public static SqlExtActionPeer getExtActionPeer(PersistenceManager pm) throws APIException {
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlExtActionPeer(pm);
-	}
-	
-	public static SqlNetworkPeer getNetworkPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlNetworkPeer(pm);
-	}
-	
-	public static SqlNetworkPeer getNetworkPeer(PersistenceManager pm) throws APIException {
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlNetworkPeer(pm);
-	}
 
     public static SqlVersionPeer getVersionPeer(ConsumerBean c) throws APIException {
         PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
@@ -275,10 +243,7 @@ public class Util {
 		return res;
 	}
 	
-	public static String getLinkType(HttpServletRequest req) {
-		return req.getParameter(Constants.URL_LINK_TYPE);
-	}
-
+	
 	
 	public static CFAlgorithm getAlgorithmOptions(ConsumerBean c, List<String> algorithms,String recTag) throws CloneNotSupportedException {
 		CFAlgorithm cfAlgorithm = Util.getAlgorithmService().getAlgorithmOptions(c,recTag).clone();
