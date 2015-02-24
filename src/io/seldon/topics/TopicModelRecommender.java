@@ -39,13 +39,16 @@ import io.seldon.trust.impl.ItemIncluder;
 
 import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 
 	TopicFeaturesManager featuresManager;
 	RecentItemsWithTagsManager tagsManager;
 
+	@Autowired
 	public TopicModelRecommender(TopicFeaturesManager featuresManager,RecentItemsWithTagsManager tagsManager)
 	{
 		this.featuresManager = featuresManager;

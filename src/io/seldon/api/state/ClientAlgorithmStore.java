@@ -105,7 +105,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         logger.info("Initializing...");
         configHandler.addListener(this);
         globalConfigHandler.addSubscriber("default_strategy", this);
-        globalConfigHandler.addSubscriber("named_strategies", this);
+//        globalConfigHandler.addSubscriber("named_strategies", this);
     }
 
     public ClientStrategy retrieveStrategy(String client){
@@ -241,6 +241,14 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
         }
         logger.info(builder.toString());
+        for (AlgorithmResultsCombiner filt: applicationContext.getBeansOfType(AlgorithmResultsCombiner.class).values()){
+            builder.append('\t');
+            builder.append(filt.getClass());
+            builder.append('\n');
+
+        }
+        builder = new StringBuilder("Available combiners: \n" );
+        logger.info(builder.toString());
     }
 
     private boolean testRunning(String client){
@@ -249,6 +257,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     @Override
     public void configUpdated(String configKey, String configValue) {
+        logger.info("KEY WAS " + configKey);
         logger.info("Received new default strategy: " + configValue);
         try {
             ObjectMapper mapper = new ObjectMapper();

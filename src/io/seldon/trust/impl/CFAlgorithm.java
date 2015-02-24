@@ -126,31 +126,19 @@ public class CFAlgorithm implements Cloneable,Serializable {
 	private CF_STRATEGY sorterStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
 	private CF_POSTPROCESSING postprocessing =  CF_POSTPROCESSING.NONE;
-	
-	Map<CF_RECOMMENDER,Double> recommendationWeightMap = new HashMap<>();
-	int maxRecommendersToUse = 2;
-	
-	private Date date; // base algorithm to run as if from this date
-	private Date recommendAfter; // only provide recommendations for things created after this date
 
-    // ~ Fields #2: originally in RummbleLabsClient ~
+	private Date date; // base algorithm to run as if from this date
+
+	// ~ Fields #2: originally in RummbleLabsClient ~
 
     private String name;
     private String recTag;
-    private double minRating = 0;
-    private double maxRating = 10;
-    private int userCFLimit = 50;
+	private int userCFLimit = 50;
     private int transactionActionType = 0; // the action_type that defines transactions (purchases, page views)
 
     // Recommendation parameters
-    private int recommendK = 50;
-    private double recommendMinTrust = 0.7;
     private int recommendationCachingTimeSecs = 0;
 
-    // Prediction parameters
-    private int predictK = 50;
-    private int predictNeighbours = 500;
-    private double predictMinTrust = 0.7;
 
     //Semantic Vector parameters
     private int minNumTxsForSV = 5;
@@ -186,16 +174,11 @@ public class CFAlgorithm implements Cloneable,Serializable {
     CF_CLUSTER_ALGORITHM clusterAlgorithm = CF_CLUSTER_ALGORITHM.NONE;
     int minNumberItemsForValidClusterResult = 0;
     boolean useBucketCluster = false; // add cluster counts for users not in any cluster to a single "bucket" cluster.
+
+
+	String abTestingKey = null;
     
-    
-    boolean allowFullSocialPredictSearch = false;
-    
-    int userTagAttrId = 9;
-    
-    String abTestingKey = null;
-    
-    int similarUsersMetric = 2;
-    
+
     // ~ END field ~
 
 	public CFAlgorithm() {
@@ -209,16 +192,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		return recommenders;
 	}
 
-	
-	
-
-	public int getSimilarUsersMetric() {
-		return similarUsersMetric;
-	}
-
-	public void setSimilarUsersMetric(int similarUsersMetric) {
-		this.similarUsersMetric = similarUsersMetric;
-	}
 
 	public boolean isTagClusterCountsActive() {
 		return tagClusterCountsActive;
@@ -276,45 +249,12 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		this.abTestingKey = abTestingKey;
 	}
 
-	public int getUserTagAttrId() {
-		return userTagAttrId;
-	}
-
-	public void setUserTagAttrId(int userTagAttrId) {
-		this.userTagAttrId = userTagAttrId;
-	}
-
 	public boolean isIgnorePerfectSVMatches() {
 		return ignorePerfectSVMatches;
 	}
 
 	public void setIgnorePerfectSVMatches(boolean ignorePerfectSVMatches) {
 		this.ignorePerfectSVMatches = ignorePerfectSVMatches;
-	}
-
-	public boolean isAllowFullSocialPredictSearch() {
-		return allowFullSocialPredictSearch;
-	}
-
-	public void setAllowFullSocialPredictSearch(boolean allowFullSocialPredictSearch) {
-		this.allowFullSocialPredictSearch = allowFullSocialPredictSearch;
-	}
-
-	public Map<CF_RECOMMENDER, Double> getRecommendationWeightMap() {
-		return recommendationWeightMap;
-	}
-
-	public void setRecommendationWeightMap(
-			Map<CF_RECOMMENDER, Double> recommendationWeightMap) {
-		this.recommendationWeightMap = recommendationWeightMap;
-	}
-
-	public int getMaxRecommendersToUse() {
-		return maxRecommendersToUse;
-	}
-
-	public void setMaxRecommendersToUse(int maxRecommendersToUse) {
-		this.maxRecommendersToUse = maxRecommendersToUse;
 	}
 
 	public int getMinNumberItemsForValidClusterResult() {
@@ -411,14 +351,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
         this.date = date;
     }
 
-    public Date getRecommendAfter() {
-        return recommendAfter;
-    }
-
-    public void setRecommendAfter(Date recommendAfter) {
-        this.recommendAfter = recommendAfter;
-    }
-
 
 	public String getName() {
         return name;
@@ -437,77 +369,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		this.recTag = recTag;
 	}
 
-	public double getMinRating() {
-        return minRating;
-    }
 
-    public void setMinRating(double minRating) {
-        this.minRating = minRating;
-    }
-
-    public double getMaxRating() {
-        return maxRating;
-    }
-
-    public void setMaxRating(double maxRating) {
-        this.maxRating = maxRating;
-    }
-
-    public int getUserCFLimit() {
-        return userCFLimit;
-    }
-
-    public void setUserCFLimit(int userCFLimit) {
-        this.userCFLimit = userCFLimit;
-    }
-
-    public int getTransactionActionType() {
-        return transactionActionType;
-    }
-
-    public void setTransactionActionType(int transactionActionType) {
-        this.transactionActionType = transactionActionType;
-    }
-
-    public int getRecommendK() {
-        return recommendK;
-    }
-
-    public void setRecommendK(int recommendK) {
-        this.recommendK = recommendK;
-    }
-
-    public double getRecommendMinTrust() {
-        return recommendMinTrust;
-    }
-
-    public void setRecommendMinTrust(double recommendMinTrust) {
-        this.recommendMinTrust = recommendMinTrust;
-    }
-
-    public int getPredictK() {
-        return predictK;
-    }
-
-    public void setPredictK(int predictK) {
-        this.predictK = predictK;
-    }
-
-    public int getPredictNeighbours() {
-        return predictNeighbours;
-    }
-
-    public void setPredictNeighbours(int predictNeighbours) {
-        this.predictNeighbours = predictNeighbours;
-    }
-
-    public double getPredictMinTrust() {
-        return predictMinTrust;
-    }
-
-    public void setPredictMinTrust(double predictMinTrust) {
-        this.predictMinTrust = predictMinTrust;
-    }
 
     public int getRecommendationCachingTimeSecs() {
 		return recommendationCachingTimeSecs;
@@ -656,14 +518,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
         if (o == null || getClass() != o.getClass()) return false;
 
         CFAlgorithm that = (CFAlgorithm) o;
-
-        if (Double.compare(that.maxRating, maxRating) != 0) return false;
-        if (Double.compare(that.minRating, minRating) != 0) return false;
-        if (predictK != that.predictK) return false;
-        if (Double.compare(that.predictMinTrust, predictMinTrust) != 0) return false;
-        if (predictNeighbours != that.predictNeighbours) return false;
-        if (recommendK != that.recommendK) return false;
-        if (Double.compare(that.recommendMinTrust, recommendMinTrust) != 0) return false;
         if (transactionActionType != that.transactionActionType) return false;
         if (userCFLimit != that.userCFLimit) return false;
         if (date != null ? !date.equals(that.date) : that.date != null) return false;
@@ -671,8 +525,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
         if (itemComparators != null ? !itemComparators.equals(that.itemComparators) : that.itemComparators != null)
             return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (recommendAfter != null ? !recommendAfter.equals(that.recommendAfter) : that.recommendAfter != null)
-            return false;
         if (recommenderStrategy != that.recommenderStrategy) return false;
         if (recommenders != null ? !recommenders.equals(that.recommenders) : that.recommenders != null) return false;
         if (sorterStrategy != that.sorterStrategy) return false;
@@ -697,21 +549,9 @@ public class CFAlgorithm implements Cloneable,Serializable {
         result = 31 * result + (sorterStrategy != null ? sorterStrategy.hashCode() : 0);
         result = 31 * result + (postprocessing != null ? postprocessing.hashCode() : 0);
         result = 31 * result + (date != null ? date.hashCode() : 0);
-        result = 31 * result + (recommendAfter != null ? recommendAfter.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        temp = minRating != +0.0d ? Double.doubleToLongBits(minRating) : 0L;
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        temp = maxRating != +0.0d ? Double.doubleToLongBits(maxRating) : 0L;
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
         result = 31 * result + userCFLimit;
         result = 31 * result + transactionActionType;
-        result = 31 * result + recommendK;
-        temp = recommendMinTrust != +0.0d ? Double.doubleToLongBits(recommendMinTrust) : 0L;
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + predictK;
-        result = 31 * result + predictNeighbours;
-        temp = predictMinTrust != +0.0d ? Double.doubleToLongBits(predictMinTrust) : 0L;
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
         temp = longTermWeight != +0.0d ? Double.doubleToLongBits(longTermWeight) : 0L;
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         temp = shortTermWeight != +0.0d ? Double.doubleToLongBits(shortTermWeight) : 0L;
