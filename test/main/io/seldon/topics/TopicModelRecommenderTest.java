@@ -27,20 +27,25 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-
-import java.util.*;
-
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.items.RecentItemsWithTagsManager;
+import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
 import io.seldon.trust.impl.CFAlgorithm;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import junit.framework.Assert;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-
-import io.seldon.items.RecentItemsWithTagsManager;
-import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
 
 public class TopicModelRecommenderTest {
 
@@ -124,6 +129,7 @@ public class TopicModelRecommenderTest {
 		CFAlgorithm options = new CFAlgorithm();
 		options.setNumRecentItems(numRecentItems);
 		options.setTagAttrId(attrId);
+		options.setMinNumTagsForTopicWeights(0);
 
 		Map<Long,List<String>> itemTags = new HashMap<>();
 		final String tag = "tag";
@@ -153,7 +159,8 @@ public class TopicModelRecommenderTest {
 		expect(mockCtxt.getContextItems()).andReturn(recentItems).times(3);
 		replay(mockCtxt);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
-		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, mockCtxt, 50,null);
+		List<Long> recentItemInteractions = new ArrayList<Long>();
+		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, mockCtxt, 50,recentItemInteractions);
 
 		verify(mockCtxt);
 		verify(mockFeaturesManager);

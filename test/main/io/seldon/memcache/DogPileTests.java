@@ -21,7 +21,7 @@
  * ********************************************************************************************
  */
 
-package io.seldon.test.memcache;
+package io.seldon.memcache;
 
 
 import io.seldon.memcache.DogpileHandler;
