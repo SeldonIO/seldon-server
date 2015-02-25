@@ -43,8 +43,6 @@ import io.seldon.clustering.recommender.ClientClusterTypeService;
 import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
 import io.seldon.clustering.recommender.MemoryWeightedClusterCountMap;
-import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
-import io.seldon.clustering.tag.AsyncTagClusterCountStore;
 import io.seldon.general.Action;
 import io.seldon.general.ActionType;
 import io.seldon.general.Item;
@@ -269,9 +267,6 @@ public class ActionService {
 					}
 				}
 				
-				AsyncTagClusterCountStore tagStore = AsyncTagClusterCountFactory.get().get(c.getShort_name());
-				if (tagStore != null)
-					tagStore.addCounts(c.getShort_name(), userId, itemId);
 
 				if (ActionHistoryCache.isActive(c.getShort_name()))
 				{

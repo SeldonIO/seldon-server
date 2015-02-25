@@ -34,25 +34,28 @@ import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.clustering.recommender.*;
+import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
+import io.seldon.clustering.recommender.CountRecommender;
+import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
-import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.db.jdo.servlet.JDOStartup;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.semvec.SemanticVectorsStore;
-import org.apache.log4j.Logger;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+import org.apache.log4j.Logger;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 public class ResourceManagerListener  implements ServletContextListener {
 
@@ -121,14 +124,10 @@ public class ResourceManagerListener  implements ServletContextListener {
     		//Initialise AsynActionQueue
     		JdoAsyncActionFactory.create(props);
     		AsyncClusterCountFactory.create(props);
-    		AsyncTagClusterCountFactory.create(props);
     		
     		//Initialise Memory User Clusters (assumes JDO backend)
     		ClusterFromReferrerPeer.initialise(props);
-//    		JdoMemoryUserClusterFactory.initialise(props);
-    		//Initialise Memory Cluster Counter
-    		MemoryClusterCountFactory.create(props);
-    		MemcacheClusterCountFactory.create(props);
+    		
     		GlobalWeightedMostPopular.initialise(props);
     		
     		ActionHistoryCache.initalise(props);

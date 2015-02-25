@@ -23,6 +23,10 @@
 
 package io.seldon.semvec;
 
+import io.seldon.api.APIException;
+import io.seldon.trust.impl.jdo.RecommendationUtils;
+import io.seldon.util.CollectionTools;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,8 +39,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import io.seldon.api.APIException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import pitt.search.semanticvectors.CloseableVectorStore;
@@ -49,10 +51,6 @@ import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreReader;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
-
-import io.seldon.clustering.tag.IItemTagCache;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
-import io.seldon.util.CollectionTools;
 
 public class SemVectorsPeer {
 	
@@ -738,36 +736,7 @@ public class SemVectorsPeer {
 	}
 	
 	
-	public Map<Long,Double> recommendDocsFromItemTags(List<Long> items,int tagAttrId,IItemTagCache tagCache,int numResults,Set<Long> exclusions,Set<Long> inclusions,boolean ignorePerfectMatches)
-	{
-		Map<Long,Double> scores = new HashMap<>();
-		Set<String> tags = new HashSet<>();
-		for(Long item : items)
-			tags.addAll(tagCache.getTags(item, tagAttrId)); 
-		String query = StringUtils.join(tags, " ");
-		ArrayList<SemVectorResult<Long>> docResult = new ArrayList<>();
-		recommendDocsUsingTermQuery(query, docResult, new LongIdTransform(), new StringTransform(), numResults, exclusions, inclusions, 1L);
-		int numScores = 0;
-		for(SemVectorResult<Long> r : docResult)
-		{
-			Double score = scores.get(r.result);
-			if (ignorePerfectMatches && r.score == 1.0)
-				logger.debug("Ignoring perfect match between "+query+" and "+r.result+" overlap "+r.score);
-			else
-			{
-				if (score != null)
-					score = score + r.score;
-				else
-					score = r.score;
-				logger.debug("Using tags for recommending docs, Adding doc: "+r.result+" score:"+score);
-				scores.put(r.result, score);
-				numScores++;
-			}
-		}
-		logger.info("Used tags for recommending docs, num scores found:"+numScores+" from items size : "+items.size()+" and tags: "+query);
-		
-		return RecommendationUtils.rescaleScoresToOne(scores, numResults);
-	}
+
 	
 	/**
 	 * Find similar users by querying the docstore using a query from the terms passed in
