@@ -58,10 +58,6 @@ public class ZkSubscriptionHandler {
         cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
         cache.getListenable().addListener(listener);
         logger.info("Added ZooKeeper subscriber for " + location + " children.");
-        for(ChildData data : cache.getCurrentData())
-        {
-            listener.childEvent(client, new PathChildrenCacheEvent(PathChildrenCacheEvent.Type.CHILD_UPDATED, data));
-        }
     }
 
     public String getValue(String node) {
@@ -78,7 +74,7 @@ public class ZkSubscriptionHandler {
             List<ChildData> currentData = caches.get(node).getCurrentData();
             for(ChildData data : currentData)
             {
-                values.put(StringUtils.replace(data.getPath(), "/" + node + "/", ""), new String(data.getData()));
+                values.put(StringUtils.replace(data.getPath(), node + "/", ""), new String(data.getData()));
             }
         }
         return values;
