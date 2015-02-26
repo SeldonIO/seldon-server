@@ -27,6 +27,7 @@ import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.trust.impl.ItemFilter;
 import io.seldon.trust.impl.ItemIncluder;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,18 +54,18 @@ public class AlgorithmStrategy {
      */
     public final Set<ItemFilter> filters;
 
-    public final int itemsPerIncluder;
+    public final Map<String, String> config;
 
     /**
      * Textual name for this strategy.
      */
     public final String name;
 
-    public AlgorithmStrategy(ItemRecommendationAlgorithm algorithm, Set<ItemIncluder> includers, Set<ItemFilter> filters, int itemsPerIncluder, String name) {
+    public AlgorithmStrategy(ItemRecommendationAlgorithm algorithm, Set<ItemIncluder> includers, Set<ItemFilter> filters, Map<String,String> config, String name) {
         this.algorithm = algorithm;
         this.includers = includers;
         this.filters = filters;
-        this.itemsPerIncluder = itemsPerIncluder;
+        this.config = config;
         this.name = name;
     }
 }

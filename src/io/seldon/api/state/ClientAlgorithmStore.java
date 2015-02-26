@@ -196,12 +196,15 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         Set<ItemIncluder> includers = retrieveIncluders(algorithm.includers);
         Set<ItemFilter> filters = retrieveFilters(algorithm.filters);
         ItemRecommendationAlgorithm alg = applicationContext.getBean(algorithm.name, ItemRecommendationAlgorithm.class);
-        int itemsPerIncluder = Integer.parseInt(algorithm.config.get("items_per_includer"));
-        return new AlgorithmStrategy(alg, includers, filters, itemsPerIncluder, name);
+
+        return new AlgorithmStrategy(alg, includers, filters,
+                algorithm.config ==null ? new HashMap<String, String>(): algorithm.config , name);
     }
 
     private Set<ItemIncluder> retrieveIncluders(List<String> includers) {
+
         Set<ItemIncluder> includerSet = new HashSet<>();
+        if(includers==null) return includerSet;
         for (String includer : includers){
             includerSet.add(applicationContext.getBean(includer, ItemIncluder.class));
         }
@@ -210,6 +213,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     private Set<ItemFilter> retrieveFilters(List<String> filters) {
         Set<ItemFilter> filterSet = new HashSet<>();
+        if(filters==null) return filterSet;
         for (String filter : filters){
             filterSet.add(applicationContext.getBean(filter, ItemFilter.class));
         }
