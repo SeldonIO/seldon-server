@@ -55,7 +55,7 @@ public class ZkSubscriptionHandler {
         caches.put(location, cache);
         EnsurePath ensureMvTestPath = new EnsurePath(location);
         ensureMvTestPath.ensure(client.getZookeeperClient());
-        cache.start(PathChildrenCache.StartMode.NORMAL);
+        cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
         cache.getListenable().addListener(listener);
         logger.info("Added ZooKeeper subscriber for " + location + " children.");
         for(ChildData data : cache.getCurrentData())
