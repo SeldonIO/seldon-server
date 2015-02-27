@@ -17,5 +17,5 @@ atlassian*
 target
 #logs
 logs
-datanucleus.log
+datanucleus_enhancer.log
 %HOME_DIR%

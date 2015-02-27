@@ -130,12 +130,12 @@
                 <artifactId>datanucleus-maven-plugin</artifactId>
                 <version>4.0.0-release</version>
                 <configuration>
-                    <verbose>true</verbose>
                     <api>JDO</api>
                     <metadataIncludes>
                         **/package.jdo,**/*.class
                     </metadataIncludes>
                     <props>${basedir}/resources/common/datanucleus.properties</props>
+                    <log4jConfiguration>${basedir}/resources/common/datanucleus_log4j.properties</log4jConfiguration>
                     <metadataDirectory>
                         ${project.basedir}/src
                     </metadataDirectory>
