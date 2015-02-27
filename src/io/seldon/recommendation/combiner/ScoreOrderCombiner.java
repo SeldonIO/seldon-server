@@ -24,10 +24,9 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Combines results in score order as soon as there are enough results.
@@ -36,22 +35,34 @@ import java.util.List;
  *         Date: 23/02/15
  *         Time: 10:20
  */
+@Component
 public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
     @Override
     public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
-        int totalSize = 0;
+        Set<ItemRecommendationResultSet.ItemRecommendationResult> uniqueItems = new HashSet<>();
         for (ItemRecommendationResultSet set : resultsSets){
-            totalSize += set.getResults().size();
+            uniqueItems.addAll(set.getResults());
         }
-        return totalSize >= numRecsRequired;
+        return uniqueItems.size() >= numRecsRequired;
+
     }
 
     @Override
     public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
+
+        Map<ItemRecommendationResultSet.ItemRecommendationResult, Float> scores = new HashMap<>();
         List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = new ArrayList<>();
         for (ItemRecommendationResultSet set : resultsSets){
-            ordered.addAll(set.getResults());
+            for (ItemRecommendationResultSet.ItemRecommendationResult itemRecommendationResult : set.getResults()) {
+                Float previousResult = scores.get(itemRecommendationResult);
+                if(previousResult!=null){
+                    if(previousResult< itemRecommendationResult.score)
+                        scores.put(itemRecommendationResult, itemRecommendationResult.score);
+                }
+                scores.put(itemRecommendationResult, itemRecommendationResult.score);
+            }
         }
+        ordered.addAll(scores.keySet());
         Collections.sort(ordered, Collections.reverseOrder());
         return new ItemRecommendationResultSet(ordered);
     }

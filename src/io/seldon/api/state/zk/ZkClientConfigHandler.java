@@ -27,6 +27,7 @@ import com.netflix.curator.framework.CuratorFramework;
 import com.netflix.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import com.netflix.curator.framework.recipes.cache.PathChildrenCacheListener;
 import io.seldon.api.state.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -72,14 +73,18 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
             case CHILD_ADDED:
             case CHILD_UPDATED:
                 String location = event.getData().getPath();
+                boolean foundAMatch = false;
                 for (String client : clientSet){
                     if(location.contains("/"+client+"/")){
                         location = location.replace("/"+client +"/","");
                         for(ClientConfigUpdateListener listener: listeners){
+                            foundAMatch = true;
                             listener.configUpdated(client, location, new String(event.getData().getData()));
                         }
                     }
                 }
+                if (!foundAMatch)
+                    logger.warn("Received message for node " + location +" but found no interested listeners");
 
                 break;
             case CHILD_REMOVED:
@@ -112,16 +117,23 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
     }
 
     private void doInitialRead(String client) {
-        Map<String, String> values = handler.getChildrenValues(client);
-        for (Map.Entry<String, String> entry : values.entrySet()){
-            for(ClientConfigUpdateListener listener : listeners){
-                listener.configUpdated(client, entry.getKey(), entry.getValue());
+        if(!listeners.isEmpty()) {
+            Map<String, String> values = handler.getChildrenValues("/"+client);
+            if(values.isEmpty())
+                logger.warn("Initial read on client " + client +" children was empty");
+            for (Map.Entry<String, String> entry : values.entrySet()) {
+                for (ClientConfigUpdateListener listener : listeners) {
+                    listener.configUpdated(client, entry.getKey(), entry.getValue());
+                }
             }
         }
     }
 
     @Override
     public void addListener(ClientConfigUpdateListener listener) {
+        logger.info("Adding client config listener, current clients are " + StringUtils.join(clientSet,','));
         listeners.add(listener);
+        for(String client : clientSet)
+            doInitialRead(client);
     }
 }

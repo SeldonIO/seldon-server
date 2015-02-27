@@ -246,12 +246,6 @@
             <version>(3.9, )</version>
         </dependency>
         <dependency>
-            <groupId>org.datanucleus</groupId>
-            <artifactId>datanucleus-enhancer</artifactId>
-            <version>3.0.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>asm</groupId>
             <artifactId>asm</artifactId>
             <version>3.3.1</version>
@@ -480,16 +474,7 @@
     		<artifactId>curator-framework</artifactId>
     		<version>1.3.3</version>
 		</dependency>
-        <dependency>
-            <groupId>com.twitter</groupId>
-            <artifactId>finagle-core_2.10</artifactId>
-            <version>6.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.twitter</groupId>
-            <artifactId>finagle-http_2.10</artifactId>
-            <version>6.2.0</version>
-        </dependency>
+
     </dependencies>
 
 </project>

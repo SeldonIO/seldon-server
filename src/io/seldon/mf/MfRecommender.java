@@ -38,17 +38,20 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author firemanphil
  *         Date: 29/09/2014
  *         Time: 17:08
  */
+@Component
 public class MfRecommender extends MemcachedAssistedAlgorithm {
 
     private final MfFeaturesManager store;
 
-
+    @Autowired
     public MfRecommender(MfFeaturesManager store){
         this.store = store;
     }

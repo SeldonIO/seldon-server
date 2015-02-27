@@ -30,6 +30,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
+ *
+ * Combine recommendations from algorithms based on their rank in the list of recs.
+ *
  * @author firemanphil
  *         Date: 23/02/15
  *         Time: 11:00
@@ -37,11 +40,11 @@ import java.util.*;
 @Component
 public class RankSumCombiner implements AlgorithmResultsCombiner{
 
-    private final int maxResultSetsToUse;
+    private final int numResultSetsToUse;
 
     @Autowired
-    public RankSumCombiner(@Value("${combiner.maxResultSets:2}") int maxResultSetsToUse){
-        this.maxResultSetsToUse = maxResultSetsToUse;
+    public RankSumCombiner(@Value("${combiner.maxResultSets:2}") int numResultSetsToUse){
+        this.numResultSetsToUse = numResultSetsToUse;
     }
 
 
@@ -53,7 +56,7 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
                 numValidSets++;
             }
         }
-        return numValidSets >= maxResultSetsToUse;
+        return numValidSets >= numResultSetsToUse;
     }
 
     @Override
@@ -67,10 +70,12 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
 
         for (int i = 0; i < numRecsRequired; i++){
             for (ItemRecommendationResultSet validResultSet : validResultSets) {
-                Integer rankSum = rankSumMap.get(validResultSet.getResults().get(i));
+                List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = validResultSet.getResults();
+                Collections.sort(ordered, Collections.reverseOrder());
+                Integer rankSum = rankSumMap.get(ordered.get(i));
                 if(rankSum == null) rankSum = 0;
                 rankSum += (numRecsRequired -i);
-                rankSumMap.put(validResultSet.getResults().get(i), rankSum);
+                rankSumMap.put(ordered.get(i), rankSum);
             }
         }
 

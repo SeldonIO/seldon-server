@@ -105,7 +105,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         logger.info("Initializing...");
         configHandler.addListener(this);
         globalConfigHandler.addSubscriber("default_strategy", this);
-        globalConfigHandler.addSubscriber("named_strategies", this);
+//        globalConfigHandler.addSubscriber("named_strategies", this);
     }
 
     public ClientStrategy retrieveStrategy(String client){
@@ -196,12 +196,15 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         Set<ItemIncluder> includers = retrieveIncluders(algorithm.includers);
         Set<ItemFilter> filters = retrieveFilters(algorithm.filters);
         ItemRecommendationAlgorithm alg = applicationContext.getBean(algorithm.name, ItemRecommendationAlgorithm.class);
-        int itemsPerIncluder = Integer.parseInt(algorithm.config.get("items_per_includer"));
-        return new AlgorithmStrategy(alg, includers, filters, itemsPerIncluder, name);
+
+        return new AlgorithmStrategy(alg, includers, filters,
+                algorithm.config ==null ? new HashMap<String, String>(): algorithm.config , name);
     }
 
     private Set<ItemIncluder> retrieveIncluders(List<String> includers) {
+
         Set<ItemIncluder> includerSet = new HashSet<>();
+        if(includers==null) return includerSet;
         for (String includer : includers){
             includerSet.add(applicationContext.getBean(includer, ItemIncluder.class));
         }
@@ -210,6 +213,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     private Set<ItemFilter> retrieveFilters(List<String> filters) {
         Set<ItemFilter> filterSet = new HashSet<>();
+        if(filters==null) return filterSet;
         for (String filter : filters){
             filterSet.add(applicationContext.getBean(filter, ItemFilter.class));
         }
@@ -241,6 +245,14 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
         }
         logger.info(builder.toString());
+        for (AlgorithmResultsCombiner filt: applicationContext.getBeansOfType(AlgorithmResultsCombiner.class).values()){
+            builder.append('\t');
+            builder.append(filt.getClass());
+            builder.append('\n');
+
+        }
+        builder = new StringBuilder("Available combiners: \n" );
+        logger.info(builder.toString());
     }
 
     private boolean testRunning(String client){
@@ -249,6 +261,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     @Override
     public void configUpdated(String configKey, String configValue) {
+        logger.info("KEY WAS " + configKey);
         logger.info("Received new default strategy: " + configValue);
         try {
             ObjectMapper mapper = new ObjectMapper();

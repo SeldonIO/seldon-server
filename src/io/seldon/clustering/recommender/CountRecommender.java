@@ -621,6 +621,7 @@ public class CountRecommender {
 				return newItemCounts.getItemCounts();
 			} else {
 				if(itemCounts==null){
+					logger.debug("Couldn't get cluster counts from store or memcache. Returning null");
 					return null;
 				} else {
 					return itemCounts.getItemCounts();
@@ -675,6 +676,7 @@ public class CountRecommender {
 		return getClusterCounts(MemCacheKeys.getTopClusterCounts(client,limit),new UpdateRetriever<ClustersCounts>() {
 			@Override
 			public ClustersCounts retrieve() throws Exception {
+				logger.debug("Retrieving global cluster top counts from store");
 				Map<Long,Double> itemMap = clusterCounts.getTopCounts(TestingUtils.getTime(), limit, decay);
 				return new ClustersCounts(itemMap,0);
 			}
