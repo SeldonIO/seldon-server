@@ -46,6 +46,8 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  *
  * Manages matrix factorization models for recommendations. It loads new
@@ -62,7 +64,7 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
     private static Logger logger = Logger.getLogger(MfFeaturesManager.class.getName());
     private final ConcurrentMap<String, ClientMfFeaturesStore> clientStores
             = new ConcurrentHashMap<>();
-    private Set<NewResourceNotifier> notifiers = new HashSet<>();
+    private NewResourceNotifier notifier;
     private final ExternalResourceStreamer featuresFileHandler;
     private static final String MF_NEW_LOC_PATTERN = "mf";
 
@@ -72,10 +74,13 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
     public MfFeaturesManager(ExternalResourceStreamer featuresFileHandler,
                              NewResourceNotifier notifier){
         this.featuresFileHandler = featuresFileHandler;
-        notifiers.add(notifier);
-        notifier.addListener(MF_NEW_LOC_PATTERN, this);
+        this.notifier = notifier;
     }
 
+    @PostConstruct
+    public void init(){
+        notifier.addListener(MF_NEW_LOC_PATTERN, this);
+    }
 
     public void reloadFeatures(final String location, final String client){
         executor.execute(new Runnable() {

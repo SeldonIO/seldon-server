@@ -22,12 +22,17 @@
  */
 
 package io.seldon.api.state;
+
+import java.util.Map;
+
 /**
  * @author firemanphil
  *         Date: 27/11/14
  *         Time: 11:39
  */
 public interface ClientConfigHandler {
-    void addListener(ClientConfigUpdateListener listener);
+    Map<String, String> requestCacheDump(String client);
+
+    void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData);
 }
 

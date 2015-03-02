@@ -106,7 +106,8 @@ public class RecommendationContext {
         for (ItemIncluder producer : inclusionProducers){
             included.addAll(producer.generateIncludedItems(client, dimensionId, itemsPerIncluder));
         }
-        included.removeAll(excluded);
+        included.removeAll(excluded); // ok to do this as the excluded items that weren't in "included" will never
+                                      // be recommended
 
         return new RecommendationContext(MODE.INCLUSION, included, currentItem, lastRecListUUID);
     }

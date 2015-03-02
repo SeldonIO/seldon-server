@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -104,7 +105,7 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
                     logger.info("Found new client in list : " + client);
                     try {
                         handler.addSubscription("/" + client, this);
-                        doInitialRead(client);
+//                        doInitialRead(client);
                         clientSet.add(client);
                     }catch (Exception e){
                         logger.error("Couldn't add listener for client " + client, e);
@@ -116,24 +117,29 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
 
     }
 
-    private void doInitialRead(String client) {
+    private void doInitialRead(String client, ClientConfigUpdateListener listener) {
         if(!listeners.isEmpty()) {
             Map<String, String> values = handler.getChildrenValues("/"+client);
             if(values.isEmpty())
                 logger.warn("Initial read on client " + client +" children was empty");
             for (Map.Entry<String, String> entry : values.entrySet()) {
-                for (ClientConfigUpdateListener listener : listeners) {
-                    listener.configUpdated(client, entry.getKey(), entry.getValue());
-                }
+                listener.configUpdated(client, StringUtils.remove(entry.getKey(),"/"+client+"/"), entry.getValue());
             }
         }
     }
 
     @Override
-    public void addListener(ClientConfigUpdateListener listener) {
+    public Map<String, String> requestCacheDump(String client){
+        return handler.getChildrenValues("/" +client);
+    }
+
+    @Override
+    public void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData) {
         logger.info("Adding client config listener, current clients are " + StringUtils.join(clientSet,','));
         listeners.add(listener);
-        for(String client : clientSet)
-            doInitialRead(client);
+        if(notifyOnExistingData) {
+            for (String client : clientSet)
+                doInitialRead(client,listener);
+        }
     }
 }
