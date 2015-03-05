@@ -330,7 +330,8 @@ public class ActionService {
         String stratName = clientAlgorithmStore.retrieveStrategy(consumerBean.getShort_name()).getName();
         CtrFullLogger.log(true, consumerBean.getShort_name(), actionBean.getUser(),
                 actionBean.getItem(), recTag);
-        CtrLogger.log(true, consumerBean.getShort_name(), lastRecs.getAlgorithm(),
+        String algorithmsString = lastRecs==null? "UNKNOWN": lastRecs.getAlgorithm();
+        CtrLogger.log(true, consumerBean.getShort_name(), algorithmsString,
                 clickIndex, actionBean.getUser(), recsCounter, actionBean.getActionId(), 0, "", stratName, recTag);
 
     }
