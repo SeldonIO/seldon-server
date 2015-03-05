@@ -30,7 +30,7 @@
 
     <!-- Declare properties files -->
     <context:property-placeholder
-            location="classpath:version.properties,classpath:labs.properties"/>
+            location="classpath:version.properties,classpath:labs.properties,classpath:alg_default.properties"/>
 
     <!-- Pull in version info -->
     <import resource="api-version-ctx.xml"/>

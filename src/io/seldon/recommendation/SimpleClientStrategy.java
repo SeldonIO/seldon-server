@@ -46,7 +46,7 @@ public class SimpleClientStrategy implements ClientStrategy {
                                 Double diversityLevel, String name) {
         this.strategies = strategies;
         this.algResultsCombiner = algResultsCombiner;
-        this.diversityLevel = diversityLevel;
+        this.diversityLevel= diversityLevel==null? 1.0 : diversityLevel;
         this.name = name;
     }
 
