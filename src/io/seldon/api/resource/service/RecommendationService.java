@@ -302,19 +302,19 @@ public class RecommendationService {
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
                                             int dimensionId, String lastRecommendationListUuid, int limit,
                                             String attributes,List<String> algorithms,String referrer,String recTag) {
-        CFAlgorithm cfAlgorithm = getAlgorithmOptions(consumerBean, userId, algorithms,recTag); // default
+//        CFAlgorithm cfAlgorithm = getAlgorithmOptions(consumerBean, userId, algorithms,recTag); // default
         int typeId = 0;
         boolean full = true;
 
         final String shortName = consumerBean.getShort_name();
 
-        ListBean listBean = (ListBean) MemCachePeer.get(recommendedItemsKey(userId, cfAlgorithm, typeId, dimensionId, full, shortName));
+//        ListBean listBean = (ListBean) MemCachePeer.get(recommendedItemsKey(userId, cfAlgorithm, typeId, dimensionId, full, shortName));
 
         // Limit the size of the retrieved bean
-        listBean = Util.getLimitedBean(listBean, limit);
+//        listBean = Util.getLimitedBean(listBean, limit);
 
-        if (listBean == null) {
-            listBean = new ListBean();
+//        if (listBean == null) {
+        ListBean listBean = new ListBean();
 
             Long internalUserId;
             try {
@@ -357,11 +357,7 @@ public class RecommendationService {
             }
             listBean.setRequested(limit);
             listBean.setSize(recommendations.size());
-            if (Constants.CACHING && cfAlgorithm.getRecommendationCachingTimeSecs() > 0)
-                MemCachePeer.put(recommendedItemsKey(userId, cfAlgorithm, typeId, dimensionId, full, shortName),
-                        listBean, cfAlgorithm.getRecommendationCachingTimeSecs()
-                        );
-        }
+
         return listBean;
     }
 
