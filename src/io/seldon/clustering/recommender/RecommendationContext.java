@@ -175,7 +175,7 @@ public class RecommendationContext {
                 if(options.containsKey(optionName))
                     return Integer.parseInt(options.get(optionName));
                 else
-                    return Integer.parseInt(options.get(optionName));
+                    return Integer.parseInt(defaultOptions.getOption(optionName));
             } catch (NumberFormatException | NullPointerException e){
                 logger.error("Couldn't get algorithm option "+optionName,e);
                 return 0;
