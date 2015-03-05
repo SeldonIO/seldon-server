@@ -35,7 +35,11 @@ import java.util.List;
  */
 public interface ClientStrategy {
 
-    List<AlgorithmStrategy> getAlgorithms(String userId);
+    Double getDiversityLevel(String userId, String recTag);
 
-    AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId);
+    List<AlgorithmStrategy> getAlgorithms(String userId, String recTag);
+
+    AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId, String recTag);
+
+    String getName();
 }

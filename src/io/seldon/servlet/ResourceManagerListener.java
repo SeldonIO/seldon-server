@@ -36,7 +36,6 @@ import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
 import io.seldon.clustering.recommender.CountRecommender;
-import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
@@ -128,8 +127,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     		//Initialise Memory User Clusters (assumes JDO backend)
     		ClusterFromReferrerPeer.initialise(props);
     		
-    		GlobalWeightedMostPopular.initialise(props);
-    		
+
     		ActionHistoryCache.initalise(props);
 
     		DynamicParameterServer.startReloadTimer();

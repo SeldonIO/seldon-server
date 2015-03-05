@@ -30,15 +30,13 @@ public class SortResult {
 	private List<Long> sortedItems;
 	private List<CFAlgorithm.CF_SORTER> sorters;
 	private CFAlgorithm.CF_STRATEGY sorterStrategy;
-	private CFAlgorithm.CF_POSTPROCESSING postprocessing;
-	
+
 	public SortResult(List<Long> sortedItems, List<CFAlgorithm.CF_SORTER> sorters,
-			CFAlgorithm.CF_STRATEGY sorterStrategy, CFAlgorithm.CF_POSTPROCESSING postprocessing) {
+			CFAlgorithm.CF_STRATEGY sorterStrategy) {
 		super();
 		this.sortedItems = sortedItems;
 		this.sorters = sorters;
 		this.sorterStrategy = sorterStrategy;
-		this.postprocessing = postprocessing;
 	}
 
 	public List<Long> getSortedItems() {
@@ -53,10 +51,6 @@ public class SortResult {
 		return sorterStrategy;
 	}
 
-	public CFAlgorithm.CF_POSTPROCESSING getPostprocessing() {
-		return postprocessing;
-	}
-	
 	public String toLog() {
 		String res = "";
 		//CF_SORTER
@@ -69,9 +63,6 @@ public class SortResult {
 		//CF_STRATEGY
 		if(sorterStrategy!=null) 
 			res +=";" + sorterStrategy.name();
-		//CF_POSTPROCESSING
-		if(postprocessing!=null)
-			res +=";" + postprocessing.name();
 		return res;
 	}
 	

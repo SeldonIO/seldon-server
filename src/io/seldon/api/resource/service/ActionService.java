@@ -29,6 +29,8 @@ import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.logging.ActionLogger;
+import io.seldon.api.logging.CtrFullLogger;
+import io.seldon.api.logging.CtrLogger;
 import io.seldon.api.resource.ActionBean;
 import io.seldon.api.resource.ActionTypeBean;
 import io.seldon.api.resource.ConsumerBean;
@@ -39,20 +41,21 @@ import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.exception.ActionTypeNotFoundException;
 import io.seldon.api.service.async.AsyncActionQueue;
 import io.seldon.api.service.async.JdoAsyncActionFactory;
+import io.seldon.api.state.ClientAlgorithmStore;
+import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.clustering.recommender.ClientClusterTypeService;
 import io.seldon.clustering.recommender.CountRecommender;
-import io.seldon.clustering.recommender.GlobalWeightedMostPopular;
-import io.seldon.clustering.recommender.MemoryWeightedClusterCountMap;
 import io.seldon.general.Action;
 import io.seldon.general.ActionType;
 import io.seldon.general.Item;
 import io.seldon.general.User;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.ItemsRankingManager;
 
 import java.util.Collection;
 
+import io.seldon.recommendation.AlgorithmStrategy;
+import io.seldon.trust.impl.jdo.LastRecommendationBean;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,6 +73,8 @@ public class ActionService {
 	private ClientClusterTypeService clusterTypeService;
 	
 
+    @Autowired
+    private ClientAlgorithmStore clientAlgorithmStore;
 	
 	public static ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false));
@@ -276,21 +281,6 @@ public class ActionService {
 				
 				
 			}
-			
-			//add item to the global lists
-			if(itemId > 0 ) {
-				
-				ItemsRankingManager.getInstance().Hit(c.getShort_name(), itemId);
-				
-				if (GlobalWeightedMostPopular.isActive())
-				{
-					MemoryWeightedClusterCountMap m =  GlobalWeightedMostPopular.get(c.getShort_name());
-					if (a.getDate() != null)
-						m.incrementCount(itemId, 1, a.getDate().getTime()/1000);
-					else
-						m.incrementCount(itemId, 1, System.currentTimeMillis()/1000);
-				}
-			}
 		}
 		else {
 //			logger.error("UserId or ItemId is null when adding action "+bean);
@@ -299,21 +289,7 @@ public class ActionService {
         }
 	}
 	
-	public static void addAction(ConsumerBean c,Action action) {
-		//check if user and item exist
-		//if not it adds them to the db
-		/* try { ItemService.getInternalItemId(c, bean.getItem()); }
-		catch(APIException e) {if(e.getError_id()==APIException.ITEM_NOT_FOUND) ItemService.addItem(c, new ItemBean(bean.getItem()));};
-		try { UserService.getInternalUserId(c, bean.getUser()); }
-		catch(APIException e) {if(e.getError_id()==APIException.USER_NOT_FOUND) UserService.addUser(c, new UserBean(bean.getUser()));}; 
-		Action a = bean.createAction(c); */
-		Util.getActionPeer(c).addAction(action);
-		//global lists
-		if(action.getItemId() > 0) {
-			ItemsRankingManager.getInstance().Hit(c.getShort_name(),action.getItemId());
-		}
-	}
-	
+
 	public static ActionType getActionType(ConsumerBean c, String name) throws ActionTypeNotFoundException {
         String actionTypeKey = MemCacheKeys.getActionTypeByName(c.getShort_name(), name);
         ActionType at = (ActionType) MemCachePeer.get(actionTypeKey);
@@ -346,6 +322,16 @@ public class ActionService {
 		}
 			return bean;
 	}
-	
-	
+
+
+    public void logAction(ConsumerBean consumerBean, ActionBean actionBean, LastRecommendationBean lastRecs, int clickIndex,
+                          String recTag, String recsCounter) {
+        StatsdPeer.logClick(consumerBean.getShort_name(), recTag);
+        String stratName = clientAlgorithmStore.retrieveStrategy(consumerBean.getShort_name()).getName();
+        CtrFullLogger.log(true, consumerBean.getShort_name(), actionBean.getUser(),
+                actionBean.getItem(), recTag);
+        CtrLogger.log(true, consumerBean.getShort_name(), lastRecs.getAlgorithm(),
+                clickIndex, actionBean.getUser(), recsCounter, actionBean.getActionId(), 0, "", stratName, recTag);
+
+    }
 }

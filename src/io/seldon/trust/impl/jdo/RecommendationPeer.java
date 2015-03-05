@@ -31,6 +31,7 @@ import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.DimensionBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.state.ClientAlgorithmStore;
+import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.clustering.recommender.*;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 
@@ -48,6 +49,7 @@ import io.seldon.trust.impl.CFAlgorithm.CF_ITEM_COMPARATOR;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
 import io.seldon.trust.impl.TrustNetworkSupplier.CF_TYPE;
 import io.seldon.util.CollectionTools;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -60,12 +62,13 @@ import java.util.*;
  *
  */
 @Component
-public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis {
+public class RecommendationPeer {
 
 	private static Logger logger = Logger.getLogger(RecommendationPeer.class.getName());
 	
 	public static final int MEMCACHE_TRUSTNET_EXPIRE_SECS = 60 * 60 * 3;
 	public static final int MEMCACHE_RECENT_ITEMS_EXPIRE_SECS = 60 * 15;
+	private final DefaultOptions defaultOptions;
 
 	private double HIGH_RATING_THRESHOLD = 0.5;
 	private double INITIAL_REVIEW_SET_RATIO = 2F;
@@ -76,31 +79,28 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
     private boolean debugging = false;
 
 	@Autowired
-    public RecommendationPeer(ClientAlgorithmStore algStore) {
+    public RecommendationPeer(ClientAlgorithmStore algStore, DefaultOptions defaultOptions) {
         this.algStore = algStore;
+		this.defaultOptions = defaultOptions;
     }
 
 
-	public RecommendationResult getRecommendations(long user, String clientUserId,Integer type,
+	public RecommendationResult getRecommendations(long user, String client, String clientUserId,Integer type,
 												   int dimension, int numRecommendationsAsked,
-												   CFAlgorithm options,String lastRecListUUID,
-												   Long currentItemId, String referrer) {
-
-		String abTestingKey = options.getAbTestingKey() == null ? "<default>" : options.getAbTestingKey();
-		if (debugging)
-			logger.debug("Get recommendations for " + user + " AB Testing Key:"+abTestingKey+" algorithm: " + options.toString());
+												   String lastRecListUUID,
+												   Long currentItemId, String referrer, String recTag) {
+		ClientStrategy strategy = algStore.retrieveStrategy(client);
 
 		//Set base values - will be used for anonymous users
 		int numRecommendations = numRecommendationsAsked;
-		Set<Long> exclusions = new HashSet<>();
 		int numRecentActions = 0;
 
-
-		if (options.getRecommendationDiversity() > 1.0f)
+		Double diversityLevel = strategy.getDiversityLevel(clientUserId, recTag);
+		if (diversityLevel > 1.0f)
 		{
-			int numRecommendationsDiverse = Math.round(numRecommendationsAsked * options.getRecommendationDiversity());
+			int numRecommendationsDiverse = new Long(Math.round(numRecommendationsAsked * diversityLevel)).intValue();
 			if (debugging)
-				logger.debug("Updated num recommendations as for client "+options.getName()+" diversity is "+options.getRecommendationDiversity()+" was "+numRecommendationsAsked+" will now be "+numRecommendationsDiverse);
+				logger.debug("Updated num recommendations as for client "+client+" diversity is "+diversityLevel+" was "+numRecommendationsAsked+" will now be "+numRecommendationsDiverse);
 			numRecommendations = numRecommendationsDiverse;
 		}
 		else
@@ -110,11 +110,12 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 		if (user != Constants.ANONYMOUS_USER) // only can get recent actions for non anonymous user
 		{
 			// get recent actions for user
-			ActionHistoryCache ah = new ActionHistoryCache(options.getName());
-			recentActions = ah.getRecentActions(user, options.getNumRecentActions() > 0 ? options.getNumRecentActions() : numRecommendations);
+			ActionHistoryCache ah = new ActionHistoryCache(client);
+			//  TODO decide  on how to get number of recentactions
+			recentActions = ah.getRecentActions(user, 10);
 			numRecentActions = recentActions.size();
 			if (debugging)
-				logger.debug("RecentActions for user with client "+options.getName()+" internal user id "+user+" num." + numRecentActions);
+				logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + numRecentActions);
 		}
 		else if (debugging)
 			logger.debug("Can't get recent actions for anonymous user "+clientUserId);
@@ -123,14 +124,12 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 		Map<Long,Double> recommenderScores = new HashMap<>();
 		Map<Long,Double> recommendations = new HashMap<>();
 		boolean tryNext = true;
-		StringBuffer algorithmKey = new StringBuffer();
-		ClientStrategy strategy = algStore.retrieveStrategy(options.getName());
+		List<String> algsUsed = new ArrayList<>();
 		List<ItemRecommendationResultSet> resultSets = new ArrayList<>();
-		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId);
-		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId))
+		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
+		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId, recTag))
 		{
-			if (!tryNext)
-				break;
+            algsUsed.add(algStr.name);
 
 
 			logger.debug("Using recommender " + algStr.algorithm.name());
@@ -145,9 +144,9 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 			// add current item id if not in recent actions
 			if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
 				recentItemInteractions.add(currentItemId);
-			RecommendationContext ctxt = RecommendationContext.buildContext(algStr.includers, algStr.filters,
-					options.getName(), user,clientUserId,currentItemId, dimension, lastRecListUUID,ItemIncluder.NUMBER_OF_ITEMS_PER_INCLUDER_DEFAULT, numRecommendations,options );
-			ItemRecommendationResultSet results = algStr.algorithm.recommend(options, options.getName(), user, dimension,
+			RecommendationContext ctxt = RecommendationContext.buildContext(client,
+					algStr,user,clientUserId,currentItemId, dimension, lastRecListUUID, numRecommendations,defaultOptions);
+			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimension,
 					numRecommendations, ctxt, recentItemInteractions);
 
 			for (ItemRecommendationResultSet.ItemRecommendationResult result : results.getResults()) {
@@ -175,51 +174,33 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 //					break;
 //			}
 			List<Long> recommendationsFinal = CollectionTools.sortMapAndLimitToList(recommenderScores, numRecommendations, true);
-			return createFinalRecResult(numRecommendationsAsked,clientUserId, dimension,
-					lastRecListUUID, recommendationsFinal,algorithmKey.toString(),
-					currentItemId,numRecentActions, options);
+			return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimension,
+                    lastRecListUUID, recommendationsFinal, StringUtils.join(algsUsed,','),
+                    currentItemId, numRecentActions, diversityLevel,strategy,recTag);
 		}
 		else
 		{
 			logger.warn("Returning no recommendations for user with client id "+clientUserId);
-			return createFinalRecResult(numRecommendationsAsked,clientUserId,
+			return createFinalRecResult(numRecommendationsAsked,client, clientUserId,
 					dimension, lastRecListUUID, new ArrayList<Long>(),"",currentItemId,
-					numRecentActions, options);
+					numRecentActions, diversityLevel,strategy, recTag);
 		}
 	}
 
-	private Integer getDimensionForAttrName(long itemId, CFAlgorithm options)
-    {
-        ClientPersistable cp = new ClientPersistable(options.getName());
-        String attrName = options.getCategoryDim();
-        String key = MemCacheKeys.getDimensionForAttrName(options.getName(), itemId, attrName);
-    	Integer dimId = (Integer) MemCachePeer.get(key);
-    	if (dimId == null)
-    	{
-    		ItemPeer iPeer = Util.getItemPeer(cp.getPM());
-    		dimId = iPeer.getDimensionForAttrName(itemId, attrName);
-    		if (dimId != null)
-    		{
-    			MemCachePeer.put(key, dimId, Constants.CACHING_TIME);
-    			logger.info("Get dim for item "+itemId+" for attrName "+attrName+" and got "+dimId);
-    		}
-    		else
-    			logger.info("Got null for dim for item "+itemId+" for attrName "+attrName);
-    	}
-    	return dimId;
-    }
 
-
-
-    private RecommendationResult createFinalRecResult(int numRecommendationsAsked,String clientUserId,int dimension,String currentRecUUID,List<Long> recs,String algKey,Long currentItemId,int numRecentActions, CFAlgorithm options)
+    private RecommendationResult createFinalRecResult(int numRecommendationsAsked, String client, String clientUserId,
+													  int dimension,String currentRecUUID,List<Long> recs,String algKey,
+													  Long currentItemId,int numRecentActions, Double diversityLevel,
+                                                      ClientStrategy strat, String recTag)
     {
     	List<Long> recsFinal;
-    	if (options.getRecommendationDiversity() > 1.0)
-    		recsFinal = RecommendationUtils.getDiverseRecommendations(numRecommendationsAsked, recs,options.getName(),clientUserId,dimension);
+    	if (diversityLevel > 1.0)
+    		recsFinal = RecommendationUtils.getDiverseRecommendations(numRecommendationsAsked, recs,client,clientUserId,dimension);
     	else
     		recsFinal = recs;
 
-    	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(options.getName(), clientUserId, dimension, currentRecUUID, recsFinal, options,algKey,currentItemId,numRecentActions);
+    	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, clientUserId, dimension,
+                currentRecUUID, recsFinal, algKey,currentItemId,numRecentActions, strat, recTag);
     	List<Recommendation> recBeans = new ArrayList<>();
     	for(Long itemId : recsFinal)
     		recBeans.add(new Recommendation(itemId, 0, 0.0));
@@ -232,18 +213,11 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 
 
 
-	@Override
 	public RecommendationNetwork getNetwork(long user, int type, CFAlgorithm cfAlgorithm) {
 		return new SimpleTrustNetworkProvider(cfAlgorithm).getTrustNetwork(user, type);
 	}
 
-	@Override
-	public RummbleLabsAnalysis getAnalysis(CFAlgorithm options) {
-		//trustNetProvider = new TrustNetworkProvider(getPM(),client);
-		return this;
-	}
 
-	@Override
 	public List<SearchResult> findSimilar(long content, int type, int numResults, CFAlgorithm options) {
 		List<SearchResult> res = new ArrayList<>();
 		for(CF_ITEM_COMPARATOR comparator : options.getItemComparators())
@@ -301,7 +275,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 		return res;
 	}
 
-	@Override
 	public List<SearchResult> searchContent(String query, Long user, DimensionBean d,int numResults,
 				CFAlgorithm options) {
 		ClientPersistable cp = new ClientPersistable(options.getName());
@@ -342,9 +315,6 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 		return res;
 	}
 
-
-
-	@Override
 	public SortResult sort(Long userId,List<Long> items, CFAlgorithm options, List<Long> recentActions) {
         ClientPersistable cp = new ClientPersistable(options.getName());
 
@@ -368,23 +338,7 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 					res = items;
 					break;
 
-				case MOST_POPULAR_WEIGHTED_MEMBASED:
-					MemoryWeightedClusterCountMap map = GlobalWeightedMostPopular.get(options.getName());
-					if (map != null)
-					{
-						GlobalWeightedMostPopularUtils countUtils = new GlobalWeightedMostPopularUtils(map,TestingUtils.getTime());
-						res = countUtils.sort(items);
-					}
-					break;
-				case MOST_POPULAR_MEMBASED:
-					res= ItemsRankingManager.getInstance().getItemsByHits(options.getName(), items);
-					break;
-				case MOST_RECENT_MEMBASED:
-					res = ItemsRankingManager.getInstance().getItemsByDate(options.getName(), items);
-					break;
-				case MOST_POP_RECENT_MEMBASED:
-					res = ItemsRankingManager.getInstance().getCombinedList(options.getName(), items, null);
-					break;
+
 				case SEMANTIC_VECTORS:
 				{
 					if (debugging)
@@ -504,44 +458,14 @@ public class RecommendationPeer implements  RummbleLabsAPI, RummbleLabsAnalysis 
 			}
 			List<Long> res = CollectionTools.sortMapAndLimitToList(results, results.size(), false);
 
-			//Post-processing - if specified
-			if (res != null)
-			{
-				if (debugging)
-					logger.debug("Calling post processor " + options.getPostprocessing().name());
-				switch(options.getPostprocessing())
-				{
-				case NONE:
-					break;
-				case ADD_MISSING:
-					for(Long item : items)
-						if (!res.contains(item))
-							res.add(item);
-					break;
-				case HITS:
-					res = ItemsRankingManager.getInstance().getCombinedListWithHits(options.getName(), items, res);
-					break;
-				case TIME_HITS:
-					res = ItemsRankingManager.getInstance().getCombinedList(options.getName(), items, res);
-					break;
-				case HITS_WEIGHTED:
-					MemoryWeightedClusterCountMap map = GlobalWeightedMostPopular.get(options.getName());
-					if (map != null)
-					{
-						GlobalWeightedMostPopularUtils countUtils = new GlobalWeightedMostPopularUtils(map,TestingUtils.getTime());
-						res = countUtils.merge(res,0.5f);
-					}
-					break;
-				}
-			}
 			if (res == null)
 				res = new ArrayList<>();
-			return new SortResult(res,successfulMethods,options.getSorterStrategy(),options.getPostprocessing());
+			return new SortResult(res,successfulMethods,options.getSorterStrategy());
 		}
 		else
 		{
 			logger.warn("No items to sort for user "+userId);
-			return new SortResult(new ArrayList<Long>(),new ArrayList<CF_SORTER>(),options.getSorterStrategy(),options.getPostprocessing());
+			return new SortResult(new ArrayList<Long>(),new ArrayList<CF_SORTER>(),options.getSorterStrategy());
 		}
 	}
 

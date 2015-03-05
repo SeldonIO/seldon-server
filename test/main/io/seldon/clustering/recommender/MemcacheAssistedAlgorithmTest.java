@@ -76,7 +76,7 @@ public class MemcacheAssistedAlgorithmTest {
         expect(mockCtxt.getContextItems()).andReturn(new HashSet<Long>()).times(2);
         replay(mockClient, mockCtxt);
 
-        ItemRecommendationResultSet recs = alg.recommend(new CFAlgorithm(),client, user, 0, 2,mockCtxt,null);
+        ItemRecommendationResultSet recs = alg.recommend(client, user, 0, 2,mockCtxt,null);
         verify(mockClient,mockCtxt);
         assertEquals(2,recs.getResults().size());
         assertEquals(resultsInMemcache, recs);
@@ -96,7 +96,7 @@ public class MemcacheAssistedAlgorithmTest {
         replay(mockClient, mockCtxt);
 
 
-        ItemRecommendationResultSet recs = alg.recommend(new CFAlgorithm(),client, user, 0, 2,mockCtxt, null);
+        ItemRecommendationResultSet recs = alg.recommend(client, user, 0, 2,mockCtxt, null);
         verify(mockClient, mockCtxt);
         assertEquals(2,recs.getResults().size());
 
@@ -113,7 +113,7 @@ public class MemcacheAssistedAlgorithmTest {
         expect(mockClient.set(SecurityHashPeer.md5digest("RecommendedItems:example:MemcacheAlgTestExample:1:0"), EXP_TIME, RECOMMENDATION_RESULT_SET)).andReturn(null);
         replay(mockClient);
 
-        alg.recommend(new CFAlgorithm(),client, user, 0, 2,null,null);
+        alg.recommend(client, user, 0, 2,null,null);
         verify(mockClient);
         assertTrue(alg.recWithoutCacheCalled);
     }
@@ -125,7 +125,7 @@ public class MemcacheAssistedAlgorithmTest {
         expect(mockClient.set(SecurityHashPeer.md5digest("RecommendedItems:example:MemcacheAlgTestExample:1:0"), EXP_TIME, RECOMMENDATION_RESULT_SET)).andReturn(null);
         replay(mockClient);
 
-        alg.recommend(new CFAlgorithm(),client, user, 0, 2,null,null);
+        alg.recommend(client, user, 0, 2,null,null);
         verify(mockClient);
         assertTrue(alg.recWithoutCacheCalled);
     }
@@ -142,7 +142,7 @@ public class MemcacheAssistedAlgorithmTest {
         expect(mockCtxt.getContextItems()).andReturn(new HashSet<Long>());
         replay(mockClient, mockCtxt);
 
-        alg.recommend(new CFAlgorithm(),client, user,0, 2,mockCtxt,null);
+        alg.recommend(client, user,0, 2,mockCtxt,null);
         verify(mockClient,mockCtxt);
         assertTrue(alg.recWithoutCacheCalled);
     }
@@ -163,7 +163,7 @@ public class MemcacheAssistedAlgorithmTest {
         }
 
         @Override
-        public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client, Long user, int dimension,RecommendationContext ctxt, int maxRecsCount, List<Long> recentItems) {
+        public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,RecommendationContext ctxt, int maxRecsCount, List<Long> recentItems) {
             recWithoutCacheCalled = true;
             return RECOMMENDATION_RESULT_SET;
         }

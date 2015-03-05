@@ -23,7 +23,7 @@
 
 package io.seldon.trust.impl.filters.base;
 
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.trust.impl.ItemFilter;
 import org.springframework.stereotype.Component;
 
@@ -39,8 +39,8 @@ import java.util.List;
 @Component
 public class CurrentItemFilter implements ItemFilter {
     @Override
-    public List<Long> produceExcludedItems(String client, Long user, String clientUserId,
-                                           Long currentItem,String lastRecListUUID, int numRecommendations, CFAlgorithm options) {
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
+                                           Long currentItem,String lastRecListUUID, int numRecommendations) {
         return Collections.singletonList(currentItem);
     }
 }

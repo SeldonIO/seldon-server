@@ -38,13 +38,15 @@ import org.apache.log4j.Logger;
  *         Time: 17:06
  */
 public abstract class BaseItemCategoryRecommender {
+    private static final String CATEGORY_DIM_OPT_NAME = "io.seldon.algorithm.clusters.categorydimensionname";
     private static Logger logger = Logger.getLogger(BaseItemCategoryRecommender.class.getName());
 
-    protected Integer getDimensionForAttrName(long itemId, CFAlgorithm options)
+    protected Integer getDimensionForAttrName(long itemId, String client, RecommendationContext ctxt)
     {
-        ClientPersistable cp = new ClientPersistable(options.getName());
-        String attrName = options.getCategoryDim();
-        String key = MemCacheKeys.getDimensionForAttrName(options.getName(), itemId, attrName);
+        RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
+        ClientPersistable cp = new ClientPersistable(client);
+        String attrName = opts.getStringOption(CATEGORY_DIM_OPT_NAME);
+        String key = MemCacheKeys.getDimensionForAttrName(client, itemId, attrName);
         Integer dimId = (Integer) MemCachePeer.get(key);
         if (dimId == null)
         {

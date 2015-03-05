@@ -27,6 +27,7 @@ import io.seldon.api.resource.service.PersistenceProvider;
 import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
+import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
 import net.spy.memcached.MemcachedClient;
 import org.apache.log4j.Logger;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author firemanphil
@@ -43,21 +45,21 @@ import java.util.List;
  *         Time: 11:49
  */
 @Component
-public class ItemRetriever {
+public class ItemStorage {
 
-    private static Logger logger = Logger.getLogger( ItemRetriever.class.getName() );
+    private static Logger logger = Logger.getLogger( ItemStorage.class.getName() );
 
     // 5 mins
     private static final int MOST_POPULAR_EXPIRE_TIME = 5 * 60;
     // 15 mins
     private static final int RECENT_ITEMS_EXPIRE_TIME = 15 * 60;
-
+    private static final int MEMCACHE_EXCLUSIONS_EXPIRE_SECS = 30 * 60;
     private final MemcachedClient memcache;
     private final PersistenceProvider provider;
     private final DogpileHandler dogpileHandler;
 
     @Autowired
-    public ItemRetriever(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
+    public ItemStorage(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
         this.memcache = memcache;
         this.provider = provider;
         this.dogpileHandler = dogpileHandler;
@@ -93,7 +95,7 @@ public class ItemRetriever {
         if (retrievedItems==null || retrievedItems.size() < numItemsRequired) retrievedItems = null;
         T newerRetrievedItems = null;
         try {
-            newerRetrievedItems = DogpileHandler.get().retrieveUpdateIfRequired(key, retrievedItems, retriever, expireTime);
+            newerRetrievedItems = dogpileHandler.retrieveUpdateIfRequired(key, retrievedItems, retriever, expireTime);
             if(newerRetrievedItems!=null){
                 memcache.set(key, expireTime, newerRetrievedItems);
                 return newerRetrievedItems;
@@ -104,4 +106,16 @@ public class ItemRetriever {
         return retrievedItems;
     }
 
+    public Set<Long> retrieveIgnoredItems(String client, String clientUserId) {
+        // no dogpile handler as this will change regularly and we aren't using the DB
+
+        final String exKey = MemCacheKeys.getExcludedItemsForRecommendations(client, clientUserId);
+        return (Set<Long>) MemCachePeer.get(exKey);
+    }
+
+    public void persistIgnoredItems(String client, String clientUserId, Set<Long> ignoredItems){
+
+        final String exKey = MemCacheKeys.getExcludedItemsForRecommendations(client, clientUserId);
+        memcache.set(exKey,MEMCACHE_EXCLUSIONS_EXPIRE_SECS,ignoredItems);
+    }
 }

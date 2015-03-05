@@ -57,7 +57,7 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client, Long user, int dimension,
+    public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,
             RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions) {
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
 

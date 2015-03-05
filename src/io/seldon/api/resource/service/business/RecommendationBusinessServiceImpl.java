@@ -64,7 +64,7 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
 
     @Override
     public ResourceBean recommendationsForUser(ConsumerBean consumerBean, HttpServletRequest request, String userId) {
-        ResourceBean res;
+        ResourceBean res = null;
         try {
             List<String> keywords = Util.getKeywords(request);
             Integer itemType = Util.getType(request);
@@ -87,7 +87,7 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
             } else {
                 int limit = Util.getLimit(request);
                 boolean full = Util.getFull(request);
-                res = recommendationService.getRecommendations(consumerBean, userId, itemType, dimension, limit, full, algorithms);
+//                res = recommendationService.getRecommendations(consumerBean, userId, itemType, dimension, limit, full, algorithms);
             }
         } catch (APIException e) {
             ApiLoggerServer.log(this, e);

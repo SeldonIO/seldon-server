@@ -51,13 +51,23 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public List<AlgorithmStrategy> getAlgorithms(String userId) {
-        return sample(userId).getAlgorithms(userId);
+    public Double getDiversityLevel(String userId,String recTag) {
+        return sample(userId).getDiversityLevel(userId, recTag);
     }
 
     @Override
-    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId) {
-        return sample(userId).getAlgorithmResultsCombiner(userId);
+    public List<AlgorithmStrategy> getAlgorithms(String userId, String recTag) {
+        return sample(userId).getAlgorithms(userId, recTag);
+    }
+
+    @Override
+    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId,String recTag) {
+        return sample(userId).getAlgorithmResultsCombiner(userId, recTag);
+    }
+
+    @Override
+    public String getName() {
+        return "-";
     }
 
     public ClientStrategy sample(String userId) {

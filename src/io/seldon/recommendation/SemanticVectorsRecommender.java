@@ -42,7 +42,13 @@ import java.util.*;
  */
 @Component
 public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
+    private static final String IGNORE_PEFECT_MATCH_OPTION_NAME = "io.seldon.algorithm.semantic.ignoreperfectsvmatches";
+    private static final String SV_PREFIX_OPTION_NAME = "io.seldon.algorithm.semantic.prefix";
+    private static final String SV_HISTORY_SIZE = "io.seldon.algorithm.semantic.historysize";
+    private static final String RECENT_ARTICLES_SIZE = "io.seldon.algorithm.semantic.recentarticlessize";
     SemanticVectorsManager svManager;
+
+
     @Autowired
     public SemanticVectorsRecommender(SemanticVectorsManager svManager)
     {
@@ -51,33 +57,38 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client,
+    public ItemRecommendationResultSet recommendWithoutCache(String client,
                                                              Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions) {
 
+        RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
         if (recentItemInteractions.size() == 0)
         {
             logger.debug("Can't recommend as no recent item interactions");
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
         }
+        Boolean isIgnorePerfectSvMatches = options.getBooleanOption(IGNORE_PEFECT_MATCH_OPTION_NAME);
+        String svPrefix = options.getStringOption(SV_PREFIX_OPTION_NAME);
+        Integer txHistorySize = options.getIntegerOption(SV_HISTORY_SIZE);
+        Integer recentArticlesSize = options.getIntegerOption(RECENT_ARTICLES_SIZE);
+        SemanticVectorsStore svPeer = svManager.getStore(client, svPrefix);
 
-        SemanticVectorsStore svPeer = svManager.getStore(client, options.getSvPrefix());
         if (svPeer == null)
         {
-            logger.debug("Failed to find sv peer for client "+client+" with type "+options.getSvPrefix());
+            logger.debug("Failed to find sv peer for client "+client+" with type "+svPrefix);
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
         }
 
-        if(recentItemInteractions.size() > options.getTxHistorySizeForSV())
-            recentItemInteractions = recentItemInteractions.subList(0, options.getTxHistorySizeForSV());
+        if(recentItemInteractions.size() > txHistorySize)
+            recentItemInteractions = recentItemInteractions.subList(0, txHistorySize);
 
         Map<Long,Double> recommendations;
 
 
-        if (options.getRecentArticlesForSV() > 0 || ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
-            recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,options.isIgnorePerfectSVMatches());
+        if (recentArticlesSize> 0 || ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
+            recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,isIgnorePerfectSvMatches);
         else {
             Set<Long> itemExclusions = ctxt.getMode() == RecommendationContext.MODE.INCLUSION ? Collections.<Long>emptySet() : ctxt.getContextItems();
-            recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, new LongIdTransform(), maxRecsCount, itemExclusions, null, options.isIgnorePerfectSVMatches());
+            recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, new LongIdTransform(), maxRecsCount, itemExclusions, null,isIgnorePerfectSvMatches);
         }
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         for(Map.Entry<Long, Double> e : recommendations.entrySet())

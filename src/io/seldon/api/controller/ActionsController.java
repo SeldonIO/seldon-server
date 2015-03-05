@@ -206,7 +206,7 @@ public class ActionsController {
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeys((ConsumerBean)con, action.getUser(),action.getItem());
-            responseBean = actionBusinessService.addAction((ConsumerBean) con, action);
+            responseBean = actionBusinessService.addAction((ConsumerBean) con, action,false,"","");
         }
 		else {
 			responseBean = con;

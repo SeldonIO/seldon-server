@@ -35,25 +35,34 @@ import java.util.*;
  *         Time: 14:14
  */
 public class BaseClusterCountsRecommender {
+    private static final String LONG_TERM_WEIGHT_OPTION_NAME = "io.seldon.algorithm.clusters.longtermweight";
+    private static final String SHORT_TERM_WEIGHT_OPTION_NAME = "io.seldon.algorithm.clusters.shorttermweight";
+    private static final String MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME 
+            = "io.seldon.algorithm.clusters.minnumberitemsforvalidclusterresult";
+    private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
+
     private static Logger logger = Logger.getLogger(BaseClusterCountsRecommender.class.getName());
 
-    public ItemRecommendationResultSet recommend(CFAlgorithm.CF_RECOMMENDER recommenderType,
-                                                 CFAlgorithm options, Long user, int dimensionId,
-                                                 int maxRecsCount, RecommendationContext ctxt) {
-        JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(options.getName());
-        CountRecommender r = cUtils.getCountRecommender(options.getName());
+    public ItemRecommendationResultSet recommend(String recommenderType, String client,
+                                                 RecommendationContext ctxt, Long user, int dimensionId,
+                                                 int maxRecsCount) {
+        JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
+        CountRecommender r = cUtils.getCountRecommender(client);
+        RecommendationContext.OptionsHolder optionsHolder = ctxt.getOptsHolder();
         if (r != null)
         {
             long t1 = System.currentTimeMillis();
-            r.setRecommenderType(recommenderType);
             Set<Long> exclusions = Collections.emptySet();
             if(ctxt.getMode()== RecommendationContext.MODE.EXCLUSION){
                 exclusions = ctxt.getContextItems();
             }
-            boolean includeShortTermClusters = recommenderType == CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_DYNAMIC;
-            Map<Long, Double> recommendations = r.recommend(user, null, dimensionId, maxRecsCount, exclusions, includeShortTermClusters,
-                    options.getLongTermWeight(), options.getShortTermWeight(), options.getDecayRateSecs(),
-                    options.getMinNumberItemsForValidClusterResult());
+            boolean includeShortTermClusters = recommenderType.equals("CLUSTER_COUNTS_DYNAMIC");
+            Double longTermWeight = optionsHolder.getDoubleOption(LONG_TERM_WEIGHT_OPTION_NAME);
+            Double shortTermWeight = optionsHolder.getDoubleOption(SHORT_TERM_WEIGHT_OPTION_NAME);
+            Integer minClusterItems = optionsHolder.getIntegerOption(MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME);
+            Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
+            Map<Long, Double> recommendations = r.recommend(recommenderType, user, null, dimensionId, maxRecsCount, exclusions, includeShortTermClusters,
+                    longTermWeight,shortTermWeight,decayRate,minClusterItems);
             long t2 = System.currentTimeMillis();
             logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1)+" and got back "+recommendations.size()+" recommednations");
             List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

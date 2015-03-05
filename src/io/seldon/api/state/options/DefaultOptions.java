@@ -21,58 +21,29 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.api.state.options;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-public class RankedItem<T> implements Comparable<RankedItem<T>> {
+/**
+ * Store for default options.
+ *
+ * @author firemanphil
+ *         Date: 02/03/15
+ *         Time: 17:26
+ */
+@Component
+public class DefaultOptions {
 
-	private T itemId;
-	private Integer pos;
-	
-	public RankedItem(T itemId,Integer pos) {
-		this.itemId = itemId;
-		this.pos = pos;
-	}
+    @Autowired
+    private Environment env;
 
-	
-	
-	public T getItemId() {
-		return itemId;
-	}
+    public String getOption(String optionName){
+        return env.getProperty(optionName);
+    }
 
-	public void setItemId(T itemId) {
-		this.itemId = itemId;
-	}
 
-	public Integer getPos() {
-		return pos;
-	}
-
-	public void setPos(Integer pos) {
-		this.pos = pos;
-	}
-	
-	public void add(RankedItem other)
-	{
-		this.pos = this.pos + other.pos;
-	}
-
-	@Override
-	public int compareTo(RankedItem<T> item2) {
-		if(this.pos < item2.getPos()) { return -1; }
-		else if(this.pos > item2.getPos()) { return 1; }
-		else return 0;
-	}
-	
-	public static <K> List<RankedItem<K>> createFromList(List<K> list)
-	{
-		List<RankedItem<K>> res = new ArrayList<>();
-		int pos = 1;
-		for(K i : list)
-			res.add(new RankedItem<>(i,pos++));
-		return res;
-	}
 
 }

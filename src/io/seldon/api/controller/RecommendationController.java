@@ -89,7 +89,7 @@ public class RecommendationController {
 		if(con instanceof ConsumerBean) {
 			try {
 				MDCKeys.addKeys((ConsumerBean)con, userId, itemId);
-				res = recommendationService.getRecommendation((ConsumerBean)con,userId,itemType,dimension,itemId, Constants.POSITION_NOT_DEFINED,algorithms);
+//				res = recommendationService.getRecommendation((ConsumerBean)con,userId,itemType,dimension,itemId, Constants.POSITION_NOT_DEFINED,algorithms);
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);

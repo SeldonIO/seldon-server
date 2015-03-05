@@ -36,8 +36,8 @@ import java.util.List;
 @Component
 public class ItemClusterCountsRecommender extends BaseItemClusterCountsRecommender implements ItemRecommendationAlgorithm {
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return recommend(options,user,dimensionId,maxRecsCount,ctxt, CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_FOR_ITEM);
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return recommend( "CLUSTER_COUNTS_FOR_ITEM",client,user,dimensionId,maxRecsCount,ctxt);
     }
 
     @Override

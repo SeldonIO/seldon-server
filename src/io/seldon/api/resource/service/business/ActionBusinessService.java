@@ -31,7 +31,8 @@ import io.seldon.api.resource.ResourceBean;
  * Created by: marc on 14/08/2012 at 13:39
  */
 public interface ActionBusinessService {
-    ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean);
+    ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean,
+                           boolean isClickThrough, String recsCounter, String recTag);
 
     
 }

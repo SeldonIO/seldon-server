@@ -34,10 +34,11 @@ import java.util.List;
  *         Time: 11:23
  */
 @Component
-public class DynamicClusterCountsRecommender  extends  BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
+public class DynamicClusterCountsRecommender extends BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return this.recommend(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_DYNAMIC,options,user,dimensionId,maxRecsCount,ctxt);
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+                                                 RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return this.recommend("CLUSTER_COUNTS_DYNAMIC",client,ctxt,user,dimensionId,maxRecsCount);
     }
 
     @Override

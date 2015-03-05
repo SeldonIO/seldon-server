@@ -38,25 +38,26 @@ import java.util.*;
 @Component
 public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecommender implements ItemRecommendationAlgorithm {
 
+    private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
     private static Logger logger = Logger.getLogger(ItemCategoryClusterCountsRecommender.class.getName());
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend( String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         if (ctxt.getCurrentItem() != null)
         {
             Set<Long> exclusions = Collections.emptySet();
             if(ctxt.getMode()== RecommendationContext.MODE.EXCLUSION){
                 exclusions = ctxt.getContextItems();
             }
-            Integer dimId = getDimensionForAttrName(ctxt.getCurrentItem(), options);
+            Integer dimId = getDimensionForAttrName(ctxt.getCurrentItem(),client,ctxt);
             if (dimId != null)
             {
-                JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(options.getName());
-                CountRecommender r = cUtils.getCountRecommender(options.getName());
+                JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
+                CountRecommender r = cUtils.getCountRecommender(client);
                 if (r != null)
                 {
-
+                    Double decayRate = ctxt.getOptsHolder().getDoubleOption(DECAY_RATE_OPTION_NAME);
                     long t1 = System.currentTimeMillis();
-                    Map<Long, Double> recommendations = r.recommendGlobal(dimensionId, maxRecsCount, exclusions, options.getDecayRateSecs(), dimId);
+                    Map<Long, Double> recommendations = r.recommendGlobal(dimensionId, maxRecsCount, exclusions, decayRate, dimId);
                     long t2 = System.currentTimeMillis();
                     logger.debug("Recommendation via cluster counts for dimension "+dimId+" for item  "+ctxt.getCurrentItem()+" for user "+user+" took "+(t2-t1));
                     List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
@@ -66,7 +67,7 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
 
                 }
                 else
-                    logger.warn("Can't get count recommender for "+options.getName());
+                    logger.warn("Can't get count recommender for "+client);
             }
             else
                 logger.info("Can't get dim for item "+ctxt.getCurrentItem()+" so can't run cluster counts for dimension algorithm ");

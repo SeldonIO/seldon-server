@@ -23,7 +23,7 @@
 
 package io.seldon.trust.impl.filters;
 
-import io.seldon.general.ItemRetriever;
+import io.seldon.general.ItemStorage;
 import io.seldon.trust.impl.ItemIncluder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,7 +40,7 @@ import java.util.List;
 public class RecentItemsIncluder implements ItemIncluder {
 
     @Autowired
-    private ItemRetriever retriever;
+    private ItemStorage retriever;
 
 
     @Override

@@ -26,10 +26,7 @@ package io.seldon.api.state;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
-import io.seldon.recommendation.AlgorithmStrategy;
-import io.seldon.recommendation.ClientStrategy;
-import io.seldon.recommendation.SimpleClientStrategy;
-import io.seldon.recommendation.VariationTestingClientStrategy;
+import io.seldon.recommendation.*;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.trust.impl.ItemFilter;
 import io.seldon.trust.impl.ItemIncluder;
@@ -61,6 +58,7 @@ import java.util.concurrent.ConcurrentMap;
 @Component
 public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfigUpdateListener,GlobalConfigUpdateListener {
 
+    private static final String RECTAG = "alg_rectags";
     protected static Logger logger = Logger.getLogger(ClientAlgorithmStore.class.getName());
 
     private static final String ALG_KEY = "algs";
@@ -77,6 +75,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     private ConcurrentMap<String, Map<String, AlgorithmStrategy>> storeMap = new ConcurrentHashMap<>();
     private ConcurrentMap<String, Boolean> testingOnOff = new ConcurrentHashMap<>();
     private ConcurrentMap<String, ClientStrategy> tests = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, ClientStrategy> recTagStrategies = new ConcurrentHashMap<>();
     private ClientStrategy defaultStrategy = null;
     private ConcurrentMap<String, ClientStrategy> namedStrategies = new ConcurrentHashMap<>();
 
@@ -119,7 +118,11 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 return defaultStrategy;
             }
         } else {
-            ClientStrategy strategy = store.get(client);
+            ClientStrategy strategy;
+            if(recTagStrategies.containsKey(client))
+                strategy= recTagStrategies.get(client);
+            else
+                strategy = store.get(client);
             if(strategy!=null){
                 return strategy;
             } else {
@@ -140,13 +143,13 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 Map<String, AlgorithmStrategy> stratMap = new HashMap<>();
                 AlgorithmConfig config = mapper.readValue(configValue, AlgorithmConfig.class);
                 for (Algorithm algorithm : config.algorithms) {
-                    AlgorithmStrategy strategy = toAlgorithmStrategy(algorithm,"-");
+                    AlgorithmStrategy strategy = toAlgorithmStrategy(algorithm);
                     strategies.add(strategy);
                     stratMap.put(algorithm.tag, strategy);
                 }
                 AlgorithmResultsCombiner combiner = applicationContext.getBean(
                         config.combiner,AlgorithmResultsCombiner.class);
-                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner));
+                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,"-"));
                 storeMap.put(client, Collections.unmodifiableMap(stratMap));
                 logger.info("Successfully added new algorithm config for "+client);
             } catch (IOException | BeansException e) {
@@ -163,8 +166,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                         "' to '" + BooleanUtils.toStringOnOff(onOff)+"'");
                 testingOnOff.put(client, BooleanUtils.toBooleanObject(configValue));
             }
-        } else {
-            if (configKey.equals(TEST)) {
+        } else if (configKey.equals(TEST)) {
                 logger.info("Received new testing config for " + client + ":" + configValue);
                 try {
                     ObjectMapper mapper = new ObjectMapper();
@@ -173,13 +175,14 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                     for (TestVariation var : config.variations){
                         List<AlgorithmStrategy> strategies = new ArrayList<>();
                         for (Algorithm alg : var.config.algorithms){
-                            AlgorithmStrategy strategy = toAlgorithmStrategy(alg,var.label);
+                            AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
                             strategies.add(strategy);
                         }
                         AlgorithmResultsCombiner combiner = applicationContext.getBean(
                                 var.config.combiner,AlgorithmResultsCombiner.class);
                         variations.add(new VariationTestingClientStrategy.Variation(
-                                new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner),
+                                new SimpleClientStrategy(Collections.unmodifiableList(strategies),
+                                        combiner, var.config.diversityLevel, var.label),
                                 new BigDecimal(var.ratio)));
 
                     }
@@ -188,17 +191,52 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 } catch (NumberFormatException | IOException e) {
                     logger.error("Couldn't add test for client " +client, e);
                 }
+        } else if(configKey.equals(RECTAG)){
+            logger.info("Received new rectag config for "+ client + ": " +configValue);
+            try{
+                ObjectMapper mapper = new ObjectMapper();
+                RecTagConfig config = mapper.readValue(configValue, RecTagConfig.class);
+                if(config.defaultAlg==null){
+                    logger.error("Couldn't read rectag config as there was no default alg");
+                    return;
+                }
+                List<AlgorithmStrategy> defaultAlgStrategies = new ArrayList<>();
+                for (Algorithm alg : config.defaultAlg.algorithms){
+                    AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
+                    defaultAlgStrategies.add(strategy);
+                }
+                AlgorithmResultsCombiner defCombiner = applicationContext.getBean(
+                        config.defaultAlg.combiner,AlgorithmResultsCombiner.class);
+                SimpleClientStrategy defStategy = new SimpleClientStrategy(defaultAlgStrategies, defCombiner,
+                        config.defaultAlg.diversityLevel,"-");
+                Map<String, ClientStrategy> recTagStrats = new HashMap<>();
+                for (Map.Entry<String, AlgorithmConfig> entry : config.recTagToAlg.entrySet() ){
+                    List<AlgorithmStrategy> strategies = new ArrayList<>();
+                    for (Algorithm alg : entry.getValue().algorithms){
+                        AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
+                        strategies.add(strategy);
+                    }
+                    AlgorithmResultsCombiner combiner = applicationContext.getBean(
+                            entry.getValue().combiner,AlgorithmResultsCombiner.class);
+                    recTagStrats.put(entry.getKey(), new SimpleClientStrategy(strategies, combiner,
+                            entry.getValue().diversityLevel,"-"));
+                }
+                recTagStrategies.put(client, new RecTagClientStrategy(defStategy, recTagStrats));
+                logger.info("Successfully added rec tag strategy for " + client);
+            } catch (NumberFormatException | IOException e) {
+                logger.error("Couldn't add rectag strategy for client " +client, e);
             }
+
         }
     }
 
-    private AlgorithmStrategy toAlgorithmStrategy(Algorithm algorithm, String name) {
+    private AlgorithmStrategy toAlgorithmStrategy(Algorithm algorithm) {
         Set<ItemIncluder> includers = retrieveIncluders(algorithm.includers);
         Set<ItemFilter> filters = retrieveFilters(algorithm.filters);
         ItemRecommendationAlgorithm alg = applicationContext.getBean(algorithm.name, ItemRecommendationAlgorithm.class);
 
         return new AlgorithmStrategy(alg, includers, filters,
-                algorithm.config ==null ? new HashMap<String, String>(): algorithm.config , name);
+                algorithm.config ==null ? new HashMap<String, String>(): algorithm.config , algorithm.name);
     }
 
     private Set<ItemIncluder> retrieveIncluders(List<String> includers) {
@@ -269,11 +307,11 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
             AlgorithmConfig config = mapper.readValue(configValue, AlgorithmConfig.class);
 
             for (Algorithm alg : config.algorithms){
-                strategies.add(toAlgorithmStrategy(alg, alg.tag));
+                strategies.add(toAlgorithmStrategy(alg));
             }
             AlgorithmResultsCombiner combiner = applicationContext.getBean(
                     config.combiner,AlgorithmResultsCombiner.class);
-            ClientStrategy strat = new SimpleClientStrategy(strategies, combiner);
+            ClientStrategy strat = new SimpleClientStrategy(strategies, combiner, config.diversityLevel,"-");
             defaultStrategy = strat;
             logger.info("Successfully changed default strategy.");
         } catch (IOException e){
@@ -286,6 +324,10 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         public Set<TestVariation> variations;
     }
 
+    public static class RecTagConfig {
+        public Map<String, AlgorithmConfig> recTagToAlg;
+        public AlgorithmConfig defaultAlg;
+    }
     private static class TestVariation {
         public String label;
         public String ratio;
@@ -294,7 +336,10 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     public static class AlgorithmConfig {
         public List<Algorithm> algorithms;
         public String combiner;
+        public Double diversityLevel;
     }
+
+
 
     public static class Algorithm {
 

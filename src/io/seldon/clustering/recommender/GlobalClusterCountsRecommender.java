@@ -38,10 +38,12 @@ import java.util.*;
 @Component
 public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorithm {
     private static Logger logger = Logger.getLogger(GlobalClusterCountsRecommender.class.getName());
+    private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(options.getName());
-        CountRecommender r = cUtils.getCountRecommender(options.getName());
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+                                                 RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
+        CountRecommender r = cUtils.getCountRecommender(client);
         if (r != null)
         {
             long t1 = System.currentTimeMillis();
@@ -50,7 +52,8 @@ public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorit
             if(ctxt.getMode()== RecommendationContext.MODE.EXCLUSION){
                 exclusions = ctxt.getContextItems();
             }
-            Map<Long, Double> recommendations = r.recommendGlobal(dimensionId, maxRecsCount, exclusions, options.getDecayRateSecs(), null);
+            Double decayRate = ctxt.getOptsHolder().getDoubleOption(DECAY_RATE_OPTION_NAME);
+            Map<Long, Double> recommendations = r.recommendGlobal(dimensionId, maxRecsCount, exclusions, decayRate, null);
             long t2 = System.currentTimeMillis();
             logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1));
             List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

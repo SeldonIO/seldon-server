@@ -120,12 +120,9 @@ public class CFAlgorithm implements Cloneable,Serializable {
 	private CF_STRATEGY itemComparatorStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
 	private List<CF_RECOMMENDER> recommenders = new ArrayList<>();
-	private CF_STRATEGY recommenderStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
 
 	private List<CF_SORTER> sorters  = new ArrayList<>();
 	private CF_STRATEGY sorterStrategy = CF_STRATEGY.FIRST_SUCCESSFUL;
-
-	private CF_POSTPROCESSING postprocessing =  CF_POSTPROCESSING.NONE;
 
 	private Date date; // base algorithm to run as if from this date
 
@@ -160,10 +157,8 @@ public class CFAlgorithm implements Cloneable,Serializable {
     
     int tagAttrId = 9;
     String tagTable = "varchar";
-    int tagUserHistory = 1;
-    boolean tagClusterCountsActive = true;
-    
-    //Ranking parameters
+
+	//Ranking parameters
     private boolean rankingRemoveHistory = true; // remove recent items for a user from items to rank
     
     //Recommendation remove ignore recommendations
@@ -192,22 +187,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		return recommenders;
 	}
 
-
-	public boolean isTagClusterCountsActive() {
-		return tagClusterCountsActive;
-	}
-
-	public void setTagClusterCountsActive(boolean tagClusterCountsActive) {
-		this.tagClusterCountsActive = tagClusterCountsActive;
-	}
-
-	public int getTagUserHistory() {
-		return tagUserHistory;
-	}
-
-	public void setTagUserHistory(int tagUserHistory) {
-		this.tagUserHistory = tagUserHistory;
-	}
 
 	public int getTagAttrId() {
 		return tagAttrId;
@@ -294,14 +273,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		this.recommenders = recommenders;
 	}
 
-	public CF_STRATEGY getRecommenderStrategy() {
-		return recommenderStrategy;
-	}
-
-	public void setRecommenderStrategy(CF_STRATEGY recommenderStrategy) {
-		this.recommenderStrategy = recommenderStrategy;
-	}
-
 
 	public List<CF_SORTER> getSorters() {
 		return sorters;
@@ -334,16 +305,8 @@ public class CFAlgorithm implements Cloneable,Serializable {
 	public void setItemComparatorStrategy(CF_STRATEGY itemComparatorStrategy) {
 		this.itemComparatorStrategy = itemComparatorStrategy;
 	}
-	
-    public CF_POSTPROCESSING getPostprocessing() {
-		return postprocessing;
-	}
 
-	public void setPostprocessing(CF_POSTPROCESSING postprocessing) {
-		this.postprocessing = postprocessing;
-	}
-
-    public Date getDate() {
+	public Date getDate() {
         return date;
     }
 
@@ -525,11 +488,9 @@ public class CFAlgorithm implements Cloneable,Serializable {
         if (itemComparators != null ? !itemComparators.equals(that.itemComparators) : that.itemComparators != null)
             return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (recommenderStrategy != that.recommenderStrategy) return false;
         if (recommenders != null ? !recommenders.equals(that.recommenders) : that.recommenders != null) return false;
         if (sorterStrategy != that.sorterStrategy) return false;
         if (sorters != null ? !sorters.equals(that.sorters) : that.sorters != null) return false;
-        if (postprocessing != that.postprocessing) return false;
         if (longTermWeight != that.longTermWeight) return false;
         if (shortTermWeight != that.shortTermWeight) return false;
         if(numRecentItems != that.numRecentItems) return false;
@@ -544,10 +505,8 @@ public class CFAlgorithm implements Cloneable,Serializable {
         result = itemComparators != null ? itemComparators.hashCode() : 0;
         result = 31 * result + (itemComparatorStrategy != null ? itemComparatorStrategy.hashCode() : 0);
         result = 31 * result + (recommenders != null ? recommenders.hashCode() : 0);
-        result = 31 * result + (recommenderStrategy != null ? recommenderStrategy.hashCode() : 0);
         result = 31 * result + (sorters != null ? sorters.hashCode() : 0);
         result = 31 * result + (sorterStrategy != null ? sorterStrategy.hashCode() : 0);
-        result = 31 * result + (postprocessing != null ? postprocessing.hashCode() : 0);
         result = 31 * result + (date != null ? date.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + userCFLimit;
@@ -582,9 +541,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 					}   
 					setRecommenders(list);
 				}
-				else if("recommender_strategy".equals(field)) {
-					setRecommenderStrategy(CF_STRATEGY.valueOf(value));
-				}
 				else if("sorters".equals(field)) {
 					List<CF_SORTER> list = new ArrayList<>();
 					for(String val : values) {
@@ -595,9 +551,7 @@ public class CFAlgorithm implements Cloneable,Serializable {
 				else if("sorter_strategy".equals(field)) {
 					setSorterStrategy(CF_STRATEGY.valueOf(value));
 				}
-				else if("postprocessing".equals(field)) {
-					setPostprocessing(CF_POSTPROCESSING.valueOf(value));
-				}
+
 				else if ("long_term_cluster_weight".equals(field)){
 					this.setLongTermWeight(Double.parseDouble(value));
 				}
@@ -644,8 +598,6 @@ public class CFAlgorithm implements Cloneable,Serializable {
 		if(sorterStrategy!=null) 
 			res +=";" + sorterStrategy.name();
 		//CF_POSTPROCESSING
-		if(postprocessing!=null)
-			res +=";" + postprocessing.name();
 		return res;
 	}
     

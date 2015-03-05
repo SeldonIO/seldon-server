@@ -37,23 +37,30 @@ import java.util.*;
  */
 public abstract class BaseItemClusterCountsRecommender {
 
-    private static Logger logger = Logger.getLogger( ItemSimilarityRecommender.class.getName() );
+    private static final String MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME
+            = "io.seldon.algorithm.clusters.minnumberitemsforvalidclusterresult";
+    private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
+    private static final String CLUSTER_ALG_OPTION_NAME = "io.seldon.algorithm.clusters.itemalg";
 
-    ItemRecommendationResultSet recommend(CFAlgorithm options, Long user, int dimensionId, int maxRecsCount,
-                                          RecommendationContext ctxt, CFAlgorithm.CF_RECOMMENDER recommenderType) {
+    private static Logger logger = Logger.getLogger( BaseItemClusterCountsRecommender.class.getName() );
+
+    ItemRecommendationResultSet recommend(String recommenderType, String client, Long user, int dimensionId, int maxRecsCount,
+                                          RecommendationContext ctxt) {
+        RecommendationContext.OptionsHolder optionsHolder = ctxt.getOptsHolder();
         if (ctxt.getCurrentItem() != null) {
             Set<Long> exclusions = Collections.emptySet();
             if (ctxt.getMode() == RecommendationContext.MODE.EXCLUSION) {
                 exclusions = ctxt.getContextItems();
             }
-            JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(options.getName());
-            CountRecommender r = cUtils.getCountRecommender(options.getName());
+            JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
+            CountRecommender r = cUtils.getCountRecommender(client);
             if (r != null) {
-                //change to significant version of cluster counts if needed
-                if (recommenderType == CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_FOR_ITEM_SIGNIFICANT)
-                    r.setRecommenderType(CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_SIGNIFICANT);
                 long t1 = System.currentTimeMillis();
-                Map<Long, Double> recommendations = r.recommendUsingItem(ctxt.getCurrentItem(), dimensionId, maxRecsCount, exclusions, options.getDecayRateSecs(), options.getClusterAlgorithm(), options.getMinNumberItemsForValidClusterResult());
+                Integer minClusterItems = optionsHolder.getIntegerOption(MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME);
+                Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
+                String clusterAlgorithm = optionsHolder.getStringOption(CLUSTER_ALG_OPTION_NAME);
+                Map<Long, Double> recommendations = r.recommendUsingItem(recommenderType,ctxt.getCurrentItem(), dimensionId,
+                        maxRecsCount, exclusions, decayRate, clusterAlgorithm, minClusterItems);
                 long t2 = System.currentTimeMillis();
                 logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1));
                 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

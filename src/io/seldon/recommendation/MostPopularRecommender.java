@@ -26,7 +26,7 @@ package io.seldon.recommendation;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.general.ItemRetriever;
+import io.seldon.general.ItemStorage;
 import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.trust.impl.CFAlgorithm;
 import org.apache.log4j.Logger;
@@ -46,15 +46,15 @@ import java.util.Set;
 public class MostPopularRecommender implements ItemRecommendationAlgorithm {
     private static Logger logger = Logger.getLogger(MostPopularRecommender.class.getName());
 
-    private ItemRetriever itemRetriever;
+    private ItemStorage itemStorage;
 
     @Autowired
-    public MostPopularRecommender(ItemRetriever itemRetriever){
-        this.itemRetriever = itemRetriever;
+    public MostPopularRecommender(ItemStorage itemStorage){
+        this.itemStorage = itemStorage;
     }
 
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         Set<Long> exclusions;
         if(ctxt.getMode() != RecommendationContext.MODE.EXCLUSION){
             logger.warn("Trying to use MostPopularRecommender in an invalid inclusion/exclusion mode, returning empty result set.");
@@ -63,7 +63,7 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
              exclusions = ctxt.getContextItems();
         }
 
-        List<SqlItemPeer.ItemAndScore> itemsToConsider = itemRetriever.retrieveMostPopularItems(client,maxRecsCount + exclusions.size(),dimensionId);
+        List<SqlItemPeer.ItemAndScore> itemsToConsider = itemStorage.retrieveMostPopularItems(client,maxRecsCount + exclusions.size(),dimensionId);
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         for (SqlItemPeer.ItemAndScore itemAndScore : itemsToConsider){
             if(!exclusions.contains(itemAndScore.item))

@@ -111,7 +111,7 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 
 
 	@Override
-	public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+	public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
 
 		if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION) {
 			logger.warn("Can't recommend items in inclusion mode.");
@@ -120,12 +120,11 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 		Set<Long> exclusions = ctxt.getContextItems();
 		List<ItemRecommendationResultSet.ItemRecommendationResult> recommendations = null;
 		if (recentItemInteractions.size() > 0) {
-			IItemSimilarityPeer peer = new JdoItemSimilarityPeer(options.getName());
-			recommendations = recommendSimilarItems(options.getName(), recentItemInteractions, dimensionId, maxRecsCount, exclusions);
+			recommendations = recommendSimilarItems(client, recentItemInteractions, dimensionId, maxRecsCount, exclusions);
 			if (recommendations != null)
 				logger.info("Recent similar items recommender returned " + recommendations.size() + " recommendations");
 		} else
-			logger.info("failing RECENT_SIMILAR_ITEMS as no recent actions with getTxHistorySizeForSV:" + options.getTxHistorySizeForSV());
+			logger.info("failing RECENT_SIMILAR_ITEMS as no recent actions");
 		return new ItemRecommendationResultSet(recommendations);
 	}
 

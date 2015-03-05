@@ -25,6 +25,7 @@ package io.seldon.trust.impl.filters.base;
 
 import io.seldon.api.Constants;
 import io.seldon.api.caching.ActionHistoryCache;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.ItemFilter;
 import org.apache.log4j.Logger;
@@ -41,16 +42,21 @@ import java.util.List;
  */
 @Component
 public class RecentImpressionsFilter implements ItemFilter {
+    private static final String RECENT_ACTIONS_NUM = "io.seldon.algorithm.filter.recentactionstofilter";
     private static Logger logger = Logger.getLogger(RecentImpressionsFilter.class.getName());
+    
+    
+    
     @Override
-    public List<Long> produceExcludedItems(String client, Long user, String clientUserId,
-                                           Long currentItem,String lastRecListUUID, int numRecommendations, CFAlgorithm options) {
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
+                                           Long currentItem,String lastRecListUUID, int numRecommendations) {
         if (user != Constants.ANONYMOUS_USER) // only can get recent actions for non anonymous user
         {
             // get recent actions for user
             ActionHistoryCache ah = new ActionHistoryCache(client);
-            List<Long> recentActions = ah.getRecentActions(user, options.getNumRecentActions() > 0 ? options.getNumRecentActions() : numRecommendations);
-            logger.debug("RecentActions for user with client "+options.getName()+" internal user id "+user+" num." + recentActions.size());
+            int recentActionsNum = optsHolder.getIntegerOption(RECENT_ACTIONS_NUM);
+            List<Long> recentActions = ah.getRecentActions(user, recentActionsNum >0 ? recentActionsNum : numRecommendations);
+            logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + recentActions.size());
             return recentActions;
         }
         return Collections.emptyList();

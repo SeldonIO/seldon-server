@@ -21,39 +21,38 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters;
+package io.seldon.general;
 
-import io.seldon.general.ItemStorage;
-import io.seldon.general.jdo.SqlItemPeer;
-import io.seldon.trust.impl.ItemIncluder;
+import io.seldon.api.resource.service.PersistenceProvider;
+import io.seldon.memcache.DogpileHandler;
+import io.seldon.memcache.MemCacheKeys;
+import io.seldon.memcache.MemCachePeer;
+import io.seldon.trust.impl.jdo.LastRecommendationBean;
+import net.spy.memcached.MemcachedClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author firemanphil
- *         Date: 19/11/14
- *         Time: 11:49
+ *         Date: 04/03/15
+ *         Time: 15:30
  */
 @Component
-public class MostPopularIncluder implements ItemIncluder {
+public class RecommendationStorage {
+
+    private final MemcachedClient memcache;
+    private final PersistenceProvider provider;
+    private final DogpileHandler dogpileHandler;
 
     @Autowired
-    private ItemStorage retriever;
+    public RecommendationStorage(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
+        this.memcache = memcache;
+        this.provider = provider;
+        this.dogpileHandler = dogpileHandler;
+    }
 
-
-    @Override
-    public List<Long> generateIncludedItems(String client, int dimension, int numItems) {
-        // first stab at this: lets return, say, the top 200 items.
-        List<SqlItemPeer.ItemAndScore> itemsToConsider = retriever.retrieveMostPopularItems(client,numItems,dimension);
-        List<Long> toReturn = new ArrayList<>();
-        for (SqlItemPeer.ItemAndScore itemAndScore : itemsToConsider){
-            toReturn.add(itemAndScore.item);
-        }
-        return toReturn.size() >= numItems ?
-                new ArrayList<>(toReturn).subList(0,numItems) :
-                new ArrayList<>(toReturn);
+    public LastRecommendationBean retrieveLastRecommendations(String client, String user, String recsCounter){
+        int userRecCounter = Integer.parseInt(recsCounter);
+        return (LastRecommendationBean) memcache.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
     }
 }

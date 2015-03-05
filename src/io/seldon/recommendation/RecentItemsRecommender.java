@@ -23,16 +23,10 @@
 
 package io.seldon.recommendation;
 
-import io.seldon.api.TestingUtils;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.general.ItemPeer;
-import io.seldon.general.ItemRetriever;
-import io.seldon.memcache.DogpileHandler;
-import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
+import io.seldon.general.ItemStorage;
 import io.seldon.trust.impl.CFAlgorithm;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,15 +44,15 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
 
 
     private static Logger logger = Logger.getLogger(RecentItemsRecommender.class.getName());
-    private final ItemRetriever itemRetriever;
+    private final ItemStorage itemStorage;
 
     @Autowired
-    public RecentItemsRecommender(ItemRetriever itemRetriever){
-        this.itemRetriever = itemRetriever;
+    public RecentItemsRecommender(ItemStorage itemStorage){
+        this.itemStorage = itemStorage;
     }
 
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options, String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         HashMap<Long, Double> recommendations = new HashMap<>();
         Set<Long> exclusions;
 
@@ -68,7 +62,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
         } else {
             exclusions = ctxt.getContextItems();
         }
-        Collection<Long> recList = itemRetriever.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensionId);
+        Collection<Long> recList = itemStorage.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensionId);
         if (recList.size() > 0)
         {
             double scoreIncr = 1.0/(double)recList.size();
@@ -89,7 +83,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
         }
         else
         {
-            logger.warn("No items returned for recent items of dimension "+dimensionId+" for "+options.getName());
+            logger.warn("No items returned for recent items of dimension " + dimensionId + " for " + client);
         }
         return new ItemRecommendationResultSet(Collections.EMPTY_LIST);
     }

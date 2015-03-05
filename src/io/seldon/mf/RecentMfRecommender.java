@@ -41,25 +41,33 @@ import com.google.common.collect.Ordering;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
-    private final MfFeaturesManager store;
+	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
+	private final MfFeaturesManager store;
 
 
-    public RecentMfRecommender(MfFeaturesManager store, List<ItemIncluder> producers, List<ItemFilter> filters){
+	@Autowired
+    public RecentMfRecommender(MfFeaturesManager store){
         this.store = store;
     }
     
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
 												 RecommendationContext ctxt, List<Long> recentitemInteractions) {
-		return recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
+		return recommendWithoutCache(client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
 	}
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client, Long user, int dimension,
+    public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,
             RecommendationContext ctxt, int maxRecsCount, List<Long> recentItemInteractions) {
+
+		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
+		int numRecentActionsToUse = opts.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
 
         if(clientStore==null) {
@@ -68,10 +76,10 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         }
         
         List<Long> itemsToScore;
-		if(recentItemInteractions.size() > options.getNumRecentActions()) 
+		if(recentItemInteractions.size() > numRecentActionsToUse)
 		{
-			 logger.debug("Limiting recent items for score to size "+options.getNumRecentActions()+" from present "+recentItemInteractions.size());
-			itemsToScore = recentItemInteractions.subList(0, options.getNumRecentActions());
+			logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		}
 		else
 			itemsToScore = new ArrayList<>(recentItemInteractions);

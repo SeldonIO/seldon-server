@@ -34,7 +34,7 @@ import io.seldon.trust.impl.CFAlgorithm;
  */
 public interface ItemRecommendationAlgorithm {
 
-    ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,
+    ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
                                           RecommendationContext ctxt, List<Long> recentItemInteractions);
 
     String name();

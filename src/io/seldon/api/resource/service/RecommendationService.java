@@ -28,14 +28,10 @@ import io.seldon.api.Constants;
 import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ItemBean;
-import io.seldon.api.resource.ListBean;
-import io.seldon.api.resource.RecommendationBean;
-import io.seldon.api.resource.RecommendationsBean;
-import io.seldon.api.resource.ResourceBean;
+import io.seldon.api.resource.*;
 import io.seldon.api.service.ABTestingServer;
 import io.seldon.api.service.DynamicParameterServer;
+import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.trust.impl.CFAlgorithm;
@@ -45,14 +41,10 @@ import io.seldon.trust.impl.RecommendationResult;
 import io.seldon.trust.impl.RummbleLabsAPI;
 import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.SortResult;
+import io.seldon.trust.impl.jdo.LastRecommendationBean;
 import io.seldon.trust.impl.jdo.RecommendationPeer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.jdo.JDODataStoreException;
 
@@ -76,22 +68,26 @@ public class RecommendationService {
 
     @Autowired
     private RecommendationPeer recommender;
+    @Autowired
+    private RecommendationStorage recommendationStorage;
+    @Autowired
+    private ItemService itemService;
 
 
-    public RecommendationBean getRecommendation(ConsumerBean c, String userId, Integer type, int dimensionId, String itemId, long pos,List<String> algorithms) throws APIException {
-        RecommendationBean bean;
-        if(pos == Constants.POSITION_NOT_DEFINED) {
-            ListBean recs = getRecommendations(c,userId,type,dimensionId,Constants.DEFAULT_BIGRESULT_LIMIT,false,algorithms);
-            bean = findRecommendationBean(itemId,recs);
-            if(bean == null) {
-                bean = new RecommendationBean(itemId,Constants.POSITION_NOT_DEFINED,null);
-            }
-        }
-        else { bean = new RecommendationBean(itemId,pos,null); }
-        //Set source of the recommendation
-        //bean.setSrcUsers(users);
-        return bean;
-    }
+//    public RecommendationBean getRecommendation(ConsumerBean c, String userId, Integer type, int dimensionId, String itemId, long pos,List<String> algorithms) throws APIException {
+//        RecommendationBean bean;
+//        if(pos == Constants.POSITION_NOT_DEFINED) {
+//            ListBean recs = getRecommendations(c,userId,type,dimensionId,Constants.DEFAULT_BIGRESULT_LIMIT,false,algorithms);
+//            bean = findRecommendationBean(itemId,recs);
+//            if(bean == null) {
+//                bean = new RecommendationBean(itemId,Constants.POSITION_NOT_DEFINED,null);
+//            }
+//        }
+//        else { bean = new RecommendationBean(itemId,pos,null); }
+//        //Set source of the recommendation
+//        //bean.setSrcUsers(users);
+//        return bean;
+//    }
 
     //FIX handle FULL
     //TODO use TYPE
@@ -130,40 +126,40 @@ public class RecommendationService {
         return bean;
     }
 
-    //FIX handle FULL
-    public ListBean getRecommendations(ConsumerBean c,String userId,Integer type, int dimensionId, int limit, boolean full,List<String> algorithms) throws APIException {
-        logger.info("Get RecommendationsBean for " + userId + " with dimension:" + dimensionId);
-        //ALGORITHM
-        CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
-        ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(),cfAlgorithm,userId,type,dimensionId,full));
-        bean = Util.getLimitedBean(bean, limit);
-        if(bean == null) {
-            bean = new ListBean();
-
-            Long internalUserId;
-            try {
-                internalUserId = UserService.getInternalUserId(c, userId);
-            } catch (APIException e) {
-                internalUserId = Constants.ANONYMOUS_USER;
-            }
-
-            RecommendationResult recResult = recommender.getRecommendations(internalUserId, userId, type, dimensionId, limit, cfAlgorithm,null,null, null);//FIXME
-            List<Recommendation> recs = recResult.getRecs();
-            long pos = 1;
-            for (Recommendation t : recs) {
-                String itemId = ItemService.getClientItemId(c, t.getContent());
-                if (itemId != null) {
-                    bean.addBean(new RecommendationBean(itemId, pos++, null));
-                }
-            }
-            bean.setRequested(limit);
-            bean.setSize(recs.size());
-            if (Constants.CACHING && cfAlgorithm.getRecommendationCachingTimeSecs() > 0)
-                MemCachePeer.put(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(), cfAlgorithm,userId, type, dimensionId, full), bean, cfAlgorithm.getRecommendationCachingTimeSecs());
-        }
-        logger.info("Return RecommendationsBean for " + userId + " with dimension:" + dimensionId);
-        return bean;
-    }
+//    //FIX handle FULL
+//    public ListBean getRecommendations(ConsumerBean c,String userId,Integer type, int dimensionId, int limit, boolean full,List<String> algorithms) throws APIException {
+//        logger.info("Get RecommendationsBean for " + userId + " with dimension:" + dimensionId);
+//        //ALGORITHM
+//        CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
+//        ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(),cfAlgorithm,userId,type,dimensionId,full));
+//        bean = Util.getLimitedBean(bean, limit);
+//        if(bean == null) {
+//            bean = new ListBean();
+//
+//            Long internalUserId;
+//            try {
+//                internalUserId = UserService.getInternalUserId(c, userId);
+//            } catch (APIException e) {
+//                internalUserId = Constants.ANONYMOUS_USER;
+//            }
+//
+//            RecommendationResult recResult = recommender.getRecommendations(internalUserId, userId, type, dimensionId, limit, cfAlgorithm,null,null, null);//FIXME
+//            List<Recommendation> recs = recResult.getRecs();
+//            long pos = 1;
+//            for (Recommendation t : recs) {
+//                String itemId = ItemService.getClientItemId(c, t.getContent());
+//                if (itemId != null) {
+//                    bean.addBean(new RecommendationBean(itemId, pos++, null));
+//                }
+//            }
+//            bean.setRequested(limit);
+//            bean.setSize(recs.size());
+//            if (Constants.CACHING && cfAlgorithm.getRecommendationCachingTimeSecs() > 0)
+//                MemCachePeer.put(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(), cfAlgorithm,userId, type, dimensionId, full), bean, cfAlgorithm.getRecommendationCachingTimeSecs());
+//        }
+//        logger.info("Return RecommendationsBean for " + userId + " with dimension:" + dimensionId);
+//        return bean;
+//    }
 
 
     public static RecommendationBean findRecommendationBean(String itemId,ListBean list) {
@@ -303,7 +299,9 @@ public class RecommendationService {
         return cfAlgorithm;
     }
 
-    public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId, int dimensionId, String lastRecommendationListUuid, int limit, String attributes,List<String> algorithms,String referrer,String recTag) {
+    public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
+                                            int dimensionId, String lastRecommendationListUuid, int limit,
+                                            String attributes,List<String> algorithms,String referrer,String recTag) {
         CFAlgorithm cfAlgorithm = getAlgorithmOptions(consumerBean, userId, algorithms,recTag); // default
         int typeId = 0;
         boolean full = true;
@@ -337,8 +335,8 @@ public class RecommendationService {
             }
 
             RecommendationResult recResult = recommender.getRecommendations(
-                    internalUserId, userId, typeId, dimensionId, limit, cfAlgorithm,
-                    lastRecommendationListUuid, currentItemId, referrer
+                    internalUserId, consumerBean.getShort_name(), userId, typeId, dimensionId, limit,
+                    lastRecommendationListUuid, currentItemId, referrer, recTag
                     );
             List<Recommendation> recommendations = recResult.getRecs(); 
             for (Recommendation recommendation : recommendations) {
@@ -380,6 +378,24 @@ public class RecommendationService {
         return MemCacheKeys.getRecommendedItemsKey(shortName, cfAlgorithm, userId, typeId, dimensionId, full);
     }
 
+    public LastRecommendationBean retrieveLastRecs(ConsumerBean consumerBean, ActionBean actionBean,String recsCounter){
+        return recommendationStorage.retrieveLastRecommendations(consumerBean.getShort_name(),
+                actionBean.getUser(), recsCounter);
+
+
+    }
+
+    public List<Long> findIgnoredItemsFromLastRecs(ConsumerBean consumerBean, ActionBean actionBean, LastRecommendationBean lastRecs) {
+        Long currentItem = itemService.getInternalItemId(consumerBean, actionBean.getItem());
+        if(lastRecs!=null) {
+            for (int i = 0; i < lastRecs.getRecs().size(); i++) {
+                if (lastRecs.getRecs().get(i).equals(currentItem))
+                    return lastRecs.getRecs().subList(0, i);
+            }
+        }
+        // not in there
+        return Collections.emptyList();
+    }
 
 
 }

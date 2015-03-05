@@ -11,13 +11,13 @@
     <task:scheduler id="normalScheduler" pool-size="1"/>
     <task:executor id="normalExecutor" pool-size="1"/>
     <!-- Pull in algorithm configuration context (to be refactored into the above) -->
-    <import resource="classpath:api-algorithm-ctx.xml"/>
+    <!--<import resource="classpath:api-algorithm-ctx.xml"/>-->
     <context:component-scan base-package="io.seldon" >
         <context:exclude-filter type="annotation"
                             expression="org.springframework.stereotype.Controller" />
     </context:component-scan>
     <context:property-placeholder
-            location="classpath:version.properties,classpath:labs.properties"/>
+            location="classpath:version.properties,classpath:labs.properties,classpath:alg_default.properties"/>
 
     <context:component-scan base-package="io.seldon.general"/>
     <context:component-scan base-package="io.seldon.clustering.recommender"/>

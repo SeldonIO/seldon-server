@@ -138,45 +138,8 @@ public class JsClientController {
         logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
         ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
-        if(isCTR) { 
-        	//tracking click
-        	StatsdPeer.logClick(consumerBean.getShort_name(),recTag);
-        	CtrFullLogger.log(isCTR, consumerBean.getShort_name(), userId, itemId, recTag);
-        	
-        	try 
-    		{ 
-    			Long internalItemId = ItemService.getInternalItemId(consumerBean, itemId);
-    			//FIXME - change to get algorithm options for user - which may be an AB Testing user
-    			CFAlgorithm cfAlgorithm = RecommendationService.getAlgorithmOptions(consumerBean, userId, null, recTag);
-    			ActionHistoryCache ah = new ActionHistoryCache(cfAlgorithm.getName());
-    			int numRecentActions = -1;
-    			try
-    			{
-    				Long internalUserId = UserService.getInternalUserId(consumerBean, userId); 
-        			List<Long> recentActions = ah.getRecentActions(internalUserId, 100); //num to return hardwired to large number as max
-        			numRecentActions = recentActions.size();
-    			}
-    			catch(APIException e) 
-    			{
-    				logger.debug("Failed to get internal user id for client user id "+userId);
-    			}
-    			catch (Exception e)
-    			{
-    				logger.error("Exception on get internal user id for client user id "+userId);
-    			}
-    			RecommendationUtils.getExclusions(true,consumerBean.getShort_name(), userId, internalItemId, rlabs, cfAlgorithm,numRecentActions);
-    		}
-    		catch(APIException e) 
-    		{
-    			logger.warn("Failed to store algorithm based CTR as unknown itemId",e);
-    		}
-        	catch(Exception e)
-        	{
-        		logger.error("Failed to store algorithm based CTR",e);
-        	}
-        	
-        }
-        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean));
+
+        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag));
     }
     
 

@@ -26,47 +26,53 @@ package io.seldon.recommendation;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * A client strategy that provides the same algorithm strategies for every user.
- *
+ * Client strategy when using rec tags.
  * @author firemanphil
- *         Date: 01/12/14
- *         Time: 14:35
+ *         Date: 04/03/15
+ *         Time: 11:10
  */
-public class SimpleClientStrategy implements ClientStrategy {
+public class RecTagClientStrategy implements ClientStrategy {
 
-    private final List<AlgorithmStrategy> strategies;
+    private static final String DEFAULT_REC_TAG = "";
+    private final ClientStrategy defaulStrategy;
+    private final Map<String, ClientStrategy> recTagToStrategy;
 
-    private final AlgorithmResultsCombiner algResultsCombiner;
-    private final Double diversityLevel;
-    private final String name;
-
-    public SimpleClientStrategy(List<AlgorithmStrategy> strategies, AlgorithmResultsCombiner algResultsCombiner,
-                                Double diversityLevel, String name) {
-        this.strategies = strategies;
-        this.algResultsCombiner = algResultsCombiner;
-        this.diversityLevel = diversityLevel;
-        this.name = name;
-    }
-
-    @Override
-    public List<AlgorithmStrategy> getAlgorithms(String userId, String recTag) {
-        return strategies;
-    }
-
-    @Override
-    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId, String recTag) {
-        return algResultsCombiner;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+    public RecTagClientStrategy(ClientStrategy defaulStrategy, Map<String, ClientStrategy> recTagToStrategy) {
+        this.defaulStrategy = defaulStrategy;
+        this.recTagToStrategy = recTagToStrategy;
     }
 
     @Override
     public Double getDiversityLevel(String userId, String recTag) {
-        return diversityLevel;
+        return getStrategy(recTag).getDiversityLevel(userId, recTag);
+    }
+
+    @Override
+    public List<AlgorithmStrategy> getAlgorithms(String userId, String recTag) {
+        return getStrategy(recTag).getAlgorithms(userId, recTag);
+    }
+
+    @Override
+    public AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId, String recTag) {
+        return getStrategy(recTag).getAlgorithmResultsCombiner(userId, recTag);
+    }
+
+    @Override
+    public String getName() {
+        return "-";
+    }
+
+    private ClientStrategy getStrategy(String recTag){
+        if(recTag!=null && !recTag.equals(DEFAULT_REC_TAG)){
+            // we have a rectag...
+            ClientStrategy recTagStrat = recTagToStrategy.get(recTag);
+            if(recTagStrat!=null){
+                return recTagStrat;
+            }
+        }
+        return defaulStrategy;
     }
 }

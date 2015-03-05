@@ -45,6 +45,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 
+	private static final String ATTR_ID_PROPERTY_NAME ="io.seldon.algorithm.tags.attrid";
+	private static final String TABLE_PROPERTY_NAME = "io.seldon.algorithm.tags.table";
+	private static final String MIN_NUM_WEIGHTS_PROPERTY_NAME = "io.seldon.algorithm.tags.minnumtagsfortopicweights";
+
+
 	TopicFeaturesManager featuresManager;
 	RecentItemsWithTagsManager tagsManager;
 
@@ -56,8 +61,12 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 	}
 
 	@Override
-	public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client,
+	public ItemRecommendationResultSet recommendWithoutCache(String client,
 			Long user, int dimension, RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions) {
+		RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
+		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
+		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
+		Integer minNumTagsForWeights = options.getIntegerOption(MIN_NUM_WEIGHTS_PROPERTY_NAME);
 		TopicFeaturesStore store = featuresManager.getClientStore(client);
 		if (store == null)
 		{
@@ -71,7 +80,7 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
 		}
 		
-		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), options.getTagAttrId(),options.getTagTable());
+		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), tagAttrId, tagTable);
 		if (itemTags == null || itemTags.size() == 0)
 		{
 			logger.debug("Failed to find recent tag items for client "+client);
@@ -88,7 +97,7 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 		Map<Long,Double> scores = new HashMap<>();
 		for(Map.Entry<Long, List<String>> e : itemTags.entrySet()) // for all items
 		{
-			if (e.getValue().size() >= options.getMinNumTagsForTopicWeights() && !recentitemInteractions.contains(e.getKey()))
+			if (e.getValue().size() >= minNumTagsForWeights && !recentitemInteractions.contains(e.getKey()))
 			{
 				float[] itemTopicWeight = store.getTopicWeights(e.getKey(), e.getValue());
 				Double score = new Double(dot(userTopicWeight,itemTopicWeight));

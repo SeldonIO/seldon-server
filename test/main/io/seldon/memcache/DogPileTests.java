@@ -44,7 +44,7 @@ public class DogPileTests {
 	public void basicFunctionalityTest() throws InterruptedException
 	{
 		final String key = "testKey";
-		final int expireSecs = 5;
+		final int expireSecs = 1;
 		Assert.assertTrue(DogpileHandler.get().updateIsRequired(key, new Object(), expireSecs)); // no key set so no need to update
 		DogpileHandler.get().updated(key, expireSecs);
 		Assert.assertFalse(DogpileHandler.get().updateIsRequired(key, new Object(), expireSecs)); // key set but not expired
@@ -58,7 +58,7 @@ public class DogPileTests {
 	public void noKeyTest() throws InterruptedException
 	{
 		final String key = "testKey";
-		final int expireSecs = 5;
+		final int expireSecs = 1;
 		DogpileHandler.get().clear(key);
 
 		Assert.assertTrue(DogpileHandler.get().updateIsRequired(key, new Object(), expireSecs)); // no key set so no need to update
@@ -89,13 +89,13 @@ public class DogPileTests {
 
 			while(keepRunning)
 			{
-				boolean needsUpdate = DogpileHandler.get().updateIsRequired(key, new Object(), 5);
+				boolean needsUpdate = DogpileHandler.get().updateIsRequired(key, new Object(), 1);
 				if (needsUpdate)
 				{
 					System.out.println("Update "+System.currentTimeMillis());
 					updates++;
 					try {
-						Thread.sleep(500);
+						Thread.sleep(200);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -130,7 +130,7 @@ public class DogPileTests {
 		final String key = "testKey";
 		try
 		{
-		final int expireSecs = 5;
+		final int expireSecs = 1;
 		final int busyLoopDelayMillisecs = 100;
 		List<Thread> threads = new ArrayList<>();
 		List<UpdaterTester> testers = new ArrayList<>();

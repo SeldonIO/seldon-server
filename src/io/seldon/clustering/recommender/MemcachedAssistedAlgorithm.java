@@ -49,7 +49,7 @@ public abstract class MemcachedAssistedAlgorithm implements ItemRecommendationAl
 
 
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId,
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId,
                                                  int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
         if(user==null || client == null)
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
@@ -67,14 +67,14 @@ public abstract class MemcachedAssistedAlgorithm implements ItemRecommendationAl
             logger.debug("Found sufficient recommendations in memcache returning " + res.getResults().size() + " recs.");
             return res;
         } else
-            return filter(obtainNewRecommendations(options,client, user, dimensionId, ctxt, maxRecsCount, recentitemInteractions),ctxt);
+            return filter(obtainNewRecommendations(client, user, dimensionId, ctxt, maxRecsCount, recentitemInteractions),ctxt);
 
     }
 
 
-    private ItemRecommendationResultSet obtainNewRecommendations(CFAlgorithm options,String client, Long user, int dimensionId,
+    private ItemRecommendationResultSet obtainNewRecommendations(String client, Long user, int dimensionId,
             RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions) {
-        ItemRecommendationResultSet set =  recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
+        ItemRecommendationResultSet set =  recommendWithoutCache(client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
         try{
             getMemcache().set(getCacheKey(client, user, dimensionId),EXPIRY_TIME,set);
         } catch (Exception e) {
@@ -92,7 +92,7 @@ public abstract class MemcachedAssistedAlgorithm implements ItemRecommendationAl
     }
 
 
-    public abstract ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,
+    public abstract ItemRecommendationResultSet recommendWithoutCache(
             String client, Long user, int dimension, RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions);
 
 

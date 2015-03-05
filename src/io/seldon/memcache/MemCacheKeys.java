@@ -371,9 +371,9 @@ public class MemCacheKeys {
 		return ""+keys.TopClusterCounts.name()+":"+client+":"+clusterId+":"+dimension+":"+limit;
 	}
 	
-	public static String getTopClusterCountsForDimensionAlg(String client,CFAlgorithm.CF_RECOMMENDER alg,int clusterId,int dimension,int limit)
+	public static String getTopClusterCountsForDimensionAlg(String client,String alg,int clusterId,int dimension,int limit)
 	{
-		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg.name()+":"+clusterId+":"+dimension+":"+limit;
+		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg+":"+clusterId+":"+dimension+":"+limit;
 	}
 
 	
