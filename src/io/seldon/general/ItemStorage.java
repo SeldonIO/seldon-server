@@ -54,13 +54,11 @@ public class ItemStorage {
     // 15 mins
     private static final int RECENT_ITEMS_EXPIRE_TIME = 15 * 60;
     private static final int MEMCACHE_EXCLUSIONS_EXPIRE_SECS = 30 * 60;
-    private final MemcachedClient memcache;
     private final PersistenceProvider provider;
     private final DogpileHandler dogpileHandler;
 
     @Autowired
     public ItemStorage(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
-        this.memcache = memcache;
         this.provider = provider;
         this.dogpileHandler = dogpileHandler;
     }
@@ -90,14 +88,14 @@ public class ItemStorage {
     }
 
     private <T extends Collection> T retrieve(String key, int numItemsRequired, UpdateRetriever<T> retriever, int expireTime) {
-        T retrievedItems = (T) memcache.get(key);
+        T retrievedItems = (T) MemCachePeer.get(key);
 
         if (retrievedItems==null || retrievedItems.size() < numItemsRequired) retrievedItems = null;
         T newerRetrievedItems = null;
         try {
             newerRetrievedItems = dogpileHandler.retrieveUpdateIfRequired(key, retrievedItems, retriever, expireTime);
             if(newerRetrievedItems!=null){
-                memcache.set(key, expireTime, newerRetrievedItems);
+                MemCachePeer.put(key, newerRetrievedItems, expireTime);
                 return newerRetrievedItems;
             }
         } catch (Exception e) {
@@ -116,6 +114,6 @@ public class ItemStorage {
     public void persistIgnoredItems(String client, String clientUserId, Set<Long> ignoredItems){
 
         final String exKey = MemCacheKeys.getExcludedItemsForRecommendations(client, clientUserId);
-        memcache.set(exKey,MEMCACHE_EXCLUSIONS_EXPIRE_SECS,ignoredItems);
+        MemCachePeer.put(exKey, ignoredItems, MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
     }
 }

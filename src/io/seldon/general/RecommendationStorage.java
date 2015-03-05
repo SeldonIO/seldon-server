@@ -53,6 +53,6 @@ public class RecommendationStorage {
 
     public LastRecommendationBean retrieveLastRecommendations(String client, String user, String recsCounter){
         int userRecCounter = Integer.parseInt(recsCounter);
-        return (LastRecommendationBean) memcache.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
+        return (LastRecommendationBean) MemCachePeer.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
     }
 }

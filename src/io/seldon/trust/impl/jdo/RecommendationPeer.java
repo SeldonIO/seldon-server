@@ -122,8 +122,6 @@ public class RecommendationPeer {
 
 
 		Map<Long,Double> recommenderScores = new HashMap<>();
-		Map<Long,Double> recommendations = new HashMap<>();
-		boolean tryNext = true;
 		List<String> algsUsed = new ArrayList<>();
 		List<ItemRecommendationResultSet> resultSets = new ArrayList<>();
 		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
@@ -149,13 +147,12 @@ public class RecommendationPeer {
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimension,
 					numRecommendations, ctxt, recentItemInteractions);
 
-			for (ItemRecommendationResultSet.ItemRecommendationResult result : results.getResults()) {
-				recommendations.put(result.item, result.score.doubleValue());
-			}
+		    resultSets.add(results);
 			if(combiner.isEnoughResults(numRecommendations, resultSets))
 				break;
 		}
 		ItemRecommendationResultSet combinedResults = combiner.combine(numRecommendations, resultSets);
+        logger.debug("After combining, we have "+combinedResults.getResults().size()+" results");
 		for (ItemRecommendationResultSet.ItemRecommendationResult result : combinedResults.getResults()) {
 			recommenderScores.put(result.item, result.score.doubleValue());
 		}
