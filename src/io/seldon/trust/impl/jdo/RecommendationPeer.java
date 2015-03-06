@@ -153,7 +153,7 @@ public class RecommendationPeer {
 		}
         RecResultContext combinedResults = combiner.combine(numRecommendations, resultSets);
         logger.debug("After combining, we have "+combinedResults.resultSet.getResults().size()+
-                " results with alg key "+combinedResults.algKey);
+                " results with alg key "+combinedResults.algKey + " : " + StringUtils.join(combinedResults.resultSet.getResults(),':'));
 		for (ItemRecommendationResultSet.ItemRecommendationResult result : combinedResults.resultSet.getResults()) {
 			recommenderScores.put(result.item, result.score.doubleValue());
 		}
