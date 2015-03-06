@@ -108,7 +108,8 @@ public class ItemStorage {
         // no dogpile handler as this will change regularly and we aren't using the DB
 
         final String exKey = MemCacheKeys.getExcludedItemsForRecommendations(client, clientUserId);
-        return (Set<Long>) MemCachePeer.get(exKey);
+        Set<Long> ignored =  (Set<Long>) MemCachePeer.get(exKey);
+        return ignored==null? Collections.<Long>emptySet() : ignored;
     }
 
     public void persistIgnoredItems(String client, String clientUserId, Set<Long> ignoredItems){
