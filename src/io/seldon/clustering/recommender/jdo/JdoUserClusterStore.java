@@ -86,7 +86,7 @@ public class JdoUserClusterStore implements UserClusterStore, TransientUserClust
 			query = pm.newQuery( "javax.jdo.query.SQL","select user_id,t.cluster_id,weight,lastupdate,group_id from user_clusters_transient t, cluster_update, cluster_group where t.cluster_id=cluster_group.cluster_id and t.t_id>? order by user_id asc");
 			query.setResultClass(UserCluster.class);
 			List<UserCluster> clusters =  (List<UserCluster>) query.execute(checkpoint);
-			return new TransientUserClusters(lastId,new ArrayList<UserCluster>(clusters));
+			return new TransientUserClusters(lastId,new ArrayList<>(clusters));
 		}
 		else
 			return new TransientUserClusters(lastId,new ArrayList<UserCluster>());

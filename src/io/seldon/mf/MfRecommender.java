@@ -38,24 +38,26 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author firemanphil
  *         Date: 29/09/2014
  *         Time: 17:08
  */
+@Component
 public class MfRecommender extends MemcachedAssistedAlgorithm {
 
     private final MfFeaturesManager store;
 
-
-    public MfRecommender(MfFeaturesManager store, List<ItemIncluder> producers, List<ItemFilter> filters){
-        super(producers,filters);
+    @Autowired
+    public MfRecommender(MfFeaturesManager store){
         this.store = store;
     }
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client, Long user, int dimension,
+    public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,
             RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions) {
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
 
@@ -65,10 +67,10 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
         }
 
         float[] userVector =  clientStore.userFeatures.get(user);
-        Set<ItemRecommendationResult> recs = new HashSet<ItemRecommendationResult>();
-        if(ctxt.mode== RecommendationContext.MODE.INCLUSION){
+        Set<ItemRecommendationResult> recs = new HashSet<>();
+        if(ctxt.getMode()== RecommendationContext.MODE.INCLUSION){
             // special case for INCLUSION as it's easier on the cpu.
-            for (Long item : ctxt.contextItems){
+            for (Long item : ctxt.getContextItems()){
             	if (!recentitemInteractions.contains(item))
             	{
             		float[] features = clientStore.productFeatures.get(item);
@@ -99,5 +101,10 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
             sum += vec1[i] * vec2[i];
         }
         return sum;
+    }
+
+    @Override
+    public String name() {
+        return "mf";
     }
 }

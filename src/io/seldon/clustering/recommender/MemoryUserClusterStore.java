@@ -60,10 +60,10 @@ public class MemoryUserClusterStore implements UserClusterStore {
 	public MemoryUserClusterStore(String client,int entries)
 	{
 		logger.info("MemoryUserClusterStore for "+client+" of size "+entries);
-		this.store = new FastByIDMap<byte[]>(entries);
+		this.store = new FastByIDMap<>(entries);
 		this.client = client;
-		this.clusterGroups = new ConcurrentHashMap<Integer,Integer>();
-		this.transientClusters = new ConcurrentHashMap<Long, byte[]>();
+		this.clusterGroups = new ConcurrentHashMap<>();
+		this.transientClusters = new ConcurrentHashMap<>();
 	}
 	
 	/**
@@ -115,7 +115,7 @@ public class MemoryUserClusterStore implements UserClusterStore {
 
 	@Override
 	public List<UserCluster> getClusters(long userId) {
-		List<UserCluster> clusters = new ArrayList<UserCluster>();
+		List<UserCluster> clusters = new ArrayList<>();
 		byte[] b = store.get(userId);
 		if (b == null)
 			b = this.transientClusters.get(userId);
@@ -139,7 +139,7 @@ public class MemoryUserClusterStore implements UserClusterStore {
 	public static void main(String[] args)
 	{
 		MemoryUserClusterStore m = new MemoryUserClusterStore("",1);
-		ArrayList<UserCluster> clusters = new ArrayList<UserCluster>();
+		ArrayList<UserCluster> clusters = new ArrayList<>();
 		clusters.add(new UserCluster(1L,2,0.75,1,1));
 		clusters.add(new UserCluster(1L,14561,0.75,1,1));
 		clusters.add(new UserCluster(1L,62421,0.75,1,1));

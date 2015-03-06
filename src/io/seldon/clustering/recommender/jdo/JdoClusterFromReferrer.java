@@ -48,7 +48,7 @@ public class JdoClusterFromReferrer implements IClusterFromReferrer {
 	public static final int RELOAD_SECS = 900;
 	
 	String client;
-	ConcurrentHashMap<String,Integer> clusterMap = new ConcurrentHashMap<String,Integer>();
+	ConcurrentHashMap<String,Integer> clusterMap = new ConcurrentHashMap<>();
 	ReentrantReadWriteLock lock;
 	Timer reloadTimer;
 	public JdoClusterFromReferrer(String client)
@@ -79,7 +79,7 @@ public class JdoClusterFromReferrer implements IClusterFromReferrer {
 			lock.writeLock().lock();
 			try
 			{
-				ConcurrentHashMap<String,Integer> clusterMapNew = new ConcurrentHashMap<String,Integer>();
+				ConcurrentHashMap<String,Integer> clusterMapNew = new ConcurrentHashMap<>();
 				for(ClusterReferrer r : res)
 				{
 					logger.info("Updating cluster map for "+client+" with referrer:"+r.getReferrer()+" cluster:"+r.getCluster());
@@ -106,7 +106,7 @@ public class JdoClusterFromReferrer implements IClusterFromReferrer {
 			lock.readLock().lock();
 			try
 			{
-				Set<Integer> clusters = new HashSet<Integer>();
+				Set<Integer> clusters = new HashSet<>();
 				for(Map.Entry<String,Integer> e : clusterMap.entrySet())
 				{
 					if (referrer.startsWith(e.getKey()))

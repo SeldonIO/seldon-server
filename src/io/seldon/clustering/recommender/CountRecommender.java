@@ -35,7 +35,6 @@ import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
 import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.ItemsRankingManager;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
 import io.seldon.util.CollectionTools;
 import org.apache.log4j.Logger;
@@ -51,7 +50,6 @@ public class CountRecommender {
 	String client;
 	boolean fillInZerosWithMostPopular = true;
 	boolean testMode = false;
-	CFAlgorithm.CF_RECOMMENDER recommenderType = CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS;
 	String referrer;
 	
 	private static int EXPIRE_COUNTS = 300;
@@ -109,13 +107,6 @@ public class CountRecommender {
 			return null;
 	}
 
-	public CFAlgorithm.CF_RECOMMENDER getRecommenderType() {
-		return recommenderType;
-	}
-
-	public void setRecommenderType(CFAlgorithm.CF_RECOMMENDER recommenderType) {
-		this.recommenderType = recommenderType;
-	}
 	
 	/**
 	 * 
@@ -198,22 +189,22 @@ public class CountRecommender {
 		}
 	}
 	
-	public Map<Long,Double> recommendUsingItem(long itemId,int dimension,int numRecommendations,Set<Long> exclusions,double decay,CFAlgorithm.CF_CLUSTER_ALGORITHM clusterAlg,int minNumItems)
+	public Map<Long,Double> recommendUsingItem(String recommenderType, long itemId,int dimension,int numRecommendations,Set<Long> exclusions,double decay,String clusterAlg,int minNumItems)
 	{
 		boolean checkDimension = !(dimension == Constants.DEFAULT_DIMENSION || dimension == Constants.NO_TRUST_DIMENSION);
 		int minAllowed = minNumItems < numRecommendations ? minNumItems : numRecommendations;
 		logger.debug("Recommend using items - dimension "+dimension+" num recomendations "+numRecommendations+" itemId "+itemId+" minAllowed:"+minAllowed+" client "+client);
-		Map<Long,Double> res = new HashMap<Long,Double>();
+		Map<Long,Double> res = new HashMap<>();
 		if (clusterAlg != null)
 		{
 			//get the cluster id from the item if possibl
-			List<UserCluster> clusters = new ArrayList<UserCluster>();
+			List<UserCluster> clusters = new ArrayList<>();
 			switch(clusterAlg)
 			{
-			case NONE:
-			case LDA_USER:
+			case "NONE":
+			case "LDA_USER":
 				break;
-			case DIMENSION:
+			case "DIMENSION":
 				//get dimension for item
 				logger.debug("Getting cluster for item "+itemId+" from dimension");
 				Collection<Integer> dims = ItemService.getItemDimensions(new ConsumerBean(client), itemId);
@@ -221,7 +212,7 @@ public class CountRecommender {
 					for(Integer d : dims)
 						clusters.add(new UserCluster(0, d, 1.0D, 0, 0));
 				break;
-			case LDA_ITEM:
+			case "LDA_ITEM":
 				//get cluster from item_clusters table
 				logger.debug("Getting cluster for item "+itemId+" from item cluster");
 				Integer dim = ItemService.getItemCluster(new ConsumerBean(client), itemId);
@@ -232,18 +223,18 @@ public class CountRecommender {
 			
 			if (clusters.size() > 0)
 			{
-				Map<Long,Double> counts = new HashMap<Long,Double>();
+				Map<Long,Double> counts = new HashMap<>();
 				int numTopCounts = numRecommendations * 2; // number of counts to get - defaults to twice the final number recommendations to return
 				for(UserCluster cluster : clusters)
 				{
-					updateCounts(0, cluster, dimension, checkDimension, numTopCounts, exclusions, counts, 1.0D,decay);
+					updateCounts(recommenderType,0, cluster, dimension, checkDimension, numTopCounts, exclusions, counts, 1.0D,decay);
 				}
 			
 
 				if (counts.keySet().size() < minAllowed)
 				{
 					logger.debug("Number of items found "+counts.keySet().size()+" is less than "+minAllowed+" so returning empty recommendation for cluster item recommender for item "+itemId);
-					return new HashMap<Long,Double>();
+					return new HashMap<>();
 				}
 				
 				res = RecommendationUtils.rescaleScoresToOne(counts, numRecommendations);
@@ -254,12 +245,9 @@ public class CountRecommender {
 		return res;
 	}
 	
-	public Map<Long,Double> recommend(long userId,Integer group,int dimension,int numRecommendations,Set<Long> exclusions,double decay)
-	{
-		return recommend(userId, group, dimension,numRecommendations, exclusions,false, 1.0D, 1.0D,decay,0);
-	}
+
 		
-	private void updateCounts(long userId,UserCluster cluster,int dimension,boolean checkDimension,int numTopCounts,Set<Long> exclusions,Map<Long,Double> counts,double clusterWeight,double decay)
+	private void updateCounts(String recommenderType,long userId,UserCluster cluster,int dimension,boolean checkDimension,int numTopCounts,Set<Long> exclusions,Map<Long,Double> counts,double clusterWeight,double decay)
 	{
 		Map<Long,Double> itemCounts = null;
 		boolean localDimensionCheckNeeded = false;
@@ -267,7 +255,7 @@ public class CountRecommender {
 		{
 			try 
 			{
-				itemCounts = getClusterTopCountsForDimension(cluster.getCluster(), dimension,cluster.getTimeStamp(), numTopCounts,decay);
+				itemCounts = getClusterTopCountsForDimension(recommenderType, cluster.getCluster(), dimension,cluster.getTimeStamp(), numTopCounts,decay);
 			} 
 			catch (ClusterCountNoImplementationException e) 
 			{
@@ -284,7 +272,7 @@ public class CountRecommender {
 			catch (ClusterCountNoImplementationException e) 
 			{
 				logger.error("Failed to get cluster counts as method not implemented",e);
-				itemCounts = new HashMap<Long,Double>();
+				itemCounts = new HashMap<>();
 			}
 		}
 		double maxCount = 0;
@@ -343,7 +331,7 @@ public class CountRecommender {
 			catch (ClusterCountNoImplementationException e) 
 			{
 				logger.error("Failed to get cluster counts as method not implemented",e);
-				itemCounts = new HashMap<Long,Double>();
+				itemCounts = new HashMap<>();
 			}
 		}
 		int excluded = 0;
@@ -377,7 +365,7 @@ public class CountRecommender {
 	 * @param shortTermWeight
 	 * @return
 	 */
-	public Map<Long,Double> recommend(long userId,Integer group,int dimension,int numRecommendations,Set<Long> exclusions,boolean includeShortTermClusters,double longTermWeight,double shortTermWeight,double decay,int minNumItems)
+	public Map<Long,Double> recommend(String recommenderType,long userId,Integer group,int dimension,int numRecommendations,Set<Long> exclusions,boolean includeShortTermClusters,double longTermWeight,double shortTermWeight,double decay,int minNumItems)
 	{
 		
 		boolean checkDimension = !(dimension == Constants.DEFAULT_DIMENSION || dimension == Constants.NO_TRUST_DIMENSION);
@@ -389,8 +377,8 @@ public class CountRecommender {
 		List<UserCluster> shortTermClusters;
 		if (userId == Constants.ANONYMOUS_USER)
 		{
-			clusters = new ArrayList<UserCluster>();
-			shortTermClusters = new ArrayList<UserCluster>();
+			clusters = new ArrayList<>();
+			shortTermClusters = new ArrayList<>();
 		}	
 		else
 		{
@@ -398,7 +386,7 @@ public class CountRecommender {
 			if (includeShortTermClusters)
 				shortTermClusters = getShortTermClusters(userId, group);
 			else
-				shortTermClusters = new ArrayList<UserCluster>();
+				shortTermClusters = new ArrayList<>();
 		}
 		// fail early
 		Set<Integer> referrerClusters = getReferrerClusters();
@@ -407,25 +395,25 @@ public class CountRecommender {
 			if (!includeShortTermClusters && clusters.size() == 0)
 			{
 				logger.debug("User has no long term clusters and we are not including short term clusters - so returning empty recommendations");
-				return new HashMap<Long,Double>();
+				return new HashMap<>();
 			}
 			else if (includeShortTermClusters && clusters.size() == 0 && shortTermClusters.size() == 0)
 			{
 				logger.debug("User has no long or short term clusters - so returning empty recommendations");
-				return new HashMap<Long,Double>();
+				return new HashMap<>();
 			}
 		}
 		List<Long> res = null;
-		Map<Long,Double> counts = new HashMap<Long,Double>();
+		Map<Long,Double> counts = new HashMap<>();
 		int numTopCounts = numRecommendations * 5; // number of counts to get - defaults to twice the final number recommendations to return
 		logger.debug("recommending using long term cluster weight of "+longTermWeight+" and short term cluster weight "+shortTermWeight+" decay "+decay);
 		for(UserCluster cluster : clusters)
 		{
-			updateCounts(userId, cluster, dimension, checkDimension, numTopCounts, exclusions, counts, longTermWeight,decay);
+			updateCounts(recommenderType,userId, cluster, dimension, checkDimension, numTopCounts, exclusions, counts, longTermWeight,decay);
 		}
 		for(UserCluster cluster : shortTermClusters)
 		{
-			updateCounts(userId, cluster, dimension, checkDimension, numTopCounts, exclusions, counts, shortTermWeight,decay);
+			updateCounts(recommenderType, userId, cluster, dimension, checkDimension, numTopCounts, exclusions, counts, shortTermWeight,decay);
 		}
 
 		if (referrerClusters != null)
@@ -434,14 +422,14 @@ public class CountRecommender {
 			for(Integer c : referrerClusters)
 			{
 				UserCluster uc = new UserCluster(userId, c, 1.0, 0, 0);
-				updateCounts(userId, uc, dimension, checkDimension, numTopCounts, exclusions, counts, longTermWeight,decay);
+				updateCounts(recommenderType,userId, uc, dimension, checkDimension, numTopCounts, exclusions, counts, longTermWeight,decay);
 			}
 		}
 		
 		if (counts.keySet().size() < minAllowed)
 		{
 			logger.debug("Number of items found "+counts.keySet().size()+" is less than "+minAllowed+" so returning empty recommendation for user "+userId+" client "+client);
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 		}
 		
 		return RecommendationUtils.rescaleScoresToOne(counts, numRecommendations);
@@ -461,19 +449,19 @@ public class CountRecommender {
 		if (includeShortTermClusters)
 			shortTermClusters = getShortTermClusters(userId, group);
 		else
-			shortTermClusters = new ArrayList<UserCluster>();
+			shortTermClusters = new ArrayList<>();
 		if (!includeShortTermClusters && clusters.size() == 0)
 		{
 			logger.debug("User has no long term clusters and we are not including short term clusters - so returning empty recommendations");
-			return new ArrayList<Long>();
+			return new ArrayList<>();
 		}
 		else if (includeShortTermClusters && clusters.size() == 0 && shortTermClusters.size() == 0)
 		{
 			logger.debug("User has no long or short term clusters - so returning empty recommendations");
-			return new ArrayList<Long>();
+			return new ArrayList<>();
 		}
 		List<Long> res = null;
-		Map<Long,Double> counts = new HashMap<Long,Double>();
+		Map<Long,Double> counts = new HashMap<>();
 		for(long item : items) // initialise counts to zero
 			counts.put(item, 0D);
 		logger.debug("using long term cluster weight of "+longTermWeight+" and short term cluster weight "+shortTermWeight);
@@ -511,18 +499,13 @@ public class CountRecommender {
 		}
 		if (this.fillInZerosWithMostPopular)
 		{
-			res = new ArrayList<Long>();
+			res = new ArrayList<>();
 			List<Long> cRes = CollectionTools.sortMapAndLimitToList(counts, items.size()); 
 			for(Long item : cRes)
 				if (counts.get(item) > 0)
 					res.add(item);
 				else
 					break;
-			List<Long> mpRes= ItemsRankingManager.getInstance().getItemsByHits(client, items);
-			// fill in with most popular for ones we have no counts for
-			for (Long item : mpRes)
-				if (counts.get(item) == 0)
-					res.add(item);
 		}
 		else
 			res = CollectionTools.sortMapAndLimitToList(counts, items.size());
@@ -541,7 +524,7 @@ public class CountRecommender {
 		else
 		{
 			logger.debug("Got 0 short term clusters for user "+userId);
-			clusters = new ArrayList<UserCluster>();
+			clusters = new ArrayList<>();
 		}
 		return clusters;
 	}
@@ -621,6 +604,7 @@ public class CountRecommender {
 				return newItemCounts.getItemCounts();
 			} else {
 				if(itemCounts==null){
+					logger.debug("Couldn't get cluster counts from store or memcache. Returning null");
 					return null;
 				} else {
 					return itemCounts.getItemCounts();
@@ -640,11 +624,11 @@ public class CountRecommender {
 		}
 	}
 	
-	private Map<Long,Double> getClusterTopCountsForDimension(final int clusterId,final int dimension,final long timestamp,final int limit,final double decay) throws ClusterCountNoImplementationException
+	private Map<Long,Double> getClusterTopCountsForDimension(String recommenderType,final int clusterId,final int dimension,final long timestamp,final int limit,final double decay) throws ClusterCountNoImplementationException
 	{
 			switch(recommenderType)
 			{
-			case CLUSTER_COUNTS_SIGNIFICANT:
+			case "CLUSTER_COUNTS_SIGNIFICANT":
 				return getClusterCounts(MemCacheKeys.getTopClusterCountsForDimensionAlg(client, recommenderType, clusterId, dimension, limit),
 						new UpdateRetriever<ClustersCounts>() {
 							@Override
@@ -675,6 +659,7 @@ public class CountRecommender {
 		return getClusterCounts(MemCacheKeys.getTopClusterCounts(client,limit),new UpdateRetriever<ClustersCounts>() {
 			@Override
 			public ClustersCounts retrieve() throws Exception {
+				logger.debug("Retrieving global cluster top counts from store");
 				Map<Long,Double> itemMap = clusterCounts.getTopCounts(TestingUtils.getTime(), limit, decay);
 				return new ClustersCounts(itemMap,0);
 			}
@@ -700,7 +685,7 @@ public class CountRecommender {
 			return getClusterCounts(MemCacheKeys.getClusterCountForItems(client, clusterId, items, timestamp), new UpdateRetriever<ClustersCounts>() {
                 @Override
                 public ClustersCounts retrieve() throws Exception {
-                    Map<Long,Double> itemMap = new HashMap<Long,Double>();
+                    Map<Long,Double> itemMap = new HashMap<>();
                     for(Long itemId : items)
                     {
                         double count = clusterCounts.getCount(clusterId, itemId, timestamp,TestingUtils.getTime());

@@ -41,26 +41,33 @@ import com.google.common.collect.Ordering;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
-    private final MfFeaturesManager store;
+	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
+	private final MfFeaturesManager store;
 
 
-    public RecentMfRecommender(MfFeaturesManager store, List<ItemIncluder> producers, List<ItemFilter> filters){
-        super(producers,filters);
+	@Autowired
+    public RecentMfRecommender(MfFeaturesManager store){
         this.store = store;
     }
     
     @Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,List<Long> recentitemInteractions) {
-		RecommendationContext ctxt = retrieveContext(client,dimensionId, options.getNumRecentItems());
-		return recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+												 RecommendationContext ctxt, List<Long> recentitemInteractions) {
+		return recommendWithoutCache(client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
 	}
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client, Long user, int dimension,
+    public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,
             RecommendationContext ctxt, int maxRecsCount, List<Long> recentItemInteractions) {
+
+		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
+		int numRecentActionsToUse = opts.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
 
         if(clientStore==null) {
@@ -69,13 +76,13 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         }
         
         List<Long> itemsToScore;
-		if(recentItemInteractions.size() > options.getNumRecentActions()) 
+		if(recentItemInteractions.size() > numRecentActionsToUse)
 		{
-			 logger.debug("Limiting recent items for score to size "+options.getNumRecentActions()+" from present "+recentItemInteractions.size());
-			itemsToScore = recentItemInteractions.subList(0, options.getNumRecentActions());
+			logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		}
 		else
-			itemsToScore = new ArrayList<Long>(recentItemInteractions);
+			itemsToScore = new ArrayList<>(recentItemInteractions);
 
         double[] userVector;
         if (clientStore.productFeaturesInverse != null)
@@ -90,10 +97,10 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         	userVector = createAvgProductVector(itemsToScore, clientStore.productFeatures);
         }
         
-        Set<ItemRecommendationResult> recs = new HashSet<ItemRecommendationResult>();
-        if(ctxt.mode== RecommendationContext.MODE.INCLUSION){
+        Set<ItemRecommendationResult> recs = new HashSet<>();
+        if(ctxt.getMode()== RecommendationContext.MODE.INCLUSION){
             // special case for INCLUSION as it's easier on the cpu.
-            for (Long item : ctxt.contextItems){
+            for (Long item : ctxt.getContextItems()){
             	if (!recentItemInteractions.contains(item))
             	{
             		float[] features = clientStore.productFeatures.get(item);
@@ -171,4 +178,8 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         return sum;
     }
 
+	@Override
+	public String name() {
+		return "recent_mf";
+	}
 }

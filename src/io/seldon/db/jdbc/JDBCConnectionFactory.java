@@ -40,8 +40,8 @@ public class JDBCConnectionFactory {
 	
 	private static JDBCConnectionFactory factory;
 	
-	private Map<String,DataSource> dataSources = new ConcurrentHashMap<String,DataSource>();
-	private Map<String,String> clientToCatalog = new ConcurrentHashMap<String,String>();
+	private Map<String,DataSource> dataSources = new ConcurrentHashMap<>();
+	private Map<String,String> clientToCatalog = new ConcurrentHashMap<>();
 	
 	public static JDBCConnectionFactory initialise( Map<String,String> jndiKeys,Map<String,String> clientToCatalog) throws NamingException
 	{

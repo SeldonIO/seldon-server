@@ -23,64 +23,29 @@
 
 package io.seldon.similarity.item;
 
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
+import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class ItemSimilarityRecommender {
+@Component
+public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 
 	private static Logger logger = Logger.getLogger( ItemSimilarityRecommender.class.getName() );
 
 	final static int RECOMMEND_CACHE_TIME_SECS = 3600;
 
-	private String client;
-	private IItemSimilarityPeer itemSimilarityPeer;
 
-	public ItemSimilarityRecommender(String client,
-									 IItemSimilarityPeer itemSimilarityPeer) {
-		super();
-		this.client = client;
-		this.itemSimilarityPeer = itemSimilarityPeer;
-	}
-
-
-	public Map<Long,Double> recommend(long userId, int dimension, int numRecommendations, Set<Long> exclusions)
-	{
-		String memKey = MemCacheKeys.getItemRecommender(client, userId, dimension, -1);
-		Map<Long,Double> res = (Map<Long,Double>) MemCachePeer.get(memKey);
-		if (res == null)
-		{
-			res = itemSimilarityPeer.getRecommendations(userId, dimension, -1);
-			if (res != null)
-			{
-				MemCachePeer.put(memKey, res, RECOMMEND_CACHE_TIME_SECS);
-			}
-			else
-			{
-				logger.info("No recommendation results for user "+userId+" dimension "+dimension+" for client "+client);
-				return new HashMap<Long,Double>();
-			}
-		}
-
-		for(Long excl : exclusions)
-			res.remove(excl);
-
-		return RecommendationUtils.rescaleScoresToOne(res, numRecommendations);
-	}
-	public Map<Long,Double> recommendSimilarItems(long itemId, int dimension, int numRecommendations, Set<Long> exclusions)
-	{
-		return recommendSimilarItems(itemId, dimension, numRecommendations, exclusions, true);
-	}
-
-	public Map<Long,Double> recommendSimilarItems(final long itemId, final int dimension, int numRecommendations, Set<Long> exclusions,boolean rescaleScores)
+	public Map<Long,Double> recommendSimilarItems(final String client, final long itemId, final int dimension, int numRecommendations, Set<Long> exclusions, boolean rescaleScores)
 	{
 		String memKey = MemCacheKeys.getItemSimilarity(client, itemId, dimension, -1);
 		Map<Long,Double> res = (Map<Long,Double>) MemCachePeer.get(memKey);
@@ -89,7 +54,8 @@ public class ItemSimilarityRecommender {
 			newRes = DogpileHandler.get().retrieveUpdateIfRequired(memKey, res, new UpdateRetriever<Map<Long, Double>>() {
 				@Override
 				public Map<Long, Double> retrieve() throws Exception {
-					return itemSimilarityPeer.getSimilarItems(itemId, dimension, -1);
+					IItemSimilarityPeer peer = new JdoItemSimilarityPeer(client);
+					return peer.getSimilarItems(itemId, dimension, -1);
 				}
 			},RECOMMEND_CACHE_TIME_SECS);
 		} catch (Exception e){
@@ -104,7 +70,7 @@ public class ItemSimilarityRecommender {
 		if(newRes==null && res == null)
 		{
 			logger.info("No similar item recommendation results for item "+itemId+" dimension "+dimension+" for client "+client);
-			return new HashMap<Long,Double>();
+			return new HashMap<>();
 		}
 
 
@@ -117,13 +83,15 @@ public class ItemSimilarityRecommender {
 			return res;
 	}
 
-	public Map<Long,Double> recommendSimilarItems(List<Long> items, int dimension, int numRecommendations, Set<Long> exclusions)
+	public List<ItemRecommendationResultSet.ItemRecommendationResult> recommendSimilarItems(
+			String client, List<Long> items, int dimension, int numRecommendations, Set<Long> exclusions)
 	{
-		Map<Long,Double> res = new HashMap<Long,Double>();
+		List<ItemRecommendationResultSet.ItemRecommendationResult> toReturn = new ArrayList<>();
+		Map<Long,Double> res = new HashMap<>();
 		for(Long itemId : items)
 		{
 			logger.debug("Finding similar items to "+itemId);
-			Map<Long,Double> scores = recommendSimilarItems(itemId, dimension, numRecommendations, exclusions,false);
+			Map<Long,Double> scores = recommendSimilarItems(client,itemId, dimension, numRecommendations, exclusions,false);
 			for(Map.Entry<Long,Double> score : scores.entrySet())
 			{
 				if (res.containsKey(score.getKey()))
@@ -133,9 +101,35 @@ public class ItemSimilarityRecommender {
 			}
 		}
 
+		for (Map.Entry<Long, Double> entry : res.entrySet()) {
+			toReturn.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(),entry.getValue().floatValue()));
+		}
+
 		logger.info("Found "+res.size()+" similar items based on history of "+items.size());
-		return RecommendationUtils.rescaleScoresToOne(res, numRecommendations);
+		return toReturn;
 	}
 
 
+	@Override
+	public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+
+		if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION) {
+			logger.warn("Can't recommend items in inclusion mode.");
+		}
+
+		Set<Long> exclusions = ctxt.getContextItems();
+		List<ItemRecommendationResultSet.ItemRecommendationResult> recommendations = null;
+		if (recentItemInteractions.size() > 0) {
+			recommendations = recommendSimilarItems(client, recentItemInteractions, dimensionId, maxRecsCount, exclusions);
+			if (recommendations != null)
+				logger.info("Recent similar items recommender returned " + recommendations.size() + " recommendations");
+		} else
+			logger.info("failing RECENT_SIMILAR_ITEMS as no recent actions");
+		return new ItemRecommendationResultSet(recommendations);
+	}
+
+	@Override
+	public String name() {
+		return CFAlgorithm.CF_RECOMMENDER.RECENT_SIMILAR_ITEMS.name();
+	}
 }

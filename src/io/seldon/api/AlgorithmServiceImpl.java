@@ -23,13 +23,13 @@
 
 package io.seldon.api;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountStore;
-import io.seldon.clustering.tag.AsyncTagClusterCountFactory;
 import io.seldon.trust.impl.CFAlgorithm;
+
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -109,9 +109,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 				{
 					asyncStore.setDecay(algorithm.getDecayRateSecs());
 				}
-				AsyncTagClusterCountFactory fac = AsyncTagClusterCountFactory.get();
-				if (fac != null)
-					fac.setActive(consumerName, algorithm.isTagClusterCountsActive());
 			
 			}
 		}

@@ -112,7 +112,7 @@ public class ZkAlgorithmUpdater implements Runnable {
        	 				logger.error("Failed to connect to zookeeper after multiple attempts - STOPPING");
        	 				return;
        	 			}
-       	 			queue = new LinkedBlockingQueue<String>();
+       	 			queue = new LinkedBlockingQueue<>();
        	 			final Watcher watcher = new Watcher()
        	 			{
        	 				boolean expired = false;

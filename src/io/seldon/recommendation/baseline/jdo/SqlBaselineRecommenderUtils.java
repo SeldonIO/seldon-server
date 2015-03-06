@@ -46,10 +46,10 @@ public class SqlBaselineRecommenderUtils  extends ClientPersistable implements I
 		
 		String sql = "select ip.item_id,opsum from items_popular ip join item_map_enum ime on (ip.item_id=ime.item_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where dim_id=? order by opsum desc limit "+numRecommendations;
 		Query query = getPM().newQuery( "javax.jdo.query.SQL", sql);
-		ArrayList<Object> args = new ArrayList<Object>();
+		ArrayList<Object> args = new ArrayList<>();
 		args.add(dimension);
 		Collection<Object[]> results = (Collection<Object[]>) query.executeWithArray(args.toArray());
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Double topScore = null;
 		for(Object[] res : results)
 		{
@@ -69,7 +69,7 @@ public class SqlBaselineRecommenderUtils  extends ClientPersistable implements I
 		String sql = "select ip.item_id,opsum from items_popular where item_id in ("+idStr+") order by opsum desc";
 		Query query = getPM().newQuery( "javax.jdo.query.SQL", sql);
 		Collection<Object[]> results = (Collection<Object[]>) query.execute();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Double topScore = null;
 		for(Object[] res : results)
 		{
@@ -88,7 +88,7 @@ public class SqlBaselineRecommenderUtils  extends ClientPersistable implements I
 		String sql = "select item_id,opsum from items_popular order by opsum desc";
 		Query query = getPM().newQuery( "javax.jdo.query.SQL", sql);
 		Collection<Object[]> results = (Collection<Object[]>) query.execute();
-		Map<Long,Double> map = new HashMap<Long,Double>();
+		Map<Long,Double> map = new HashMap<>();
 		Double topScore = null;
 		for(Object[] res : results)
 		{

@@ -27,36 +27,40 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.items.RecentItemsWithTagsManager;
+import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
+import io.seldon.trust.impl.CFAlgorithm;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.trust.impl.CFAlgorithm;
 import junit.framework.Assert;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.seldon.items.RecentItemsWithTagsManager;
-import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
-
 public class TopicModelRecommenderTest {
 
 	private TopicFeaturesManager mockFeaturesManager;
 	private RecentItemsWithTagsManager mockTagsManager;
+	private RecommendationContext mockCtxt;
+	private RecommendationContext.OptionsHolder mockOptions;
 
 	@Before
 	public void createMocks()
 	{
 		mockFeaturesManager = createMock(TopicFeaturesManager.class);
 		mockTagsManager = createMock(RecentItemsWithTagsManager.class);
+		mockCtxt = createMock(RecommendationContext.class);
+		mockOptions = createMock(RecommendationContext.OptionsHolder.class);
 	}
 	
 	@Test
@@ -66,19 +70,24 @@ public class TopicModelRecommenderTest {
 		final int dimension = 1;
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(null);
 		replay(mockFeaturesManager);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager,null,null);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
+		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
+
+		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.attrid")).andReturn(0);
+		expect(mockOptions.getStringOption("io.seldon.algorithm.tags.table")).andReturn("table");
+		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(3);
+
+		replay(mockCtxt, mockOptions);
+		ItemRecommendationResultSet res = r.recommendWithoutCache(client, 1L, dimension,mockCtxt, 50,null);
 		
-		RecommendationContext ctxt = new RecommendationContext(RecommendationContext.MODE.INCLUSION, new HashSet<Long>());
-		ItemRecommendationResultSet res = r.recommendWithoutCache(new CFAlgorithm(), client, 1L, dimension,ctxt, 50,null);
-		
-		verify(mockFeaturesManager);
+		verify(mockFeaturesManager,mockCtxt, mockOptions);
 		Assert.assertNotNull(res);
 		Assert.assertNotNull(res.getResults());
 		Assert.assertEquals(0, res.getResults().size());
 		
 	}
 	
-	@Test 
+	@Test
 	public void testNoTags()
 	{
 		final String client = "test";
@@ -87,32 +96,36 @@ public class TopicModelRecommenderTest {
 		final int limit = 10;
 		final int numRecentItems = 1000;
 		final String table = "varchar";
-		Set<Long> recentItems = new HashSet<Long>();
+		Set<Long> recentItems = new HashSet<>();
 		recentItems.add(1L);
-		CFAlgorithm options = new CFAlgorithm();
-		options.setNumRecentItems(numRecentItems);
-		options.setTagAttrId(attrId);
-		expect(mockTagsManager.retrieveRecentItems(EasyMock.eq(client), EasyMock.eq(recentItems),EasyMock.eq(attrId),EasyMock.eq(table))).andReturn(null);
-		replay(mockTagsManager);
-		
-		TopicFeaturesStore tfs = new TopicFeaturesStore(null,null);
+		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
+
+//		expect(mockOptions.getIntegerOption("io.seldon.algorithm.general.numrecentactionstouse")).andReturn(numRecentItems);
+		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.attrid")).andReturn(attrId);
+		expect(mockOptions.getStringOption("io.seldon.algorithm.tags.table")).andReturn(table);
+		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(3);
+		expect(mockTagsManager.retrieveRecentItems(EasyMock.eq(client), EasyMock.eq(recentItems), EasyMock.eq(attrId), EasyMock.eq(table))).andReturn(null);
+		replay(mockTagsManager, mockOptions);
+
+		TopicFeaturesStore tfs = new TopicFeaturesStore(Collections.<Long, Map<Integer,Float>>emptyMap(),Collections.<String, Map<Integer,Float>>emptyMap());
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(tfs);
 		replay(mockFeaturesManager);
-		RecommendationContext ctxt = new RecommendationContext(RecommendationContext.MODE.INCLUSION, recentItems);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager,null,null);
-		
-		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, ctxt, 50,null);
-		
+		expect(mockCtxt.getContextItems()).andReturn(Collections.singleton(1L)).times(3);
+		replay(mockCtxt);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
+
+		ItemRecommendationResultSet res = r.recommendWithoutCache(client, 1L, dimension, mockCtxt, 50,null);
+
 		verify(mockFeaturesManager);
-		verify(mockTagsManager);
+		verify(mockCtxt,mockTagsManager,mockOptions);
 		Assert.assertNotNull(res);
 		Assert.assertNotNull(res.getResults());
 		Assert.assertEquals(0, res.getResults().size());
 
 	}
-	
-	
-	@Test 
+
+
+	@Test
 	public void testSimpleResults()
 	{
 		final String client = "test";
@@ -120,42 +133,50 @@ public class TopicModelRecommenderTest {
 		final int attrId = 1;
 		final int limit = 10;
 		final int numRecentItems = 1000;
-		final String table = "varchar"; 
-		Set<Long> recentItems = new HashSet<Long>();
-		
-		CFAlgorithm options = new CFAlgorithm();
-		options.setNumRecentItems(numRecentItems);
-		options.setTagAttrId(attrId);
-		
-		Map<Long,List<String>> itemTags = new HashMap<Long,List<String>>();
+		final String table = "varchar";
+		Set<Long> recentItems = new HashSet<>();
+
+
+		Map<Long,List<String>> itemTags = new HashMap<>();
 		final String tag = "tag";
 		final Long itemId = 1L;
-		List<String> tags = new ArrayList<String>();
+		List<String> tags = new ArrayList<>();
 		tags.add(tag);
 		itemTags.put(itemId, tags);
 		recentItems.add(itemId);
 		expect(mockTagsManager.retrieveRecentItems(EasyMock.eq(client), EasyMock.eq(recentItems), EasyMock.eq(attrId),EasyMock.eq(table))).andReturn(itemTags);
 		replay(mockTagsManager);
-		
-		Map<Long,Map<Integer,Float>> userTopicWeights = new HashMap<Long,Map<Integer,Float>>();
-		Map<Integer,Float> topicWeights = new HashMap<Integer,Float>();
+
+		Map<Long,Map<Integer,Float>> userTopicWeights = new HashMap<>();
+		Map<Integer,Float> topicWeights = new HashMap<>();
 		final Long user = 1L;
 		final Integer topic = 1;
 		final Float topicWeight = 0.5f;
 		topicWeights.put(topic, topicWeight);
 		userTopicWeights.put(user, topicWeights);
-		Map<String,Map<Integer,Float>> tagTopicWeights = new HashMap<String,Map<Integer,Float>>();
+		Map<String,Map<Integer,Float>> tagTopicWeights = new HashMap<>();
 		final Float tagWeight = 0.5f;
-		Map<Integer,Float> tagWeights = new HashMap<Integer, Float>();
+		Map<Integer,Float> tagWeights = new HashMap<>();
 		tagWeights.put(topic, tagWeight);
 		tagTopicWeights.put(tag, tagWeights);
 		TopicFeaturesStore tfs = new TopicFeaturesStore(userTopicWeights,tagTopicWeights);
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(tfs);
 		replay(mockFeaturesManager);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager,null,null);
-		RecommendationContext ctxt = new RecommendationContext(RecommendationContext.MODE.INCLUSION, recentItems);
-		ItemRecommendationResultSet res = r.recommendWithoutCache(options, client, 1L, dimension, ctxt, 50,null);
-		
+		expect(mockCtxt.getContextItems()).andReturn(recentItems).times(3);
+		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
+		replay(mockCtxt);
+
+
+//		expect(mockOptions.getIntegerOption( "io.seldon.algorithm.general.numrecentactionstouse")).andReturn(numRecentItems);
+		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.attrid")).andReturn(attrId);
+		expect(mockOptions.getStringOption("io.seldon.algorithm.tags.table")).andReturn(table);
+		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(0);
+		replay(mockOptions);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
+		List<Long> recentItemInteractions = new ArrayList<Long>();
+		ItemRecommendationResultSet res = r.recommendWithoutCache(client, 1L, dimension, mockCtxt, 50,recentItemInteractions);
+
+		verify(mockCtxt, mockOptions);
 		verify(mockFeaturesManager);
 		verify(mockTagsManager);
 		Assert.assertNotNull(res);

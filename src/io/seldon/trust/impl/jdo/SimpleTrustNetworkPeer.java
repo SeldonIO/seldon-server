@@ -53,7 +53,7 @@ public class SimpleTrustNetworkPeer {
 	public RecommendationNetwork getNetwork(long user,int type,CF_TYPE trustType)
 	{
 		RecommendationNetworkImpl net = new RecommendationNetworkImpl(user,type);
-		Map<Long,Double> trusts = new HashMap<Long,Double>();
+		Map<Long,Double> trusts = new HashMap<>();
 		String sql;
 		if (trustType == CF_TYPE.USER)
 			sql = "select u2,trust from network where u1=? && type=?";
@@ -87,7 +87,7 @@ public class SimpleTrustNetworkPeer {
 
 	public RecommendationNetwork getCooccurrenceNetwork(long user) {
 		RecommendationNetworkImpl net = new RecommendationNetworkImpl(user,Constants.DEFAULT_DIMENSION); 
-		Map<Long,Double> trusts = new HashMap<Long,Double>();
+		Map<Long,Double> trusts = new HashMap<>();
 		String sql;
 		sql = "select user_id,cast(c as decimal(5,5)) from (select u.user_id,1-least(0.6,(1/count(*))) c from actions a1 inner join actions a2 on a1.user_id=? and a1.item_id=a2.item_id and a1.user_id<>a2.user_id inner join users u on u.active and a2.user_id=u.user_id group by u.user_id order by count(*) desc limit 100) a;";
 		Query query = pm.newQuery("javax.jdo.query.SQL",sql);
@@ -103,7 +103,7 @@ public class SimpleTrustNetworkPeer {
 
 	public RecommendationNetwork getJaccardUpdatedNetwork(long userId, Set<Long> users, Long actions) {
 		RecommendationNetworkImpl net = new RecommendationNetworkImpl(userId,Constants.DEFAULT_DIMENSION); 
-		Map<Long,Double> trusts = new HashMap<Long,Double>();
+		Map<Long,Double> trusts = new HashMap<>();
 		//SQL
 		String sql;
   		String usersIds ="";

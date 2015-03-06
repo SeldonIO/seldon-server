@@ -23,16 +23,16 @@
 
 package io.seldon.general;
 
+import io.seldon.api.resource.ConsumerBean;
+
 import java.util.Collection;
 import java.util.Map;
-import io.seldon.api.resource.ConsumerBean;
 
 public abstract class UserPeer {
 	
 	public abstract User getUser(long userId);
 	public abstract User getUser(String userId);	
 	public abstract Collection<User> getRecentUsers(int limit);
-	public abstract Double getUserAvgRating(long userId,int dimension);
     public abstract User saveOrUpdate(final User user);
 	public abstract User persistUser(User u);
 	public abstract Collection<User> getActiveUsers(int limit);

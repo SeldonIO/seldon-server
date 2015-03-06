@@ -46,10 +46,10 @@ public class RecentItemsWithTagsManager {
 	private final PersistenceProvider persister;
 	private final DogpileHandler dogpileHandler;
 	
-	private final ConcurrentMap<String, ItemTags> clientStores = new ConcurrentHashMap<String, ItemTags>();
+	private final ConcurrentMap<String, ItemTags> clientStores = new ConcurrentHashMap<>();
 
-	private final ConcurrentMap<String, Boolean> loading = new ConcurrentHashMap<String, Boolean>();
-	 private BlockingQueue<Runnable> queue = new LinkedBlockingDeque<Runnable>();
+	private final ConcurrentMap<String, Boolean> loading = new ConcurrentHashMap<>();
+	 private BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>();
 	 private ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 3, 10, TimeUnit.MINUTES, queue) {
         protected void afterExecute(java.lang.Runnable runnable, java.lang.Throwable throwable) 
         {
@@ -117,7 +117,7 @@ public class RecentItemsWithTagsManager {
     		{
     			getRecentItems(client, ids, attrId, table);
     		}
-    		return new HashMap<Long,List<String>>();
+    		return new HashMap<>();
     	}
     	else
     	{

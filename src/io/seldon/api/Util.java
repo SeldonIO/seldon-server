@@ -23,29 +23,23 @@
 
 package io.seldon.api;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.jdo.PersistenceManager;
-import javax.servlet.http.HttpServletRequest;
-
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ListBean;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.general.UserAttributePeer;
 import io.seldon.general.jdo.SqlActionPeer;
-import io.seldon.general.jdo.SqlExtActionPeer;
 import io.seldon.general.jdo.SqlItemPeer;
-import io.seldon.general.jdo.SqlNetworkPeer;
-import io.seldon.general.jdo.SqlOpinionPeer;
 import io.seldon.general.jdo.SqlUserAttributePeer;
 import io.seldon.general.jdo.SqlUserPeer;
 import io.seldon.general.jdo.SqlVersionPeer;
-import io.seldon.mgm.keyword.MgmKeywordConfService;
 import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.RummbleLabsAPI;
-import io.seldon.trust.impl.jdo.RecommendationPeer;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.jdo.PersistenceManager;
+import javax.servlet.http.HttpServletRequest;
 
 
 public class Util {
@@ -53,21 +47,7 @@ public class Util {
 	public enum BackEnd { MYSQL, MONGO };
 	private static BackEnd backEnd = BackEnd.MYSQL;
     private static AlgorithmService algorithmService;
-    private static MgmKeywordConfService mgmKeywordConf;
-    
-    public static void setMgmKeywordConf(MgmKeywordConfService s)
-    {
-    	Util.mgmKeywordConf = s;
-    }
-    
-    
-    
-    public static MgmKeywordConfService getMgmKeywordConf() {
-		return mgmKeywordConf;
-	}
-
-
-
+ 
 	public static void setAlgorithmService(AlgorithmService algorithmService) {
         Util.algorithmService = algorithmService;
     }
@@ -81,16 +61,7 @@ public class Util {
 		Util.backEnd = backEnd;
 	}
 	
-	public static RummbleLabsAPI getLabsAPI(CFAlgorithm cfAlgorithm) throws APIException {
-		switch (backEnd)
-		{
-		default:
-		case MYSQL:
-		{
-			return new RecommendationPeer();
-		}
-		}
-	}
+
 
 	
 	public static JdoCountRecommenderUtils getCountRecommenderUtils(ConsumerBean c) throws APIException {
@@ -139,20 +110,7 @@ public class Util {
 		return new SqlUserPeer(pm);
 	}
 	
-	public static SqlOpinionPeer getOpinionPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlOpinionPeer(pm);
-	}
-	
-	public static SqlOpinionPeer getOpinionPeer(PersistenceManager pm) throws APIException {
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlOpinionPeer(pm);
-	}
+
 	
 	public static SqlActionPeer getActionPeer(ConsumerBean c) throws APIException {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
@@ -170,35 +128,7 @@ public class Util {
 	}
 	
 	
-	public static SqlExtActionPeer getExtActionPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlExtActionPeer(pm);
-	}
 	
-	public static SqlExtActionPeer getExtActionPeer(PersistenceManager pm) throws APIException {
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlExtActionPeer(pm);
-	}
-	
-	public static SqlNetworkPeer getNetworkPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlNetworkPeer(pm);
-	}
-	
-	public static SqlNetworkPeer getNetworkPeer(PersistenceManager pm) throws APIException {
-		if(pm == null) {
-			throw new APIException(APIException.INTERNAL_DB_ERROR);
-		}
-		return new SqlNetworkPeer(pm);
-	}
 
     public static SqlVersionPeer getVersionPeer(ConsumerBean c) throws APIException {
         PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
@@ -313,10 +243,7 @@ public class Util {
 		return res;
 	}
 	
-	public static String getLinkType(HttpServletRequest req) {
-		return req.getParameter(Constants.URL_LINK_TYPE);
-	}
-
+	
 	
 	public static CFAlgorithm getAlgorithmOptions(ConsumerBean c, List<String> algorithms,String recTag) throws CloneNotSupportedException {
 		CFAlgorithm cfAlgorithm = Util.getAlgorithmService().getAlgorithmOptions(c,recTag).clone();

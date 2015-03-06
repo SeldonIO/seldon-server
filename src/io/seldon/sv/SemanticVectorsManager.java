@@ -49,8 +49,8 @@ import pitt.search.semanticvectors.VectorStoreRAM;
 public class SemanticVectorsManager implements PerClientExternalLocationListener {
 
 	 private static Logger logger = Logger.getLogger(SemanticVectorsManager.class.getName());
-	 private final ConcurrentMap<String,SemanticVectorsStore> clientStores = new ConcurrentHashMap<String,SemanticVectorsStore>();
-	 private Set<NewResourceNotifier> notifiers = new HashSet<NewResourceNotifier>();
+	 private final ConcurrentMap<String,SemanticVectorsStore> clientStores = new ConcurrentHashMap<>();
+	 private Set<NewResourceNotifier> notifiers = new HashSet<>();
 	 private final ExternalResourceStreamer featuresFileHandler;
 	 public static final String SV_TEXT_NEW_LOC_PATTERN = "svtext";
 	 public static final String SV_CLUSTER_NEW_LOC_PATTERN = "svcluster";

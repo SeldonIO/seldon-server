@@ -47,16 +47,16 @@ public class JdoMemoryUserClusterFactory {
 	private static Logger logger = Logger.getLogger( JdoMemoryUserClusterFactory.class.getName() );
 	private static final int RELOAD_INTERVAL_SECS = 300;
 	private static final int RELOAD_INTERVAL_TRANS_SECS = 30;
-	private ConcurrentHashMap<String,MemoryUserClusterStore> stores = new ConcurrentHashMap<String,MemoryUserClusterStore>();
-	private ConcurrentHashMap<String,Long> lastTransientId = new ConcurrentHashMap<String, Long>();
+	private ConcurrentHashMap<String,MemoryUserClusterStore> stores = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String,Long> lastTransientId = new ConcurrentHashMap<>();
 	private ExecutorService service = Executors.newFixedThreadPool(2);
-    private Set<Timer> timers = new HashSet<Timer>();
+    private Set<Timer> timers = new HashSet<>();
 
     @Value("${io.seldon.memoryuserclusters.clients:}")
-    private String clients;
+    private String clients = "";
 
 	private static JdoMemoryUserClusterFactory factory;
-    private List<String> clientsSplit = new ArrayList<String>();
+    private List<String> clientsSplit = new ArrayList<>();
 
     public static JdoMemoryUserClusterFactory get()
 	{
@@ -66,7 +66,7 @@ public class JdoMemoryUserClusterFactory {
     @PostConstruct
     public void initialise(){
         factory = this;
-        if (clients != null)
+        if (clients != null && !clients.isEmpty())
         {
             clientsSplit = Arrays.asList(clients.split(","));
             for(String client : clientsSplit)
@@ -86,13 +86,13 @@ public class JdoMemoryUserClusterFactory {
 	private void storeClusters(MemoryUserClusterStore store,List<UserCluster> clusters)
 	{
 		long currentUser = -1;
-		List<UserCluster> userClusters = new ArrayList<UserCluster>();
+		List<UserCluster> userClusters = new ArrayList<>();
 		for(UserCluster cluster : clusters)
 		{
 			if (currentUser != -1 && currentUser != cluster.getUser())
 			{
 				store.store(currentUser, userClusters);
-				userClusters = new ArrayList<UserCluster>();
+				userClusters = new ArrayList<>();
 			}
 			userClusters.add(cluster);
 			currentUser = cluster.getUser();
@@ -132,7 +132,7 @@ public class JdoMemoryUserClusterFactory {
 		{
 			JdoUserClusterStore jdoStore = new JdoUserClusterStore(pm);
 			logger.info("Loading user clusters for "+client);
-            Set<Integer> userSet = new HashSet<Integer>();
+            Set<Integer> userSet = new HashSet<>();
 			List<UserCluster> clusters = jdoStore.getClusters();
             int userCount = countUsers(clusters);
 			MemoryUserClusterStore store = new MemoryUserClusterStore(client,userCount);
@@ -154,7 +154,7 @@ public class JdoMemoryUserClusterFactory {
 	}
 
     private int countUsers(List<UserCluster> clusters) {
-        Set<Long> users = new HashSet<Long>();
+        Set<Long> users = new HashSet<>();
         for (UserCluster cluster : clusters){
             users.add(cluster.getUser());
         }

@@ -44,9 +44,9 @@ public class JDOFactory
 	private static Logger logger = Logger.getLogger( JDOFactory.class.getName() );
 
     private static JDOPMRetriever pmRet = new JDOPMRetriever();
-    private static Map<String, PersistenceManagerFactory> factories = new ConcurrentHashMap<String, PersistenceManagerFactory>();
-    private static Map<String,String>  clientJNDINames = new ConcurrentHashMap<String,String>();
-    private static Map<String,String>  clientToDBName = new ConcurrentHashMap<String,String>();
+    private static Map<String, PersistenceManagerFactory> factories = new ConcurrentHashMap<>();
+    private static Map<String,String>  clientJNDINames = new ConcurrentHashMap<>();
+    private static Map<String,String>  clientToDBName = new ConcurrentHashMap<>();
     public static void initialise(Properties props, Properties jdoProperties) throws NamingException {
         for (Object key : jdoProperties.keySet()) {
             String dbKey = (String) key;

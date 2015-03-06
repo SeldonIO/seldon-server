@@ -79,36 +79,5 @@ public class StatsdKeys {
 		return "api."+StatsdPeer.installId+"."+client+"."+recTag+".clicks.positive";
 	}
 
-    private static String getMgmKey(String client, String testKey, String type) {
-        String testingType;
-        if(testKey==null) testingType = "standard"; else testingType = "test";
-        return "mgm."+StatsdPeer.installId+"."+testingType+"."+client+"."+type+(testKey==null?"":("."+testKey));
-    }
 
-    public static String getMgmImpression(String client, String testKey){
-        return getMgmKey(client, testKey, "impressions");
-    }
-
-    public static String getMgmShare(String client, String testKey){
-        return getMgmKey(client, testKey, "shares.total");
-    }
-
-    public static String getMgmExistingUserShare(String client, String testKey){
-        return getMgmKey(client, testKey, "shares.existing");
-    }
-
-    public static String getMgmNewUserShare(String client, String testKey){
-        return getMgmKey(client, testKey, "shares.new");
-    }
-
-    public static String getMgmFbClick(String client, String testKey){
-        return getMgmKey(client, testKey, "fbclicks");
-    }
-
-    public static String getMgmNewUsrConversion(String client, String testKey){
-        return getMgmKey(client, testKey, "conversion.new");
-    }
-    public static String getMgmExistingUsrConversion(String client, String testKey){
-        return getMgmKey(client, testKey, "conversion.existing");
-    }
 }

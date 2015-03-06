@@ -39,29 +39,47 @@ import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.ItemFilter;
 import io.seldon.trust.impl.ItemIncluder;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
+
+	private static final String ATTR_ID_PROPERTY_NAME ="io.seldon.algorithm.tags.attrid";
+	private static final String TABLE_PROPERTY_NAME = "io.seldon.algorithm.tags.table";
+	private static final String MIN_NUM_WEIGHTS_PROPERTY_NAME = "io.seldon.algorithm.tags.minnumtagsfortopicweights";
+	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 
 	TopicFeaturesManager featuresManager;
 	RecentItemsWithTagsManager tagsManager;
 
+	@Autowired
 	public RecentTopicModelRecommender(TopicFeaturesManager featuresManager,RecentItemsWithTagsManager tagsManager,
 								 List<ItemIncluder> producers, List<ItemFilter> filters)
 	{
-		super(producers,filters);
 		this.featuresManager = featuresManager;
 		this.tagsManager = tagsManager;
 	}
 	
 	@Override
-    public ItemRecommendationResultSet recommend(CFAlgorithm options,String client, Long user, int dimensionId, int maxRecsCount,List<Long> recentitemInteractions) {
-		RecommendationContext ctxt = retrieveContext(client,dimensionId, options.getNumRecentItems());
-		return recommendWithoutCache(options,client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId,
+												 int maxRecsCount, RecommendationContext ctxt,List<Long> recentitemInteractions) {
+		return recommendWithoutCache(client,user , dimensionId,ctxt, maxRecsCount ,recentitemInteractions);
 	}
 
 	@Override
-	public ItemRecommendationResultSet recommendWithoutCache(CFAlgorithm options,String client,
+	public String name() {
+		return "recent_topic";
+	}
+
+	@Override
+	public ItemRecommendationResultSet recommendWithoutCache(String client,
 			Long user, int dimension, RecommendationContext ctxt, int maxRecsCount, List<Long> recentItemInteractions) {
+		RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
+		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
+		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
+		Integer minNumTagsForWeights = options.getIntegerOption(MIN_NUM_WEIGHTS_PROPERTY_NAME);
+		int numRecentActionsToUse = options.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
 		TopicFeaturesStore store = featuresManager.getClientStore(client);
 		if (store == null)
 		{
@@ -69,14 +87,14 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
 		}
 		
-		if (ctxt == null || ctxt.contextItems == null || ctxt.contextItems.size() == 0)
+		if (ctxt == null || ctxt.getContextItems() == null || ctxt.getContextItems().size() == 0)
 		{
 			logger.warn("Not items passed in to recommend from. For client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
 		}
 		
-		logger.debug("retrive tags for recent items with attr-id "+options.getTagAttrId()+" from table "+options.getTagTable());
-		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.contextItems, options.getTagAttrId(),options.getTagTable());
+		logger.debug("retrive tags for recent items with attr-id "+tagAttrId+" from table "+tagTable);
+		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(),tagAttrId,tagTable);
 		if (itemTags == null || itemTags.size() == 0)
 		{
 			logger.debug("Failed to find recent tag items for client "+client);
@@ -86,26 +104,26 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 			logger.debug("Got "+itemTags.size()+" recent item tags");
 		
 		 List<Long> itemsToScore;
-		 if(recentItemInteractions.size() > options.getNumRecentActions())
+		 if(recentItemInteractions.size() > numRecentActionsToUse)
 		 {
-			 logger.debug("Limiting recent items for score to size "+options.getNumRecentActions()+" from present "+recentItemInteractions.size());
-			 itemsToScore = recentItemInteractions.subList(0, options.getNumRecentActions());
+			 logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			 itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		 }
 		 else
-			 itemsToScore = new ArrayList<Long>(recentItemInteractions);
+			 itemsToScore = new ArrayList<>(recentItemInteractions);
 		
 		//Create user topic weights
-		float[] userTopicWeight = createUserTopicsFromRecentItems(itemsToScore, store, itemTags,options.getMinNumTagsForTopicWeights());
+		float[] userTopicWeight = createUserTopicsFromRecentItems(itemsToScore, store, itemTags,minNumTagsForWeights);
 		if (userTopicWeight == null)
 		{
 			logger.debug("Failed to create vector from recent items");
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
 		}
 
-		Map<Long,Double> scores = new HashMap<Long,Double>();
+		Map<Long,Double> scores = new HashMap<>();
 		for(Map.Entry<Long, List<String>> e : itemTags.entrySet())
 		{
-			if (e.getValue().size() >= options.getMinNumTagsForTopicWeights() && !recentItemInteractions.contains(e.getKey()))
+			if (e.getValue().size() >= minNumTagsForWeights && !recentItemInteractions.contains(e.getKey()))
 			{
 				float[] itemTopicWeight = store.getTopicWeights(e.getKey(), e.getValue());
 				Double score = new Double(dot(userTopicWeight,itemTopicWeight));
@@ -117,7 +135,7 @@ public class RecentTopicModelRecommender extends MemcachedAssistedAlgorithm {
 	
 		
 		Map<Long,Double> scaledScores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
-		List<ItemRecommendationResult> results = new ArrayList<ItemRecommendationResult>();
+		List<ItemRecommendationResult> results = new ArrayList<>();
 		for(Map.Entry<Long, Double> e : scaledScores.entrySet())
 		{
 			results.add(new ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));

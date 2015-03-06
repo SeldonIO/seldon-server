@@ -23,17 +23,15 @@
 
 package io.seldon.clustering.recommender.jdo;
 
-import java.util.Properties;
-
 import io.seldon.cc.UserClusterManager;
+import io.seldon.clustering.recommender.ClusterCountStore;
 import io.seldon.clustering.recommender.CountRecommender;
-import io.seldon.clustering.recommender.MemoryClusterCountFactory;
 import io.seldon.clustering.recommender.UserClusterStore;
 import io.seldon.db.jdo.ClientPersistable;
-import org.apache.log4j.Logger;
 
-import io.seldon.clustering.recommender.ClusterCountStore;
-import io.seldon.clustering.recommender.MemcacheClusterCountFactory;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 public class JdoCountRecommenderUtils extends ClientPersistable {
 
@@ -58,20 +56,8 @@ public class JdoCountRecommenderUtils extends ClientPersistable {
 	public CountRecommender getCountRecommender(String client)
 	{
 		// Get cluster counter
-		ClusterCountStore counter = null;
-		MemcacheClusterCountFactory mFac = MemcacheClusterCountFactory.get();
-		if (mFac != null)
-			counter = mFac.getStore(client);
-		if (counter == null)
-		{
-			MemoryClusterCountFactory mClFac = MemoryClusterCountFactory.get();
-			if (mClFac != null)
-				counter = mClFac.getStore(client);
-			if (memoryBasedOnly && counter == null)
-				return null;
-			else if (counter == null)
-				counter = new JdoClusterCountStore(client); // Database backed count store
-		}
+		ClusterCountStore counter = new JdoClusterCountStore(client); // Database backed count store
+
 		// get user clusters
 		UserClusterStore userClusters = null;
 		userClusters = UserClusterManager.get().getStore(client); // Hack until we always use this class

@@ -23,19 +23,15 @@
 
 package io.seldon.trust.impl;
 
-import java.util.List;
-
 import io.seldon.api.resource.DimensionBean;
-import io.seldon.api.resource.RecommendedUserBean;
+
+import java.util.List;
 
 public interface RummbleLabsAnalysis {
 	
-	public Recommendation getPersonalisedRating(long userId,long itemId,int type,CFAlgorithm options);
 	public RecommendationResult getRecommendations(long userId,String clientUserId,Integer type,int dimension,int numRecommendations,CFAlgorithm options,String lastRecListUUID,Long currentItemId, String referrer);
 	public List<SearchResult> searchContent(String query,Long userId,DimensionBean d,int numResults,CFAlgorithm options);
 	public List<SearchResult> findSimilar(long itemId,int itemType,int numResults,CFAlgorithm options);
 	public RecommendationNetwork getNetwork(long userId, int dimension, CFAlgorithm cfAlgorithm);
 	public SortResult sort(Long userId,List<Long> items, CFAlgorithm options, List<Long> recentActions);
-	public List<RecommendedUserBean> sharingRecommendation(String userFbId,long userId,Long itemId,String linkype,List<String> tags,int limit,CFAlgorithm options);
-	public List<SearchResult> getSimilarUsers(long userId,int limit, int filterType, CFAlgorithm options);
 }

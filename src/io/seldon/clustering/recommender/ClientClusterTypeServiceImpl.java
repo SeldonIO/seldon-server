@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ClientClusterTypeServiceImpl implements ClientClusterTypeService{
 
-	Map<String,Set<Integer>> validClusters = new ConcurrentHashMap<String,Set<Integer>>();
+	Map<String,Set<Integer>> validClusters = new ConcurrentHashMap<>();
 	
 	public ClientClusterTypeServiceImpl()
 	{

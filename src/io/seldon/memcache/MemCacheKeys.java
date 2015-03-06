@@ -44,11 +44,11 @@ public class MemCacheKeys {
 			DimensionByItemType,DemographicBean,DBPediaHits, ItemSemanticAttribute, CooccurenceNetwork,
 			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
-			FBUser,RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
+			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUID, RecommendationUUIDDim,
 			RecentRecsForUsers, RecentItems, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems, MgmMultivariateTestVariation, PopularItems
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItems
 			};
 
 	
@@ -104,18 +104,7 @@ public class MemCacheKeys {
     	return "" + keys.ItemSimilarityGraphBean + ":" + client + ":" + id ;
     }
     
-    public static String getOpinionBeanKey(String client,String userId, String itemId) {
-    	return "" + keys.OpinionBean + ":" + client + ":" + userId + ":" + itemId;
-    }
-    
-    
-    public static String getUserOpinionBeansKey(String client,String id, boolean full) {
-    	return "" + keys.OpinionBean + ":" + client + ":" + id + ":" + full;
-    }
-    
-    public static String getItemOpinionBeansKey(String client,String id, boolean full) {
-    	return "" + keys.OpinionBean + ":" + client + ":" + full + ":" + id;
-    }
+
     
     public static String getTokenBeanKey(String key) {
     	return "" + keys.TokenBean + ":" + key;
@@ -290,7 +279,7 @@ public class MemCacheKeys {
 	
 	public static String getClusterCountForItems(String client,int clusterId,List<Long> items,long version)
 	{
-		ArrayList<Long> itemKeys = new ArrayList<Long>(items);
+		ArrayList<Long> itemKeys = new ArrayList<>(items);
 		Collections.sort(itemKeys); // to provide consistent order
 		StringBuffer b = new StringBuffer(""+keys.ClusterCountForItems);
 		b.append(":");
@@ -336,7 +325,7 @@ public class MemCacheKeys {
 	
 	public static String getSharingRecommendationKey(String client,long userId,List<Long> items)
 	{
-		ArrayList<Long> itemKeys = new ArrayList<Long>(items);
+		ArrayList<Long> itemKeys = new ArrayList<>(items);
 		Collections.sort(itemKeys);
 		return ""+keys.SharingRecommendation+":"+client+":"+userId+":"+CollectionTools.join(itemKeys, ",");
 	}
@@ -345,15 +334,11 @@ public class MemCacheKeys {
 	{
 		return ""+keys.ActionHistory+":"+client+":"+userId;
 	}
-	
-	public static String getFBUserKey(String client,long userId)
-	{
-		return ""+keys.FBUser+":"+client+":"+userId;
-	}
+
 	
 	public static String getRankedItemsKey(String client,long cfalgorithm, String userId,List<String> items)
 	{
-		ArrayList<String> itemKeys = new ArrayList<String>(items);
+		ArrayList<String> itemKeys = new ArrayList<>(items);
 		Collections.sort(itemKeys);
 		return ""+keys.RankedItems+":"+client+":" + cfalgorithm + ":"+userId+":"+CollectionTools.join(itemKeys, ",");
 	}
@@ -386,9 +371,9 @@ public class MemCacheKeys {
 		return ""+keys.TopClusterCounts.name()+":"+client+":"+clusterId+":"+dimension+":"+limit;
 	}
 	
-	public static String getTopClusterCountsForDimensionAlg(String client,CFAlgorithm.CF_RECOMMENDER alg,int clusterId,int dimension,int limit)
+	public static String getTopClusterCountsForDimensionAlg(String client,String alg,int clusterId,int dimension,int limit)
 	{
-		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg.name()+":"+clusterId+":"+dimension+":"+limit;
+		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg+":"+clusterId+":"+dimension+":"+limit;
 	}
 
 	
@@ -483,7 +468,7 @@ public class MemCacheKeys {
 	
 	public static String getTagsItemCounts(String client,Set<String> tags,int dimension)
 	{
-		ArrayList<String> tlist = new ArrayList<String>(tags);
+		ArrayList<String> tlist = new ArrayList<>(tags);
 		Collections.sort(tlist);
 		String normalizedTagKey = CollectionTools.join(tlist, ":");
 		return ""+keys.TagsItemCounts+":"+client+":"+dimension+":"+ normalizedTagKey;
@@ -500,7 +485,7 @@ public class MemCacheKeys {
 	}
 	public static String getSharingRecommendationForKeywords(String client,long userId,List<String> keywords)
     {
-        ArrayList<String> keywordSet = new ArrayList<String>(keywords);
+        ArrayList<String> keywordSet = new ArrayList<>(keywords);
         Collections.sort(keywordSet);
         return ""+keys.SharingRecommendationForKeywords+":"+client+":"+userId+CollectionTools.join(keywordSet, ",");
     }
@@ -539,8 +524,5 @@ public class MemCacheKeys {
     	return ""+keys.MostPopularItems+":"+client;
     }
 
-    public static String getMgmMultivariateTestKey(String client, String userId, String testId){
-        return keys.MgmMultivariateTestVariation.name()+":"+client+":"+userId+ ":" + testId;
-    }
 }
 

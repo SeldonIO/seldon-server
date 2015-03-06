@@ -92,7 +92,7 @@ public class ItemBean extends ResourceBean {
 			attributes = Util.getItemPeer(c).getItemAttributes(i.getItemId());
 			attributesName = Util.getItemPeer(c).getItemAttributesName(i.getItemId());
 			//Demographic
-			demographics = new ArrayList<DemographicBean>();
+			demographics = new ArrayList<>();
 			Collection<ItemDemographic> demos = Util.getItemPeer(c).getItemDemographics(i.getItemId());
 			for(ItemDemographic id : demos) {
 				DemographicBean d = UserService.getDemographic(c, id.getDemoId());

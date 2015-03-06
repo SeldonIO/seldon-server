@@ -56,8 +56,8 @@ public class DogpileHandler {
 		return peer;
 	}
 	
-	ConcurrentHashMap<String,Long> expireMap = new ConcurrentHashMap<String,Long>();
-	ConcurrentHashMap<String,Boolean> updatingMap = new ConcurrentHashMap<String,Boolean>();
+	ConcurrentHashMap<String,Long> expireMap = new ConcurrentHashMap<>();
+	ConcurrentHashMap<String,Boolean> updatingMap = new ConcurrentHashMap<>();
 	float expireFactor;
 	boolean active = false;
 	private DogpileHandler(float expireFactor,boolean active)

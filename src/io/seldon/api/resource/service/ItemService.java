@@ -27,29 +27,23 @@ import java.util.*;
 
 
 import io.seldon.api.Util;
+import io.seldon.api.resource.*;
+import io.seldon.general.*;
+import io.seldon.trust.impl.jdo.LastRecommendationBean;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.caching.ClientIdCacheStore;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.DimensionBean;
-import io.seldon.api.resource.ItemBean;
-import io.seldon.api.resource.ItemTypeBean;
-import io.seldon.api.resource.ListBean;
-import io.seldon.api.resource.ResourceBean;
-import io.seldon.general.Dimension;
-import io.seldon.general.Item;
-import io.seldon.general.ItemAttr;
-import io.seldon.general.ItemType;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
 import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.ItemsRankingManager;
 import io.seldon.trust.impl.RummbleLabsAPI;
 import io.seldon.trust.impl.SearchResult;
 
@@ -65,6 +59,15 @@ public class ItemService {
     private static Logger logger = Logger.getLogger(ItemService.class.getName());
     public static final int ITEM_NAME_LENGTH = 255;
     private static final int ITEMS_CACHING_TIME_SECS = 300;
+
+	@Autowired
+	private RecommendationPeer recommendationPeer;
+
+    @Autowired
+    private RecommendationStorage recommendationStorage;
+
+    @Autowired
+    private ItemStorage itemStorage;
     
     public static ItemBean getItem(final ConsumerBean c, final String iid, final boolean full) throws APIException
     {
@@ -121,14 +124,6 @@ public class ItemService {
 			if(sort == null || sort.length() == 0 || sort.toLowerCase().equals(Constants.SORT_ID)) { res = Util.getItemPeer(c).getItems(limit,dimension,c); }
 			else if(sort.toLowerCase().equals(Constants.SORT_NAME)) { res  = Util.getItemPeer(c).getAlphabeticItems(limit,dimension,c); }
 			else if(sort.toLowerCase().equals(Constants.SORT_LAST_ACTION)) { res = Util.getItemPeer(c).getRecentItems(limit,dimension,c); }
-			else if(sort.toLowerCase().equals(Constants.SORT_DATE)) { 
-				List<Long> list = ItemsRankingManager.getInstance().getItemsSortedByDate(c.getShort_name(), limit);
-				for(Long item : list) { bean.addBean(ItemService.getItem(c, getClientItemId(c,item), full)); }
-			}
-			else if(sort.toLowerCase().equals(Constants.SORT_POPULARITY)) { 
-				List<Long> list = ItemsRankingManager.getInstance().getItemsSortedByPopularity(c.getShort_name(), limit);
-				for(Long item : list) { bean.addBean(ItemService.getItem(c, getClientItemId(c,item), full)); }
-			}
 			if(res!=null) { for(Item i : res) { bean.addBean(new ItemBean(i,full,c)); }}
 			if(bean != null) bean.setSize(bean.getList().size());
 			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getItemsBeanKey(c.getShort_name(), full, sort,dimension),bean,ITEMS_CACHING_TIME_SECS);
@@ -136,7 +131,7 @@ public class ItemService {
 		return bean;
 	} 
 	
-	public static ListBean getItemsByKeyword(ConsumerBean c, List<String> keywords, int limit,boolean full,int dimension) throws APIException {
+	public ListBean getItemsByKeyword(ConsumerBean c, List<String> keywords, int limit,boolean full,int dimension) throws APIException {
 		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getItemsBeanKey(c.getShort_name(),keywords.toString(), full));
 		bean = Util.getLimitedBean(bean, limit);
 		if(bean == null) {
@@ -147,10 +142,9 @@ public class ItemService {
             } catch (CloneNotSupportedException e) {
                 throw new APIException(APIException.CANNOT_CLONE_CFALGORITHM);
             }
-			RummbleLabsAPI tp = Util.getLabsAPI(cfAlgorithm);
             int counter = 1;
             for(String k : keywords) {
-				List<SearchResult> res = tp.getAnalysis(cfAlgorithm).searchContent(k,null,ItemService.getDimension(c, dimension),limit,cfAlgorithm);
+				List<SearchResult> res = recommendationPeer.searchContent(k,null,ItemService.getDimension(c, dimension),limit,cfAlgorithm);
 				for(SearchResult r : res) {
 					Item i = null;
 					ItemBean ib = null;
@@ -392,9 +386,6 @@ public class ItemService {
         else if(bean.getAttributes() != null && bean.getAttributes().size()>0) {
             Util.getItemPeer(c).addItemAttribute(itemId, type.getTypeId(), bean.getAttributes(),c);
         }
-        //add item to the global lists
-        final String consumerName = c.getShort_name();
-        ItemsRankingManager.getInstance().addItem(consumerName,i.getItemId(), new Date());
         return i;
     }
 
@@ -507,7 +498,7 @@ public class ItemService {
 	public static ItemBean filter(ItemBean itemBean, List<String> attributeList) {
 		if(attributeList != null && attributeList.size()>0) {
 			Map<String,String> oldAttributes = itemBean.getAttributesName();
-			Map<String,String> newAttributes = new HashMap<String,String>();
+			Map<String,String> newAttributes = new HashMap<>();
 			for(String attribute : attributeList) {
 				newAttributes.put(attribute, oldAttributes.get(attribute));
 			}
@@ -515,5 +506,15 @@ public class ItemService {
 		}
 		return itemBean;
 	}
-		
+
+    public void updateIgnoredItems(ConsumerBean consumerBean, ActionBean actionBean, List<Long> ignoredFromLastRecs) {
+        Set<Long> resultingSet = new HashSet<>();
+        Set<Long> ignoredItems = itemStorage.retrieveIgnoredItems(consumerBean.getShort_name(), actionBean.getUser());
+        if(ignoredItems!=null) {
+            resultingSet.addAll(ignoredItems);
+        }
+        resultingSet.addAll(ignoredFromLastRecs);
+        itemStorage.persistIgnoredItems(consumerBean.getShort_name(), actionBean.getUser(), resultingSet);
+
+    }
 }

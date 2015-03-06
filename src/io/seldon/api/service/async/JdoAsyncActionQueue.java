@@ -89,7 +89,7 @@ public class JdoAsyncActionQueue implements Runnable, AsyncActionQueue {
         this.client = client;
         this.batchSize = batchSize;
         this.maxDBRetries = maxDBRetries;
-        this.queue = new LinkedBlockingQueue<Action>(maxQSize);
+        this.queue = new LinkedBlockingQueue<>(maxQSize);
         this.timeout = qTimeoutSecs;
         this.runUserItemUpdates = runUserItemUpdates;
         this.runUpdateIdsInActionTable = runUpdateIdsInActionTable;

@@ -23,6 +23,8 @@
 
 package io.seldon.trust.impl;
 
+import io.seldon.clustering.recommender.RecommendationContext;
+
 import java.util.List;
 
 /**
@@ -32,6 +34,6 @@ import java.util.List;
  */
 public interface ItemFilter {
 
-
-    List<Long> produceExcludedItems(String client);
+    List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
+                                    Long currentItem,String lastRecListUUID, int numRecommendations);
 }

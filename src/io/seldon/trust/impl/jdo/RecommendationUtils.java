@@ -32,14 +32,17 @@ import java.util.Map;
 import java.util.Set;
 
 import io.seldon.api.logging.CtrLogger;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
+import io.seldon.recommendation.ClientStrategy;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.util.CollectionTools;
 import org.apache.log4j.Logger;
 
 public class RecommendationUtils {
 
+	private static final String REMOVE_IGNORED_RECS_OPTION_NAME = "io.seldon.algorithm.filter.removeignoredrecs";
 	private static Logger logger = Logger.getLogger(RecommendationUtils.class.getName());
 	
 	private static final int MEMCACHE_EXCLUSIONS_EXPIRE_SECS = 1800;
@@ -48,7 +51,7 @@ public class RecommendationUtils {
 	
 	public static List<Long> getDiverseRecommendations(int numRecommendationsAsked,List<Long> recs,String client,String clientUserId,int dimension)
 	{		
-		List<Long> recsFinal = new ArrayList<Long>(recs.subList(0, Math.min(numRecommendationsAsked,recs.size())));
+		List<Long> recsFinal = new ArrayList<>(recs.subList(0, Math.min(numRecommendationsAsked,recs.size())));
 		String rrkey = MemCacheKeys.getRecentRecsForUser(client, clientUserId, dimension);
 		Set<Integer> lastRecs = (Set<Integer>) MemCachePeer.get(rrkey);
 		int hashCode = recsFinal.hashCode();
@@ -57,10 +60,10 @@ public class RecommendationUtils {
 			if (lastRecs.contains(hashCode))
 			{
 				logger.debug("Trying to diversity recs for user "+clientUserId+" dimension "+dimension+" client"+client+" #recs "+recs.size());
-				List<Long> shuffled = new ArrayList<Long>(recs);
+				List<Long> shuffled = new ArrayList<>(recs);
 				Collections.shuffle(shuffled); //shuffle 
 				shuffled = shuffled.subList(0, Math.min(numRecommendationsAsked,recs.size())); //limit to size of recs asked for
-				recsFinal = new ArrayList<Long>();
+				recsFinal = new ArrayList<>();
 				// add back in original order
 				for(Long r : recs)
 					if (shuffled.contains(r))
@@ -75,87 +78,13 @@ public class RecommendationUtils {
 			logger.debug("Will not diversity recs for user "+clientUserId+" dimension "+dimension+" as lasRecs is null");
 		}
 		if (lastRecs == null)
-			lastRecs = new HashSet<Integer>();
+			lastRecs = new HashSet<>();
 		lastRecs.add(hashCode);
 		MemCachePeer.put(rrkey, lastRecs,RECENT_RECS_EXPIRE_SECS);
 		return recsFinal;
 	}
 	
-	public static Set<Long> getExclusions(boolean recordCTR,String client,String clientUserId,Long currentItem,String lastRecUUID,CFAlgorithm algorithm,int numRecentActions)
-	{
-		Set<Long> exclusions = new HashSet<Long>();
-		int clickIndex = -1;
-		String algorithmKey="UNKNOWN";
-		logger.debug("Exclusions with currentItemId:"+currentItem+" lastRecUUID:"+lastRecUUID+" for user "+clientUserId);
-		if (currentItem != null && lastRecUUID != null)
-		{
-			//Currently assumes lastRecUUID will be a small integer representing the nth recommendation list for the user in their
-			// present session
-			int userRecCounter = 0;
-			try
-			{
-				userRecCounter = Integer.parseInt(lastRecUUID);
-				LastRecommendationBean lastRecsBean = (LastRecommendationBean) MemCachePeer.get(MemCacheKeys.getRecommendationListUUID(client, clientUserId,userRecCounter));
-				if (lastRecsBean != null)
-				{
-					algorithmKey = lastRecsBean.getAlgorithm();
-					List<Long> itemsToAdd = null;
-					int i;
-					List<Long> lastRecs = lastRecsBean.getRecs();
-					for(i=0;i<lastRecs.size();i++)
-					{
-						if (lastRecs.get(i).equals(currentItem))
-						{
-							itemsToAdd = lastRecs.subList(0, i+1); // include clickRecommendation
-							break;
-						}
-					}
-					if (itemsToAdd != null)// CTR event
-					{
-						clickIndex = i+1;
 
-						if (algorithm.isRemoveIgnoredRecommendations())
-						{
-							logger.debug("Adding "+itemsToAdd.size()+" items to exclusion list for user "+clientUserId+" for client "+client);
-							//Get present exclusions
-							final String exKey = MemCacheKeys.getExcludedItemsForRecommendations(client, clientUserId);
-							Set<Long> currentExclusions = (Set<Long>) MemCachePeer.get(exKey);
-							if (currentExclusions == null)
-								currentExclusions = new HashSet<Long>();
-							logger.debug("Current exclusion list for user "+clientUserId+" for client "+client+" is "+currentExclusions.size());
-							currentExclusions.addAll(itemsToAdd);
-							MemCachePeer.put(exKey, currentExclusions, MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
-							exclusions = currentExclusions;
-						}
-					}
-					else
-						logger.debug("Didn't find itemId "+currentItem+" in list for user "+clientUserId+" client:"+client);
-				}
-				else
-					logger.debug("No last rec bean for user: "+clientUserId+" client: "+client+" counter:"+userRecCounter);
-			}
-			catch(NumberFormatException e)
-			{
-				logger.error("Couldn't decide user UUID as integer. UUID is "+lastRecUUID);
-			}
-		 }
-		//
-		// STORE CTR HERE IN LOGS AND STATSD
-		//
-		if (recordCTR)
-		{
-			String abTestingKey = null;
-			String recTag = null;
-			if (algorithm != null)
-			{
-				abTestingKey = algorithm.getAbTestingKey();
-				recTag = algorithm.getRecTag();
-			}
-			CtrLogger.log(true, client, algorithmKey, clickIndex, clientUserId, lastRecUUID, currentItem, numRecentActions, "", abTestingKey, recTag);
-		}
-		
-		return exclusions;
-	}
 	
 	/**
 	 * Create a new transient recommendations counter for the user by incrementing the current one.
@@ -163,10 +92,12 @@ public class RecommendationUtils {
 	 * @param userId
 	 * @param currentUUID
 	 * @param recs
-	 * @param algorithm
-	 * @return
+	 * @param strat
+     *@param recTag @return
 	 */
-	public static String cacheRecommendationsAndCreateNewUUID(String client,String userId,int dimension,String currentUUID,List<Long> recs,CFAlgorithm algorithm,String algKey,Long currentItemId,int numRecentActions)
+	public static String cacheRecommendationsAndCreateNewUUID(String client, String userId, int dimension,
+                                                              String currentUUID, List<Long> recs,
+                                                              String algKey, Long currentItemId, int numRecentActions, ClientStrategy strat, String recTag)
 	{
 		String counterKey = MemCacheKeys.getRecommendationListUserCounter(client, dimension, userId);
 		Integer userRecCounter = (Integer) MemCachePeer.get(counterKey);
@@ -176,10 +107,11 @@ public class RecommendationUtils {
 		{
 			userRecCounter++;
 			String recsList = CollectionTools.join(recs, ":");
-			String abTestingKey = null;
-			if (algorithm != null)
-				abTestingKey = algorithm.getAbTestingKey();
-			CtrLogger.log(false,client, algKey, -1, userId,""+userRecCounter,currentItemId,numRecentActions,recsList,abTestingKey,algorithm.getRecTag());
+			String abTestingKey = strat.getName();
+			// TODO ab testing and recTag
+//			if (algorithm != null)
+//				abTestingKey = algorithm.getAbTestingKey();
+			CtrLogger.log(false,client, algKey, -1, userId,""+userRecCounter,currentItemId,numRecentActions,recsList,abTestingKey,recTag);
 			MemCachePeer.put(MemCacheKeys.getRecommendationListUUID(client,userId,userRecCounter),new LastRecommendationBean(algKey, recs),MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
 			MemCachePeer.put(counterKey, userRecCounter,MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
 		}
@@ -207,7 +139,7 @@ public class RecommendationUtils {
 		else
 		{
 			logger.debug("Zero sum in counts - returning empty score map");
-			return new HashMap<T,Double>();
+			return new HashMap<>();
 		}
 	}
 	
@@ -229,7 +161,7 @@ public class RecommendationUtils {
 		else
 		{
 			logger.debug("Zero sum in counts - returning empty score map");
-			return new HashMap<T,Double>();
+			return new HashMap<>();
 		}
 	}
 

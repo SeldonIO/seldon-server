@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
-import io.seldon.general.MgmAction;
 import org.apache.log4j.Logger;
 
 public class StatsdPeer {
@@ -156,50 +155,5 @@ public class StatsdPeer {
 		}
 	}
 
-    public static void logMgmStat(String consumerName, MgmAction.MgmActionType type, String testKey){
-        String key;
-        switch (type){
-            case IMPRESSION: key = StatsdKeys.getMgmImpression(consumerName, testKey); break;
-            case EXISTING_USR_SHARE: key = StatsdKeys.getMgmExistingUserShare(consumerName, testKey); break;
-            case NEW_USR_SHARE: key = StatsdKeys.getMgmNewUserShare(consumerName, testKey); break;
-            case FB_REC_CLICK: key = StatsdKeys.getMgmFbClick(consumerName, testKey); break;
-            case EXISTING_USR_CONVERSION: key = StatsdKeys.getMgmExistingUsrConversion(consumerName, testKey); break;
-            case NEW_USR_CONVERSION: key = StatsdKeys.getMgmNewUsrConversion(consumerName, testKey); break;
-            default: logger.error("Wasn't given valid mgm action type");return;
-        }
-        if (client != null)
-        {
-            try
-            {
-                if(client.increment(key)){
-                    logger.info("Incremented stat "+ key + " on statsd");
-                } else {
-                    logger.error("Couldn't increment stat "+ key);
-                }
-            }
-            catch (Exception e)
-            {
-                logger.error("Failed to call statsd to log for consumer "+consumerName);
-            }
-        }
-    }
 
-    public static void logMgmStat(String consumerName, String eventType){
-        String key = eventType;
-        if (client != null)
-        {
-            try
-            {
-                if(client.increment(key)){
-                    logger.info("Incremented stat "+ key + " on statsd");
-                } else {
-                    logger.error("Couldn't increment stat "+ key);
-                }
-            }
-            catch (Exception e)
-            {
-                logger.error("Failed to call statsd to log for consumer "+consumerName);
-            }
-        }
-    }
 }

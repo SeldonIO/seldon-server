@@ -25,6 +25,7 @@ package io.seldon.clustering.recommender;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,12 +40,16 @@ public class ItemRecommendationResultSet implements Serializable {
     private final List<ItemRecommendationResult> results;
 
 
+    public ItemRecommendationResultSet(){
+        this.results = Collections.emptyList();
+    }
+
     public ItemRecommendationResultSet(List<ItemRecommendationResult> results) {
         this.results = results;
     }
 
     public List<ItemRecommendationResult> getResults(){
-        return new ArrayList<ItemRecommendationResult>(results);
+        return new ArrayList<>(results);
     }
 
     @Override
@@ -95,6 +100,11 @@ public class ItemRecommendationResultSet implements Serializable {
                 return otherResult.item.equals(item);
             }
             return false;
+        }
+
+        @Override
+        public String toString(){
+            return "{item:"+item+",score:"+score+"}";
         }
     }
 }

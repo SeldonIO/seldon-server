@@ -80,7 +80,7 @@ public class UserBean extends ResourceBean {
 			attributes = Util.getUserAttributePeer(c).getUserAttributes(u.getUserId());
 			attributesName = Util.getUserAttributePeer(c).getUserAttributesName(u.getUserId());	
 			//Dimensions
-			dimensions = new ArrayList<DimensionBean>();
+			dimensions = new ArrayList<>();
 			Collection<UserDimension> dims = Util.getUserPeer(c).getUserDimensions(u.getUserId());
 			for(UserDimension ud : dims) {
 				DimensionBean d = ItemService.getDimension(c, ud.getDimId());

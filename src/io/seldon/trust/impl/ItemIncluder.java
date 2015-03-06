@@ -32,6 +32,8 @@ import java.util.List;
  */
 public interface ItemIncluder {
 
+    public static final int NUMBER_OF_ITEMS_PER_INCLUDER_DEFAULT = 200;
+
     /**
      * Produces a list of item ids that should be considered by the
      * recommendation algorithm.

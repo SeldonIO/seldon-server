@@ -23,24 +23,19 @@
 
 package io.seldon.api.resource.service.business;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
-import java.util.List;
-
-import com.google.common.collect.Multimap;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
-import io.seldon.api.logging.MgmLogger;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
-import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.resource.service.MgmRecommendationService;
 import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.service.ApiLoggerServer;
-import io.seldon.facebook.user.algorithm.experiment.MultiVariateTestStore;
-import io.seldon.general.MgmAction;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,12 +43,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class RecommendationBusinessServiceImpl implements RecommendationBusinessService {
     private static Logger logger = Logger.getLogger(RecommendationBusinessServiceImpl.class);
-
-    @Autowired
-    private MultiVariateTestStore mvTestStore;
-
-    @Autowired
-    private MgmRecommendationService mgmRecommendationService;
 
     @Autowired
     private RecommendationService recommendationService;
@@ -75,7 +64,7 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
 
     @Override
     public ResourceBean recommendationsForUser(ConsumerBean consumerBean, HttpServletRequest request, String userId) {
-        ResourceBean res;
+        ResourceBean res = null;
         try {
             List<String> keywords = Util.getKeywords(request);
             Integer itemType = Util.getType(request);
@@ -98,7 +87,7 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
             } else {
                 int limit = Util.getLimit(request);
                 boolean full = Util.getFull(request);
-                res = recommendationService.getRecommendations(consumerBean, userId, itemType, dimension, limit, full, algorithms);
+//                res = recommendationService.getRecommendations(consumerBean, userId, itemType, dimension, limit, full, algorithms);
             }
         } catch (APIException e) {
             ApiLoggerServer.log(this, e);
@@ -116,23 +105,6 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
         return res;
     }
 
-    @Override
-    public ListBean recommendUsers(ConsumerBean c, String userId, String itemId, String linkType, List<String> algorithms, int limit, int usersShown, Multimap<String, String> dict,String facebookToken, boolean impressionEnabled){
-        if(itemId == null || itemId.isEmpty()) {
-            if (impressionEnabled) {
-                MgmAction action = new MgmAction(userId, null, new Date(), MgmAction.MgmActionType.IMPRESSION, null, null);
-                String variationKey = null;
-                if(mvTestStore.testRunning(c.getShort_name())){
-                    variationKey = mvTestStore.retrieveVariationKey(c.getShort_name(), userId);
-                    mvTestStore.registerTestEvent(c.getShort_name(), action);
-    
-                }
-                MgmLogger.log(c.getShort_name(), action, variationKey);
-            }
-            return mgmRecommendationService.getRecommendedUsers(c,userId, limit, usersShown, algorithms, dict,facebookToken, impressionEnabled);
-        }
-
-        return recommendationService.getRecommendedUsers(c, userId, itemId, linkType, algorithms, limit, usersShown, dict, impressionEnabled);
-    }
+   
 
 }

@@ -11,86 +11,20 @@
     <task:scheduler id="normalScheduler" pool-size="1"/>
     <task:executor id="normalExecutor" pool-size="1"/>
     <!-- Pull in algorithm configuration context (to be refactored into the above) -->
-    <import resource="classpath:api-algorithm-ctx.xml"/>
-    <import resource="classpath*:mgm-algorithm-ctx.xml"/>
-     <import resource="classpath*:mgm-keyword-ctx.xml"/>
-    <import resource="classpath*:alg-names-ctx.xml"/>
+    <!--<import resource="classpath:api-algorithm-ctx.xml"/>-->
     <context:component-scan base-package="io.seldon" >
         <context:exclude-filter type="annotation"
                             expression="org.springframework.stereotype.Controller" />
     </context:component-scan>
     <context:property-placeholder
-            location="classpath:version.properties,classpath:facebook.properties,classpath:labs.properties"/>
+            location="classpath:version.properties,classpath:labs.properties,classpath:alg_default.properties"/>
 
-    <!-- BEG: Facebook services -->
-    <!--<context:property-placeholder location="/WEB-INF/facebook.properties"/>-->
-    <context:component-scan base-package="io.seldon.facebook"/>
-    <context:component-scan base-package="io.seldon.mgm.keyword"/>
     <context:component-scan base-package="io.seldon.general"/>
     <context:component-scan base-package="io.seldon.clustering.recommender"/>
     <context:component-scan base-package="io.seldon.api.resource.service"/>
-    <!-- Likes only -->
-    <bean id="configuration.facebookImporter" class="io.seldon.facebook.importer.FacebookImporterConfiguration">
-        <!--<property name="friends" value="true"/>-->
-        <property name="facebookEnabled" value="${facebook.enabled}"/>
-    </bean>
-
-    <!-- Specify the appropriate importer observer for hooking into backend services -->
-    <!--<bean id="observer.facebookImporter" class="io.seldon.facebook.client.importer.FacebookCachingImporterObserver"/>-->
-    <bean id="observer.facebookImporter" class="io.seldon.facebook.importer.FacebookOnlineImporterObserver">
-        <constructor-arg value="${aws.sqs.facebook.prefix}"/>
-    </bean>
-
-    <bean id="peer.rummbleFacebookAccounts" class="io.seldon.facebook.RummbleFacebookAccountsPeer"/>
-    <bean id="service.facebook" class="io.seldon.facebook.service.FacebookServiceImpl"/>
-
-    <!-- END: Facebook services -->
+    
 
     <bean id="service.userBusinessService" class="io.seldon.api.resource.service.business.UserBusinessServiceImpl"/>
     <bean id="service.itemBusinessService" class="io.seldon.api.resource.service.business.ItemBusinessServiceImpl"/>
-
-
-    <!-- Friends Score Decay Functions -->
-
-    <bean id="decay.impressions.scoreDivRate.2" class="io.seldon.facebook.ScoreDivRateDecayFunction">
-        <constructor-arg value="2"/>
-    </bean>
-
-    <bean id="decay.impressions.scoreDivRate.3" class="io.seldon.facebook.ScoreDivRateDecayFunction">
-        <constructor-arg value="3"/>
-    </bean>
-
-    <bean id="decay.impressions.scoreDivRate.4" class="io.seldon.facebook.ScoreDivRateDecayFunction">
-        <constructor-arg value="4"/>
-    </bean>
-
-
-
-    <bean id="decay.impressions.scoreDivImpression.1" class="io.seldon.facebook.ScoreDivImpressionDecayFunction">
-        <constructor-arg value="1"/>
-    </bean>
-
-    <bean id="decay.impressions.scoreDivImpression.2" class="io.seldon.facebook.ScoreDivImpressionDecayFunction">
-        <constructor-arg value="2"/>
-    </bean>
-
-    <bean id="decay.impressions.scoreDivImpression.3" class="io.seldon.facebook.ScoreDivImpressionDecayFunction">
-        <constructor-arg value="3"/>
-    </bean>
-
-
-
-    <bean id="decay.impressions.scoreMinusImpression.1" class="io.seldon.facebook.ScoreMinusImpressionDecayFunction">
-        <constructor-arg value="1"/>
-    </bean>
-
-    <bean id="decay.impressions.scoreMinusImpression.5" class="io.seldon.facebook.ScoreMinusImpressionDecayFunction">
-        <constructor-arg value="5"/>
-    </bean>
-
-    <bean id="decay.impressions.scoreMinusImpression.10" class="io.seldon.facebook.ScoreMinusImpressionDecayFunction">
-        <constructor-arg value="10"/>
-    </bean>
-
 
 </beans>

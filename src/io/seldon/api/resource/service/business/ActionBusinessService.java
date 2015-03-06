@@ -27,14 +27,12 @@ import io.seldon.api.resource.ActionBean;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 /**
  * Created by: marc on 14/08/2012 at 13:39
  */
 public interface ActionBusinessService {
-    ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean);
+    ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean,
+                           boolean isClickThrough, String recsCounter, String recTag);
 
-    URI redirectToMgmInviteURL(ConsumerBean consumerBean, String url, String inviter, String userAgent) throws URISyntaxException;
+    
 }

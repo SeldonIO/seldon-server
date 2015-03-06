@@ -94,7 +94,7 @@ public class JDOPMRetriever extends ThreadLocal<Map<String,PersistenceManager>>
             pm = pmf.getPersistenceManager( ); 
             pm.setUserObject(client);
             if (map == null)
-            	map = new HashMap<String,PersistenceManager>();
+            	map = new HashMap<>();
             map.put(client, pm);
             set(map);
         }

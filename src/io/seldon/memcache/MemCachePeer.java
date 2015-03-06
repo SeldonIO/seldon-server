@@ -176,7 +176,7 @@ public class MemCachePeer {
 			 Transcoder transcoder = new SerializingTranscoder();
 			 // The mutator who'll do all the low-level stuff.
 			 // Set number of retries to limit time taken..its not essential this succeeds
-			 CASMutator<T> mutator = new CASMutator<T>(client, transcoder,MAX_CAS_RETRIES);
+			 CASMutator<T> mutator = new CASMutator<>(client, transcoder,MAX_CAS_RETRIES);
 
 			 // This returns whatever value was successfully stored within the
 			 // cache -- either the initial list as above, or a mutated existing

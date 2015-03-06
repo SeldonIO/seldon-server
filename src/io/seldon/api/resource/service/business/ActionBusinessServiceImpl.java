@@ -24,40 +24,54 @@
 package io.seldon.api.resource.service.business;
 
 import io.seldon.api.APIException;
-import io.seldon.api.logging.MgmLogger;
+import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.resource.ActionBean;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ActionService;
+import io.seldon.api.resource.service.ItemService;
+import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.service.ApiLoggerServer;
-import io.seldon.facebook.user.algorithm.experiment.MultiVariateTestStore;
-import io.seldon.general.MgmAction;
+
+import io.seldon.trust.impl.jdo.LastRecommendationBean;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Date;
+import java.util.List;
 
 @Component
 public class ActionBusinessServiceImpl implements ActionBusinessService {
 
     @Autowired
-    MultiVariateTestStore testStore;
+    ActionService actionService;
 
     @Autowired
-    ActionService actionService;
+    ItemService itemService;
+
+    @Autowired
+    RecommendationService recService;
     
     private static Logger logger = Logger.getLogger(ActionBusinessServiceImpl.class.getName());
 
     @Override
-    public ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean) {
+    public ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean,
+                                  boolean isClickThrough, String recsCounter, String recTag) {
         ResourceBean responseBean;
         try {
+            // add the action to storage
             actionService.addAction(consumerBean, actionBean);
+
+            if(isClickThrough) {
+                // register which recs were ignored for algorithm use
+                LastRecommendationBean lastRecs = recService.retrieveLastRecs(consumerBean, actionBean, recsCounter);
+                List<Long> ignoredItems = recService.findIgnoredItemsFromLastRecs(consumerBean, actionBean, lastRecs);
+                itemService.updateIgnoredItems(consumerBean, actionBean, ignoredItems);
+                // do logging
+                actionService.logAction(consumerBean, actionBean, lastRecs, ignoredItems.size()+1, recTag, recsCounter);
+            }
+
             responseBean = actionBean;
         } catch (APIException e) {
             ApiLoggerServer.log(this, e);
@@ -70,29 +84,6 @@ public class ActionBusinessServiceImpl implements ActionBusinessService {
         return responseBean;
     }
 
-    @Override
-    public URI redirectToMgmInviteURL(ConsumerBean consumerBean, String url, String inviter, String userAgent) throws URISyntaxException {
-        URI urlOfClick = new URI(url);
-
-        urlOfClick = UriComponentsBuilder.fromUriString(urlOfClick.toString()).
-                scheme(urlOfClick.getScheme() == null ? "http" : urlOfClick.getScheme()).build().toUri();
-        MgmAction action = new MgmAction(inviter, null, new Date(), MgmAction.MgmActionType.FB_REC_CLICK, urlOfClick, null);
-
-        // inform any running stats processes if its not a bot
-        if (!BotUtils.isABot(userAgent)) {
-            String mvTestVariationKey = null;
-            if (testStore.testRunning(consumerBean.getShort_name())) {
-                testStore.registerTestEvent(consumerBean.getShort_name(), action);
-                mvTestVariationKey = testStore.retrieveVariationKey(consumerBean.getShort_name(), inviter);
-            }
-
-
-            // log action
-            MgmLogger.log(consumerBean.getShort_name(), action, mvTestVariationKey);
-        } else {
-            logger.info("Not adding fb click thru to results as it has user-agent " + userAgent);
-        }
-        return urlOfClick;
-    }
+    
 
 }

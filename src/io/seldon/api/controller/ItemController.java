@@ -57,6 +57,9 @@ public class ItemController {
     @Autowired
     private ItemBusinessService itemBusinessService;
 
+	@Autowired
+	private ItemService itemService;
+
     @RequestMapping(value="/items", method = RequestMethod.GET)
 	public @ResponseBody Object retrieveItems(HttpServletRequest req,
 			@RequestParam(value = "jsonpCallback", required = false) String callback) {
@@ -77,14 +80,14 @@ public class ItemController {
 				if(dimension == null) { dimension = Constants.DEFAULT_DIMENSION; }
 				//Search by Keyword
 				if(keywords != null && keywords.size()>0) {
-					res = ItemService.getItemsByKeyword((ConsumerBean)con,keywords,Util.getLimit(req),Util.getFull(req),dimension);
+					res = itemService.getItemsByKeyword((ConsumerBean)con,keywords,Util.getLimit(req),Util.getFull(req),dimension);
 				}
 				else if(name != null && name.length() > 0) {
-					res = ItemService.getItemsByName((ConsumerBean)con,Util.getLimit(req),Util.getFull(req),Util.getName(req),dimension);
+					res = itemService.getItemsByName((ConsumerBean)con,Util.getLimit(req),Util.getFull(req),Util.getName(req),dimension);
 				}
 				//all
 				else {
-					res = ItemService.getItems((ConsumerBean)con,Util.getLimit(req),Util.getFull(req),Util.getSort(req),dimension);
+					res = itemService.getItems((ConsumerBean)con,Util.getLimit(req),Util.getFull(req),Util.getSort(req),dimension);
 				}
 			}
 			catch(APIException e) {

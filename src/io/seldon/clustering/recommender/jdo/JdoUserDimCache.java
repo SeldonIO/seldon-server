@@ -73,7 +73,7 @@ public class JdoUserDimCache {
 		
 	}
 	
-	ConcurrentMap<String,CacheEntry> entries = new ConcurrentHashMap<String,CacheEntry>();
+	ConcurrentMap<String,CacheEntry> entries = new ConcurrentHashMap<>();
 	
 	public void addCacheEntry(String client)
 	{
@@ -88,7 +88,7 @@ public class JdoUserDimCache {
 		Map<String,Set<Integer>> r;
 		CacheEntry c = entries.get(client);
 		if (c == null)
-			r = new HashMap<String,Set<Integer>>();
+			r = new HashMap<>();
 		else
 			r = c.entry;
 		return r;

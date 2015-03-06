@@ -41,10 +41,10 @@ import io.seldon.api.resource.DynamicParameterBean;
 public class DynamicParameterServer {
 
 	private static Logger logger = Logger.getLogger( DynamicParameterServer.class.getName() );
-	private static Map<String,Map<String, String>> dynamicParameters = new ConcurrentHashMap<String,Map<String, String>>();
+	private static Map<String,Map<String, String>> dynamicParameters = new ConcurrentHashMap<>();
 	private static final long REFRESH_TIME = 600;
 	private static final int RELOAD_TIME = 120;
-	private static Map<String,Long> lastUpdate = new ConcurrentHashMap<String,Long>();
+	private static Map<String,Long> lastUpdate = new ConcurrentHashMap<>();
 	
 	public enum Parameter { AB_TESTING }
 	
@@ -62,7 +62,7 @@ public class DynamicParameterServer {
 	public static synchronized void setParameter(String client, String name, String value) {
 		Map<String,String> parameters = (Map<String,String>) MemCachePeer.get(MemCacheKeys.getDynamicParameters(client));
 		if(parameters == null) {
-			parameters = new HashMap<String,String>();
+			parameters = new HashMap<>();
 		}
 		parameters.put(name, value);
 		for(Map.Entry<String, String> p : parameters.entrySet()) 

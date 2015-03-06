@@ -23,19 +23,12 @@
 
 package io.seldon.api.resource.service;
 
-import io.seldon.general.ExtUserAttrPeer;
-import io.seldon.general.ImpressionsPersistenceHandler;
 import io.seldon.general.ItemPeer;
 import org.springframework.stereotype.Component;
-
-import io.seldon.general.InteractionPeer;
 
 @Component
 public interface PersistenceProvider {
 
-    InteractionPeer getInteractionPersister(String clientName);
-    ImpressionsPersistenceHandler getImpressionsPersister();
 
-    ExtUserAttrPeer getExtUsrAttrPeer(String clientName);
     ItemPeer getItemPersister(String clientName);
 }

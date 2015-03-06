@@ -23,9 +23,6 @@
 
 package io.seldon.api.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
-
 import io.seldon.api.APIException;
 import io.seldon.api.Util;
 import io.seldon.api.logging.ApiLogger;
@@ -37,13 +34,20 @@ import io.seldon.api.resource.service.UserService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
-import io.seldon.facebook.exception.FacebookDisabledException;
-import io.seldon.facebook.service.FacebookService;
+
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author claudio
@@ -52,9 +56,6 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
-    @Autowired
-    private FacebookService facebookService;
 
     @Autowired
     private UserBusinessService userBusinessService;
@@ -133,14 +134,6 @@ public class UserController {
             try {
                 final ConsumerBean consumerBean = (ConsumerBean) con;
                 UserService.addUser(consumerBean, bean);
-                //check if the user is connected to an external network (FB) and launch the import
-                //UserService.importNetwork((ConsumerBean) con, bean);
-                try {
-                    facebookService.performAsyncImport(consumerBean, bean);
-                    logger.info("Successfully triggered import for user: " + bean.getId());
-                } catch (FacebookDisabledException ignored) {
-                    logger.warn("Import attempted for user: " + bean.getId() + " but Facebook attribute is disabled.");
-                }
                 responseBean = bean;
             } catch (APIException e) {
                 ApiLoggerServer.log(this, e);

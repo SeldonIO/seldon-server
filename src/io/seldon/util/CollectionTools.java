@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.seldon.trust.impl.RankedItem;
 
 public class CollectionTools {
 
@@ -54,30 +53,7 @@ public class CollectionTools {
 			return null;
 	}
 	
-	public static <K, V extends Comparable<V>> List<RankedItem<K>> sortMapAndLimitToRankedList(Map<K, V> map,int k,boolean keepHighest) {
-		List<Entry<K, V>> sorted = sortByValue(map);
-		if (keepHighest)
-			Collections.reverse(sorted);
-		List<RankedItem<K>> res = new ArrayList<RankedItem<K>>();
-		int count = 0;
-		int rank = 1;
-		V bestScore = null;
-		for(Map.Entry<K, V> e : sorted)
-		{
-			if (count>=k)
-				break;
-			else
-			{
-				if (bestScore == null)
-					bestScore = e.getValue();
-				if (!bestScore.equals(e.getValue()))
-					rank = count+1;
-				res.add(new RankedItem<K>(e.getKey(),rank));
-			}
-			count++;
-		}
-		return res;
-	}
+
 	
 	/**
 	 * Generic method to sort a map by value and then return the top k keys
@@ -91,7 +67,7 @@ public class CollectionTools {
 		List<Entry<K, V>> sorted = sortByValue(map);
 		if (keepHighest)
 			Collections.reverse(sorted);
-		List<K> res = new ArrayList<K>();
+		List<K> res = new ArrayList<>();
 		int count = 0;
 		for(Map.Entry<K, V> e : sorted)
 		{
@@ -112,7 +88,7 @@ public class CollectionTools {
 		if (keepHighest)
 			Collections.reverse(sorted);
 		int count = 0;
-		Map<K,V> res = new HashMap<K,V>();
+		Map<K,V> res = new HashMap<>();
 		for(Map.Entry<K, V> e : sorted)
 		{
 			if (count>=k)
@@ -132,7 +108,7 @@ public class CollectionTools {
 	 * @return
 	 */
 	public static <K, V extends Comparable<V>> List<Entry<K, V>> sortByValue(Map<K, V> map) {
-        List<Entry<K, V>> entries = new ArrayList<Entry<K, V>>(map.entrySet());
+        List<Entry<K, V>> entries = new ArrayList<>(map.entrySet());
         Collections.sort(entries, new ByValue<K, V>());
         return entries;
 	}

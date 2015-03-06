@@ -78,10 +78,10 @@ public class AsyncClusterCountStore implements Runnable {
         this.client = client;
         this.batchSize = batchSize;
         this.maxDBRetries = maxDBRetries;
-        this.queue = new LinkedBlockingQueue<ClusterCount>(maxQSize);
+        this.queue = new LinkedBlockingQueue<>(maxQSize);
         this.timeout = qTimeoutSecs;
         this.decay = decay;
-        clusterCounts = new TreeMap<Integer,TreeMap<Long,Double>>();
+        clusterCounts = new TreeMap<>();
         this.useDBTime = useDBTime;
         logger.info("Async cluster count created for client "+client+" qTimeout:"+qTimeoutSecs+" batchSize:"+batchSize+" maxQSize:"+maxQSize+" maxDBRetries:"+maxDBRetries+" decay:"+decay+" use DB Time:"+useDBTime);
     }
@@ -143,7 +143,7 @@ public class AsyncClusterCountStore implements Runnable {
     }
 
     private void resetState() {
-    	clusterCounts = new TreeMap<Integer,TreeMap<Long,Double>>();
+    	clusterCounts = new TreeMap<>();
         clearSQLState();
         countsAdded = 0;
         countsAddedTotal = 0;
@@ -273,7 +273,7 @@ public class AsyncClusterCountStore implements Runnable {
     	TreeMap<Long,Double> clusterMap = clusterCounts.get(count.clusterId);
     	if (clusterMap == null)
     	{
-    		clusterMap = new TreeMap<Long,Double>();
+    		clusterMap = new TreeMap<>();
     		clusterMap.put(count.itemId, count.weight);
     		clusterCounts.put(count.clusterId, clusterMap);
     		countsAdded++;
@@ -315,7 +315,7 @@ public class AsyncClusterCountStore implements Runnable {
     		}
     	}
     	logger.info("Added "+added+" sql inserts to run ");
-    	clusterCounts = new TreeMap<Integer,TreeMap<Long,Double>>();
+    	clusterCounts = new TreeMap<>();
     	return added;
     }
     

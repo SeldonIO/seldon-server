@@ -23,24 +23,8 @@
 
 package io.seldon.api.controller;
 
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import io.seldon.api.resource.service.business.ActionBusinessServiceImpl;
-
-import io.seldon.api.Util;
-import io.seldon.api.service.ApiLoggerServer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import io.seldon.api.APIException;
+import io.seldon.api.Util;
 import io.seldon.api.logging.ApiLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ActionBean;
@@ -48,9 +32,24 @@ import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ActionService;
+import io.seldon.api.resource.service.business.ActionBusinessServiceImpl;
+import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.util.JSONPObject;
 
 /**
  * @author claudio
@@ -207,7 +206,7 @@ public class ActionsController {
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeys((ConsumerBean)con, action.getUser(),action.getItem());
-            responseBean = actionBusinessService.addAction((ConsumerBean) con, action);
+            responseBean = actionBusinessService.addAction((ConsumerBean) con, action,false,"","");
         }
 		else {
 			responseBean = con;
@@ -240,29 +239,6 @@ public class ActionsController {
 	}
 	
 	
-	//External Actions
-	@RequestMapping(value="/extactions", method = RequestMethod.GET)
-	public @ResponseBody ResourceBean retrieveExtActions(HttpServletRequest req) {
-		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
-		ResourceBean res = con;
-		if(con instanceof ConsumerBean) {
-			try {
-				res = ActionService.getRecentExtActions((ConsumerBean)con,Util.getLimit(req),Util.getFull(req));
-			}
-			catch(APIException e) {
-				ApiLoggerServer.log(this, e);
-				res = new ErrorBean(e);
-			}
-			catch(Exception e) {
-				ApiLoggerServer.log(this, e);
-				APIException apiEx = new APIException(APIException.GENERIC_ERROR);
-				res = new ErrorBean(apiEx);
-			}
-		}
-		ApiLogger.log("extactions",start,new Date(),con,res,req);
-		return res;
-	}
 	
 	 private JSONPObject asCallback(String callbackName, Object valueObject) {
 	        return new JSONPObject(callbackName, valueObject);

@@ -29,13 +29,11 @@ import com.netflix.curator.utils.EnsurePath;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author firemanphil
@@ -48,52 +46,72 @@ public class ZkSubscriptionHandler {
     @Autowired
     private ZkCuratorHandler curator;
 
-    private Set<PathChildrenCache> caches = new HashSet<PathChildrenCache>();
-    private Map<String, NodeCache> nodeCaches = new HashMap<String,NodeCache>();
-
-
-
+    private Map<String, PathChildrenCache> caches = new HashMap<>();
+    private Map<String, NodeCache> nodeCaches = new HashMap<>();
 
     public void addSubscription(String location, PathChildrenCacheListener listener) throws Exception {
         CuratorFramework client = curator.getCurator();
         PathChildrenCache cache = new PathChildrenCache(client, location, true);
-        caches.add(cache);
+        caches.put(location, cache);
         EnsurePath ensureMvTestPath = new EnsurePath(location);
         ensureMvTestPath.ensure(client.getZookeeperClient());
-        cache.start(PathChildrenCache.StartMode.NORMAL);
+        cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
         cache.getListenable().addListener(listener);
         logger.info("Added ZooKeeper subscriber for " + location + " children.");
-        for(ChildData data : cache.getCurrentData())
-        {
-            listener.childEvent(client, new PathChildrenCacheEvent(PathChildrenCacheEvent.Type.CHILD_UPDATED, data));
+    }
+
+    public String getValue(String node) {
+        if (nodeCaches.containsKey(node)) {
+            return new String(nodeCaches.get(node).getCurrentData().getData());
+        } else {
+            return null;
         }
     }
 
-    public void addSubscription(final String node, final ZkNodeChangeListener listener) throws Exception {
-        CuratorFramework client = curator.getCurator();
-        final NodeCache cache = new NodeCache(client, node);
-        nodeCaches.put(node, cache);
-        cache.start(true);
-        EnsurePath ensureMvTestPath = new EnsurePath(node);
-        ensureMvTestPath.ensure(client.getZookeeperClient());
-
-        logger.info("Added ZooKeeper subscriber for " + node);
-        cache.getListenable().addListener(new NodeCacheListener() {
-            @Override
-            public void nodeChanged() throws Exception {
-                ChildData currentData = cache.getCurrentData();
-                if (currentData == null) {
-                    listener.nodeDeleted(node);
-                } else {
-                    String data = new String(currentData.getData());
-                    listener.nodeChanged(node, data);
-                }
-
+    public Map<String, String> getChildrenValues(String node){
+        Map<String, String> values = new HashMap<>();
+        if(caches.containsKey(node)){
+            List<ChildData> currentData = caches.get(node).getCurrentData();
+            for(ChildData data : currentData)
+            {
+                values.put(StringUtils.replace(data.getPath(), node + "/", ""), new String(data.getData()));
             }
-        });
-        ChildData data = cache.getCurrentData();
-        if(data!=null && data.getData()!=null)
-            listener.nodeChanged(node, new String(data.getData()));
+        }
+        return values;
+    }
+
+    public boolean addSubscription(final String node, final ZkNodeChangeListener listener) {
+        try {
+            CuratorFramework client = curator.getCurator();
+            final NodeCache cache = new NodeCache(client, node);
+            nodeCaches.put(node, cache);
+            cache.start(true);
+            EnsurePath ensureMvTestPath = new EnsurePath(node);
+            ensureMvTestPath.ensure(client.getZookeeperClient());
+
+            logger.info("Added ZooKeeper subscriber for " + node);
+            cache.getListenable().addListener(new NodeCacheListener() {
+                @Override
+                public void nodeChanged() throws Exception {
+                    ChildData currentData = cache.getCurrentData();
+                    if (currentData == null) {
+                        listener.nodeDeleted(node);
+                    } else {
+                        String data = new String(currentData.getData());
+                        listener.nodeChanged(node, data);
+                    }
+
+                }
+            });
+            ChildData data = cache.getCurrentData();
+            if(data!=null && data.getData()!=null)
+                listener.nodeChanged(node, new String(data.getData()));
+
+            return true;
+        } catch (Exception e){
+            logger.error("Couldn't add subscription for "+node, e);
+            return false;
+        }
     }
 
     public void removeSubscription(final String node){
@@ -110,7 +128,7 @@ public class ZkSubscriptionHandler {
 
     @PreDestroy
     public void shutdown() throws IOException {
-        for (PathChildrenCache cache : caches){
+        for (PathChildrenCache cache : caches.values()){
             cache.close();
         }
         for (NodeCache cache : nodeCaches.values()){

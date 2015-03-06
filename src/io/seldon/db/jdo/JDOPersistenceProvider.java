@@ -24,41 +24,16 @@
 package io.seldon.db.jdo;
 
 import io.seldon.api.resource.service.PersistenceProvider;
-import io.seldon.general.jdo.SqlExtUserAttrPeer;
-import io.seldon.general.jdo.SqlInteractionPeer;
+import io.seldon.general.ItemPeer;
 import io.seldon.general.jdo.SqlItemPeer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import io.seldon.general.ExtUserAttrPeer;
-import io.seldon.general.ImpressionsMemcachedHandler;
-import io.seldon.general.ImpressionsPersistenceHandler;
-import io.seldon.general.InteractionPeer;
-import io.seldon.general.ItemPeer;
 
 @Component
 public class JDOPersistenceProvider implements PersistenceProvider {
     
     @Autowired
     private JDOManager manager;
-    @Autowired
-    ImpressionsMemcachedHandler impressionsMemcachedHandler;
-
-    @Override
-    public InteractionPeer getInteractionPersister(String clientName) {
-        return new SqlInteractionPeer(manager.getJdoPersistenceManager(clientName));
-    }
-
-
-    @Override
-    public ImpressionsPersistenceHandler getImpressionsPersister() {
-        return impressionsMemcachedHandler;
-    }
-
-    @Override
-    public ExtUserAttrPeer getExtUsrAttrPeer(String clientName) {
-        return new SqlExtUserAttrPeer(manager.getJdoPersistenceManager(clientName));
-    }
 
 
     public void setJdoManager(JDOManager manager){
