@@ -251,7 +251,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     private Set<ItemFilter> retrieveFilters(List<String> filters) {
         Set<ItemFilter> filterSet = new HashSet<>();
-        if(filters==null) return filterSet;
+        if(filters==null) return alwaysOnFilters;
         for (String filter : filters){
             filterSet.add(applicationContext.getBean(filter, ItemFilter.class));
         }

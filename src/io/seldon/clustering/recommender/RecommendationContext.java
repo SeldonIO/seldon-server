@@ -100,6 +100,7 @@ public class RecommendationContext {
         Set<ItemFilter> itemFilters = strategy.filters;
         if(inclusionProducers == null || inclusionProducers.size() ==0){
             if (itemFilters==null || itemFilters.size() == 0){
+                logger.warn("No filters or includers present in strategy");
                 return new RecommendationContext(MODE.NONE, Collections.<Long>emptySet(), currentItem, lastRecListUUID,optsHolder);
             }
             for (ItemFilter filter : itemFilters){

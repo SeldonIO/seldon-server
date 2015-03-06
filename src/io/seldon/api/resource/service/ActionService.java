@@ -71,7 +71,9 @@ public class ActionService {
 	
 	@Autowired
 	private ClientClusterTypeService clusterTypeService;
-	
+
+    @Autowired
+    private ItemService itemService;
 
     @Autowired
     private ClientAlgorithmStore clientAlgorithmStore;
@@ -332,7 +334,8 @@ public class ActionService {
                 actionBean.getItem(), recTag);
         String algorithmsString = lastRecs==null? "UNKNOWN": lastRecs.getAlgorithm();
         CtrLogger.log(true, consumerBean.getShort_name(), algorithmsString,
-                clickIndex, actionBean.getUser(), recsCounter, actionBean.getActionId(), 0, "", stratName, recTag);
+                clickIndex, actionBean.getUser(), recsCounter,
+                itemService.getInternalItemId(consumerBean,actionBean.getItem()), 0, "", stratName, recTag);
 
     }
 }
