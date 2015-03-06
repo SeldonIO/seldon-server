@@ -172,7 +172,8 @@ public class RecommendationPeer {
 //					break;
 //			}
 			List<Long> recommendationsFinal = CollectionTools.sortMapAndLimitToList(recommenderScores, numRecommendations, true);
-			return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimension,
+			logger.debug("recommendationsFinal size was " +recommendationsFinal.size());
+            return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimension,
                     lastRecListUUID, recommendationsFinal, combinedResults.algKey,
                     currentItemId, numRecentActions, diversityLevel,strategy,recTag);
 		}
@@ -196,7 +197,7 @@ public class RecommendationPeer {
     		recsFinal = RecommendationUtils.getDiverseRecommendations(numRecommendationsAsked, recs,client,clientUserId,dimension);
     	else
     		recsFinal = recs;
-
+        logger.debug("recs final size "+ recsFinal.size());
     	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, clientUserId, dimension,
                 currentRecUUID, recsFinal, algKey,currentItemId,numRecentActions, strat, recTag);
     	List<Recommendation> recBeans = new ArrayList<>();
