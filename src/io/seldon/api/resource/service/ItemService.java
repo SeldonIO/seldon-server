@@ -508,14 +508,13 @@ public class ItemService {
 	}
 
     public void updateIgnoredItems(ConsumerBean consumerBean, ActionBean actionBean, List<Long> ignoredFromLastRecs) {
-
+        Set<Long> resultingSet = new HashSet<>();
         Set<Long> ignoredItems = itemStorage.retrieveIgnoredItems(consumerBean.getShort_name(), actionBean.getUser());
-        if(ignoredItems!=null){
-            ignoredItems.addAll(ignoredFromLastRecs);
-        }else{
-            ignoredItems = new HashSet<>(ignoredFromLastRecs);
+        if(ignoredItems!=null) {
+            resultingSet.addAll(ignoredItems);
         }
-        itemStorage.persistIgnoredItems(consumerBean.getShort_name(), actionBean.getUser(), ignoredItems);
+        resultingSet.addAll(ignoredFromLastRecs);
+        itemStorage.persistIgnoredItems(consumerBean.getShort_name(), actionBean.getUser(), resultingSet);
 
     }
 }
