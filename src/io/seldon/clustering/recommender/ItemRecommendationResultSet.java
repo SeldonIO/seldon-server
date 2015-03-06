@@ -39,6 +39,7 @@ public class ItemRecommendationResultSet implements Serializable {
 
     private final List<ItemRecommendationResult> results;
 
+
     public ItemRecommendationResultSet(){
         this.results = Collections.emptyList();
     }
@@ -99,6 +100,11 @@ public class ItemRecommendationResultSet implements Serializable {
                 return otherResult.item.equals(item);
             }
             return false;
+        }
+
+        @Override
+        public String toString(){
+            return "{item:"+item+",score:"+score+"}";
         }
     }
 }
