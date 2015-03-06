@@ -24,6 +24,7 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import static io.seldon.trust.impl.jdo.RecommendationPeer.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,10 +36,10 @@ import static org.junit.Assert.*;
 
 public class FirstSuccessfulCombinerTest {
 
-    ItemRecommendationResultSet emptySet;
-    ItemRecommendationResultSet notEnoughInEachSet;
-    ItemRecommendationResultSet sufficientSet;
-    ItemRecommendationResultSet plentySet;
+    RecResultContext emptySet;
+    RecResultContext notEnoughInEachSet;
+    RecResultContext sufficientSet;
+    RecResultContext plentySet;
     List<ItemRecommendationResultSet.ItemRecommendationResult> notEnoughInEachList;
     List<ItemRecommendationResultSet.ItemRecommendationResult> sufficientList;
     List<ItemRecommendationResultSet.ItemRecommendationResult> plentyList;
@@ -56,19 +57,19 @@ public class FirstSuccessfulCombinerTest {
         sufficientList = Arrays.asList(result2, result1);
         plentyList = Arrays.asList(result3, result2, result1);
 
-        emptySet = new ItemRecommendationResultSet();
+        emptySet = RecResultContext.EMPTY;
 
-        notEnoughInEachSet = new ItemRecommendationResultSet(notEnoughInEachList);
+        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList),"notEnough");
 
-        sufficientSet = new ItemRecommendationResultSet(sufficientList);
-        plentySet = new ItemRecommendationResultSet(plentyList);
+        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList),"sufficient");
+        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList),"plenty");
     }
 
 
     @Test
     public void isEnoughMethodShouldWorkCorrectly(){
         FirstSuccessfulCombiner combiner = new FirstSuccessfulCombiner();
-        assertFalse(combiner.isEnoughResults(2, new ArrayList<ItemRecommendationResultSet>()));
+        assertFalse(combiner.isEnoughResults(2, new ArrayList<RecResultContext>()));
         assertFalse(combiner.isEnoughResults(2, Arrays.asList(notEnoughInEachSet, emptySet )));
         assertTrue(combiner.isEnoughResults(2, Arrays.asList(sufficientSet)));
     }
@@ -76,12 +77,12 @@ public class FirstSuccessfulCombinerTest {
     @Test
     public void shouldCombineResultsForFirstSuccessful(){
         FirstSuccessfulCombiner combiner = new FirstSuccessfulCombiner();
-        ItemRecommendationResultSet result = combiner.combine(2, Arrays.asList(sufficientSet));
-        assertEquals(sufficientSet, result);
+        RecResultContext result = combiner.combine(2, Arrays.asList(sufficientSet));
+        assertEquals(sufficientSet.resultSet, result.resultSet);
         result = combiner.combine(2, Arrays.asList(notEnoughInEachSet, sufficientSet));
-        assertEquals(sufficientSet, result);
+        assertEquals(sufficientSet.resultSet, result.resultSet);
         result = combiner.combine(2, Arrays.asList(sufficientSet, plentySet));
-        assertEquals(sufficientSet, result);
+        assertEquals(sufficientSet.resultSet, result.resultSet);
 
     }
 

@@ -123,7 +123,7 @@ public class RecommendationPeer {
 
 		Map<Long,Double> recommenderScores = new HashMap<>();
 		List<String> algsUsed = new ArrayList<>();
-		List<ItemRecommendationResultSet> resultSets = new ArrayList<>();
+		List<RecResultContext> resultSets = new ArrayList<>();
 		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
 		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId, recTag))
 		{
@@ -147,13 +147,14 @@ public class RecommendationPeer {
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimension,
 					numRecommendations, ctxt, recentItemInteractions);
 
-		    resultSets.add(results);
+		    resultSets.add(new RecResultContext(results, algStr.name));
 			if(combiner.isEnoughResults(numRecommendations, resultSets))
 				break;
 		}
-		ItemRecommendationResultSet combinedResults = combiner.combine(numRecommendations, resultSets);
-        logger.debug("After combining, we have "+combinedResults.getResults().size()+" results");
-		for (ItemRecommendationResultSet.ItemRecommendationResult result : combinedResults.getResults()) {
+        RecResultContext combinedResults = combiner.combine(numRecommendations, resultSets);
+        logger.debug("After combining, we have "+combinedResults.resultSet.getResults().size()+
+                " results with alg key "+combinedResults.algKey);
+		for (ItemRecommendationResultSet.ItemRecommendationResult result : combinedResults.resultSet.getResults()) {
 			recommenderScores.put(result.item, result.score.doubleValue());
 		}
 		if (recommenderScores.size() > 0)
@@ -172,7 +173,7 @@ public class RecommendationPeer {
 //			}
 			List<Long> recommendationsFinal = CollectionTools.sortMapAndLimitToList(recommenderScores, numRecommendations, true);
 			return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimension,
-                    lastRecListUUID, recommendationsFinal, StringUtils.join(algsUsed,','),
+                    lastRecListUUID, recommendationsFinal, combinedResults.algKey,
                     currentItemId, numRecentActions, diversityLevel,strategy,recTag);
 		}
 		else
@@ -466,6 +467,17 @@ public class RecommendationPeer {
 		}
 	}
 
+
+    public static class RecResultContext {
+        public static final RecResultContext EMPTY = new RecResultContext(new ItemRecommendationResultSet(), "UNKNOWN");
+        public final ItemRecommendationResultSet resultSet;
+        public final String algKey;
+
+        public RecResultContext(ItemRecommendationResultSet resultSet, String algKey) {
+            this.resultSet = resultSet;
+            this.algKey = algKey;
+        }
+    }
 
 
 }

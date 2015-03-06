@@ -39,7 +39,6 @@ public class ItemRecommendationResultSet implements Serializable {
 
     private final List<ItemRecommendationResult> results;
 
-
     public ItemRecommendationResultSet(){
         this.results = Collections.emptyList();
     }

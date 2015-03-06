@@ -24,6 +24,8 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -38,22 +40,24 @@ import java.util.*;
 @Component
 public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
     @Override
-    public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
+    public boolean isEnoughResults(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
         Set<ItemRecommendationResultSet.ItemRecommendationResult> uniqueItems = new HashSet<>();
-        for (ItemRecommendationResultSet set : resultsSets){
-            uniqueItems.addAll(set.getResults());
+        for (RecommendationPeer.RecResultContext set : resultsSets){
+            uniqueItems.addAll(set.resultSet.getResults());
         }
         return uniqueItems.size() >= numRecsRequired;
 
     }
 
     @Override
-    public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
-
+    public RecommendationPeer.RecResultContext combine(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
+        List<String> validAlgs = new ArrayList<>();
         Map<ItemRecommendationResultSet.ItemRecommendationResult, Float> scores = new HashMap<>();
         List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = new ArrayList<>();
-        for (ItemRecommendationResultSet set : resultsSets){
-            for (ItemRecommendationResultSet.ItemRecommendationResult itemRecommendationResult : set.getResults()) {
+        for (RecommendationPeer.RecResultContext set : resultsSets){
+            if(set.resultSet.getResults().size() > 0)
+                validAlgs.add(set.algKey);
+            for (ItemRecommendationResultSet.ItemRecommendationResult itemRecommendationResult : set.resultSet.getResults()) {
                 Float previousResult = scores.get(itemRecommendationResult);
                 if(previousResult!=null){
                     if(previousResult< itemRecommendationResult.score)
@@ -64,6 +68,6 @@ public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
         }
         ordered.addAll(scores.keySet());
         Collections.sort(ordered, Collections.reverseOrder());
-        return new ItemRecommendationResultSet(ordered);
+        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(ordered), StringUtils.join(validAlgs, ':'));
     }
 }

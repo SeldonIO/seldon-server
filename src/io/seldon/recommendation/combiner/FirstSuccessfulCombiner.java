@@ -24,6 +24,7 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,24 +40,33 @@ import java.util.List;
 @Component
 public class FirstSuccessfulCombiner implements AlgorithmResultsCombiner {
     @Override
-    public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
-        for (ItemRecommendationResultSet set : resultsSets){
-            if (set.getResults().size() >= numRecsRequired)
+    public boolean isEnoughResults(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
+        for (RecommendationPeer.RecResultContext set : resultsSets){
+            if (set.resultSet.getResults().size() >= numRecsRequired)
                 return true;
         }
         return false;
     }
 
     @Override
-    public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
-        for (ItemRecommendationResultSet set : resultsSets){
-            if(set.getResults().size() >= numRecsRequired)
-                return set;
+    public RecommendationPeer.RecResultContext combine (
+            int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
+        int maxSize = 0;
+        RecommendationPeer.RecResultContext maxSizedResults = null;
+        for (RecommendationPeer.RecResultContext recsContext : resultsSets){
+            int size = recsContext.resultSet.getResults().size();
+            if(size >= numRecsRequired) {
+                return recsContext;
+            } else if(size > maxSize) {
+                maxSize = size;
+                maxSizedResults = recsContext;
+            }
+
         }
-        if(resultsSets.isEmpty()){
-            return new ItemRecommendationResultSet();
+        if(maxSizedResults==null){
+            return RecommendationPeer.RecResultContext.EMPTY;
         } else {
-            return resultsSets.get(0);
+            return maxSizedResults;
         }
 
     }

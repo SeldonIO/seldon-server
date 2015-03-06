@@ -23,7 +23,7 @@
 
 package io.seldon.recommendation.combiner;
 
-import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public interface AlgorithmResultsCombiner {
 
-    public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets);
+    public boolean isEnoughResults(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets);
 
-    public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets);
+    public RecommendationPeer.RecResultContext combine(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets);
 }

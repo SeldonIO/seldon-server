@@ -23,6 +23,8 @@
 
 package io.seldon.recommendation.combiner;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.trust.impl.jdo.RecommendationPeer;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -49,10 +51,10 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
 
 
     @Override
-    public boolean isEnoughResults(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
+    public boolean isEnoughResults(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
         int numValidSets = 0;
-        for (ItemRecommendationResultSet set : resultsSets){
-            if (set.getResults().size() >= numRecsRequired){
+        for (RecommendationPeer.RecResultContext set : resultsSets){
+            if (set.resultSet.getResults().size() >= numRecsRequired){
                 numValidSets++;
             }
         }
@@ -60,17 +62,20 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
     }
 
     @Override
-    public ItemRecommendationResultSet combine(int numRecsRequired, List<ItemRecommendationResultSet> resultsSets) {
+    public RecommendationPeer.RecResultContext combine(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
         Map<ItemRecommendationResultSet.ItemRecommendationResult, Integer> rankSumMap = new HashMap<>();
-        List<ItemRecommendationResultSet> validResultSets = new ArrayList<>();
-        for (ItemRecommendationResultSet set : resultsSets){
-            if(set.getResults().size() >= numRecsRequired)
+        List<RecommendationPeer.RecResultContext> validResultSets = new ArrayList<>();
+        List<String> validResultsAlgKeys = new ArrayList<>();
+        for (RecommendationPeer.RecResultContext set : resultsSets){
+            if(set.resultSet.getResults().size() >= numRecsRequired) {
                 validResultSets.add(set);
+                validResultsAlgKeys.add(set.algKey);
+            }
         }
 
         for (int i = 0; i < numRecsRequired; i++){
-            for (ItemRecommendationResultSet validResultSet : validResultSets) {
-                List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = validResultSet.getResults();
+            for (RecommendationPeer.RecResultContext validResultSet : validResultSets) {
+                List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = validResultSet.resultSet.getResults();
                 Collections.sort(ordered, Collections.reverseOrder());
                 Integer rankSum = rankSumMap.get(ordered.get(i));
                 if(rankSum == null) rankSum = 0;
@@ -88,7 +93,7 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
         }
 
         Collections.sort(orderedResults, Collections.reverseOrder());
-        return new ItemRecommendationResultSet(orderedResults);
+        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(orderedResults), StringUtils.join(validResultsAlgKeys,':'));
     }
 
 }
