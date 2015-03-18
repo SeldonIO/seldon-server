@@ -42,9 +42,11 @@ import io.seldon.api.resource.service.exception.ActionTypeNotFoundException;
 import io.seldon.api.service.async.AsyncActionQueue;
 import io.seldon.api.service.async.JdoAsyncActionFactory;
 import io.seldon.api.state.ClientAlgorithmStore;
+import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.clustering.recommender.ClientClusterTypeService;
 import io.seldon.clustering.recommender.CountRecommender;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.general.Action;
 import io.seldon.general.ActionType;
 import io.seldon.general.Item;
@@ -66,8 +68,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ActionService {
-	
-	private static Logger logger = Logger.getLogger(ActionService.class.getName());
+
+    private static final String BUCKET_CLUSTER_OPTION_NAME = "io.seldon.algorithm.clusters.usebucketcluster";
+    private static Logger logger = Logger.getLogger(ActionService.class.getName());
 	
 	@Autowired
 	private ClientClusterTypeService clusterTypeService;
@@ -77,6 +80,9 @@ public class ActionService {
 
     @Autowired
     private ClientAlgorithmStore clientAlgorithmStore;
+
+    @Autowired
+    private DefaultOptions defaultOptions;
 	
 	public static ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false));
@@ -257,7 +263,15 @@ public class ActionService {
 			if (userId > 0 && itemId > 0)
 			{
 				
+                boolean useBucketCluster = false;
 				CountRecommender cRec = Util.getCountRecommenderUtils(c).getCountRecommender(c.getShort_name());
+                for (AlgorithmStrategy strat : clientAlgorithmStore.retrieveStrategy(c.getShort_name()).getAlgorithms(a.getClientUserId(), bean.getRecTag())){
+                    RecommendationContext.OptionsHolder holder = new RecommendationContext.OptionsHolder(defaultOptions, strat.config);
+                    if (holder.getBooleanOption(BUCKET_CLUSTER_OPTION_NAME)) {
+                        useBucketCluster = true;
+                        break;
+                    }
+                }
 				if (cRec != null)
 				{
 					boolean addCount = true;
@@ -268,9 +282,9 @@ public class ActionService {
 						if (bean.getReferrer() != null)
 							cRec.setReferrer(bean.getReferrer());
 						if (a.getDate() != null)
-							cRec.addCount(userId, itemId,a.getDate().getTime()/1000);
+							cRec.addCount(userId, itemId,a.getDate().getTime()/1000, useBucketCluster);
 						else
-							cRec.addCount(userId, itemId);
+							cRec.addCount(userId, itemId, useBucketCluster);
 					}
 				}
 				

@@ -80,9 +80,6 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     private ConcurrentMap<String, ClientStrategy> namedStrategies = new ConcurrentHashMap<>();
 
 
-    public Map<String, AlgorithmStrategy> getAlgorithmsByTag(String client){
-        return storeMap.get(client);
-    }
 
     @Autowired
     public ClientAlgorithmStore (ClientConfigHandler configHandler,
@@ -145,7 +142,6 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 for (Algorithm algorithm : config.algorithms) {
                     AlgorithmStrategy strategy = toAlgorithmStrategy(algorithm);
                     strategies.add(strategy);
-                    stratMap.put(algorithm.tag, strategy);
                 }
                 AlgorithmResultsCombiner combiner = applicationContext.getBean(
                         config.combiner,AlgorithmResultsCombiner.class);
@@ -234,9 +230,18 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         Set<ItemIncluder> includers = retrieveIncluders(algorithm.includers);
         Set<ItemFilter> filters = retrieveFilters(algorithm.filters);
         ItemRecommendationAlgorithm alg = applicationContext.getBean(algorithm.name, ItemRecommendationAlgorithm.class);
-
+        Map<String, String> config  = toConfigMap(algorithm.config);
         return new AlgorithmStrategy(alg, includers, filters,
-                algorithm.config ==null ? new HashMap<String, String>(): algorithm.config , algorithm.name);
+                algorithm.config ==null ? new HashMap<String, String>(): config , algorithm.name);
+    }
+
+    private Map<String, String> toConfigMap(List<ConfigItem> config) {
+        Map<String, String> configMap = new HashMap<>();
+        if (config==null) return configMap;
+        for (ConfigItem item : config){
+            configMap.put(item.name,item.value);
+        }
+        return configMap;
     }
 
     private Set<ItemIncluder> retrieveIncluders(List<String> includers) {
@@ -339,15 +344,17 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         public Double diversityLevel;
     }
 
-
+    public static class ConfigItem {
+        public String name;
+        public String value;
+    }
 
     public static class Algorithm {
 
         public String name;
-        public String tag;
         public List<String> includers;
         public List<String> filters;
-        public Map<String, String> config;
+        public List<ConfigItem> config;
     }
 
 }

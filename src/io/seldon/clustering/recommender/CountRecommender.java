@@ -114,34 +114,17 @@ public class CountRecommender {
 	 * @param itemId
 	 * @param time - in secs
 	 */
-	public void addCount(long userId,long itemId,long time)
+	public void addCount(long userId,long itemId,long time, boolean useBucketCluster)
 	{
 		List<UserCluster> clusters = getClusters(userId,null);
 		if (clusters != null && clusters.size()>0)
 		{
 			for(UserCluster cluster : clusters)
 				clusterCounts.add(cluster.getCluster(), itemId,cluster.getWeight(),cluster.getTimeStamp(),time);
-		}
-		else
-		{
-			try 
-			{
-				AlgorithmService s = Util.getAlgorithmService();
-				if (s != null)
-				{
-					CFAlgorithm alg = s.getAlgorithmOptions(client);
-					if (alg != null && alg.isUseBucketCluster())
-						clusterCounts.add(BUCKET_CLUSTER_ID, itemId, 1.0, 0,time);
-				}
-				else
-					logger.warn("Failed to get AlgorithmService for client "+client);
-			} 
-			catch (CloneNotSupportedException e) 
-			{
-				logger.error("Failed to get CFAlgorithm for client "+client,e);
-			}
-		}
-		
+		} else if(useBucketCluster) {
+            clusterCounts.add(BUCKET_CLUSTER_ID, itemId, 1.0, 0,time);
+        }
+
 		Set<Integer> referrerClusters = getReferrerClusters();
 		if (referrerClusters != null)
 		{
@@ -152,33 +135,16 @@ public class CountRecommender {
 		}
 	}
 	
-	public void addCount(long userId,long itemId)
+	public void addCount(long userId,long itemId, boolean useBucketCluster)
 	{
 		List<UserCluster> clusters = getClusters(userId,null);
 		if (clusters != null && clusters.size() > 0)
 		{
 			for(UserCluster cluster : clusters)
 				clusterCounts.add(cluster.getCluster(), itemId,cluster.getWeight(),cluster.getTimeStamp());
-		}
-		else
-		{
-			try 
-			{
-				AlgorithmService s = Util.getAlgorithmService();
-				if (s != null)
-				{
-					CFAlgorithm alg = s.getAlgorithmOptions(client);
-					if (alg != null && alg.isUseBucketCluster())
-						clusterCounts.add(BUCKET_CLUSTER_ID, itemId, 1.0, 0);
-				}
-				else
-					logger.warn("Failed to get AlgorithmService for client "+client);
-			} 
-			catch (CloneNotSupportedException e) 
-			{
-				logger.error("Failed to get CFAlgorithm for client "+client,e);
-			}
-		}
+		} else if(useBucketCluster){
+            clusterCounts.add(BUCKET_CLUSTER_ID, itemId, 1.0, 0);
+        }
 		Set<Integer> referrerClusters = getReferrerClusters();
 		if (referrerClusters != null)
 		{

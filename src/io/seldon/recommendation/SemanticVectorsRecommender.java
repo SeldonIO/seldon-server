@@ -45,7 +45,6 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
     private static final String IGNORE_PEFECT_MATCH_OPTION_NAME = "io.seldon.algorithm.semantic.ignoreperfectsvmatches";
     private static final String SV_PREFIX_OPTION_NAME = "io.seldon.algorithm.semantic.prefix";
     private static final String SV_HISTORY_SIZE = "io.seldon.algorithm.semantic.historysize";
-    private static final String RECENT_ARTICLES_SIZE = "io.seldon.algorithm.semantic.recentarticlessize";
     SemanticVectorsManager svManager;
 
 
@@ -69,7 +68,6 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         Boolean isIgnorePerfectSvMatches = options.getBooleanOption(IGNORE_PEFECT_MATCH_OPTION_NAME);
         String svPrefix = options.getStringOption(SV_PREFIX_OPTION_NAME);
         Integer txHistorySize = options.getIntegerOption(SV_HISTORY_SIZE);
-        Integer recentArticlesSize = options.getIntegerOption(RECENT_ARTICLES_SIZE);
         SemanticVectorsStore svPeer = svManager.getStore(client, svPrefix);
 
         if (svPeer == null)
@@ -84,10 +82,10 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         Map<Long,Double> recommendations;
 
 
-        if (recentArticlesSize> 0 || ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
+        if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
             recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,isIgnorePerfectSvMatches);
         else {
-            Set<Long> itemExclusions = ctxt.getMode() == RecommendationContext.MODE.INCLUSION ? Collections.<Long>emptySet() : ctxt.getContextItems();
+            Set<Long> itemExclusions = ctxt.getContextItems();
             recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, new LongIdTransform(), maxRecsCount, itemExclusions, null,isIgnorePerfectSvMatches);
         }
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
