@@ -22,10 +22,10 @@
  */
 
 package io.seldon.api.state;
-
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.recipes.cache.*;
-import com.netflix.curator.utils.EnsurePath;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.*;
+import org.apache.curator.utils.EnsurePath;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,16 +46,16 @@ public class ZkSubscriptionHandler {
     @Autowired
     private ZkCuratorHandler curator;
 
-    private Map<String, PathChildrenCache> caches = new HashMap<>();
+    private Map<String,TreeCache> caches = new HashMap<>();
     private Map<String, NodeCache> nodeCaches = new HashMap<>();
 
-    public void addSubscription(String location, PathChildrenCacheListener listener) throws Exception {
+    public void addSubscription(String location, TreeCacheListener listener) throws Exception {
         CuratorFramework client = curator.getCurator();
-        PathChildrenCache cache = new PathChildrenCache(client, location, true);
+        TreeCache cache = new TreeCache(client, location);
+        cache.start();
         caches.put(location, cache);
         EnsurePath ensureMvTestPath = new EnsurePath(location);
         ensureMvTestPath.ensure(client.getZookeeperClient());
-        cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
         cache.getListenable().addListener(listener);
         logger.info("Added ZooKeeper subscriber for " + location + " children.");
     }
@@ -69,15 +69,57 @@ public class ZkSubscriptionHandler {
     }
 
     public Map<String, String> getChildrenValues(String node){
+        logger.info("Getting children values for node " + node);
         Map<String, String> values = new HashMap<>();
-        if(caches.containsKey(node)){
-            List<ChildData> currentData = caches.get(node).getCurrentData();
+
+            Collection<ChildData> currentData = getChildren(node);
             for(ChildData data : currentData)
             {
                 values.put(StringUtils.replace(data.getPath(), node + "/", ""), new String(data.getData()));
             }
-        }
+
         return values;
+    }
+
+    public Collection<ChildData> getChildren(String node) {
+        return getChildren(node, null);
+    }
+
+    private Collection<ChildData> getChildren(String node, TreeCache cache){
+        HashSet<ChildData> toReturn = new HashSet<>();
+
+            if(cache==null){
+                cache = findParentCache(node);
+                if (caches==null) return Collections.EMPTY_LIST;
+            }
+            Map<String,ChildData> children = cache.getCurrentChildren(node);
+            if (children==null)
+                return toReturn;
+            for (ChildData child : children.values())
+                toReturn.addAll(getChildren(child.getPath(), cache));
+            toReturn.addAll(children.values());
+            return toReturn;
+
+    }
+
+    private TreeCache findParentCache(String node) {
+        if(caches.containsKey(node)) return caches.get(node);
+        String[] nodeStruct = node.split("/");
+        for (int i = 1; i <= nodeStruct.length; i++){
+            StringBuffer toRemove = new StringBuffer();
+            for (int j = 0; j < i; j++){
+                String removal = nodeStruct[nodeStruct.length-i+j];
+                toRemove.append("/");
+                toRemove.append(removal);
+
+            }
+            String lowerNode = node.replace(toRemove.toString(),"");
+            if(caches.containsKey(lowerNode)){
+                return caches.get(lowerNode);
+            }
+        }
+        return null;
+
     }
 
     public boolean addSubscription(final String node, final ZkNodeChangeListener listener) {
@@ -128,7 +170,7 @@ public class ZkSubscriptionHandler {
 
     @PreDestroy
     public void shutdown() throws IOException {
-        for (PathChildrenCache cache : caches.values()){
+        for (TreeCache cache : caches.values()){
             cache.close();
         }
         for (NodeCache cache : nodeCaches.values()){

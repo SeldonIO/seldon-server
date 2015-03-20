@@ -23,9 +23,8 @@
 
 package io.seldon.api.state.zk;
 
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import com.netflix.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.*;
 import io.seldon.api.state.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -33,10 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author firemanphil
@@ -44,54 +40,34 @@ import java.util.Set;
  *         Time: 13:51
  */
 @Component
-public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalConfigUpdateListener, ClientConfigHandler {
+public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpdateListener, ClientConfigHandler {
     private static Logger logger = Logger.getLogger(ZkClientConfigHandler.class.getName());
     private final ZkSubscriptionHandler handler;
-    private final GlobalConfigHandler clientListHandler;
     private Set<String> clientSet;
     private final Set<ClientConfigUpdateListener> listeners;
-    private static final String CLIENT_LIST_LOCATION = "clients";
+    private static final String CLIENT_LIST_LOCATION = "all_clients";
 
     @Autowired
     public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler) {
         this.handler = handler;
-        this.clientListHandler = clientListHandler;
         this.listeners = new HashSet<>();
         this.clientSet = new HashSet<>();
     }
 
     @PostConstruct
-    private void init(){
+    private void init() throws Exception {
         logger.info("Initializing...");
-        clientListHandler.addSubscriber(CLIENT_LIST_LOCATION, this);
+        handler.addSubscription("/" + CLIENT_LIST_LOCATION, this);
+        Collection<ChildData> children = handler.getChildren("/" + CLIENT_LIST_LOCATION);
+        logger.info("Found " +children.size() + " children under " +CLIENT_LIST_LOCATION );
+        for(ChildData child : children)
+            childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED,child));
+
     }
 
-
-    @Override
-    public void childEvent(CuratorFramework framework, PathChildrenCacheEvent event) throws Exception {
-
-        switch (event.getType()){
-            case CHILD_ADDED:
-            case CHILD_UPDATED:
-                String location = event.getData().getPath();
-                boolean foundAMatch = false;
-                for (String client : clientSet){
-                    if(location.contains("/"+client+"/")){
-                        location = location.replace("/"+client +"/","");
-                        for(ClientConfigUpdateListener listener: listeners){
-                            foundAMatch = true;
-                            listener.configUpdated(client, location, new String(event.getData().getData()));
-                        }
-                    }
-                }
-                if (!foundAMatch)
-                    logger.warn("Received message for node " + location +" but found no interested listeners");
-
-                break;
-            case CHILD_REMOVED:
-                break;
-
-        }
+    private boolean isClientPath(String path) {
+        // i.e. a path like /all_clients/testclient is one but /all_clients/testclient/mf is not
+        return StringUtils.countMatches(path,"/") == 2;
     }
 
     @Override
@@ -105,7 +81,6 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
                     logger.info("Found new client in list : " + client);
                     try {
                         handler.addSubscription("/" + client, this);
-//                        doInitialRead(client);
                         clientSet.add(client);
                     }catch (Exception e){
                         logger.error("Couldn't add listener for client " + client, e);
@@ -119,9 +94,7 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
 
     private void doInitialRead(String client, ClientConfigUpdateListener listener) {
         if(!listeners.isEmpty()) {
-            Map<String, String> values = handler.getChildrenValues("/"+client);
-            if(values.isEmpty())
-                logger.warn("Initial read on client " + client +" children was empty");
+            Map<String, String> values = handler.getChildrenValues("/" +CLIENT_LIST_LOCATION+"/"+client);
             for (Map.Entry<String, String> entry : values.entrySet()) {
                 listener.configUpdated(client, StringUtils.remove(entry.getKey(),"/"+client+"/"), entry.getValue());
             }
@@ -130,7 +103,7 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
 
     @Override
     public Map<String, String> requestCacheDump(String client){
-        return handler.getChildrenValues("/" +client);
+        return handler.getChildrenValues("/" +CLIENT_LIST_LOCATION+"/"+client);
     }
 
     @Override
@@ -140,6 +113,52 @@ public class ZkClientConfigHandler implements PathChildrenCacheListener, GlobalC
         if(notifyOnExistingData) {
             for (String client : clientSet)
                 doInitialRead(client,listener);
+        }
+    }
+
+    @Override
+    public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if(event == null || event.getType() == null || event.getData() == null || event.getData().getPath()==null) {
+            logger.warn("Event received was null somewhere");
+            return;
+        }
+        logger.info("Received a message of type " + event.getType() + " at " + event.getData().getPath());
+        switch (event.getType()){
+            case NODE_ADDED:
+                String path = event.getData().getPath();
+                if(isClientPath(path)){
+                    String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
+                    clientSet.add(clientName);
+                    logger.info("Found new client : " + clientName);
+
+                    break;
+                } //purposeful cascade as the below deals with the rest of the cases
+
+            case NODE_UPDATED:
+                String location = event.getData().getPath();
+                boolean foundAMatch = false;
+                String[] clientAndNode = location.replace("/"+CLIENT_LIST_LOCATION +"/","").split("/");
+                if(clientAndNode !=null && clientAndNode.length==2){
+                    for(ClientConfigUpdateListener listener: listeners){
+                        foundAMatch = true;
+                        listener.configUpdated(clientAndNode[0], clientAndNode[1], new String(event.getData().getData()));
+                    }
+
+                } else {
+                    logger.warn("Couldn't process message for node : " + location + " data : " + event.getData().getData());
+                }
+                if (!foundAMatch)
+                    logger.warn("Received message for node " + location +" but found no interested listeners");
+
+                break;
+            case NODE_REMOVED:
+                path = event.getData().getPath();
+                if(isClientPath(path)){
+                    String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
+                    clientSet.remove(clientName);
+                    logger.info("Deleted client : " + clientName);
+                }
+
         }
     }
 }

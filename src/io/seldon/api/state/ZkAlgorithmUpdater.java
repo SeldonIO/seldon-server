@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
-import com.netflix.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFramework;
 import io.seldon.trust.impl.CFAlgorithm;
 
 public class ZkAlgorithmUpdater implements Runnable {

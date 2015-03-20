@@ -54,7 +54,7 @@ public class ExternalResourceStreamer {
     public InputStream getResourceStream(String reference) throws IOException {
         if(reference.startsWith("s3n://")){
             return s3Streamer.getResourceStream(reference.replace("s3n://",""));
-        } else if(reference.startsWith("local:/")){
+        } else if(reference.startsWith("local:/") || reference.startsWith("/")){
             return localStreamer.getResourceStream(reference.replace("local:/",""));
         } else {
             logger.warn("Couldn't decode the format in message: "+reference);

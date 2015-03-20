@@ -60,6 +60,11 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
         this.clientConfigHandler = clientConfigHandler;
     }
 
+    /**
+     * Add a listener for all clients for this resource
+     * @param nodePattern
+     * @param listener
+     */
     public void addListener(String nodePattern, PerClientExternalLocationListener listener){
         logger.info("Adding listener for new resource pattern "+ nodePattern);
         nodeWatches.put(nodePattern, new HashMap<String, PerClientExternalLocationListener>());

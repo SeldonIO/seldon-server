@@ -14,6 +14,7 @@
 
     <properties>
         <spring.version>4.1.0.RELEASE</spring.version>
+        <curator.version>2.7.1</curator.version>
         <project.packaging>war</project.packaging>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <exclude.tests>no-exclusions</exclude.tests>
@@ -429,20 +430,21 @@
         </dependency>
  
  		<dependency>
-   			<groupId>com.netflix.curator</groupId>
+   			<groupId>org.apache.curator</groupId>
     		<artifactId>curator-recipes</artifactId>
-    		<version>1.3.3</version>
+    		<version>${curator.version}</version>
 		</dependency>
-         		<dependency>
-   			<groupId>com.netflix.curator</groupId>
+
+        <dependency>
+   			<groupId>org.apache.curator</groupId>
     		<artifactId>curator-test</artifactId>
-    		<version>1.3.3</version>
+    		<version>${curator.version}</version>
     		<scope>test</scope>
 		</dependency>
  		<dependency>
-   			<groupId>com.netflix.curator</groupId>
+   			<groupId>org.apache.curator</groupId>
     		<artifactId>curator-framework</artifactId>
-    		<version>1.3.3</version>
+    		<version>${curator.version}</version>
 		</dependency>
 
     </dependencies>
