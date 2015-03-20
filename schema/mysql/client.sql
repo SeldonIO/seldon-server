@@ -1058,4 +1058,21 @@ CREATE TABLE `version` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+--
+-- Table structure for table `items_recent_popularity`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `items_recent_popularity` (
+  `item_id` int(11) unsigned NOT NULL,
+  `score` float DEFAULT '0',
+  `decay_id` int(11) NOT NULL DEFAULT '0',
+  `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`item_id`,`decay_id`),
+  KEY `score` (`score`,`decay_id`),
+  KEY `decay_id` (`decay_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 -- Dump completed on 2015-03-03 10:42:31
