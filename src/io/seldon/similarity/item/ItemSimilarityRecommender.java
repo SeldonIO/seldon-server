@@ -32,14 +32,20 @@ import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 
+	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 	private static Logger logger = Logger.getLogger( ItemSimilarityRecommender.class.getName() );
 
 	final static int RECOMMEND_CACHE_TIME_SECS = 3600;
@@ -113,14 +119,22 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 	@Override
 	public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
 
-		if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION) {
-			logger.warn("Can't recommend items in inclusion mode.");
+		
+		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
+		int numRecentActionsToUse = opts.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
+		List<Long> itemsToScore;
+		if(recentItemInteractions.size() > numRecentActionsToUse)
+		{
+			logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		}
-
+		else
+			itemsToScore = new ArrayList<>(recentItemInteractions);
+		
 		Set<Long> exclusions = ctxt.getContextItems();
 		List<ItemRecommendationResultSet.ItemRecommendationResult> recommendations = null;
-		if (recentItemInteractions.size() > 0) {
-			recommendations = recommendSimilarItems(client, recentItemInteractions, dimensionId, maxRecsCount, exclusions);
+		if (itemsToScore.size() > 0) {
+			recommendations = recommendSimilarItems(client, itemsToScore, dimensionId, maxRecsCount, exclusions);
 			if (recommendations != null)
 				logger.info("Recent similar items recommender returned " + recommendations.size() + " recommendations");
 		} else

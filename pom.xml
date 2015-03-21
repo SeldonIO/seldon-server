@@ -70,7 +70,7 @@
                                     <pluginExecutionFilter>
                                         <groupId>org.datanucleus</groupId>
                                         <artifactId>maven-datanucleus-plugin</artifactId>
-                                        <versionRange>3.1.3</versionRange>
+                                        <versionRange>4.0.0</versionRange>
                                         <goals>
                                             <goal>enhance</goal>
                                         </goals>
