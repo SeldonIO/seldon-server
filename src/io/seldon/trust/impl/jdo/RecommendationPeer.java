@@ -112,7 +112,7 @@ public class RecommendationPeer {
 			// get recent actions for user
 			ActionHistoryCache ah = new ActionHistoryCache(client);
 			//TODO decide on how to get number of recentactions
-			recentActions = ah.getRecentActions(user, 0);
+			recentActions = ah.getRecentActions(user, 100);
 			numRecentActions = recentActions.size();
 			if (debugging)
 				logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + numRecentActions);
