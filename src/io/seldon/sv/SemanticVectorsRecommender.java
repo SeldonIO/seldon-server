@@ -21,19 +21,22 @@
  * ********************************************************************************************
  */
 
-package io.seldon.recommendation;
+package io.seldon.sv;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.semvec.LongIdTransform;
-import io.seldon.sv.SemanticVectorsManager;
-import io.seldon.sv.SemanticVectorsStore;
 import io.seldon.trust.impl.CFAlgorithm;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * @author firemanphil
@@ -44,7 +47,7 @@ import java.util.*;
 public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
     private static final String IGNORE_PEFECT_MATCH_OPTION_NAME = "io.seldon.algorithm.semantic.ignoreperfectsvmatches";
     private static final String SV_PREFIX_OPTION_NAME = "io.seldon.algorithm.semantic.prefix";
-    private static final String SV_HISTORY_SIZE = "io.seldon.algorithm.semantic.historysize";
+    private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
     SemanticVectorsManager svManager;
 
 
@@ -54,7 +57,14 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         super();
         this.svManager = svManager;
     }
+    
+    @Override
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
 
+		return recommendWithoutCache(client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
+	}
+
+   
     @Override
     public ItemRecommendationResultSet recommendWithoutCache(String client,
                                                              Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions) {
@@ -67,7 +77,6 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         }
         Boolean isIgnorePerfectSvMatches = options.getBooleanOption(IGNORE_PEFECT_MATCH_OPTION_NAME);
         String svPrefix = options.getStringOption(SV_PREFIX_OPTION_NAME);
-        Integer txHistorySize = options.getIntegerOption(SV_HISTORY_SIZE);
         SemanticVectorsStore svPeer = svManager.getStore(client, svPrefix);
 
         if (svPeer == null)
@@ -75,18 +84,33 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
             logger.debug("Failed to find sv peer for client "+client+" with type "+svPrefix);
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
         }
-
-        if(recentItemInteractions.size() > txHistorySize)
-            recentItemInteractions = recentItemInteractions.subList(0, txHistorySize);
-
+        
+        RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
+		int numRecentActionsToUse = opts.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
+		List<Long> itemsToScore;
+		if(recentItemInteractions.size() > numRecentActionsToUse)
+		{
+			logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
+		}
+		else
+			itemsToScore = new ArrayList<>(recentItemInteractions);
+        
         Map<Long,Double> recommendations;
 
 
         if (ctxt.getMode() == RecommendationContext.MODE.INCLUSION)
-            recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,isIgnorePerfectSvMatches);
-        else {
+        {
+        	// compare itemsToScore against contextItems and choose best
+        	logger.debug("inclusion mode ");
+            recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, ctxt.getContextItems() , new LongIdTransform(),maxRecsCount,isIgnorePerfectSvMatches);
+        }
+        else 
+        {
+        	//compare itemsToScore against all items and choose best ignoring exclusions
             Set<Long> itemExclusions = ctxt.getContextItems();
-            recommendations = svPeer.recommendDocsUsingDocQuery(recentItemInteractions, new LongIdTransform(), maxRecsCount, itemExclusions, null,isIgnorePerfectSvMatches);
+        	logger.debug("exclusion mode "+" num exclusions : "+itemExclusions.size());
+            recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, new LongIdTransform(), maxRecsCount, itemExclusions, null,isIgnorePerfectSvMatches);
         }
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         for(Map.Entry<Long, Double> e : recommendations.entrySet())
