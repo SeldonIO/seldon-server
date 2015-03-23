@@ -94,6 +94,7 @@ public class RecommendationPeer {
                                                    Long currentItemId, String referrer, String recTag, List<String> algorithmOverride) {
         ClientStrategy strategy;
         if (algorithmOverride != null && algorithmOverride.isEmpty()) {
+            logger.debug("Overriding algorithms from JS");
             strategy  = algStore.retrieveStrategy(client, algorithmOverride);
         } else {
             strategy = algStore.retrieveStrategy(client);
