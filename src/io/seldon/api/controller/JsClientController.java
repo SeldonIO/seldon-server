@@ -221,6 +221,7 @@ public class JsClientController {
         if (algorithms != null && !algorithms.isEmpty()) {
             logger.debug("ALGORITHM STRING: " + algorithms);
             algList = Arrays.asList(algorithms.split(Util.algOptionSeparator));
+            logger.debug("alglist size: " + algList.size());
         }
         logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
         logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);

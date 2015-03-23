@@ -303,6 +303,12 @@ public class RecommendationService {
                                             int dimensionId, String lastRecommendationListUuid, int limit,
                                             String attributes,List<String> algorithms,String referrer,String recTag) {
 //        CFAlgorithm cfAlgorithm = getAlgorithmOptions(consumerBean, userId, algorithms,recTag); // default
+        List<String> actualAlgorithms = new ArrayList<>();
+        for (String alg : algorithms){
+            if(alg.startsWith("recommenders")){
+                actualAlgorithms = Arrays.asList(alg.split(":")[1].split("|"));
+            }
+        }
         int typeId = 0;
         boolean full = true;
 
@@ -336,7 +342,7 @@ public class RecommendationService {
 
             RecommendationResult recResult = recommender.getRecommendations(
                     internalUserId, consumerBean.getShort_name(), userId, typeId, dimensionId, limit,
-                    lastRecommendationListUuid, currentItemId, referrer, recTag,algorithms
+                    lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms
                     );
             List<Recommendation> recommendations = recResult.getRecs(); 
             for (Recommendation recommendation : recommendations) {
