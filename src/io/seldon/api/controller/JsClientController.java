@@ -218,8 +218,10 @@ public class JsClientController {
             }
         }
         List<String> algList = null;
-        if (algorithms != null && !algorithms.isEmpty())
-        	algList  = Arrays.asList(algorithms.split(Util.algOptionSeparator));
+        if (algorithms != null && !algorithms.isEmpty()) {
+            logger.debug("ALGORITHM STRING: " + algorithms);
+            algList = Arrays.asList(algorithms.split(Util.algOptionSeparator));
+        }
         logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
         logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
         return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag);
