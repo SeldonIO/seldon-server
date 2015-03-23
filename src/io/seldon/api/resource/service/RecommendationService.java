@@ -307,7 +307,7 @@ public class RecommendationService {
         if(algorithms!=null) {
             for (String alg : algorithms) {
                 if (alg.startsWith("recommenders")) {
-                    actualAlgorithms = Arrays.asList(alg.split(":")[1].split("|"));
+                    actualAlgorithms = Arrays.asList(alg.split(":")[1].split("\\|"));
                 }
             }
         }
