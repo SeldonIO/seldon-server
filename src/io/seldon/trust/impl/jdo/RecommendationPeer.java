@@ -42,6 +42,7 @@ import io.seldon.memcache.MemCachePeer;
 
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.ClientStrategy;
+import io.seldon.recommendation.JsOverrideClientStrategy;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.semvec.*;
 import io.seldon.trust.impl.*;
@@ -63,6 +64,8 @@ import java.util.*;
  */
 @Component
 public class RecommendationPeer {
+;
+
 
 	private static Logger logger = Logger.getLogger(RecommendationPeer.class.getName());
 	
@@ -85,11 +88,16 @@ public class RecommendationPeer {
     }
 
 
-	public RecommendationResult getRecommendations(long user, String client, String clientUserId,Integer type,
-												   int dimension, int numRecommendationsAsked,
-												   String lastRecListUUID,
-												   Long currentItemId, String referrer, String recTag) {
-		ClientStrategy strategy = algStore.retrieveStrategy(client);
+	public RecommendationResult getRecommendations(long user, String client, String clientUserId, Integer type,
+                                                   int dimension, int numRecommendationsAsked,
+                                                   String lastRecListUUID,
+                                                   Long currentItemId, String referrer, String recTag, List<String> algorithmOverride) {
+        ClientStrategy strategy;
+        if (algorithmOverride != null && algorithmOverride.isEmpty()) {
+            strategy  = algStore.retrieveStrategy(client, algorithmOverride);
+        } else {
+            strategy = algStore.retrieveStrategy(client);
+        }
 
 		//Set base values - will be used for anonymous users
 		int numRecommendations = numRecommendationsAsked;

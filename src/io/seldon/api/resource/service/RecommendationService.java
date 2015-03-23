@@ -336,7 +336,7 @@ public class RecommendationService {
 
             RecommendationResult recResult = recommender.getRecommendations(
                     internalUserId, consumerBean.getShort_name(), userId, typeId, dimensionId, limit,
-                    lastRecommendationListUuid, currentItemId, referrer, recTag
+                    lastRecommendationListUuid, currentItemId, referrer, recTag,algorithms
                     );
             List<Recommendation> recommendations = recResult.getRecs(); 
             for (Recommendation recommendation : recommendations) {

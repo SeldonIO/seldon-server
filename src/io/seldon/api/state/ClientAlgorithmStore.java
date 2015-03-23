@@ -25,9 +25,11 @@ package io.seldon.api.state;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
+import io.seldon.clustering.recommender.*;
 import io.seldon.recommendation.*;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+import io.seldon.similarity.item.ItemSimilarityRecommender;
+import io.seldon.sv.SemanticVectorsRecommender;
 import io.seldon.trust.impl.ItemFilter;
 import io.seldon.trust.impl.ItemIncluder;
 import io.seldon.trust.impl.filters.base.CurrentItemFilter;
@@ -81,6 +83,9 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
 
 
+
+
+
     @Autowired
     public ClientAlgorithmStore (ClientConfigHandler configHandler,
                                  GlobalConfigHandler globalConfigHandler,
@@ -102,6 +107,11 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         configHandler.addListener(this, true);
         globalConfigHandler.addSubscriber("default_strategy", this);
 //        globalConfigHandler.addSubscriber("named_strategies", this);
+    }
+
+    public ClientStrategy retrieveStrategy(String client, Collection<String> algs){
+        ClientStrategy originalStrat = retrieveStrategy(client);
+        return new JsOverrideClientStrategy(originalStrat, algs, applicationContext);
     }
 
     public ClientStrategy retrieveStrategy(String client){
