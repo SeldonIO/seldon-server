@@ -304,9 +304,11 @@ public class RecommendationService {
                                             String attributes,List<String> algorithms,String referrer,String recTag) {
 //        CFAlgorithm cfAlgorithm = getAlgorithmOptions(consumerBean, userId, algorithms,recTag); // default
         List<String> actualAlgorithms = new ArrayList<>();
-        for (String alg : algorithms){
-            if(alg.startsWith("recommenders")){
-                actualAlgorithms = Arrays.asList(alg.split(":")[1].split("|"));
+        if(algorithms!=null) {
+            for (String alg : algorithms) {
+                if (alg.startsWith("recommenders")) {
+                    actualAlgorithms = Arrays.asList(alg.split(":")[1].split("|"));
+                }
             }
         }
         int typeId = 0;

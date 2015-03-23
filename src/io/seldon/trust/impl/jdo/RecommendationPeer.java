@@ -95,6 +95,9 @@ public class RecommendationPeer {
         ClientStrategy strategy;
         if (algorithmOverride != null && !algorithmOverride.isEmpty()) {
             logger.debug("Overriding algorithms from JS");
+            for(String algOver : algorithmOverride){
+                logger.debug(algOver);
+            }
             strategy  = algStore.retrieveStrategy(client, algorithmOverride);
         } else {
             strategy = algStore.retrieveStrategy(client);

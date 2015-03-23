@@ -27,6 +27,7 @@ import io.seldon.clustering.recommender.*;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.similarity.item.ItemSimilarityRecommender;
 import io.seldon.sv.SemanticVectorsRecommender;
+import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 
 import java.util.*;
@@ -37,7 +38,7 @@ import java.util.*;
  *         Time: 13:58
  */
 public class JsOverrideClientStrategy implements ClientStrategy {
-
+    private static Logger logger = Logger.getLogger(JsOverrideClientStrategy.class.getName());
     private static final Map<String, Class<? extends ItemRecommendationAlgorithm>> oldAlgNamesToNew = new HashMap<>();
     static {
         oldAlgNamesToNew.put("CLUSTER_COUNTS_ITEM_CATEGORY", ItemCategoryClusterCountsRecommender.class);
@@ -73,7 +74,8 @@ public class JsOverrideClientStrategy implements ClientStrategy {
         AlgorithmStrategy first = baseAlgStrats.get(0);
         for(String override : overrideAlgs){
             ItemRecommendationAlgorithm newAlg = ctxt.getBean(oldAlgNamesToNew.get(override));
-            alternate.add(new AlgorithmStrategy(newAlg,first.includers,first.filters, first.config, newAlg.name()));
+            alternate.add(new AlgorithmStrategy(newAlg, first.includers, first.filters, first.config, newAlg.name()));
+            logger.debug("Creating " + newAlg);
         }
         return alternate;
     }
