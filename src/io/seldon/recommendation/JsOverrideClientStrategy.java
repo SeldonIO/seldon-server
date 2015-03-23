@@ -69,7 +69,7 @@ public class JsOverrideClientStrategy implements ClientStrategy {
 
     @Override
     public List<AlgorithmStrategy> getAlgorithms(String userId, String recTag) {
-        List<AlgorithmStrategy> baseAlgStrats = getAlgorithms(userId, recTag);
+        List<AlgorithmStrategy> baseAlgStrats = baseStrategy.getAlgorithms(userId, recTag);
         List<AlgorithmStrategy> alternate = new ArrayList<>();
         AlgorithmStrategy first = baseAlgStrats.get(0);
         logger.debug("Received size "+ overrideAlgs.size());
