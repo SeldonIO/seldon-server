@@ -302,7 +302,6 @@ public class RecommendationService {
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
                                             int dimensionId, String lastRecommendationListUuid, int limit,
                                             String attributes,List<String> algorithms,String referrer,String recTag) {
-//        CFAlgorithm cfAlgorithm = getAlgorithmOptions(consumerBean, userId, algorithms,recTag); // default
         List<String> actualAlgorithms = new ArrayList<>();
         if(algorithms!=null) {
             for (String alg : algorithms) {

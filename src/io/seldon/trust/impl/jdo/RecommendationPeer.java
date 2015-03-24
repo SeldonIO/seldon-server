@@ -95,9 +95,6 @@ public class RecommendationPeer {
         ClientStrategy strategy;
         if (algorithmOverride != null && !algorithmOverride.isEmpty()) {
             logger.debug("Overriding algorithms from JS");
-            for(String algOver : algorithmOverride){
-                logger.debug(algOver);
-            }
             strategy  = algStore.retrieveStrategy(client, algorithmOverride);
         } else {
             strategy = algStore.retrieveStrategy(client);
@@ -139,9 +136,6 @@ public class RecommendationPeer {
 		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
 		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId, recTag))
 		{
-            algsUsed.add(algStr.name);
-
-
 			logger.debug("Using recommender " + algStr.algorithm.name());
 
 			List<Long> recentItemInteractions;

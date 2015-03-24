@@ -33,12 +33,14 @@ import org.springframework.context.ApplicationContext;
 import java.util.*;
 
 /**
+ * Strategy using algorithms passed in a JS call.
+ *
  * @author firemanphil
  *         Date: 23/03/15
  *         Time: 13:58
  */
+@Deprecated
 public class JsOverrideClientStrategy implements ClientStrategy {
-    private static Logger logger = Logger.getLogger(JsOverrideClientStrategy.class.getName());
     private static final Map<String, Class<? extends ItemRecommendationAlgorithm>> oldAlgNamesToNew = new HashMap<>();
     static {
         oldAlgNamesToNew.put("CLUSTER_COUNTS_ITEM_CATEGORY", ItemCategoryClusterCountsRecommender.class);
@@ -72,13 +74,10 @@ public class JsOverrideClientStrategy implements ClientStrategy {
         List<AlgorithmStrategy> baseAlgStrats = baseStrategy.getAlgorithms(userId, recTag);
         List<AlgorithmStrategy> alternate = new ArrayList<>();
         AlgorithmStrategy first = baseAlgStrats.get(0);
-        logger.debug("Received size "+ overrideAlgs.size());
         for(String override : overrideAlgs){
             ItemRecommendationAlgorithm newAlg = ctxt.getBean(oldAlgNamesToNew.get(override));
             alternate.add(new AlgorithmStrategy(newAlg, first.includers, first.filters, first.config, newAlg.name()));
-            logger.debug("Creating " + newAlg);
         }
-        logger.debug("Rerturnign size "+ alternate.size());
         return alternate;
     }
 
