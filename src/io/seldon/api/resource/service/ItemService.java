@@ -72,32 +72,17 @@ public class ItemService {
     public static ItemBean getItem(final ConsumerBean c, final String iid, final boolean full) throws APIException
     {
     	String memKey = MemCacheKeys.getItemBeanKey(c.getShort_name(), iid,full);
-    	ItemBean res =  (ItemBean) MemCachePeer.get(memKey);
-    	ItemBean newRes = null;
-    	try
-    	{
-    		newRes = DogpileHandler.get().retrieveUpdateIfRequired(memKey, res, new UpdateRetriever<ItemBean>() {
-			@Override
-			public ItemBean retrieve() throws Exception {
-				Item i = Util.getItemPeer(c).getItem(iid);
-				return new ItemBean(i,full,c);
-			}
-    		},Constants.CACHING_TIME);
-    	}
-    	catch (Exception e)
-    	{
-			logger.warn("Error when retrieving item bean in dogpile handler ", e);
-		}
-		if (newRes != null)
-		{
-			MemCachePeer.put(memKey, newRes,Constants.CACHING_TIME);
-			res = newRes;
-		}
-		if(newRes==null && res == null)
-		{
-			throw new APIException(APIException.ITEM_NOT_FOUND);
-		}
-		return res;
+    	ItemBean bean =  (ItemBean) MemCachePeer.get(memKey);
+        if(bean == null) {
+            Item i = Util.getItemPeer(c).getItem(iid);
+            if ( i == null ) {
+                // TODO We should throw a checked exception (using APIException for now; minimal surprises).
+                throw new APIException(APIException.ITEM_NOT_FOUND);
+            }
+            bean = new ItemBean(i,full,c);
+            if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getItemBeanKey(c.getShort_name(), iid,full),bean,Constants.CACHING_TIME);
+        }
+        return bean;
     }
     
     public static ItemBean getItemOld(ConsumerBean c, String iid, boolean full) throws APIException {
