@@ -55,8 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -74,7 +73,7 @@ import com.fasterxml.jackson.databind.util.JSONPObject;
 @Controller
 @RequestMapping("/js")
 public class JsClientController {
-    private static final Logger logger = LoggerFactory.getLogger(JsClientController.class);
+    private static Logger logger = Logger.getLogger(JsClientController.class.getName());
     @Autowired
     private UserBusinessService userBusinessService;
 
