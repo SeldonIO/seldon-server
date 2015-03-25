@@ -64,6 +64,7 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
                     for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
                     }
+                    return new ItemRecommendationResultSet(results);
 
                 }
                 else
