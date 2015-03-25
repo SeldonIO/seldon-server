@@ -1,6 +1,6 @@
 # Seldon Server
 
-This is an early release of the Seldon Server which provides the real-time REST API interface for Seldon predictions. We are presently modifying it heavily and will provide further docs soon.
+This is an early release of the Seldon Server, which provides the real-time REST API interface for Seldon predictions. We are presently modifying it heavily and will provide further docs soon.
 
 ## Getting Started
 The best place to get started with Seldon is to use our packaged [Vagrant VM](http://docs.seldon.io/vm.html) or the [AWS AMI](http://docs.seldon.io/vm-aws.html).
@@ -20,6 +20,7 @@ Steps involved in setting up Seldon from source to serve recommendations:
 ## Keep in touch
 * To be the first to receive product updates and early release, please [sign up for our open-source beta list](http://www.seldon.io/open-source/).
 * Join the [seldon-users group](https://groups.google.com/forum/#!forum/seldon-users) - we encourage you to leave feedback and ask questions in this group.
+* Star and watch this Github repo and [other open-source projects](https://github.com/SeldonIO/). Watching [our docs repo](https://github.com/SeldonIO/seldonio.github.com) (powered by Github Pages) will be particularly useful as we're currently pushing out documentation - [http://docs.seldon.io](http://docs.seldon.io)
 
 ## License
 Seldon is available under [Apache Licence, Version 2.0](https://github.com/SeldonIO/seldon-server/blob/master/README.md)
