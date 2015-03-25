@@ -24,6 +24,7 @@
 package io.seldon.recommendation;
 
 import io.seldon.clustering.recommender.*;
+import io.seldon.general.Item;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.similarity.item.ItemSimilarityRecommender;
 import io.seldon.sv.SemanticVectorsRecommender;
@@ -41,6 +42,7 @@ import java.util.*;
  */
 @Deprecated
 public class JsOverrideClientStrategy implements ClientStrategy {
+    private static Logger logger = Logger.getLogger(JsOverrideClientStrategy.class.getName());
     private static final Map<String, Class<? extends ItemRecommendationAlgorithm>> oldAlgNamesToNew = new HashMap<>();
     static {
         oldAlgNamesToNew.put("CLUSTER_COUNTS_ITEM_CATEGORY", ItemCategoryClusterCountsRecommender.class);
@@ -75,8 +77,13 @@ public class JsOverrideClientStrategy implements ClientStrategy {
         List<AlgorithmStrategy> alternate = new ArrayList<>();
         AlgorithmStrategy first = baseAlgStrats.get(0);
         for(String override : overrideAlgs){
-            ItemRecommendationAlgorithm newAlg = ctxt.getBean(oldAlgNamesToNew.get(override));
-            alternate.add(new AlgorithmStrategy(newAlg, first.includers, first.filters, first.config, newAlg.name()));
+            Map<String, ? extends ItemRecommendationAlgorithm> beans = ctxt.getBeansOfType(oldAlgNamesToNew.get(override));
+            if(beans.size()!=1){
+                logger.error("Couldn't translate old algorithm name " + override + " into algorithm.");
+            }
+            ItemRecommendationAlgorithm newAlg = beans.values().iterator().next();
+            String name = beans.keySet().iterator().next();
+            alternate.add(new AlgorithmStrategy(newAlg, first.includers, first.filters, first.config, name));
         }
         return alternate;
     }
