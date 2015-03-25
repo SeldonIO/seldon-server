@@ -6,7 +6,7 @@
 
     <artifactId>seldon-server</artifactId>
     <groupId>io.seldon</groupId>
-    <version>0.84</version>
+    <version>0.90</version>
     <url>http://api.rummblelabs.com</url>
 
     <name>Seldon Server</name>
