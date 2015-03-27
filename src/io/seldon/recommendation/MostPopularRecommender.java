@@ -28,14 +28,14 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.general.ItemStorage;
 import io.seldon.general.jdo.SqlItemPeer;
-import io.seldon.trust.impl.CFAlgorithm;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author firemanphil
@@ -44,6 +44,7 @@ import java.util.Set;
  */
 @Component
 public class MostPopularRecommender implements ItemRecommendationAlgorithm {
+	private static final String name = MostPopularRecommender.class.getName();
     private static Logger logger = Logger.getLogger(MostPopularRecommender.class.getName());
 
     private ItemStorage itemStorage;
@@ -80,6 +81,6 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
 
     @Override
     public String name() {
-        return CFAlgorithm.CF_RECOMMENDER.MOST_POPULAR.name();
+        return name;
     }
 }

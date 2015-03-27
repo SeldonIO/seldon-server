@@ -23,23 +23,21 @@
 
 package io.seldon.mf;
 
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
+import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
+import io.seldon.clustering.recommender.RecommendationContext;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.trust.impl.ItemFilter;
-import io.seldon.trust.impl.ItemIncluder;
-
-import com.google.common.collect.Ordering;
-import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
-import io.seldon.trust.impl.CFAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Ordering;
 
 /**
  * @author firemanphil
@@ -49,6 +47,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MfRecommender extends MemcachedAssistedAlgorithm {
 
+	private static final String name = MfRecommender.class.getName();
     private final MfFeaturesManager store;
 
     @Autowired
@@ -105,6 +104,6 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
 
     @Override
     public String name() {
-        return "mf";
+        return name;
     }
 }

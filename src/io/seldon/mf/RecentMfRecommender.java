@@ -23,6 +23,11 @@
 
 package io.seldon.mf;
 
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
+import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
+import io.seldon.clustering.recommender.RecommendationContext;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,23 +35,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.ItemFilter;
-import io.seldon.trust.impl.ItemIncluder;
 import org.apache.commons.math.linear.ArrayRealVector;
 import org.apache.commons.math.linear.RealVector;
-
-import com.google.common.collect.Ordering;
-import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Ordering;
 
 @Component
 public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
+	private static final String name = RecentMfRecommender.class.getName();
 	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 	private final MfFeaturesManager store;
 
@@ -180,6 +179,6 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
 	@Override
 	public String name() {
-		return "recent_mf";
+		return name;
 	}
 }

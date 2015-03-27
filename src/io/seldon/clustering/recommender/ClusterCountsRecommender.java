@@ -23,10 +23,9 @@
 
 package io.seldon.clustering.recommender;
 
-import io.seldon.trust.impl.CFAlgorithm;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
+
+import org.springframework.stereotype.Component;
 
 /**
  * @author firemanphil
@@ -36,6 +35,8 @@ import java.util.List;
 @Component
 public class ClusterCountsRecommender extends BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
 
+	private static final String name = ClusterCountsRecommender.class.getName();
+	
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         return this.recommend("CLUSTER_COUNTS",client,ctxt,user,dimensionId,maxRecsCount);
@@ -43,6 +44,6 @@ public class ClusterCountsRecommender extends BaseClusterCountsRecommender imple
 
     @Override
     public String name() {
-        return CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS.name();
+        return name;
     }
 }

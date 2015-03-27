@@ -27,12 +27,18 @@ import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.CFAlgorithm;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * @author firemanphil
@@ -42,7 +48,7 @@ import java.util.*;
 @Component
 public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
 
-
+	private static final String name = RecentItemsRecommender.class.getName();
     private static Logger logger = Logger.getLogger(RecentItemsRecommender.class.getName());
     private final ItemStorage itemStorage;
 
@@ -89,6 +95,6 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
     }
     @Override
     public String name() {
-        return CFAlgorithm.CF_RECOMMENDER.RECENT_ITEMS.name();
+        return name;
     }
 }
