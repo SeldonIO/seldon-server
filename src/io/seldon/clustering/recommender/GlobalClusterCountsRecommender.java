@@ -24,11 +24,15 @@
 package io.seldon.clustering.recommender;
 
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
-import io.seldon.trust.impl.CFAlgorithm;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * @author firemanphil
@@ -37,6 +41,7 @@ import java.util.*;
  */
 @Component
 public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorithm {
+	private static final String name = GlobalClusterCountsRecommender.class.getName();
     private static Logger logger = Logger.getLogger(GlobalClusterCountsRecommender.class.getName());
     private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
     @Override
@@ -68,6 +73,6 @@ public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorit
 
     @Override
     public String name() {
-        return CFAlgorithm.CF_RECOMMENDER.CLUSTER_COUNTS_GLOBAL.name();
+        return name;
     }
 }

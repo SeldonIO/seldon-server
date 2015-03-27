@@ -27,7 +27,6 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.semvec.LongIdTransform;
-import io.seldon.trust.impl.CFAlgorithm;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +47,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
     private static final String IGNORE_PEFECT_MATCH_OPTION_NAME = "io.seldon.algorithm.semantic.ignoreperfectsvmatches";
     private static final String SV_PREFIX_OPTION_NAME = "io.seldon.algorithm.semantic.prefix";
     private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
+    private static final String name = SemanticVectorsRecommender.class.getName();
     SemanticVectorsManager svManager;
 
 
@@ -66,17 +66,20 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 
    
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(String client,
-                                                             Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommendWithoutCache(String client,Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions) {
 
         RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
+    	return recommendImpl(client, user, dimension, ctxt, maxRecsCount, recentItemInteractions, options.getStringOption(SV_PREFIX_OPTION_NAME));
+    }
+    
+   protected ItemRecommendationResultSet recommendImpl(String client,Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions,String svPrefix) {
+       RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
         if (recentItemInteractions.size() == 0)
         {
             logger.debug("Can't recommend as no recent item interactions");
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
         }
         Boolean isIgnorePerfectSvMatches = options.getBooleanOption(IGNORE_PEFECT_MATCH_OPTION_NAME);
-        String svPrefix = options.getStringOption(SV_PREFIX_OPTION_NAME);
         SemanticVectorsStore svPeer = svManager.getStore(client, svPrefix);
 
         if (svPeer == null)
@@ -122,6 +125,6 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
 
     @Override
     public String name() {
-        return CFAlgorithm.CF_RECOMMENDER.SEMANTIC_VECTORS.name();
+        return name;
     }
 }

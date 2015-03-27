@@ -30,7 +30,6 @@ import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
-import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
 
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 
+	private static final String name = ItemSimilarityRecommender.class.getName();
 	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 	private static Logger logger = Logger.getLogger( ItemSimilarityRecommender.class.getName() );
 
@@ -144,6 +144,6 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 
 	@Override
 	public String name() {
-		return CFAlgorithm.CF_RECOMMENDER.RECENT_SIMILAR_ITEMS.name();
+		return name;
 	}
 }

@@ -23,28 +23,25 @@
 
 package io.seldon.topics;
 
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
+import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.items.RecentItemsWithTagsManager;
+import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
+import io.seldon.trust.impl.jdo.RecommendationUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
-import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.items.RecentItemsWithTagsManager;
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.ItemFilter;
-import io.seldon.trust.impl.ItemIncluder;
-
-import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
-
+	private static final String name = TopicModelRecommender.class.getName();
 	private static final String ATTR_ID_PROPERTY_NAME ="io.seldon.algorithm.tags.attrid";
 	private static final String TABLE_PROPERTY_NAME = "io.seldon.algorithm.tags.table";
 	private static final String MIN_NUM_WEIGHTS_PROPERTY_NAME = "io.seldon.algorithm.tags.minnumtagsfortopicweights";
@@ -127,6 +124,6 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 
 	@Override
 	public String name() {
-		return "topic_model";
+		return name;
 	}
 }
