@@ -25,11 +25,9 @@ package io.seldon.trust.impl.filters;
 
 import io.seldon.general.ItemStorage;
 import io.seldon.trust.impl.ItemIncluder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author firemanphil
@@ -44,7 +42,7 @@ public class RecentItemsIncluder implements ItemIncluder {
 
 
     @Override
-    public List<Long> generateIncludedItems(String client, int dimension, int numItems) {
-        return new ArrayList<>(retriever.retrieveRecentlyAddedItems(client, numItems, dimension));
+    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
+        return retriever.retrieveRecentlyAddedItems(client, numItems, dimension);
     }
 }

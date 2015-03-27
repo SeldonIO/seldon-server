@@ -24,13 +24,10 @@
 package io.seldon.trust.impl.filters;
 
 import io.seldon.general.ItemStorage;
-import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.trust.impl.ItemIncluder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author firemanphil
@@ -45,15 +42,8 @@ public class MostPopularIncluder implements ItemIncluder {
 
 
     @Override
-    public List<Long> generateIncludedItems(String client, int dimension, int numItems) {
+    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
         // first stab at this: lets return, say, the top 200 items.
-        List<SqlItemPeer.ItemAndScore> itemsToConsider = retriever.retrieveMostPopularItems(client,numItems,dimension);
-        List<Long> toReturn = new ArrayList<>();
-        for (SqlItemPeer.ItemAndScore itemAndScore : itemsToConsider){
-            toReturn.add(itemAndScore.item);
-        }
-        return toReturn.size() >= numItems ?
-                new ArrayList<>(toReturn).subList(0,numItems) :
-                new ArrayList<>(toReturn);
+        return  retriever.retrieveMostPopularItems(client,numItems,dimension);
     }
 }

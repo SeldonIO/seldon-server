@@ -68,7 +68,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
         } else {
             exclusions = ctxt.getContextItems();
         }
-        Collection<Long> recList = itemStorage.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensionId);
+        Collection<Long> recList = itemStorage.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensionId).getItems();
         if (recList.size() > 0)
         {
             double scoreIncr = 1.0/(double)recList.size();

@@ -23,7 +23,7 @@
 
 package io.seldon.trust.impl;
 
-import java.util.List;
+import io.seldon.trust.impl.filters.FilteredItems;
 
 /**
  * @author firemanphil
@@ -41,6 +41,6 @@ public interface ItemIncluder {
      * @param numItems the number of items to generate as a maximum
      * @return a list of item ids to include.
      */
-    List<Long> generateIncludedItems(String client, int dimension, int numItems);
+    FilteredItems generateIncludedItems(String client, int dimension, int numItems);
 
 }

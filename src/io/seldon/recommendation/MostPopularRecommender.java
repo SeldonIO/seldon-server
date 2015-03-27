@@ -64,7 +64,7 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
              exclusions = ctxt.getContextItems();
         }
 
-        List<SqlItemPeer.ItemAndScore> itemsToConsider = itemStorage.retrieveMostPopularItems(client,maxRecsCount + exclusions.size(),dimensionId);
+        List<SqlItemPeer.ItemAndScore> itemsToConsider = itemStorage.retrieveMostPopularItemsWithScore(client,maxRecsCount + exclusions.size(),dimensionId);
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         for (SqlItemPeer.ItemAndScore itemAndScore : itemsToConsider){
             if(!exclusions.contains(itemAndScore.item))

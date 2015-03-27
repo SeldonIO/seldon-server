@@ -29,15 +29,20 @@ import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
+import io.seldon.trust.impl.filters.FilteredItems;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import net.spy.memcached.MemcachedClient;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author firemanphil
@@ -63,39 +68,69 @@ public class ItemStorage {
         this.dogpileHandler = dogpileHandler;
     }
 
-    public List<SqlItemPeer.ItemAndScore> retrieveMostPopularItems(final String client, final int numItems, final int dimension){
+    private String getMostPopularCacheKey(String client,int dimension, int numItems)
+    {
+    	return MemCacheKeys.getPopularItems(client, dimension, numItems);
+    }
+    
+    public List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScore(final String client, final int numItems, final int dimension){
+    	return retrieveMostPopularItemsWithScoreImpl(getMostPopularCacheKey(client, dimension, numItems), client, numItems, dimension);
+    }
+    
+    private List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScoreImpl(final String key,final String client, final int numItems, final int dimension){
 
-        String key = MemCacheKeys.getPopularItems(client, dimension, numItems);
-        List<SqlItemPeer.ItemAndScore> retrievedItems = retrieve(key, numItems, new UpdateRetriever<List<SqlItemPeer.ItemAndScore>>() {
+        
+        List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<SqlItemPeer.ItemAndScore>>() {
             @Override
             public List<SqlItemPeer.ItemAndScore> retrieve() throws Exception {
                 return provider.getItemPersister(client).retrieveMostPopularItems(numItems, dimension);
             }
-        }, MOST_POPULAR_EXPIRE_TIME);
+        },(Class<List<SqlItemPeer.ItemAndScore>>) new ArrayList<SqlItemPeer.ItemAndScore>().getClass(), MOST_POPULAR_EXPIRE_TIME);
 
         return retrievedItems==null? Collections.EMPTY_LIST: retrievedItems;
     }
 
-    public Collection<Long> retrieveRecentlyAddedItems(final String client, final int numItems, final int dimension){
+    public FilteredItems retrieveMostPopularItems(final String client, final int numItems, final int dimension){
+    	final String key = getMostPopularCacheKey(client, dimension, numItems);
+    	List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveMostPopularItemsWithScoreImpl(key,client, numItems, dimension);
+    	List<Long> toReturn = new ArrayList<>();
+        for (SqlItemPeer.ItemAndScore itemAndScore : retrievedItems){
+            toReturn.add(itemAndScore.item);
+        }
+        return new FilteredItems(toReturn.size() >= numItems ? new ArrayList<>(toReturn).subList(0,numItems) : toReturn, key);
+    }
+    
+    public FilteredItems retrieveRecentlyAddedItems(final String client, final int numItems, final int dimension){
         String key = MemCacheKeys.getRecentItems(client, dimension, numItems);
-        Collection<Long> retrievedItems = retrieve(key, numItems, new UpdateRetriever<Collection<Long>>() {
+        List<Long> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<Long>>() {
             @Override
-            public Collection<Long> retrieve() throws Exception {
+            public List<Long> retrieve() throws Exception {
                 return provider.getItemPersister(client).getRecentItemIds(dimension,numItems,null);
             }
-        }, RECENT_ITEMS_EXPIRE_TIME);
-        return retrievedItems==null? Collections.EMPTY_LIST : retrievedItems;
+        }, (Class<List<Long>>) new ArrayList<Long>().getClass(), RECENT_ITEMS_EXPIRE_TIME);
+        return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,key);
     }
 
-    private <T extends Collection> T retrieve(String key, int numItemsRequired, UpdateRetriever<T> retriever, int expireTime) {
-        T retrievedItems = (T) MemCachePeer.get(key);
-
+    private <T extends List> T retrieveUsingJSON(String key, int numItemsRequired, UpdateRetriever<T> retriever, Class<T> clazz,int expireTime) {
+    	final ObjectMapper mapper = new ObjectMapper();
+    	T retrievedItems = null;
+    	String json = (String) MemCachePeer.get(key);
+    	if (json != null)
+    	{
+    		try 
+    		{
+    			retrievedItems = mapper.readValue(json,clazz);
+    		} catch (Exception e1) {
+    			logger.error("Failed to parae json "+json,e1);
+    		}
+    	}
         if (retrievedItems==null || retrievedItems.size() < numItemsRequired) retrievedItems = null;
         T newerRetrievedItems = null;
         try {
             newerRetrievedItems = dogpileHandler.retrieveUpdateIfRequired(key, retrievedItems, retriever, expireTime);
             if(newerRetrievedItems!=null){
-                MemCachePeer.put(key, newerRetrievedItems, expireTime);
+            	String result = mapper.writeValueAsString(newerRetrievedItems);
+                MemCachePeer.put(key, result, expireTime);
                 return newerRetrievedItems;
             }
         } catch (Exception e) {
