@@ -65,10 +65,10 @@ public class RankSumCombinerTest {
 
         emptySet = RecResultContext.EMPTY;
 
-        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList),"notEnoguth");
+        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList, "notEnoguth"),"notEnoguth");
 
-        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList),"sufficient");
-        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList),"plenty");
+        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList, "sufficient"),"sufficient");
+        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList, "plenty"),"plenty");
 
         expectedRankSumList =  Arrays.asList(result2, result3, result1);
     }
@@ -92,7 +92,7 @@ public class RankSumCombinerTest {
         result = combiner.combine(2, Arrays.asList(notEnoughInEachSet, sufficientSet));
         assertEquals(sufficientSet.resultSet, result.resultSet);
         result = combiner.combine(2, Arrays.asList(sufficientSet, plentySet));
-        assertEquals(new ItemRecommendationResultSet(Arrays.asList(result2Ranked, result3Ranked, result1Ranked)), result.resultSet);
+        assertEquals(new ItemRecommendationResultSet(Arrays.asList(result2Ranked, result3Ranked, result1Ranked), "plenty"), result.resultSet);
 
     }
 

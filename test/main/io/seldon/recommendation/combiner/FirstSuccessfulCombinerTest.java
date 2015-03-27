@@ -59,10 +59,10 @@ public class FirstSuccessfulCombinerTest {
 
         emptySet = RecResultContext.EMPTY;
 
-        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList),"notEnough");
+        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList, "notEnough"),"notEnough");
 
-        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList),"sufficient");
-        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList),"plenty");
+        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList, "sufficient"),"sufficient");
+        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList, "plenty"),"plenty");
     }
 
 

@@ -24,7 +24,6 @@
 package io.seldon.trust.impl.jdo;
 
 import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.resource.ConsumerBean;
@@ -37,12 +36,9 @@ import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 
 import io.seldon.db.jdo.ClientPersistable;
 import io.seldon.general.ItemPeer;
-import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
 
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.ClientStrategy;
-import io.seldon.recommendation.JsOverrideClientStrategy;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.semvec.*;
 import io.seldon.trust.impl.*;
@@ -136,7 +132,7 @@ public class RecommendationPeer {
 		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
 		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId, recTag))
 		{
-			logger.debug("Using recommender " + algStr.algorithm.name());
+			logger.debug("Using recommender class " + algStr.name);
 
 			List<Long> recentItemInteractions;
 			// add items from recent history if there are any and algorithm options says to use them
@@ -476,7 +472,7 @@ public class RecommendationPeer {
 
 
     public static class RecResultContext {
-        public static final RecResultContext EMPTY = new RecResultContext(new ItemRecommendationResultSet(), "UNKNOWN");
+        public static final RecResultContext EMPTY = new RecResultContext(new ItemRecommendationResultSet("UNKNOWN"), "UNKNOWN");
         public final ItemRecommendationResultSet resultSet;
         public final String algKey;
 

@@ -24,7 +24,6 @@
 package io.seldon.clustering.recommender;
 
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
-import io.seldon.trust.impl.CFAlgorithm;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -43,7 +42,7 @@ public class BaseClusterCountsRecommender {
 
     private static Logger logger = Logger.getLogger(BaseClusterCountsRecommender.class.getName());
 
-    public ItemRecommendationResultSet recommend(String recommenderType, String client,
+    public ItemRecommendationResultSet recommend(String recommenderName, String recommenderType, String client,
                                                  RecommendationContext ctxt, Long user, int dimensionId,
                                                  int maxRecsCount) {
         JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
@@ -69,9 +68,9 @@ public class BaseClusterCountsRecommender {
             for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
             }
-            return new ItemRecommendationResultSet(results);
+            return new ItemRecommendationResultSet(results, recommenderName);
         } else {
-            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), recommenderName);
         }
     }
 }

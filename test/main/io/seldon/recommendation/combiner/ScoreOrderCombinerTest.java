@@ -28,7 +28,6 @@ import static io.seldon.trust.impl.jdo.RecommendationPeer.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,10 +59,10 @@ public class ScoreOrderCombinerTest {
 
         emptySet = RecResultContext.EMPTY;
 
-        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList),"notEnough");
+        notEnoughInEachSet = new RecResultContext(new ItemRecommendationResultSet(notEnoughInEachList, "notEnough"),"notEnough");
 
-        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList),"sufficient");
-        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList),"plenty");
+        sufficientSet = new RecResultContext(new ItemRecommendationResultSet(sufficientList, "sufficient"),"sufficient");
+        plentySet = new RecResultContext(new ItemRecommendationResultSet(plentyList, "plenty"),"plenty");
     }
 
 

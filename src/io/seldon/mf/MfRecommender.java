@@ -23,6 +23,7 @@
 
 package io.seldon.mf;
 
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,8 +47,8 @@ import com.google.common.collect.Ordering;
  *         Time: 17:08
  */
 @Component
-public class MfRecommender extends MemcachedAssistedAlgorithm {
-
+public class MfRecommender implements ItemRecommendationAlgorithm {
+    private static Logger logger = Logger.getLogger(MfRecommender.class.getName());
 	private static final String name = MfRecommender.class.getName();
     private final MfFeaturesManager store;
 
@@ -56,13 +58,13 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,
-            RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimension, int maxRecsCount,
+            RecommendationContext ctxt, List<Long> recentitemInteractions) {
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
 
         if(clientStore==null || clientStore.userFeatures.get(user)==null) {
             logger.debug("Couldn't find a matrix factorization store for this client or this user");
-            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
+            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
         }
 
         float[] userVector =  clientStore.userFeatures.get(user);
@@ -90,7 +92,7 @@ public class MfRecommender extends MemcachedAssistedAlgorithm {
 
         List<ItemRecommendationResult> recsList = Ordering.natural().greatestOf(recs, maxRecsCount);
         logger.debug("Created "+recsList.size() + " recs");
-        return new ItemRecommendationResultSet(recsList);
+        return new ItemRecommendationResultSet(recsList, name);
     }
 
 

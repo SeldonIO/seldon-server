@@ -139,7 +139,7 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 				logger.info("Recent similar items recommender returned " + recommendations.size() + " recommendations");
 		} else
 			logger.info("failing RECENT_SIMILAR_ITEMS as no recent actions");
-		return new ItemRecommendationResultSet(recommendations);
+		return new ItemRecommendationResultSet(recommendations, name);
 	}
 
 	@Override

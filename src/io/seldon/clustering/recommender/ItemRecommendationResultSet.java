@@ -38,13 +38,15 @@ import java.util.List;
 public class ItemRecommendationResultSet implements Serializable {
 
     private final List<ItemRecommendationResult> results;
+    private final String recommenderName;
 
-
-    public ItemRecommendationResultSet(){
+    public ItemRecommendationResultSet(String recommenderName){
+        this.recommenderName = recommenderName;
         this.results = Collections.emptyList();
     }
 
-    public ItemRecommendationResultSet(List<ItemRecommendationResult> results) {
+    public ItemRecommendationResultSet(List<ItemRecommendationResult> results, String recommenderName) {
+        this.recommenderName = recommenderName;
         if(results==null) results = Collections.emptyList();
         this.results = results;
     }
@@ -68,6 +70,10 @@ public class ItemRecommendationResultSet implements Serializable {
     @Override
     public int hashCode() {
         return results.hashCode();
+    }
+
+    public String getRecommenderName() {
+        return recommenderName;
     }
 
     public static class ItemRecommendationResult implements Comparable<ItemRecommendationResult>,Serializable {

@@ -70,7 +70,7 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
                     for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
                     }
-                    return new ItemRecommendationResultSet(results);
+                    return new ItemRecommendationResultSet(results, name);
 
                 }
                 else
@@ -82,7 +82,7 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
         else
             logger.info("Can't cluster count for category for user "+user+" client user id "+ctxt.getCurrentItem()+" as no current item passed in");
 
-        return new ItemRecommendationResultSet(Collections.EMPTY_LIST);
+        return new ItemRecommendationResultSet(Collections.EMPTY_LIST, name);
     }
 
     @Override

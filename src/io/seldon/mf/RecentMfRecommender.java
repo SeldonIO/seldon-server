@@ -23,6 +23,7 @@
 
 package io.seldon.mf;
 
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
@@ -37,14 +38,15 @@ import java.util.Set;
 
 import org.apache.commons.math.linear.ArrayRealVector;
 import org.apache.commons.math.linear.RealVector;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Ordering;
 
 @Component
-public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
-
+public class RecentMfRecommender implements ItemRecommendationAlgorithm {
+ 	private static Logger logger = Logger.getLogger(RecentMfRecommender.class.getName());
 	private static final String name = RecentMfRecommender.class.getName();
 	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 	private final MfFeaturesManager store;
@@ -55,15 +57,11 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
         this.store = store;
     }
     
-    @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
-												 RecommendationContext ctxt, List<Long> recentitemInteractions) {
-		return recommendWithoutCache(client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
-	}
+
 
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(String client, Long user, int dimension,
-            RecommendationContext ctxt, int maxRecsCount, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, int dimension,
+            int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
 
 		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
 		int numRecentActionsToUse = opts.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
@@ -71,7 +69,7 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
         if(clientStore==null) {
             logger.debug("Couldn't find a matrix factorization store for this client");
-            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList());
+            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
         }
         
         List<Long> itemsToScore;
@@ -120,7 +118,7 @@ public class RecentMfRecommender extends MemcachedAssistedAlgorithm {
 
         List<ItemRecommendationResult> recsList = Ordering.natural().greatestOf(recs, maxRecsCount);
         logger.debug("Created "+recsList.size() + " recs");
-        return new ItemRecommendationResultSet(recsList);
+        return new ItemRecommendationResultSet(recsList, name);
     }
 
     public double[] createAvgProductVector(List<Long> recentitemInteractions,Map<Long,float[]> productFeatures)

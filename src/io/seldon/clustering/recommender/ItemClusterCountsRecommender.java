@@ -37,7 +37,7 @@ public class ItemClusterCountsRecommender extends BaseItemClusterCountsRecommend
 	private static final String name = ItemClusterCountsRecommender.class.getName();
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return recommend( "CLUSTER_COUNTS_FOR_ITEM",client,user,dimensionId,maxRecsCount,ctxt);
+        return recommend( name, "CLUSTER_COUNTS_FOR_ITEM",client,user,dimensionId,maxRecsCount,ctxt);
     }
 
     @Override

@@ -68,6 +68,6 @@ public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
         }
         ordered.addAll(scores.keySet());
         Collections.sort(ordered, Collections.reverseOrder());
-        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(ordered), StringUtils.join(validAlgs, ':'));
+        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(ordered, StringUtils.join(validAlgs, ':')), StringUtils.join(validAlgs, ':'));
     }
 }

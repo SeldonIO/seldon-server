@@ -37,7 +37,7 @@ public class SignificantClusterCountsRecommender extends  BaseClusterCountsRecom
 	private static final String name = SignificantClusterCountsRecommender.class.getName();
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return this.recommend("CLUSTER_COUNTS_SIGNIFICANT",client, ctxt,user,dimensionId,maxRecsCount);
+        return this.recommend(name, "CLUSTER_COUNTS_SIGNIFICANT",client, ctxt,user,dimensionId,maxRecsCount);
     }
 
     @Override

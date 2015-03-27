@@ -68,7 +68,7 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                                                 .setParameter("client", client)
                                                 .setParameter("user_id",user.toString())
                                                 .setParameter("item_id",ctxt.getCurrentItem().toString())
-                                                .setParameter("limit", String.valueOf(maxRecsCount))
+                                                .setParameter("limit", String.valueOf(maxRecsCount));
 //        HttpGet httpGet = new HttpGet(url).;
 //        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 //            CloseableHttpResponse resp = httpclient.execute(httpGet);

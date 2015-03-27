@@ -59,7 +59,7 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
         Set<Long> exclusions;
         if(ctxt.getMode() != RecommendationContext.MODE.EXCLUSION){
             logger.warn("Trying to use MostPopularRecommender in an invalid inclusion/exclusion mode, returning empty result set.");
-            return new ItemRecommendationResultSet();
+            return new ItemRecommendationResultSet(name);
         } else {
              exclusions = ctxt.getContextItems();
         }
@@ -74,7 +74,7 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
         return new ItemRecommendationResultSet(
                 itemsToConsider.size() >= maxRecsCount ?
                         new ArrayList<>(results).subList(0,maxRecsCount) :
-                        new ArrayList<>(results));
+                        new ArrayList<>(results), name);
 
 
     }

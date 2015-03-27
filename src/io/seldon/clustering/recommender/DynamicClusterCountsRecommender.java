@@ -40,7 +40,7 @@ public class DynamicClusterCountsRecommender extends BaseClusterCountsRecommende
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
                                                  RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return this.recommend("CLUSTER_COUNTS_DYNAMIC",client,ctxt,user,dimensionId,maxRecsCount);
+        return this.recommend(name, "CLUSTER_COUNTS_DYNAMIC",client,ctxt,user,dimensionId,maxRecsCount);
     }
 
     @Override

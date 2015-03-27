@@ -23,6 +23,7 @@
 
 package io.seldon.sv;
 
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +45,8 @@ import org.springframework.stereotype.Component;
  *         Time: 11:35
  */
 @Component
-public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
+public class SemanticVectorsRecommender implements ItemRecommendationAlgorithm {
+    private static Logger logger = Logger.getLogger(SemanticVectorsRecommender.class.getName());
     private static final String IGNORE_PEFECT_MATCH_OPTION_NAME = "io.seldon.algorithm.semantic.ignoreperfectsvmatches";
     private static final String SV_PREFIX_OPTION_NAME = "io.seldon.algorithm.semantic.prefix";
     private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
@@ -58,15 +61,10 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         this.svManager = svManager;
     }
     
-    @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
-
-		return recommendWithoutCache(client, user, dimensionId, ctxt,maxRecsCount, recentitemInteractions);
-	}
 
    
     @Override
-    public ItemRecommendationResultSet recommendWithoutCache(String client,Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client,Long user, int dimension, int maxRecsCount, RecommendationContext ctxt,List<Long> recentItemInteractions) {
 
         RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
     	return recommendImpl(client, user, dimension, ctxt, maxRecsCount, recentItemInteractions, options.getStringOption(SV_PREFIX_OPTION_NAME));
@@ -77,7 +75,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         if (recentItemInteractions.size() == 0)
         {
             logger.debug("Can't recommend as no recent item interactions");
-            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
         }
         Boolean isIgnorePerfectSvMatches = options.getBooleanOption(IGNORE_PEFECT_MATCH_OPTION_NAME);
         SemanticVectorsStore svPeer = svManager.getStore(client, svPrefix);
@@ -85,7 +83,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         if (svPeer == null)
         {
             logger.debug("Failed to find sv peer for client "+client+" with type "+svPrefix);
-            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
         }
         
         RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
@@ -120,7 +118,7 @@ public class SemanticVectorsRecommender extends MemcachedAssistedAlgorithm {
         {
             results.add(new ItemRecommendationResultSet.ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));
         }
-        return new ItemRecommendationResultSet(results);
+        return new ItemRecommendationResultSet(results, name);
     }
 
     @Override

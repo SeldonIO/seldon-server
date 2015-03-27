@@ -65,9 +65,9 @@ public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorit
             for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
             }
-            return new ItemRecommendationResultSet(results);
+            return new ItemRecommendationResultSet(results, name);
         } else {
-            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+            return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
         }
     }
 

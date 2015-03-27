@@ -64,7 +64,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
 
         if(ctxt.getMode() == RecommendationContext.MODE.INCLUSION){
             logger.warn("Can't run RecentItemsRecommender in inclusion context mode");
-            return new ItemRecommendationResultSet();
+            return new ItemRecommendationResultSet(name);
         } else {
             exclusions = ctxt.getContextItems();
         }
@@ -85,13 +85,13 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
                 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
             }
             logger.debug("Recent items algorithm returned "+recommendations.size()+" items");
-            return new ItemRecommendationResultSet(results);
+            return new ItemRecommendationResultSet(results, name);
         }
         else
         {
             logger.warn("No items returned for recent items of dimension " + dimensionId + " for " + client);
         }
-        return new ItemRecommendationResultSet(Collections.EMPTY_LIST);
+        return new ItemRecommendationResultSet(Collections.EMPTY_LIST, name);
     }
     @Override
     public String name() {

@@ -78,7 +78,7 @@ public class TopicModelRecommenderTest {
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(3);
 
 		replay(mockCtxt, mockOptions);
-		ItemRecommendationResultSet res = r.recommendWithoutCache(client, 1L, dimension,mockCtxt, 50,null);
+		ItemRecommendationResultSet res = r.recommend(client, 1L, dimension,50,mockCtxt,null);
 		
 		verify(mockFeaturesManager,mockCtxt, mockOptions);
 		Assert.assertNotNull(res);
@@ -114,7 +114,7 @@ public class TopicModelRecommenderTest {
 		replay(mockCtxt);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 
-		ItemRecommendationResultSet res = r.recommendWithoutCache(client, 1L, dimension, mockCtxt, 50,null);
+		ItemRecommendationResultSet res = r.recommend(client, 1L, dimension, 50,mockCtxt,null);
 
 		verify(mockFeaturesManager);
 		verify(mockCtxt,mockTagsManager,mockOptions);
@@ -174,7 +174,7 @@ public class TopicModelRecommenderTest {
 		replay(mockOptions);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		List<Long> recentItemInteractions = new ArrayList<Long>();
-		ItemRecommendationResultSet res = r.recommendWithoutCache(client, 1L, dimension, mockCtxt, 50,recentItemInteractions);
+		ItemRecommendationResultSet res = r.recommend(client, 1L, dimension,50, mockCtxt,recentItemInteractions);
 
 		verify(mockCtxt, mockOptions);
 		verify(mockFeaturesManager);

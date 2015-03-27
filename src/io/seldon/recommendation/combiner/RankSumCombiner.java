@@ -93,7 +93,7 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
         }
 
         Collections.sort(orderedResults, Collections.reverseOrder());
-        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(orderedResults), StringUtils.join(validResultsAlgKeys,':'));
+        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(orderedResults, StringUtils.join(validResultsAlgKeys,':')), StringUtils.join(validResultsAlgKeys,':'));
     }
 
 }

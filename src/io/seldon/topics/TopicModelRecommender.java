@@ -23,6 +23,7 @@
 
 package io.seldon.topics;
 
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
@@ -36,11 +37,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
+public class TopicModelRecommender implements ItemRecommendationAlgorithm {
+	private static Logger logger = Logger.getLogger(TopicModelRecommender.class.getName());
 	private static final String name = TopicModelRecommender.class.getName();
 	private static final String ATTR_ID_PROPERTY_NAME ="io.seldon.algorithm.tags.attrid";
 	private static final String TABLE_PROPERTY_NAME = "io.seldon.algorithm.tags.table";
@@ -58,8 +61,8 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 	}
 
 	@Override
-	public ItemRecommendationResultSet recommendWithoutCache(String client,
-			Long user, int dimension, RecommendationContext ctxt, int maxRecsCount, List<Long> recentitemInteractions) {
+	public ItemRecommendationResultSet recommend(String client,
+			Long user, int dimension, int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
 		RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
 		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
 		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
@@ -68,27 +71,27 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 		if (store == null)
 		{
 			logger.debug("Failed to find topic features for client "+client);
-			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
 		
 		if (ctxt == null || ctxt.getContextItems() == null || ctxt.getContextItems().size() == 0)
 		{
 			logger.warn("Not items passed in to recommend from. For client "+client);
-			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
 		
 		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), tagAttrId, tagTable);
 		if (itemTags == null || itemTags.size() == 0)
 		{
 			logger.debug("Failed to find recent tag items for client "+client);
-			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
 		else
 			logger.debug("Got "+itemTags.size()+" recent item tags");
 		float[] userTopicWeight = store.getUserWeightVector(user);
 		if (userTopicWeight == null)
 		{
-			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList());
+			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
 
 		Map<Long,Double> scores = new HashMap<>();
@@ -110,7 +113,7 @@ public class TopicModelRecommender extends MemcachedAssistedAlgorithm {
 		{
 			results.add(new ItemRecommendationResultSet.ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));
 		}
-		return new ItemRecommendationResultSet(results);
+		return new ItemRecommendationResultSet(results, name);
 	}
 	
 	private static float dot(float[] vec1, float[] vec2)
