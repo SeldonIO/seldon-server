@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
 
-	private static final String name = RecentItemsRecommender.class.getName();
+	private static final String name = RecentItemsRecommender.class.getSimpleName();
     private static Logger logger = Logger.getLogger(RecentItemsRecommender.class.getName());
     private final ItemStorage itemStorage;
 

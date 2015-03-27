@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecommender implements ItemRecommendationAlgorithm {
 
-	private static final String name = ItemCategoryClusterCountsRecommender.class.getName();
+	private static final String name = ItemCategoryClusterCountsRecommender.class.getSimpleName();
 	
     private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
     private static Logger logger = Logger.getLogger(ItemCategoryClusterCountsRecommender.class.getName());

@@ -25,7 +25,6 @@ package io.seldon.topics;
 
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.items.RecentItemsWithTagsManager;
 import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
@@ -43,8 +42,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TopicModelRecommender implements ItemRecommendationAlgorithm {
-	private static Logger logger = Logger.getLogger(TopicModelRecommender.class.getName());
-	private static final String name = TopicModelRecommender.class.getName();
+	private static Logger logger = Logger.getLogger(TopicModelRecommender.class.getSimpleName());
+	private static final String name = TopicModelRecommender.class.getSimpleName();
 	private static final String ATTR_ID_PROPERTY_NAME ="io.seldon.algorithm.tags.attrid";
 	private static final String TABLE_PROPERTY_NAME = "io.seldon.algorithm.tags.table";
 	private static final String MIN_NUM_WEIGHTS_PROPERTY_NAME = "io.seldon.algorithm.tags.minnumtagsfortopicweights";

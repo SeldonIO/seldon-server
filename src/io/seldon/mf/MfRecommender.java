@@ -26,7 +26,6 @@ package io.seldon.mf;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
 
 import java.util.Collections;
@@ -49,7 +48,7 @@ import com.google.common.collect.Ordering;
 @Component
 public class MfRecommender implements ItemRecommendationAlgorithm {
     private static Logger logger = Logger.getLogger(MfRecommender.class.getName());
-	private static final String name = MfRecommender.class.getName();
+	private static final String name = MfRecommender.class.getSimpleName();
     private final MfFeaturesManager store;
 
     @Autowired

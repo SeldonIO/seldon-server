@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 
-	private static final String name = ItemSimilarityRecommender.class.getName();
+	private static final String name = ItemSimilarityRecommender.class.getSimpleName();
 	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 	private static Logger logger = Logger.getLogger( ItemSimilarityRecommender.class.getName() );
 

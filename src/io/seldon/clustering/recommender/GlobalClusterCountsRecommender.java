@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorithm {
-	private static final String name = GlobalClusterCountsRecommender.class.getName();
+	private static final String name = GlobalClusterCountsRecommender.class.getSimpleName();
     private static Logger logger = Logger.getLogger(GlobalClusterCountsRecommender.class.getName());
     private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
     @Override

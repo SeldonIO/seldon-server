@@ -149,7 +149,7 @@ public class RecommendationPeer {
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimension,
 					numRecommendations, ctxt, recentItemInteractions);
 
-		    resultSets.add(new RecResultContext(results, algStr.name));
+		    resultSets.add(new RecResultContext(results, results.getRecommenderName()));
 			if(combiner.isEnoughResults(numRecommendations, resultSets))
 				break;
 		}

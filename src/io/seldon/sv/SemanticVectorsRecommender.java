@@ -25,7 +25,6 @@ package io.seldon.sv;
 
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.semvec.LongIdTransform;
 
@@ -50,7 +49,7 @@ public class SemanticVectorsRecommender implements ItemRecommendationAlgorithm {
     private static final String IGNORE_PEFECT_MATCH_OPTION_NAME = "io.seldon.algorithm.semantic.ignoreperfectsvmatches";
     private static final String SV_PREFIX_OPTION_NAME = "io.seldon.algorithm.semantic.prefix";
     private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
-    private static final String name = SemanticVectorsRecommender.class.getName();
+    private static final String name = SemanticVectorsRecommender.class.getSimpleName();
     SemanticVectorsManager svManager;
 
 

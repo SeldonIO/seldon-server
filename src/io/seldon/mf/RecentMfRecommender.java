@@ -26,7 +26,6 @@ package io.seldon.mf;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
-import io.seldon.clustering.recommender.MemcachedAssistedAlgorithm;
 import io.seldon.clustering.recommender.RecommendationContext;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ import com.google.common.collect.Ordering;
 @Component
 public class RecentMfRecommender implements ItemRecommendationAlgorithm {
  	private static Logger logger = Logger.getLogger(RecentMfRecommender.class.getName());
-	private static final String name = RecentMfRecommender.class.getName();
+	private static final String name = RecentMfRecommender.class.getSimpleName();
 	private static final String RECENT_ACTIONS_PROPERTY_NAME = "io.seldon.algorithm.general.numrecentactionstouse";
 	private final MfFeaturesManager store;
 

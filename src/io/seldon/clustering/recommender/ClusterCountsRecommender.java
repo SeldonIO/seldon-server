@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClusterCountsRecommender extends BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
 
-	private static final String name = ClusterCountsRecommender.class.getName();
+	private static final String name = ClusterCountsRecommender.class.getSimpleName();
 	
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {

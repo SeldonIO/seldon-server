@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DynamicClusterCountsRecommender extends BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
 	
-	private static final String name = DynamicClusterCountsRecommender.class.getName();
+	private static final String name = DynamicClusterCountsRecommender.class.getSimpleName();
 	
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,

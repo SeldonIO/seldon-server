@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MostPopularRecommender implements ItemRecommendationAlgorithm {
-	private static final String name = MostPopularRecommender.class.getName();
+	private static final String name = MostPopularRecommender.class.getSimpleName();
     private static Logger logger = Logger.getLogger(MostPopularRecommender.class.getName());
 
     private ItemStorage itemStorage;
