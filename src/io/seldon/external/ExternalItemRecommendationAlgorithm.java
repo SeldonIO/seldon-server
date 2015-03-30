@@ -65,6 +65,7 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
                                                  RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        long timeNow = System.currentTimeMillis();
         String recommenderName = ctxt.getOptsHolder().getStringOption(ALG_NAME_PROPERTY_NAME);
         String baseUrl = ctxt.getOptsHolder().getStringOption(URL_PROPERTY_NAME);
 
@@ -80,8 +81,10 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                                                     .setParameter("item_id", ctxt.getCurrentItem().toString())
                                                     .setParameter("recent_interactions_list",recentItems)
                                                     .setParameter("dimension", new Integer(dimensionId).toString())
-                                                    .setParameter("exclusion_items_list",null)
-                                                    .setParameter("data_key",mapper.writeValueAsString(
+                                                    .setParameter("exclusion_items_list",mapper.writeValueAsString(
+                                                        ctxt.getExclusionItems())
+                                                    )
+                                                    .setParameter("data_key", mapper.writeValueAsString(
                                                             ctxt.getInclusionKeys()))
                                                     .setParameter("limit", String.valueOf(maxRecsCount)).build();
         } catch (URISyntaxException | JsonProcessingException e) {
@@ -103,6 +106,7 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         } catch (IOException e) {
             logger.error("Couldn't retrieve recommendations from external recommender - ", e);
         }
+        logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
         return new ItemRecommendationResultSet(recommenderName);
     }
 
