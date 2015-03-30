@@ -23,6 +23,8 @@
 
 package io.seldon.general;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.reflect.TypeResolver;
 import io.seldon.api.resource.service.PersistenceProvider;
 import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.memcache.DogpileHandler;
@@ -80,19 +82,20 @@ public class ItemStorage {
     private List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScoreImpl(final String key,final String client, final int numItems, final int dimension){
 
         
-        List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<SqlItemPeer.ItemAndScore>>() {
-            @Override
-            public List<SqlItemPeer.ItemAndScore> retrieve() throws Exception {
-                return provider.getItemPersister(client).retrieveMostPopularItems(numItems, dimension);
-            }
-        },(Class<List<SqlItemPeer.ItemAndScore>>) new ArrayList<SqlItemPeer.ItemAndScore>().getClass(), MOST_POPULAR_EXPIRE_TIME);
+        List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveUsingJSON(key, numItems,
+                new UpdateRetriever<List<SqlItemPeer.ItemAndScore>>() {
+                    @Override
+                    public List<SqlItemPeer.ItemAndScore> retrieve() throws Exception {
+                        return provider.getItemPersister(client).retrieveMostPopularItems(numItems, dimension);
+                    }
+                }, new TypeReference<List<SqlItemPeer.ItemAndScore>>() {}, MOST_POPULAR_EXPIRE_TIME);
 
         return retrievedItems==null? Collections.EMPTY_LIST: retrievedItems;
     }
 
     public FilteredItems retrieveMostPopularItems(final String client, final int numItems, final int dimension){
     	final String key = getMostPopularCacheKey(client, dimension, numItems);
-    	List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveMostPopularItemsWithScoreImpl(key,client, numItems, dimension);
+    	List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveMostPopularItemsWithScoreImpl(key, client, numItems, dimension);
     	List<Long> toReturn = new ArrayList<>();
         for (SqlItemPeer.ItemAndScore itemAndScore : retrievedItems){
             toReturn.add(itemAndScore.item);
@@ -105,13 +108,14 @@ public class ItemStorage {
         List<Long> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<Long>>() {
             @Override
             public List<Long> retrieve() throws Exception {
-                return provider.getItemPersister(client).getRecentItemIds(dimension,numItems,null);
+                return provider.getItemPersister(client).getRecentItemIds(dimension, numItems, null);
             }
-        }, (Class<List<Long>>) new ArrayList<Long>().getClass(), RECENT_ITEMS_EXPIRE_TIME);
+        }, new TypeReference<List<Long>>() {}, RECENT_ITEMS_EXPIRE_TIME);
         return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,key);
     }
 
-    private <T extends List> T retrieveUsingJSON(String key, int numItemsRequired, UpdateRetriever<T> retriever, Class<T> clazz,int expireTime) {
+    private <T extends List> T retrieveUsingJSON(String key, int numItemsRequired, UpdateRetriever<T> retriever,
+                                                 TypeReference<T> typeRetriever,int expireTime) {
     	final ObjectMapper mapper = new ObjectMapper();
     	T retrievedItems = null;
     	String json = (String) MemCachePeer.get(key);
@@ -119,7 +123,7 @@ public class ItemStorage {
     	{
     		try 
     		{
-    			retrievedItems = mapper.readValue(json,clazz);
+    			retrievedItems = mapper.readValue(json,typeRetriever);
     		} catch (Exception e1) {
     			logger.error("Failed to parae json "+json,e1);
     		}
