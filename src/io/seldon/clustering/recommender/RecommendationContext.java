@@ -64,15 +64,17 @@ public class RecommendationContext {
     }
     private final MODE mode;
     private final Set<Long> contextItems;
+    private final Set<Long> exclusionItems;
     private final List<String> inclusionKeys;
     private final Long currentItem;
 
-    public RecommendationContext(MODE mode, Set<Long> contextItems, List<String> inclusionKeys, Long currentItem,
+    public RecommendationContext(MODE mode, Set<Long> contextItems, Set<Long> exclusionItems, List<String> inclusionKeys, Long currentItem,
                                  String lastRecListUUID, OptionsHolder optsHolder) {
         logger.debug("Built new rec context object in mode " +mode.name());
 
         this.mode = mode;
         this.contextItems = contextItems;
+        this.exclusionItems = exclusionItems;
         this.currentItem = currentItem;
         this.inclusionKeys = inclusionKeys;
         this.lastRecListUUID = lastRecListUUID;
@@ -91,7 +93,13 @@ public class RecommendationContext {
         return contextItems;
     }
 
-    public List<String> getInclusionKeys() {
+    
+    
+    public Set<Long> getExclusionItems() {
+		return exclusionItems;
+	}
+
+	public List<String> getInclusionKeys() {
 		return inclusionKeys;
 	}
 
@@ -115,13 +123,13 @@ public class RecommendationContext {
         if(inclusionProducers == null || inclusionProducers.size() ==0){
             if (itemFilters==null || itemFilters.size() == 0){
                 logger.warn("No filters or includers present in strategy");
-                return new RecommendationContext(MODE.NONE, Collections.<Long>emptySet(), Collections.<String>emptyList(),currentItem, lastRecListUUID,optsHolder);
+                return new RecommendationContext(MODE.NONE, Collections.<Long>emptySet(), Collections.<Long>emptySet(), Collections.<String>emptyList(),currentItem, lastRecListUUID,optsHolder);
             }
             for (ItemFilter filter : itemFilters){
                 contextItems.addAll(filter.produceExcludedItems(client, user,clientUserId, optsHolder,currentItem, lastRecListUUID,
                         numRecommendations));
             }
-            return new RecommendationContext(MODE.EXCLUSION, contextItems, inclusionKeys, currentItem, lastRecListUUID,optsHolder);
+            return new RecommendationContext(MODE.EXCLUSION, contextItems, contextItems, inclusionKeys, currentItem, lastRecListUUID,optsHolder);
         }
 
         Integer itemsPerIncluder = optsHolder.getIntegerOption(ITEMS_PER_INCLUDER_OPTION_NAME);
@@ -131,7 +139,7 @@ public class RecommendationContext {
                 contextItems.addAll(filteredItems.getItems());
                 inclusionKeys.add(filteredItems.getCachingKey());
             }
-            return new RecommendationContext(MODE.INCLUSION, contextItems, inclusionKeys, currentItem, lastRecListUUID,optsHolder);
+            return new RecommendationContext(MODE.INCLUSION, contextItems, Collections.<Long>emptySet(),  inclusionKeys, currentItem, lastRecListUUID,optsHolder);
         }
 
         Set<Long> included = new HashSet<>();
@@ -148,7 +156,7 @@ public class RecommendationContext {
         included.removeAll(excluded); // ok to do this as the excluded items that weren't in "included" will never
                                       // be recommended
 
-        return new RecommendationContext(MODE.INCLUSION, included, inclusionKeys,currentItem, lastRecListUUID,optsHolder);
+        return new RecommendationContext(MODE.INCLUSION, included, excluded, inclusionKeys,currentItem, lastRecListUUID,optsHolder);
     }
 
     public static class OptionsHolder{
