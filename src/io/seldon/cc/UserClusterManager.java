@@ -23,6 +23,12 @@
 
 package io.seldon.cc;
 
+import io.seldon.clustering.recommender.MemoryUserClusterStore;
+import io.seldon.clustering.recommender.UserCluster;
+import io.seldon.mf.PerClientExternalLocationListener;
+import io.seldon.resources.external.ExternalResourceStreamer;
+import io.seldon.resources.external.NewResourceNotifier;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,27 +42,21 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import io.seldon.clustering.recommender.UserCluster;
-import io.seldon.resources.external.ExternalResourceStreamer;
-import io.seldon.resources.external.NewResourceNotifier;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.seldon.clustering.recommender.MemoryUserClusterStore;
-import io.seldon.mf.PerClientExternalLocationListener;
-import io.seldon.sv.SemanticVectorsManager;
 
 
 @Component
 public class UserClusterManager implements PerClientExternalLocationListener {
 
-	 private static Logger logger = Logger.getLogger(SemanticVectorsManager.class.getName());
+	 private static Logger logger = Logger.getLogger(UserClusterManager.class.getName());
 	 private final ConcurrentMap<String,MemoryUserClusterStore> clientStores = new ConcurrentHashMap<>();
 	 private Set<NewResourceNotifier> notifiers = new HashSet<>();
 	 private final ExternalResourceStreamer featuresFileHandler;
-	 public static final String CLUSTER_NEW_LOC_PATTERN = "usercluster";
+	 public static final String CLUSTER_NEW_LOC_PATTERN = "userclusters";
 
 	 private static UserClusterManager theManager; // hack until rest of code Springified
 	 
