@@ -19,3 +19,4 @@ target
 logs
 datanucleus_enhancer.log*
 %HOME_DIR%
+external-recommender/python/recommender_base.pyc

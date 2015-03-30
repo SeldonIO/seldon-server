@@ -42,7 +42,7 @@ if [[ $running -gt 1 ]] ; then
 fi
 
 echo     '%%%%%%%%%%%%%%%%%         Removing any deployed copies of the seldon-server                                                %%%%%%%%%%%%%%%%%%%%%%%%'
-rm -f $TOMCAT_HOME/webapps/seldon-server.war
+rm -rf $TOMCAT_HOME/webapps/seldon-server*
 echo     '%%%%%%%%%%%%%%%%          Stopping zookeeper if it is running                                                           %%%%%%%%%%%%%%%%%%%%%%%'
 zkServer stop
 echo     '%%%%%%%%%%%%%%%%          Stopping memcached if it is running                                                           %%%%%%%%%%%%%%%%%%%%%%%'

@@ -30,19 +30,26 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -60,7 +67,19 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
     private static Logger logger = Logger.getLogger(ExternalItemRecommendationAlgorithm.class.getName());
     private static final String URL_PROPERTY_NAME="io.seldon.algorithm.external.url";
     private static final String ALG_NAME_PROPERTY_NAME ="io.seldon.algorithm.external.name";
+    private final PoolingHttpClientConnectionManager cm;
+    private final CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
+
+    public ExternalItemRecommendationAlgorithm(){
+        cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(100);
+        cm.setDefaultMaxPerRoute(20);
+        httpClient = HttpClients.custom()
+                .setConnectionManager(cm)
+                .build();
+    }
+
 
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
@@ -68,45 +87,48 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         long timeNow = System.currentTimeMillis();
         String recommenderName = ctxt.getOptsHolder().getStringOption(ALG_NAME_PROPERTY_NAME);
         String baseUrl = ctxt.getOptsHolder().getStringOption(URL_PROPERTY_NAME);
-
+        if (ctxt.getInclusionKeys().isEmpty()){
+            logger.warn("Cannot get external recommendations are no includers were used. Returning 0 results");
+            return new ItemRecommendationResultSet(recommenderName);
+        }
         URI uri = URI.create(baseUrl);
-
         try {
-            String recentItems = mapper.writeValueAsString(recentItemInteractions);
-            uri = new URIBuilder().setHost(uri.getHost())
+            uri = new URIBuilder().setScheme("http")
+                                                    .setHost(uri.getHost())
                                                     .setPort(uri.getPort())
                                                     .setPath(uri.getPath())
                                                     .setParameter("client", client)
                                                     .setParameter("user_id", user.toString())
                                                     .setParameter("item_id", ctxt.getCurrentItem().toString())
-                                                    .setParameter("recent_interactions_list",recentItems)
+                                                    .setParameter("recent_interactions",StringUtils.join(recentItemInteractions,","))
                                                     .setParameter("dimension", new Integer(dimensionId).toString())
-                                                    .setParameter("exclusion_items_list",mapper.writeValueAsString(
-                                                        ctxt.getExclusionItems())
-                                                    )
-                                                    .setParameter("data_key", mapper.writeValueAsString(
-                                                            ctxt.getInclusionKeys()))
+                                                    .setParameter("exclusion_items", StringUtils.join(ctxt.getExclusionItems(),","))
+                                                    .setParameter("data_key", StringUtils.join(ctxt.getInclusionKeys(),","))
                                                     .setParameter("limit", String.valueOf(maxRecsCount)).build();
-        } catch (URISyntaxException | JsonProcessingException e) {
+        } catch (URISyntaxException e) {
             logger.error("Couldn't create URI for external recommender with name " + recommenderName, e);
             return new ItemRecommendationResultSet(recommenderName);
         }
+        HttpContext context = HttpClientContext.create();
         HttpGet httpGet = new HttpGet(uri);
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            CloseableHttpResponse resp = httpclient.execute(httpGet);
-
-            ObjectReader reader = mapper.reader(new TypeReference<List<AlgResult>>() {
-            });
-            List<AlgResult> recs = reader.readValue(resp.getEntity().getContent());
-            List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>(recs.size());
-            for (AlgResult rec : recs) {
-                new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score);
+        try  {
+            logger.debug("Requesting " + httpGet.getURI().toString());
+            CloseableHttpResponse resp = httpClient.execute(httpGet, context);
+            if(resp.getStatusLine().getStatusCode() == 200) {
+                ObjectReader reader = mapper.reader(AlgsResult.class);
+                AlgsResult recs = reader.readValue(resp.getEntity().getContent());
+                List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>(recs.recommended.size());
+                for (AlgResult rec : recs.recommended) {
+                    new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score);
+                }
+                logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
+                return new ItemRecommendationResultSet(results,recommenderName);
+            } else {
+                logger.error("Couldn't retrieve recommendations from external recommender -- bad http return code: " + resp.getStatusLine().getStatusCode());
             }
-            return new ItemRecommendationResultSet(results,recommenderName);
         } catch (IOException e) {
             logger.error("Couldn't retrieve recommendations from external recommender - ", e);
         }
-        logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
         return new ItemRecommendationResultSet(recommenderName);
     }
 
@@ -115,7 +137,10 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         return null;
     }
 
-    public class AlgResult {
+    public static class AlgsResult {
+        public List<AlgResult> recommended;
+    }
+    public static class AlgResult {
         public Long item;
         public Float score;
     }
