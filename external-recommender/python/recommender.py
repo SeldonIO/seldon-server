@@ -81,7 +81,8 @@ def mc_init():
     _mc_pool = pylibmc.ClientPool(mc, mc_pool_size)
 
 if __name__ == "__main__":
-    mc_init()
-    app.debug = True
     app.run()
+
+mc_init()
+app.debug = True
 
