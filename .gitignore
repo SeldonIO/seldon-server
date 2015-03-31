@@ -19,3 +19,9 @@ target
 logs
 datanucleus_enhancer.log*
 %HOME_DIR%
+
+# eclipse
+.classpath
+.settings/
+.project
+
