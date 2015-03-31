@@ -17,7 +17,7 @@ def extract_input():
     exclusion_items_list = map(lambda x: long(x), exclusion_items.split(","))
     recent_interactions = request.args.get('recent_interactions')
     recent_interactions_list = map(lambda x: long(x), recent_interactions.split(","))
-    data_key = request.args.get('data_key')
+    data_keys_list = map(lambda x: long(x), request.args.get('data_key').split(","))
     input = {
         "user_id" : user_id,
         "item_id" : item_id,
@@ -25,7 +25,7 @@ def extract_input():
         "limit" : limit,
         "exclusion_items_list" : exclusion_items_list,
         "recent_interactions_list": recent_interactions_list,
-        "data_key": data_key
+        "data_keys_list": data_keys_list
     }
     return input
 
@@ -59,11 +59,13 @@ def recommend():
 
     input = extract_input()
     pprint.pprint(input)
-
-    raw_data = memcache_get(input['data_key'])
-    raw_data = raw_data if raw_data != None else '[]'
-    data_set = get_data_set(raw_data)
-    data_set = data_set - set(input['exclusion_items_list'])
+    data_set = set()
+    for data_key in input['data_keys_list']:
+        raw_data = memcache_get(data_key)
+        raw_data = raw_data if raw_data != None else '[]'
+        data_set |= get_data_set(raw_data)
+    
+    data_set -= set(input['exclusion_items_list'])
 
     recs = alg(
             input['user_id'],
