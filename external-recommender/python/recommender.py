@@ -80,9 +80,9 @@ def mc_init():
     mc = pylibmc.Client(mc_servers)
     _mc_pool = pylibmc.ClientPool(mc, mc_pool_size)
 
-if __name__ == "__main__":
-    app.run()
-
 mc_init()
 app.debug = True
+
+if __name__ == "__main__":
+    app.run()
 
