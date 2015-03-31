@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask import request
 import pprint
 import sys
-import memcache
+import pylibmc
 import json
 
 app = Flask(__name__)
@@ -32,17 +32,13 @@ def extract_input():
 def get_data_set(raw_data):
     return set(json.loads(raw_data))
 
-def get_memcache_client(memcache_config):
-    host = memcache_config['host']
-    port = memcache_config['port']
-    conn_str="%s:%s" % (host,port)
-    client = memcache.Client([ conn_str ])
-    return client
-
-def memcache_get(memcache_config, key):
+def memcache_get(key):
     key=str(key)
-    client = get_memcache_client(memcache_config)
-    return client.get(key)
+    value=None
+    mc_pool = _recommender_config['mc_pool']
+    with mc_pool.reserve(block=True) as mc:
+        value = mc.get(key)
+    return value
 
 def format_recs(recs):
     formatted_recs_list=[]
@@ -52,7 +48,6 @@ def format_recs(recs):
             "score": recs[i]
         })
     return { "recommended": formatted_recs_list }
-
 
 @app.route('/recommend', methods=['GET'])
 def recommend():
@@ -65,8 +60,7 @@ def recommend():
     input = extract_input()
     pprint.pprint(input)
 
-    memcache_config = _recommender_config['memcache']
-    raw_data = memcache_get(memcache_config, input['data_key'])
+    raw_data = memcache_get(input['data_key'])
     raw_data = raw_data if raw_data != None else '[]'
     data_set = get_data_set(raw_data)
     data_set = data_set - set(input['exclusion_items_list'])
@@ -87,6 +81,11 @@ def recommend():
 def run(recommender_config):
     global _recommender_config
     _recommender_config = recommender_config
+    mc_servers = _recommender_config['memcache']['servers']
+    mc_pool_size = _recommender_config['memcache']['pool_size']
+    mc = pylibmc.Client(mc_servers)
+    mc_pool = pylibmc.ClientPool(mc, mc_pool_size)
+    _recommender_config['mc_pool'] = mc_pool
     app.debug = True
     app.run()
 
