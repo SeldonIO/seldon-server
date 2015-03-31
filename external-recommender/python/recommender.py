@@ -19,7 +19,7 @@ def extract_input():
     exclusion_items_list = map(lambda x: long(x), exclusion_items.split(","))
     recent_interactions = request.args.get('recent_interactions')
     recent_interactions_list = map(lambda x: long(x), recent_interactions.split(","))
-    data_keys_list = map(lambda x: long(x), request.args.get('data_key').split(","))
+    data_keys_list = map(lambda x: str(x), request.args.get('data_key').split(","))
     input = {
         "user_id" : user_id,
         "item_id" : item_id,
