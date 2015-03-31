@@ -23,7 +23,6 @@
 
 package io.seldon.clustering.recommender;
 
-import io.seldon.api.AlgorithmService;
 import io.seldon.api.Constants;
 import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
@@ -34,12 +33,19 @@ import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
-import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.jdo.RecommendationUtils;
 import io.seldon.util.CollectionTools;
-import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 public class CountRecommender {
 
@@ -114,15 +120,16 @@ public class CountRecommender {
 	 * @param itemId
 	 * @param time - in secs
 	 */
-	public void addCount(long userId,long itemId,long time, boolean useBucketCluster)
+	public void addCount(long userId,long itemId,long time, boolean useBucketCluster,Double actionWeight)
 	{
+		if (actionWeight == null) actionWeight = 1.0D;
 		List<UserCluster> clusters = getClusters(userId,null);
 		if (clusters != null && clusters.size()>0)
 		{
 			for(UserCluster cluster : clusters)
-				clusterCounts.add(cluster.getCluster(), itemId,cluster.getWeight(),cluster.getTimeStamp(),time);
+				clusterCounts.add(cluster.getCluster(), itemId,cluster.getWeight() * actionWeight,cluster.getTimeStamp(),time);
 		} else if(useBucketCluster) {
-            clusterCounts.add(BUCKET_CLUSTER_ID, itemId, 1.0, 0,time);
+            clusterCounts.add(BUCKET_CLUSTER_ID, itemId, actionWeight, 0,time);
         }
 
 		Set<Integer> referrerClusters = getReferrerClusters();
@@ -130,27 +137,28 @@ public class CountRecommender {
 		{
 			for (Integer cluster : referrerClusters)
 			{
-				clusterCounts.add(cluster, itemId,1.0,0,time);
+				clusterCounts.add(cluster, itemId,actionWeight,0,time);
 			}
 		}
 	}
 	
-	public void addCount(long userId,long itemId, boolean useBucketCluster)
+	public void addCount(long userId,long itemId, boolean useBucketCluster,Double actionWeight)
 	{
+		if (actionWeight == null) actionWeight = 1.0D;
 		List<UserCluster> clusters = getClusters(userId,null);
 		if (clusters != null && clusters.size() > 0)
 		{
 			for(UserCluster cluster : clusters)
-				clusterCounts.add(cluster.getCluster(), itemId,cluster.getWeight(),cluster.getTimeStamp());
+				clusterCounts.add(cluster.getCluster(), itemId,cluster.getWeight()*actionWeight,cluster.getTimeStamp());
 		} else if(useBucketCluster){
-            clusterCounts.add(BUCKET_CLUSTER_ID, itemId, 1.0, 0);
+            clusterCounts.add(BUCKET_CLUSTER_ID, itemId, actionWeight, 0);
         }
 		Set<Integer> referrerClusters = getReferrerClusters();
 		if (referrerClusters != null)
 		{
 			for (Integer cluster : referrerClusters)
 			{
-				clusterCounts.add(cluster, itemId, 1.0, 0);
+				clusterCounts.add(cluster, itemId, actionWeight, 0);
 			}
 		}
 	}

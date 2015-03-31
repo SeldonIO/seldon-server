@@ -23,15 +23,24 @@
 
 package io.seldon.recommendation;
 
-import io.seldon.clustering.recommender.*;
-import io.seldon.general.Item;
+import io.seldon.clustering.recommender.DynamicClusterCountsRecommender;
+import io.seldon.clustering.recommender.GlobalClusterCountsRecommender;
+import io.seldon.clustering.recommender.ItemCategoryClusterCountsRecommender;
+import io.seldon.clustering.recommender.ItemClusterCountsRecommender;
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
+import io.seldon.clustering.recommender.ItemSignificantCountsRecommender;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.similarity.item.ItemSimilarityRecommender;
 import io.seldon.sv.SemanticVectorsRecommender;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
-
-import java.util.*;
 
 /**
  * Strategy using algorithms passed in a JS call.
@@ -97,4 +106,9 @@ public class JsOverrideClientStrategy implements ClientStrategy {
     public String getName() {
         return baseStrategy.getName();
     }
+
+	@Override
+	public Map<Integer, Double> getActionsWeights(String userId, String recTag) {
+		return baseStrategy.getActionsWeights(userId, recTag);
+	}
 }

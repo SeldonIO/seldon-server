@@ -64,6 +64,11 @@ public class RecTagClientStrategy implements ClientStrategy {
     public String getName() {
         return "-";
     }
+    
+    @Override
+	public Map<Integer, Double> getActionsWeights(String userId, String recTag) {
+    	return getStrategy(recTag).getActionsWeights(userId, recTag);
+	}
 
     private ClientStrategy getStrategy(String recTag){
         if(recTag!=null && !recTag.equals(DEFAULT_REC_TAG)){
@@ -75,4 +80,6 @@ public class RecTagClientStrategy implements ClientStrategy {
         }
         return defaulStrategy;
     }
+
+	
 }

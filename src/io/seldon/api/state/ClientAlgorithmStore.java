@@ -23,18 +23,35 @@
 
 package io.seldon.api.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
-import io.seldon.clustering.recommender.*;
-import io.seldon.recommendation.*;
+import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
+import io.seldon.recommendation.AlgorithmStrategy;
+import io.seldon.recommendation.ClientStrategy;
+import io.seldon.recommendation.JsOverrideClientStrategy;
+import io.seldon.recommendation.RecTagClientStrategy;
+import io.seldon.recommendation.SimpleClientStrategy;
+import io.seldon.recommendation.VariationTestingClientStrategy;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
-import io.seldon.similarity.item.ItemSimilarityRecommender;
-import io.seldon.sv.SemanticVectorsRecommender;
 import io.seldon.trust.impl.ItemFilter;
 import io.seldon.trust.impl.ItemIncluder;
 import io.seldon.trust.impl.filters.base.CurrentItemFilter;
 import io.seldon.trust.impl.filters.base.IgnoredRecsFilter;
 import io.seldon.trust.impl.filters.base.RecentImpressionsFilter;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
@@ -43,12 +60,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 /**
  * Cache of which algorithms to use for which clients. Receives updates via ClientConfigUpdateListener
@@ -155,7 +168,8 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 }
                 AlgorithmResultsCombiner combiner = applicationContext.getBean(
                         config.combiner,AlgorithmResultsCombiner.class);
-                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,"-"));
+                Map<Integer,Double> actionWeightMap = toActionWeightMap(config.actionWeights);
+                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,"-",actionWeightMap));
                 storeMap.put(client, Collections.unmodifiableMap(stratMap));
                 logger.info("Successfully added new algorithm config for "+client);
             } catch (IOException | BeansException e) {
@@ -186,9 +200,10 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                         }
                         AlgorithmResultsCombiner combiner = applicationContext.getBean(
                                 var.config.combiner,AlgorithmResultsCombiner.class);
+                        Map<Integer,Double> actionWeightMap = toActionWeightMap(var.config.actionWeights);
                         variations.add(new VariationTestingClientStrategy.Variation(
                                 new SimpleClientStrategy(Collections.unmodifiableList(strategies),
-                                        combiner, var.config.diversityLevel, var.label),
+                                        combiner, var.config.diversityLevel, var.label,actionWeightMap),
                                 new BigDecimal(var.ratio)));
 
                     }
@@ -213,8 +228,9 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 }
                 AlgorithmResultsCombiner defCombiner = applicationContext.getBean(
                         config.defaultAlg.combiner,AlgorithmResultsCombiner.class);
+                Map<Integer,Double> defActionWeightMap = toActionWeightMap(config.defaultAlg.actionWeights);
                 SimpleClientStrategy defStategy = new SimpleClientStrategy(defaultAlgStrategies, defCombiner,
-                        config.defaultAlg.diversityLevel,"-");
+                        config.defaultAlg.diversityLevel,"-",defActionWeightMap);
                 Map<String, ClientStrategy> recTagStrats = new HashMap<>();
                 for (Map.Entry<String, AlgorithmConfig> entry : config.recTagToAlg.entrySet() ){
                     List<AlgorithmStrategy> strategies = new ArrayList<>();
@@ -224,8 +240,9 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                     }
                     AlgorithmResultsCombiner combiner = applicationContext.getBean(
                             entry.getValue().combiner,AlgorithmResultsCombiner.class);
+                    Map<Integer,Double> actionWeightMap = toActionWeightMap(entry.getValue().actionWeights);
                     recTagStrats.put(entry.getKey(), new SimpleClientStrategy(strategies, combiner,
-                            entry.getValue().diversityLevel,"-"));
+                            entry.getValue().diversityLevel,"-",actionWeightMap));
                 }
                 recTagStrategies.put(client, new RecTagClientStrategy(defStategy, recTagStrats));
                 logger.info("Successfully added rec tag strategy for " + client);
@@ -252,6 +269,15 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
             configMap.put(item.name,item.value);
         }
         return configMap;
+    }
+    
+    private Map<Integer,Double> toActionWeightMap(List<ActionWeightItem> weights) {
+    	Map<Integer,Double> weightMap = new HashMap<Integer,Double>();
+    	if (weights == null) return Collections.unmodifiableMap(weightMap);
+    	for(ActionWeightItem item : weights){
+    		weightMap.put(Integer.parseInt(item.type), item.value);
+    	}
+    	return Collections.unmodifiableMap(weightMap);
     }
 
     private Set<ItemIncluder> retrieveIncluders(List<String> includers) {
@@ -326,7 +352,8 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
             }
             AlgorithmResultsCombiner combiner = applicationContext.getBean(
                     config.combiner,AlgorithmResultsCombiner.class);
-            ClientStrategy strat = new SimpleClientStrategy(strategies, combiner, config.diversityLevel,"-");
+            Map<Integer,Double> actionWeightMap = toActionWeightMap(config.actionWeights);
+            ClientStrategy strat = new SimpleClientStrategy(strategies, combiner, config.diversityLevel,"-",actionWeightMap);
             defaultStrategy = strat;
             logger.info("Successfully changed default strategy.");
         } catch (IOException e){
@@ -352,11 +379,17 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         public List<Algorithm> algorithms;
         public String combiner;
         public Double diversityLevel;
+        public List<ActionWeightItem> actionWeights;
     }
 
     public static class ConfigItem {
         public String name;
         public String value;
+    }
+    
+    public static class ActionWeightItem {
+    	public String type;
+    	public Double value;
     }
 
     public static class Algorithm {

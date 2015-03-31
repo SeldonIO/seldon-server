@@ -53,11 +53,12 @@ import io.seldon.general.Item;
 import io.seldon.general.User;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-
-import java.util.Collection;
-
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.trust.impl.jdo.LastRecommendationBean;
+
+import java.util.Collection;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -279,12 +280,14 @@ public class ActionService {
 						addCount = clusterTypeService.okToClusterCount(c.getShort_name(), a.getType());
 					if (addCount)
 					{
+						Map<Integer,Double> actionWeights = clientAlgorithmStore.retrieveStrategy(c.getShort_name()).getActionsWeights(a.getClientUserId(), bean.getRecTag());
+						Double actionWeight = actionWeights.get(a.getType());
 						if (bean.getReferrer() != null)
 							cRec.setReferrer(bean.getReferrer());
 						if (a.getDate() != null)
-							cRec.addCount(userId, itemId,a.getDate().getTime()/1000, useBucketCluster);
+							cRec.addCount(userId, itemId,a.getDate().getTime()/1000, useBucketCluster,actionWeight);
 						else
-							cRec.addCount(userId, itemId, useBucketCluster);
+							cRec.addCount(userId, itemId, useBucketCluster,actionWeight);
 					}
 				}
 				

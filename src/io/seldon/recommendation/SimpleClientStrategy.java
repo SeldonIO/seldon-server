@@ -26,6 +26,7 @@ package io.seldon.recommendation;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A client strategy that provides the same algorithm strategies for every user.
@@ -41,13 +42,15 @@ public class SimpleClientStrategy implements ClientStrategy {
     private final AlgorithmResultsCombiner algResultsCombiner;
     private final Double diversityLevel;
     private final String name;
+    private final Map<Integer,Double> actionWeights;
 
     public SimpleClientStrategy(List<AlgorithmStrategy> strategies, AlgorithmResultsCombiner algResultsCombiner,
-                                Double diversityLevel, String name) {
+                                Double diversityLevel, String name,Map<Integer,Double> actionWeights) {
         this.strategies = strategies;
         this.algResultsCombiner = algResultsCombiner;
         this.diversityLevel= diversityLevel==null? 1.0 : diversityLevel;
         this.name = name;
+        this.actionWeights = actionWeights;
     }
 
     @Override
@@ -69,4 +72,9 @@ public class SimpleClientStrategy implements ClientStrategy {
     public Double getDiversityLevel(String userId, String recTag) {
         return diversityLevel;
     }
+
+	@Override
+	public Map<Integer, Double> getActionsWeights(String userId, String recTag) {
+		return actionWeights;
+	}
 }

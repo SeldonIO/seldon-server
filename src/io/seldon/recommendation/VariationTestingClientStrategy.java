@@ -24,15 +24,16 @@
 package io.seldon.recommendation;
 
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
-import org.apache.commons.lang.math.NumberRange;
-import org.apache.commons.lang.math.Range;
-import org.apache.mahout.math.MurmurHash;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang.math.NumberRange;
+import org.apache.commons.lang.math.Range;
+import org.apache.mahout.math.MurmurHash;
 
 /**
  * Client strategy for testing different lists of algorthm strategies against each other. Different users get shown
@@ -69,6 +70,11 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     public String getName() {
         return "-";
     }
+    
+    @Override
+	public Map<Integer, Double> getActionsWeights(String userId, String recTag) {
+    	return sample(userId).getActionsWeights(userId, recTag);
+	}
 
     public ClientStrategy sample(String userId) {
         Integer hash = MurmurHash.hash(userId.getBytes(), HASH_SEED);
@@ -107,6 +113,9 @@ public class VariationTestingClientStrategy implements ClientStrategy {
             this.ratio = ratio;
         }
     }
+
+
+	
 
 
 }

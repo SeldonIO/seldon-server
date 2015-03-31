@@ -26,6 +26,7 @@ package io.seldon.recommendation;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides a list of algorithm strategies to use for a client for a given user.
@@ -42,4 +43,6 @@ public interface ClientStrategy {
     AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId, String recTag);
 
     String getName();
+    
+    Map<Integer,Double> getActionsWeights(String userId, String recTag);
 }
