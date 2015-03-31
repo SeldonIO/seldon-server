@@ -27,9 +27,9 @@ def alg(
 if __name__ == "__main__":
     recommender_base.run({
         "alg" : alg,
-        "memcache": {
-            "host": "192.168.59.103",
-            "port": 11211
+        "memcache" : {
+            "servers": ["localhost:11211"],
+            "pool_size" : 10
         }
     })
 
