@@ -25,3 +25,6 @@ datanucleus_enhancer.log*
 .settings/
 .project
 
+# external-recommender - python
+external-recommender/python/recommender_base.pyc
+
