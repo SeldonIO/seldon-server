@@ -23,18 +23,15 @@
 
 package io.seldon.api.state;
 
-import java.util.Map;
-
 /**
  * @author firemanphil
- *         Date: 27/11/14
- *         Time: 11:39
+ *         Date: 01/04/15
+ *         Time: 14:20
  */
-public interface ClientConfigHandler {
-    Map<String, String> requestCacheDump(String client);
+public interface NewClientListener {
 
-    void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData);
+    void clientAdded(String client);
 
-    void addNewClientListener(NewClientListener listener, boolean notifyExistingClients);
+    void clientDeleted(String client);
+
 }
-

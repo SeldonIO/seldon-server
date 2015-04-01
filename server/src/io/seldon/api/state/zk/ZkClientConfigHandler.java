@@ -45,11 +45,13 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     private final ZkSubscriptionHandler handler;
     private Set<String> clientSet;
     private final Set<ClientConfigUpdateListener> listeners;
+    private final Set<NewClientListener> newClientListeners;
     private static final String CLIENT_LIST_LOCATION = "all_clients";
 
     @Autowired
-    public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler) {
+    public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler, Set<NewClientListener> newClientListeners) {
         this.handler = handler;
+        this.newClientListeners = newClientListeners;
         this.listeners = new HashSet<>();
         this.clientSet = new HashSet<>();
     }
@@ -117,6 +119,15 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     }
 
     @Override
+    public void addNewClientListener(NewClientListener listener, boolean notifyExistingClients) {
+        newClientListeners.add(listener);
+        if(notifyExistingClients){
+            for(String client : clientSet)
+                listener.clientAdded(client);
+        }
+    }
+
+    @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         if(event == null || event.getType() == null || event.getData() == null || event.getData().getPath()==null) {
             logger.warn("Event received was null somewhere");
@@ -130,7 +141,9 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
                     clientSet.add(clientName);
                     logger.info("Found new client : " + clientName);
-
+                    for (NewClientListener listener: newClientListeners){
+                        listener.clientAdded(clientName);
+                    }
                     break;
                 } //purposeful cascade as the below deals with the rest of the cases
 
@@ -157,6 +170,8 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
                     clientSet.remove(clientName);
                     logger.info("Deleted client : " + clientName);
+                    for (NewClientListener listener: newClientListeners)
+                        listener.clientDeleted(clientName);
                 }
 
         }
