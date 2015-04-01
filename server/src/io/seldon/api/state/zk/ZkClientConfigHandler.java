@@ -49,9 +49,9 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     private static final String CLIENT_LIST_LOCATION = "all_clients";
 
     @Autowired
-    public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler, Set<NewClientListener> newClientListeners) {
+    public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler) {
         this.handler = handler;
-        this.newClientListeners = newClientListeners;
+        this.newClientListeners = new HashSet<>();
         this.listeners = new HashSet<>();
         this.clientSet = new HashSet<>();
     }
