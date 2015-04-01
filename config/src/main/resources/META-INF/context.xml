@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/api">
+
+<Resource name="jdbc/ApiDB" auth="Container" type="javax.sql.DataSource"
+    factory="org.apache.commons.dbcp.BasicDataSourceFactory"
+    maxActive="25" maxIdle="5" maxWait="20000" validationQuery="/* ping */ SELECT 1"
+    testOnBorrow="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="10000"
+    minEvictableIdleTimeMillis="60000"
+    removeAbandoned="true" removeAbandonedTimeout="60" logAbandoned="true"
+    username="<DB_USER>" password="<DB_PWD>" driverClassName="com.mysql.jdbc.ReplicationDriver"
+            url="jdbc:mysql:replication://<DB_HOST>:<DB_PORT>,<DB_HOST>:<DB_PORT>/api?characterEncoding=utf8&amp;useServerPrepStmts=true&amp;logger=com.mysql.jdbc.log.StandardLogger&amp;roundRobinLoadBalance=true&amp;transformedBitIsBoolean=true&amp;rewriteBatchedStatements=true"/>
+
+<Resource name="jdbc/<CLIENT_NAME>DB" auth="Container" type="javax.sql.DataSource"
+    factory="org.apache.commons.dbcp.BasicDataSourceFactory"
+    maxActive="25" maxIdle="5" maxWait="20000" validationQuery="/* ping */ SELECT 1"
+    testOnBorrow="true" testWhileIdle="true" timeBetweenEvictionRunsMillis="10000"
+    minEvictableIdleTimeMillis="60000"
+    removeAbandoned="true" removeAbandonedTimeout="60" logAbandoned="true"
+    username="<DB_USER>" password="<DB_PWD>" driverClassName="com.mysql.jdbc.ReplicationDriver"
+            url="jdbc:mysql:replication://<DB_HOST>:<DB_PORT>,<DB_HOST>:<DB_PORT>/<CLIENT_NAME>?characterEncoding=utf8&amp;useServerPrepStmts=true&amp;logger=com.mysql.jdbc.log.StandardLogger&amp;roundRobinLoadBalance=true&amp;transformedBitIsBoolean=true&amp;rewriteBatchedStatements=true"/>
+
+</Context>

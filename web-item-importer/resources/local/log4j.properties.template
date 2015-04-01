@@ -1,0 +1,16 @@
+# The default category logs debug and above to the file appender.
+log4j.rootCategory=INFO, api
+
+
+
+# Appender used for API record keeping
+log4j.appender.api=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.api.File=/home/api/logs/rss_${rss_jobname}.log
+log4j.appender.api.DatePattern='.'yyyy-MM-dd
+log4j.appender.api.layout=org.apache.log4j.PatternLayout
+log4j.appender.api.layout.ConversionPattern=%d %p %t %c - %m%n
+
+
+
+
+

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean abstract="true" id="abstract.algorithm.cfAlgorithm" class="io.seldon.trust.impl.CFAlgorithm">
+        <property name="recommenders">
+            <list>
+                <value>CLUSTER_COUNTS_DYNAMIC</value>
+                <value>CLUSTER_COUNTS_GLOBAL</value>
+            </list>
+        </property>
+        <property name="recommenderStrategy" value="FIRST_SUCCESSFUL"/>
+        <property name="longTermWeight" value="1.0"/>
+        <property name="shortTermWeight" value="0.5"/>
+        <property name="minNumTxsForSV" value="1"/>
+        <property name="txHistorySizeForSV" value="1"/>
+        <property name="removeIgnoredRecommendations" value="true"/>
+        <property name="recommendationDiversity" value="3.0"/>
+        <property name="decayRateSecs" value="43200"/>
+        <property name="recommendationCachingTimeSecs" value="0"/>
+        <property name="clusterAlgorithm" value="DIMENSION"/>
+        <property name="minNumberItemsForValidClusterResult" value="20"/>
+        <property name="recentArticlesForSV" value="1000"/>        
+    </bean>
+    
+      <bean id="algorithm.cfAlgorithm.liveTrustGraph" parent="abstract.algorithm.cfAlgorithm">
+       <property name="recommenders">
+            <list>
+                <value>CLUSTER_COUNTS_DYNAMIC</value>
+                <value>CLUSTER_COUNTS_FOR_ITEM</value>                
+                <value>CLUSTER_COUNTS_GLOBAL</value>
+                <value>SEMANTIC_VECTORS_SORT</value>                
+            </list>
+        </property>
+        <property name="recommenderStrategy" value="FIRST_SUCCESSFUL"/>
+        <property name="longTermWeight" value="1.0"/>
+        <property name="shortTermWeight" value="0.5"/>	
+        <property name="minNumTxsForSV" value="1"/>
+        <property name="txHistorySizeForSV" value="1"/>
+        <property name="removeIgnoredRecommendations" value="true"/>
+        <property name="recommendationDiversity" value="3.0"/>
+        <property name="decayRateSecs" value="43200"/>
+        <property name="recommendationCachingTimeSecs" value="0"/>
+        <property name="clusterAlgorithm" value="DIMENSION"/>
+        <property name="minNumberItemsForValidClusterResult" value="20"/>
+        <property name="recentArticlesForSV" value="1000"/>        
+    </bean>
+    
+    
+      <bean id="abstract.algorithm.cfAlgorithm_test" parent="abstract.algorithm.cfAlgorithm">
+       <property name="recommenders">
+            <list>
+                <value>CLUSTER_COUNTS_DYNAMIC</value>
+                <value>CLUSTER_COUNTS_FOR_ITEM</value>                
+                <value>CLUSTER_COUNTS_GLOBAL</value>
+                <value>RECENT_ITEMS</value>               
+            </list>
+        </property>
+    </bean>
+    
+
+    <!-- NOTE: the name "algorithm.cfAlgorithm.default" is used as a qualifier -->
+    <bean id="algorithm.cfAlgorithm.default" parent="abstract.algorithm.cfAlgorithm"/>
+
+    <!-- Load the (untracked) local algorithm service context -->
+    <import resource="api-algorithm-service-ctx.xml"/>
+
+    <bean id="setup.utilStaticWiring" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="io.seldon.api.Util"/>
+        <property name="targetMethod" value="setAlgorithmService"/>
+        <property name="arguments" ref="algorithm.service"/>
+    </bean>
+
+</beans>
