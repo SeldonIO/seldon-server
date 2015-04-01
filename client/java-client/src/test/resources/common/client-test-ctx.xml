@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="classpath:client-state.properties"/>
+
+    <bean id="seldonApiService" class="io.seldon.client.DefaultApiClient">
+        <constructor-arg value="${consumer.api}"/>
+        <constructor-arg value="${consumer.secure}"/>
+        <constructor-arg value="${consumer.key}"/>
+        <constructor-arg value="${consumer.secret}"/>
+        <constructor-arg value="${consumer.timeout}" type="java.lang.Integer"/>
+    </bean>
+
+    <bean id="jsTestState" class="io.seldon.client.test.js.JsTestState">
+        <property name="endpoint" value="${javascript.api}"/>
+        <property name="consumerKey" value="${javascript.key}"/>
+        <property name="userPrefix" value="${javascript.userPrefix}"/>
+        <property name="itemPrefix" value="${javascript.itemPrefix}"/>
+        <property name="jsonpCallback" value="${javascript.jsonpPrefix}"/>
+        <property name="httpReferer" value="${javascript.httpReferer}"/>
+        <property name="enabled" value="${javascript.enableTests}"/>
+    </bean>
+
+    <bean id="itemAttributeService" class="io.seldon.client.attributes.ItemAttributeServiceImpl"/>
+    <bean id="userAttributeService" class="io.seldon.client.attributes.UserAttributeServiceImpl"/>
+
+</beans>
