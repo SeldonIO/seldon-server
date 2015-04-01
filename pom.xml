@@ -1,33 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  
-  
-  <groupId>io.seldon</groupId>
-  <artifactId>seldon-parent</artifactId>
-  <version>0.91-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <name>Seldon Project Parent POM</name>
-  <url>http://seldon.io/</url>
-  <licenses>
-    <license>
-      <name>Apache 2.0 License</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <prerequisites>
-    <maven>3.0.4</maven>
-  </prerequisites>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <modules>
-    <module>config</module>
-    <module>server</module>
-    <module>client/java-client</module>
-    <module>offline-jobs/spark</module>
-    <module>web-item-importer</module>
-</modules>
+
+    <groupId>io.seldon</groupId>
+    <artifactId>seldon-parent</artifactId>
+    <version>0.91-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Seldon Project Parent POM</name>
+    <url>http://seldon.io/</url>
+    <licenses>
+        <license>
+            <name>Apache 2.0 License</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <prerequisites>
+        <maven>3.0.4</maven>
+    </prerequisites>
+
+    <modules>
+        <module>config</module>
+        <module>server</module>
+        <module>client/java-client</module>
+        <module>offline-jobs/spark</module>
+        <module>web-item-importer</module>
+    </modules>
+    <properties>
+        <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
+        <jre.source.version>1.7</jre.source.version>
+        <jre.target.version>1.7</jre.target.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${jre.source.version}</source>
+                    <target>${jre.target.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
 
 </project>
