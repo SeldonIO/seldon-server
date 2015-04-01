@@ -301,6 +301,11 @@ public class CountRecommender {
 			try 
 			{
 				itemCounts = getClusterTopCounts(numTopCounts,decay);
+				if (itemCounts == null)
+				{
+					logger.warn("Got null itemcounts");
+					itemCounts = new HashMap<>();
+				}
 			}
 			catch (ClusterCountNoImplementationException e) 
 			{
