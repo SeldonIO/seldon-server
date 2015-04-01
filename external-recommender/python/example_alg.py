@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-
-import recommender_base
 import random
 import operator
 
-def alg(
+def get_recommendations(
         user_id,
         item_id,
         client,
@@ -23,13 +20,4 @@ def alg(
     recs = dict(top_scores)
 
     return recs
-
-if __name__ == "__main__":
-    recommender_base.run({
-        "alg" : alg,
-        "memcache" : {
-            "servers": ["localhost:11211"],
-            "pool_size" : 10
-        }
-    })
 
