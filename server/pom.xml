@@ -4,9 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>io.seldon</groupId>
+        <artifactId>seldon-parent</artifactId>
+        <version>0.91-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
     <artifactId>seldon-server</artifactId>
     <groupId>io.seldon</groupId>
-    <version>0.90</version>
     <url>http://api.rummblelabs.com</url>
 
     <name>Seldon Server</name>
@@ -156,7 +161,7 @@
                 <version>1.5</version>
                 <configuration>
                     <resourceBundles>
-                        <resourceBundle>io.seldon:seldon-server-config-${config.version}:0.1-SNAPSHOT</resourceBundle>
+                        <resourceBundle>io.seldon:seldon-server-config-local:${project.version}</resourceBundle>
                     </resourceBundles>
                     <includes>
                         <include>**/*.*</include>
@@ -198,8 +203,8 @@
         </dependency>
         <dependency>
             <groupId>io.seldon</groupId>
-            <artifactId>seldon-server-config-${config.version}</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <artifactId>seldon-server-config-local</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.datanucleus</groupId>

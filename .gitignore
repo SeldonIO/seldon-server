@@ -18,6 +18,7 @@ target
 #logs
 logs
 datanucleus_enhancer.log*
+<LOGS_DIR>
 %HOME_DIR%
 # eclipse
 .classpath
