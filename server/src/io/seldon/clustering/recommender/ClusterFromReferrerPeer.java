@@ -23,67 +23,86 @@
 
 package io.seldon.clustering.recommender;
 
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang3.StringUtils;
-
+import io.seldon.api.state.NewClientListener;
+import io.seldon.api.state.options.DefaultOptions;
+import io.seldon.api.state.zk.ZkClientConfigHandler;
 import io.seldon.clustering.recommender.jdo.JdoClusterFromReferrer;
 
-public class ClusterFromReferrerPeer {
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ClusterFromReferrerPeer implements NewClientListener {
+
+	private static Logger logger = Logger.getLogger(ClusterFromReferrerPeer.class.getName());
 	public static final String PROP = "io.seldon.clusters.referrer.clients";
 	
-	private static ClusterFromReferrerPeer peer;
+	Map<String,IClusterFromReferrer> referrerHandlerMap = new ConcurrentHashMap<>();
+	DefaultOptions options;
+	ZkClientConfigHandler clientConfigHandler;
 	
-	public static void initialise(Properties props)
+	@Autowired
+	public ClusterFromReferrerPeer(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
 	{
-		String clientsProp = props.getProperty(PROP);
+		this.options = options;
+		this.clientConfigHandler = clientConfigHandler;
+		clientConfigHandler.addNewClientListener(this, true);
+	}
+	
+	@PostConstruct
+	private void initialise()
+	{
+		String clientsProp = options.getOption(PROP);
 		if (StringUtils.isNotBlank(clientsProp))
 		{
 			String[] clients = clientsProp.split(",");
-			peer = new ClusterFromReferrerPeer(clients);
+			for(int i=0;i<clients.length;i++)
+				addClient(clients[i]);
 		}
 	}
-
-	public static void shutdown()
+	
+	private void addClient(String client)
 	{
-		if (peer != null)
+		referrerHandlerMap.put(client, new JdoClusterFromReferrer(client));
+	}
+	
+	@Override
+	public void clientAdded(String client) {
+		logger.info("Adding client: "+client);
+		addClient(client);
+	}
+
+	@Override
+	public void clientDeleted(String client) {
+		logger.info("Removing client:"+client);
+		IClusterFromReferrer cfr = referrerHandlerMap.get(client);
+		if (cfr != null)
 		{
-			peer.shutdownReferrers();
+			cfr.shutdown();
+			referrerHandlerMap.remove(client);
 		}
+		else
+			logger.warn("Unknown client - can't remove "+client);
+
 	}
-	
-	public static ClusterFromReferrerPeer get()
-	{
-		return peer;
-	}
-	
-	Map<String,IClusterFromReferrer> referrerHandlerMap;
 	
 
-	private ClusterFromReferrerPeer (String[] clients)
-	{
-		referrerHandlerMap = new ConcurrentHashMap<>();
-		for(int i=0;i<clients.length;i++)
-			referrerHandlerMap.put(clients[i], new JdoClusterFromReferrer(clients[i]));
-	}
-
-	public void shutdownReferrers()
+	public void shutdown()
 	{
 		for(Map.Entry<String, IClusterFromReferrer> e : referrerHandlerMap.entrySet())
 			e.getValue().shutdown();
 	}
 	
-	public Set<Integer> getClustersFromReferrer(String client,String referrer)
+	public IClusterFromReferrer get(String client)
 	{
-		IClusterFromReferrer c = referrerHandlerMap.get(client);
-		if (c == null)
-			return null;
-		else
-			return c.getClusters(referrer);
+		return referrerHandlerMap.get(client);
 	}
 
 }

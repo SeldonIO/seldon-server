@@ -25,26 +25,29 @@ package io.seldon.clustering.recommender.jdo;
 
 import io.seldon.cc.UserClusterManager;
 import io.seldon.clustering.recommender.ClusterCountStore;
+import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
 import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.UserClusterStore;
-import io.seldon.db.jdo.ClientPersistable;
 
-import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class JdoCountRecommenderUtils extends ClientPersistable {
-
-	private static Logger logger = Logger.getLogger(JdoCountRecommenderUtils.class.getName());
+@Component
+public class JdoCountRecommenderUtils {
 	
-	public static boolean memoryBasedOnly = false;
+	@Autowired
+	AsyncClusterCountFactory asyncClusterCountFactory;
 	
-	public JdoCountRecommenderUtils(String client) {
-		super(client);
+	@Autowired
+	ClusterFromReferrerPeer clusterFromReferrerPeer;
+	
+	public JdoCountRecommenderUtils() {
 	}
 
 	public CountRecommender getCountRecommender(String client)
 	{
 		// Get cluster counter
-		ClusterCountStore counter = new JdoClusterCountStore(client); // Database backed count store
+		ClusterCountStore counter = new JdoClusterCountStore(client,asyncClusterCountFactory); // Database backed count store
 
 		// get user clusters
 		UserClusterStore userClusters = null;
@@ -54,13 +57,11 @@ public class JdoCountRecommenderUtils extends ClientPersistable {
 			JdoMemoryUserClusterFactory memUserFac = JdoMemoryUserClusterFactory.get();
 			if (memUserFac != null)
 				userClusters = memUserFac.get(client);
-			if (memoryBasedOnly && userClusters == null)
-				return null;
-			else if (userClusters == null) 
-				userClusters = new JdoUserClusterStore(getPM());
+			if (userClusters == null) 
+				userClusters = new JdoUserClusterStore(client);
 		}
 		
-		return new CountRecommender(client,userClusters,counter);
+		return new CountRecommender(client,userClusters,counter,clusterFromReferrerPeer.get(client));
 	}
 
 	

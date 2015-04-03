@@ -49,6 +49,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Qualifier("algorithm.cfAlgorithm.default")
     @Autowired
     private CFAlgorithm defaultCFAlgorithm;
+    
+    @Autowired
+    AsyncClusterCountFactory asyncClusterCountFactory;
 
     @Override
 	public CFAlgorithm getAlgorithmOptions(ConsumerBean consumerBean)
@@ -101,15 +104,10 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 		algorithmMap.put(key, algorithm);
 		if (algorithm.getRecTag() == null) // default algorithm
 		{
-			AsyncClusterCountFactory cFac = AsyncClusterCountFactory.get();
-			if (cFac != null)
+			AsyncClusterCountStore asyncStore = asyncClusterCountFactory.get(consumerName);
+			if (asyncStore != null)
 			{
-				AsyncClusterCountStore asyncStore = cFac.get(consumerName);
-				if (asyncStore != null)
-				{
-					asyncStore.setDecay(algorithm.getDecayRateSecs());
-				}
-			
+				asyncStore.setDecay(algorithm.getDecayRateSecs());
 			}
 		}
 	}

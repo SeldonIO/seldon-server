@@ -84,6 +84,8 @@ public class RecommendationService {
     private ItemService itemService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ActionHistoryCache actionCache;
 
 //    public RecommendationBean getRecommendation(ConsumerBean c, String userId, Integer type, int dimensionId, String itemId, long pos,List<String> algorithms) throws APIException {
 //        RecommendationBean bean;
@@ -183,6 +185,7 @@ public class RecommendationService {
 
     //Object[0] = RecommendationsBean (result)
     //Object[1] = String representing the algorithm used
+    //TODO - needs fixing to run with latest algorihm config
     public Object[] sort(ConsumerBean c,String userId,RecommendationsBean recs, List<String> algorithms) {
         //ALGORITHM
         CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
@@ -216,8 +219,7 @@ public class RecommendationService {
         }
 
         //RECENT ACTIONS
-        ActionHistoryCache ah = new ActionHistoryCache(cfAlgorithm.getName());
-        List<Long> recentActions = ah.getRecentActions(intUserId, cfAlgorithm.getTxHistorySizeForSV()*2);
+        List<Long> recentActions = actionCache.getRecentActions(c.getShort_name(),intUserId, cfAlgorithm.getTxHistorySizeForSV()*2);
         logger.debug("RecentActions for user with client "+cfAlgorithm.getName()+" userId " + userId + " internal user id "+intUserId+" num." + recentActions.size() + " => " + StringUtils.join(recentActions,","));     
         //NOT ENOUGH ACTIONS
         //if(recentActions.size() < cfAlgorithm.getMinNumTxsForSV()) { return res; }

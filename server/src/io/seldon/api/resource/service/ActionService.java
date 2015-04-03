@@ -46,6 +46,7 @@ import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.clustering.recommender.ClientClusterTypeService;
 import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.general.Action;
 import io.seldon.general.ActionType;
 import io.seldon.general.Item;
@@ -89,6 +90,12 @@ public class ActionService {
     
     @Autowired
     private JdoAsyncActionFactory asyncActionFactory;
+    
+    @Autowired
+    JdoCountRecommenderUtils cUtils;
+    
+    @Autowired
+    ActionHistoryCache actionCache;
 	
 	public ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false));
@@ -267,7 +274,7 @@ public class ActionService {
 			{
 				
                 boolean useBucketCluster = false;
-				CountRecommender cRec = Util.getCountRecommenderUtils(c).getCountRecommender(c.getShort_name());
+				CountRecommender cRec = cUtils.getCountRecommender(c.getShort_name());
                 for (AlgorithmStrategy strat : clientAlgorithmStore.retrieveStrategy(c.getShort_name()).getAlgorithms(a.getClientUserId(), bean.getRecTag())){
                     RecommendationContext.OptionsHolder holder = new RecommendationContext.OptionsHolder(defaultOptions, strat.config);
                     if (holder.getBooleanOption(BUCKET_CLUSTER_OPTION_NAME)) {
@@ -294,12 +301,8 @@ public class ActionService {
 				}
 				
 
-				if (ActionHistoryCache.isActive(c.getShort_name()))
-				{
-					ActionHistoryCache ah = new ActionHistoryCache(c.getShort_name());
-					ah.addAction(userId, itemId);
-				}
-				
+				actionCache.addAction(c.getShort_name(),userId, itemId);
+					
 				
 			}
 		}

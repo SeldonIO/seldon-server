@@ -51,6 +51,7 @@ public class CountRecommender {
 	
 	UserClusterStore userClusters;
 	ClusterCountStore clusterCounts;
+	IClusterFromReferrer clusterFromReferrer;
 	String client;
 	boolean fillInZerosWithMostPopular = true;
 	String referrer;
@@ -60,11 +61,11 @@ public class CountRecommender {
 	public static final int BUCKET_CLUSTER_ID = -1;
 	
 	
-	public CountRecommender(String client,UserClusterStore userClusters,
-			ClusterCountStore clusterCounts) {
+	public CountRecommender(String client,UserClusterStore userClusters,ClusterCountStore clusterCounts,IClusterFromReferrer clusterFromReferrer) {
 		this.userClusters = userClusters;
 		this.clusterCounts = clusterCounts;
 		this.client = client;
+		this.clusterFromReferrer = clusterFromReferrer;
 	}
 	
 	
@@ -82,9 +83,8 @@ public class CountRecommender {
 	{
 		if (referrer != null)
 		{
-			ClusterFromReferrerPeer p = ClusterFromReferrerPeer.get();
-			if (p != null)
-				return p.getClustersFromReferrer(client, referrer);
+			if (clusterFromReferrer != null)
+				return clusterFromReferrer.getClusters(referrer);
 			else
 				return null;
 		}

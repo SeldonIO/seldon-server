@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,6 +47,10 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
 	
     private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
     private static Logger logger = Logger.getLogger(ItemCategoryClusterCountsRecommender.class.getName());
+    
+    @Autowired
+    JdoCountRecommenderUtils cUtils;
+    
     @Override
     public ItemRecommendationResultSet recommend( String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         if (ctxt.getCurrentItem() != null)
@@ -57,7 +62,6 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
             Integer dimId = getDimensionForAttrName(ctxt.getCurrentItem(),client,ctxt);
             if (dimId != null)
             {
-                JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
                 CountRecommender r = cUtils.getCountRecommender(client);
                 if (r != null)
                 {

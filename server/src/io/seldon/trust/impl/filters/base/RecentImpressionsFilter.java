@@ -26,13 +26,14 @@ package io.seldon.trust.impl.filters.base;
 import io.seldon.api.Constants;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.ItemFilter;
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Filter to exclude items that the user has interacted with
@@ -45,7 +46,8 @@ public class RecentImpressionsFilter implements ItemFilter {
     private static final String RECENT_ACTIONS_NUM = "io.seldon.algorithm.filter.recentactionstofilter";
     private static Logger logger = Logger.getLogger(RecentImpressionsFilter.class.getName());
     
-    
+    @Autowired
+    ActionHistoryCache actionCache;
     
     @Override
     public List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
@@ -53,9 +55,8 @@ public class RecentImpressionsFilter implements ItemFilter {
         if (user != Constants.ANONYMOUS_USER) // only can get recent actions for non anonymous user
         {
             // get recent actions for user
-            ActionHistoryCache ah = new ActionHistoryCache(client);
             int recentActionsNum = optsHolder.getIntegerOption(RECENT_ACTIONS_NUM);
-            List<Long> recentActions = ah.getRecentActions(user, recentActionsNum >0 ? recentActionsNum : numRecommendations);
+            List<Long> recentActions = actionCache.getRecentActions(client,user, recentActionsNum >0 ? recentActionsNum : numRecommendations);
             logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + recentActions.size());
             return recentActions;
         }

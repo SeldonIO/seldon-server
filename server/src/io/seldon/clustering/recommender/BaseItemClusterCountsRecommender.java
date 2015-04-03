@@ -24,9 +24,15 @@
 package io.seldon.clustering.recommender;
 
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
-import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author firemanphil
@@ -42,6 +48,9 @@ public abstract class BaseItemClusterCountsRecommender {
 
     private static Logger logger = Logger.getLogger( BaseItemClusterCountsRecommender.class.getName() );
 
+    @Autowired
+    JdoCountRecommenderUtils cUtils;
+    
     ItemRecommendationResultSet recommend(String recommenderName, String recommenderType, String client, Long user, int dimensionId, int maxRecsCount,
                                           RecommendationContext ctxt) {
         RecommendationContext.OptionsHolder optionsHolder = ctxt.getOptsHolder();
@@ -50,7 +59,6 @@ public abstract class BaseItemClusterCountsRecommender {
             if (ctxt.getMode() == RecommendationContext.MODE.EXCLUSION) {
                 exclusions = ctxt.getContextItems();
             }
-            JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
             CountRecommender r = cUtils.getCountRecommender(client);
             if (r != null) {
                 long t1 = System.currentTimeMillis();

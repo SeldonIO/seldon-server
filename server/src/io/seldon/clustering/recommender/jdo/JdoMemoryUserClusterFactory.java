@@ -23,7 +23,17 @@
 
 package io.seldon.clustering.recommender.jdo;
 
-import java.util.*;
+import io.seldon.clustering.recommender.MemoryUserClusterStore;
+import io.seldon.clustering.recommender.UserCluster;
+import io.seldon.db.jdo.JDOFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,11 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.jdo.PersistenceManager;
 
-import io.seldon.clustering.recommender.UserCluster;
 import org.apache.log4j.Logger;
-
-import io.seldon.clustering.recommender.MemoryUserClusterStore;
-import io.seldon.db.jdo.JDOFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -106,7 +112,7 @@ public class JdoMemoryUserClusterFactory {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(client);
 		if (pm != null)
 		{
-				JdoUserClusterStore jdoStore = new JdoUserClusterStore(pm);
+				JdoUserClusterStore jdoStore = new JdoUserClusterStore(client);
 				JdoUserClusterStore.TransientUserClusters tclusters = jdoStore.getTransientClusters(lastTransientId.get(client));
 				if (tclusters != null && tclusters.clusters.size() > 0)
 				{
@@ -130,7 +136,7 @@ public class JdoMemoryUserClusterFactory {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(client);
 		if (pm != null)
 		{
-			JdoUserClusterStore jdoStore = new JdoUserClusterStore(pm);
+			JdoUserClusterStore jdoStore = new JdoUserClusterStore(client);
 			logger.info("Loading user clusters for "+client);
             Set<Integer> userSet = new HashSet<>();
 			List<UserCluster> clusters = jdoStore.getClusters();
@@ -173,7 +179,7 @@ public class JdoMemoryUserClusterFactory {
                         PersistenceManager pm = JDOFactory.getPersistenceManager(client);
                         if (pm != null) {
                             logger.debug("Getting jdo user cluster store " + client);
-                            JdoUserClusterStore jdoStore = new JdoUserClusterStore(pm);
+                            JdoUserClusterStore jdoStore = new JdoUserClusterStore(client);
                             long currentTimestamp = jdoStore.getCurrentTimestamp();
                             MemoryUserClusterStore memoryUserClusterStore = stores.get(client);
                             long storeTimestamp = memoryUserClusterStore==null?

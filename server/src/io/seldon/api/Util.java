@@ -25,7 +25,6 @@ package io.seldon.api;
 
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ListBean;
-import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.general.UserAttributePeer;
 import io.seldon.general.jdo.SqlActionPeer;
@@ -62,11 +61,6 @@ public class Util {
 	}
 	
 
-
-	
-	public static JdoCountRecommenderUtils getCountRecommenderUtils(ConsumerBean c) throws APIException {
-		return new JdoCountRecommenderUtils(c.getShort_name());
-	}
 	
 	public static SqlItemPeer getItemPeer(String client) throws APIException {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(client);

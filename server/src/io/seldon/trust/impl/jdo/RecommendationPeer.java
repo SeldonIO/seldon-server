@@ -31,27 +31,45 @@ import io.seldon.api.resource.DimensionBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.state.ClientAlgorithmStore;
 import io.seldon.api.state.options.DefaultOptions;
-import io.seldon.clustering.recommender.*;
+import io.seldon.clustering.recommender.CountRecommender;
+import io.seldon.clustering.recommender.ItemRecommendationResultSet;
+import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
-
 import io.seldon.db.jdo.ClientPersistable;
 import io.seldon.general.ItemPeer;
-
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.ClientStrategy;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
-import io.seldon.semvec.*;
-import io.seldon.trust.impl.*;
+import io.seldon.semvec.DocumentIdTransform;
+import io.seldon.semvec.SemVectorResult;
+import io.seldon.semvec.SemVectorsPeer;
+import io.seldon.semvec.SemanticVectorsStore;
+import io.seldon.semvec.StringTransform;
+import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm.CF_ITEM_COMPARATOR;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
+import io.seldon.trust.impl.Recommendation;
+import io.seldon.trust.impl.RecommendationNetwork;
+import io.seldon.trust.impl.RecommendationResult;
+import io.seldon.trust.impl.SearchResult;
+import io.seldon.trust.impl.SortResult;
+import io.seldon.trust.impl.Trust;
 import io.seldon.trust.impl.TrustNetworkSupplier.CF_TYPE;
 import io.seldon.util.CollectionTools;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * Core recommendation algorithm selection. Calls particular classes and methods to carry out the various API methods
@@ -74,6 +92,11 @@ public class RecommendationPeer {
 
 	private ClientAlgorithmStore algStore;
 
+	@Autowired
+    JdoCountRecommenderUtils cUtils;
+	
+	@Autowired
+	ActionHistoryCache actionCache;
 
     private boolean debugging = false;
 
@@ -114,10 +137,8 @@ public class RecommendationPeer {
 		List<Long> recentActions = null;
 		if (user != Constants.ANONYMOUS_USER) // only can get recent actions for non anonymous user
 		{
-			// get recent actions for user
-			ActionHistoryCache ah = new ActionHistoryCache(client);
-			//TODO decide on how to get number of recentactions
-			recentActions = ah.getRecentActions(user, 100);
+			//TODO - fix limit
+			recentActions = actionCache.getRecentActions(client,user, 100);
 			numRecentActions = recentActions.size();
 			if (debugging)
 				logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + numRecentActions);
@@ -376,7 +397,6 @@ public class RecommendationPeer {
 				case CLUSTER_COUNTS:
 				case CLUSTER_COUNTS_DYNAMIC:
 				{
-					JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(options.getName());
 					CountRecommender r = cUtils.getCountRecommender(options.getName());
 					if (r != null)
 					{

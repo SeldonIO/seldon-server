@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,10 +45,13 @@ public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorit
 	private static final String name = GlobalClusterCountsRecommender.class.getSimpleName();
     private static Logger logger = Logger.getLogger(GlobalClusterCountsRecommender.class.getName());
     private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
+    
+    @Autowired
+    JdoCountRecommenderUtils cUtils;
+    
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
                                                  RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        JdoCountRecommenderUtils cUtils = new JdoCountRecommenderUtils(client);
         CountRecommender r = cUtils.getCountRecommender(client);
         if (r != null)
         {

@@ -23,36 +23,36 @@
 
 package io.seldon.clustering.recommender.jdo;
 
+import io.seldon.clustering.recommender.TransientUserClusterStore;
+import io.seldon.clustering.recommender.UserCluster;
+import io.seldon.clustering.recommender.UserClusterStore;
+import io.seldon.db.jdo.ClientPersistable;
+import io.seldon.db.jdo.DatabaseException;
+import io.seldon.db.jdo.Transaction;
+import io.seldon.db.jdo.TransactionPeer;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
-import io.seldon.clustering.recommender.UserCluster;
 import org.apache.log4j.Logger;
 
-import io.seldon.clustering.recommender.TransientUserClusterStore;
-import io.seldon.clustering.recommender.UserClusterStore;
-import io.seldon.db.jdo.DatabaseException;
-import io.seldon.db.jdo.Transaction;
-import io.seldon.db.jdo.TransactionPeer;
-
-public class JdoUserClusterStore implements UserClusterStore, TransientUserClusterStore {
+public class JdoUserClusterStore extends ClientPersistable implements UserClusterStore, TransientUserClusterStore {
 
 	private static Logger logger = Logger.getLogger(JdoUserClusterStore.class.getName());
 	
-	PersistenceManager pm;
-	
-	public JdoUserClusterStore(PersistenceManager pm)
+	public JdoUserClusterStore(String client)
 	{
-		this.pm = pm;
+		super(client);
 	}
 	
 	public void addTransientCluster(final List<UserCluster> clusters)
 	{
 		try 
 		{
+			final PersistenceManager pm = getPM();
 			TransactionPeer.runTransaction(new Transaction(pm) { 
 			    public void process()
 			    { 
@@ -75,7 +75,7 @@ public class JdoUserClusterStore implements UserClusterStore, TransientUserClust
 	
 	
 	public TransientUserClusters getTransientClusters(long checkpoint) {
-		
+		final PersistenceManager pm = getPM();
 		Query query = pm.newQuery( "javax.jdo.query.SQL","select max(t_id) from user_clusters_transient");
 		query.setResultClass(Long.class);
 		query.setUnique(true);
@@ -94,6 +94,7 @@ public class JdoUserClusterStore implements UserClusterStore, TransientUserClust
 	
 	@Override
 	public List<UserCluster> getClusters(long userId) {
+		final PersistenceManager pm = getPM();
 		Query query = pm.newQuery( "javax.jdo.query.SQL","select user_id,user_clusters.cluster_id,weight,lastupdate,group_id from user_clusters, cluster_update, cluster_group where user_id=? and user_clusters.cluster_id=cluster_group.cluster_id");
 		query.setResultClass(UserCluster.class);
 		return (List<UserCluster>) query.execute(userId);
@@ -102,6 +103,7 @@ public class JdoUserClusterStore implements UserClusterStore, TransientUserClust
 
 	@Override
 	public List<UserCluster> getClusters() {
+		final PersistenceManager pm = getPM();
 		Query query = pm.newQuery( "javax.jdo.query.SQL","select user_id,user_clusters.cluster_id,weight,lastupdate,group_id from user_clusters, cluster_update, cluster_group where user_clusters.cluster_id=cluster_group.cluster_id order by user_id asc");
 		query.setResultClass(UserCluster.class);
 		return (List<UserCluster>) query.execute();
@@ -110,6 +112,7 @@ public class JdoUserClusterStore implements UserClusterStore, TransientUserClust
 
 	@Override
 	public int getNumUsersWithClusters() {
+		final PersistenceManager pm = getPM();
 		Query query = pm.newQuery( "javax.jdo.query.SQL","select count(distinct user_id) from user_clusters");
 		query.setResultClass(Integer.class);
 		query.setUnique(true);
@@ -119,6 +122,7 @@ public class JdoUserClusterStore implements UserClusterStore, TransientUserClust
 
 	@Override
 	public long getCurrentTimestamp() {
+		final PersistenceManager pm = getPM();
 		Query query = pm.newQuery( "javax.jdo.query.SQL","select lastupdate from cluster_update");
 		query.setResultClass(Long.class);
 		query.setUnique(true);

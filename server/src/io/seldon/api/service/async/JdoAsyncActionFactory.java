@@ -93,14 +93,21 @@ public class JdoAsyncActionFactory implements NewClientListener{
 	
 	@Override
 	public void clientAdded(String client) {
+		logger.info("Adding client: "+client);
 		get(client);
 	}
 
 	@Override
 	public void clientDeleted(String client) {
+		logger.info("Removing client:"+client);
 		AsyncActionQueue q = queues.get(client);
-		q.setKeepRunning(false);
-		queues.remove(client);
+		if (q != null)
+		{
+			q.setKeepRunning(false);
+			queues.remove(client);
+		}
+		else
+			logger.warn("Unknown client - can't remove "+client);
 	}
 	
 	

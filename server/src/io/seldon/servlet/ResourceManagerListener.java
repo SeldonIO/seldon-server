@@ -25,14 +25,11 @@ package io.seldon.servlet;
 
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
-import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
-import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.db.jdo.servlet.JDOStartup;
@@ -83,13 +80,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		
     		baseDir = sce.getServletContext().getRealPath("/");
     		SemanticVectorsStore.initialise(props);
-    		String dbPediaIndexPath = props.getProperty("dbpedia.index.path");
-    		if (dbPediaIndexPath != null)
-    		{
-    			String useRamDirectoryStr = props.getProperty("dbpedia.index.ramdirectory");
-    			boolean useRamDirectory = "true".equals(useRamDirectoryStr);
-    		}
-    		
     
     		String backend = props.getProperty("io.seldon.labs.backend");
     		String caching = props.getProperty("io.seldon.labs.caching");
@@ -100,22 +90,9 @@ public class ResourceManagerListener  implements ServletContextListener {
     		}
     		if (backend != null)
     		{
-    			// Mysql is default and only backend at present
-    			//if ("mysql".equals(backend))
-    			//{
-    				Util.setBackEnd(Util.BackEnd.MYSQL);
-    			//}
+    			Util.setBackEnd(Util.BackEnd.MYSQL);
     		}
     		
-    		//Initialise AsynActionQueue
-    		AsyncClusterCountFactory.create(props);
-    		
-    		//Initialise Memory User Clusters (assumes JDO backend)
-    		ClusterFromReferrerPeer.initialise(props);
-    		
-
-    		ActionHistoryCache.initalise(props);
-
     		DynamicParameterServer.startReloadTimer();
     		
     		StatsdPeer.initialise(props);
@@ -151,7 +128,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     {
     	baseDir = "";
     	DynamicParameterServer.stopReloadTimer();
-    	ClusterFromReferrerPeer.shutdown();
         if(MemCachePeer.getClient()!=null){
     	    MemCachePeer.getClient().shutdown();
         }

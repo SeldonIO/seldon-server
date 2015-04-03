@@ -46,9 +46,12 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 
 	double alpha = 3600;
 	
-	public JdoClusterCountStore(String client)
+	AsyncClusterCountFactory clusterCountFactory;
+	
+	public JdoClusterCountStore(String client,AsyncClusterCountFactory clusterCountFactory)
 	{
 		super(client);
+		this.clusterCountFactory = clusterCountFactory;
 	}
 	
 	
@@ -57,7 +60,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	public void add(final int clusterId, final long itemId, final double weight,
 			long clusterTimestamp) {
 		
-		AsyncClusterCountStore asyncStore = AsyncClusterCountFactory.get().get(this.clientName);
+		AsyncClusterCountStore asyncStore = clusterCountFactory.get(this.clientName);
 		if (asyncStore != null)
 		{
 			asyncStore.put(new AsyncClusterCountStore.ClusterCount(clusterId,itemId,weight));
@@ -97,7 +100,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	@Override
 	public void add(final int clusterId, final long itemId,final double weight,long timestamp,final long time) {
 		
-		AsyncClusterCountStore asyncStore = AsyncClusterCountFactory.get().get(this.clientName);
+		AsyncClusterCountStore asyncStore = clusterCountFactory.get(this.clientName);
 		if (asyncStore != null)
 		{
 			asyncStore.put(new AsyncClusterCountStore.ClusterCount(clusterId,itemId,weight));

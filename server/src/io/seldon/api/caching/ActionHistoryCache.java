@@ -23,97 +23,66 @@
 
 package io.seldon.api.caching;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.seldon.api.APIException;
-import io.seldon.api.Util;
-import io.seldon.db.jdo.ClientPersistable;
+import io.seldon.api.state.NewClientListener;
+import io.seldon.api.state.options.DefaultOptions;
+import io.seldon.api.state.zk.ZkClientConfigHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import net.spy.memcached.CASMutation;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class ActionHistoryCache extends ClientPersistable {
+@Component
+public class ActionHistoryCache implements NewClientListener {
 
 	private static Logger logger = Logger.getLogger(ActionHistoryCache.class.getName());
 	public static int CACHE_TIME = 1800;
 	
-	private static ConcurrentHashMap<String,Boolean> clients = new ConcurrentHashMap<>();
 	private static ConcurrentHashMap<String,Boolean> clientsUseDb = new ConcurrentHashMap<>();
 	
-	public static void initalise(Properties props)
+	DefaultOptions options;
+	ZkClientConfigHandler clientConfigHandler;
+	
+	@Autowired
+	public ActionHistoryCache(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
 	{
-		String timeoutStr = props.getProperty("io.seldon.actioncache.timeout");
-		if (timeoutStr != null && !"".equals(timeoutStr))
-			CACHE_TIME = Integer.parseInt(timeoutStr);
-		logger.info("Action History cache timeout set to "+CACHE_TIME);
-		
-		String clientStr = props.getProperty("io.seldon.actioncache.clients");
-		if (clientStr != null)
-		{
-			String clientsActive[] = clientStr.split(",");
-			for(int i=0;i<clientsActive.length;i++)
-			{
-				logger.info("Activating Action History Cache for client "+clientsActive[i]);
-				clients.put(clientsActive[i], true);
-				String useDb = props.getProperty("io.seldon.actioncache."+clientsActive[i]+".usedb");
-				if (useDb != null && "true".equals(useDb))
-				{
-					logger.info("Adding client "+clientsActive[i]+" to list of clients to use db to get action history");
-					clientsUseDb.put(clientsActive[i], true);
-				}
-			}
-		}
+		this.options = options;
+		this.clientConfigHandler = clientConfigHandler;
+		clientConfigHandler.addNewClientListener(this, true);
 	}
 	
-	public static boolean isActive(String client)
-	{
-		Boolean val = clients.get(client);
-		if (val != null)
-			return val;
-		else
-			return false;
+	@Override
+	public void clientAdded(String client) {
 	}
-	
-	public static void setClient(String client,boolean val)
-	{
-		clients.put(client, val);
+
+	@Override
+	public void clientDeleted(String client) {
 	}
 	
 	
-	public ActionHistoryCache(String client)
-	{
-		super(client);
-	}
 	
-	public void removeRecentActions(long userId)
+	public void removeRecentActions(String clientName,long userId)
 	{
-		String mkey = MemCacheKeys.getActionHistory(this.clientName, userId);
+		String mkey = MemCacheKeys.getActionHistory(clientName, userId);
 		MemCachePeer.delete(mkey);
 	}
 		
-	public List<Long> getRecentActions(long userId,int numActions)
+	public List<Long> getRecentActions(String clientName,long userId,int numActions)
 	{
-		String mkey = MemCacheKeys.getActionHistory(this.clientName, userId);
+		String mkey = MemCacheKeys.getActionHistory(clientName, userId);
 		List<Long> res = (List<Long>) MemCachePeer.get(mkey);
 		if (res == null)
 		{
-			if (clientsUseDb.containsKey(clientName))
-			{
-				List<Long> transaction = Util.getActionPeer(getPM()).getRecentUserActions(userId);
-				res = new ArrayList<>(transaction);
-				MemCachePeer.put(mkey, res, CACHE_TIME);
-				logger.debug("Stored action history for user "+userId+" in memcache");
-			}
-			else
-			{
-				logger.debug("creating empty action history for user "+userId+" for client "+clientName);
-				res = new ArrayList<>();
-			}
+			logger.debug("creating empty action history for user "+userId+" for client "+clientName);
+			res = new ArrayList<>();
 		}
 		else 
 		{
@@ -124,7 +93,7 @@ public class ActionHistoryCache extends ClientPersistable {
 		return res;
 	}
 	
-	public void addAction(long userId,final long itemId) throws APIException
+	public void addAction(String clientName,long userId,final long itemId) throws APIException
     {
 		logger.debug("Adding action to cache for "+userId+" item "+itemId);
         CASMutation<List<Long>> mutation = new CASMutation<List<Long>>() {
@@ -139,26 +108,8 @@ public class ActionHistoryCache extends ClientPersistable {
         };
         List<Long> actions = new ArrayList<>();
         actions.add(itemId);
-        String mkey = MemCacheKeys.getActionHistory(this.clientName, userId);
-        List<Long> res = MemCachePeer.cas(mkey, mutation, actions,CACHE_TIME);
-
-        // if there is just 1 action added..check there are not older actions in DB and if so add them
-        // Can cause issues if load is high
-        if(res != null && res.size() == 1 && clientsUseDb.containsKey(clientName)) {
-        	logger.debug("Updating actions as maybe new or expired");
-            List<Long> transaction = null;
-            transaction = Util.getActionPeer(getPM()).getRecentUserActions(userId);
-            if(transaction != null && !transaction.isEmpty())
-            {
-            	ArrayList<Long> transNew = new ArrayList<>(transaction);
-            	if(!transaction.contains(res.get(0))) {
-            		 transNew.add(0,res.get(0));
-            	}
-                MemCachePeer.put(mkey, transNew,CACHE_TIME);
-                logger.debug("Updated action history for user "+userId+" in memcache after db refresh");
-            }
-        }
-       
+        String mkey = MemCacheKeys.getActionHistory(clientName, userId);
+        MemCachePeer.cas(mkey, mutation, actions,CACHE_TIME);
     }
 	
 	
