@@ -71,12 +71,15 @@ public class RecommendationController {
 		//request authorized
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeysUser((ConsumerBean)con, userId);
-            res = recommendationBusinessService.recommendationsForUser((ConsumerBean) con, req, userId);
+			int limit = Util.getLimit(req);
+			Integer dimension = Util.getDimension(req);
+			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimension, limit);
         }
 		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req);
 		return res;
 	}
 
+    //FIXME
 	@RequestMapping(value="/users/{userId}/recommendations/{itemId}", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveRecommendation(@PathVariable String userId, @PathVariable String itemId,HttpServletRequest req) {
 		Date start = new Date();

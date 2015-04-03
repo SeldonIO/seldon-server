@@ -84,11 +84,7 @@ public class ItemController {
 					dimension = ItemService.getDimensionbyItemType((ConsumerBean) con, itemType);
 				}
 				if(dimension == null) { dimension = Constants.DEFAULT_DIMENSION; }
-				//Search by Keyword
-				if(keywords != null && keywords.size()>0) {
-					res = itemService.getItemsByKeyword((ConsumerBean)con,keywords,Util.getLimit(req),Util.getFull(req),dimension);
-				}
-				else if(name != null && name.length() > 0) {
+				if(name != null && name.length() > 0) {
 					res = itemService.getItemsByName((ConsumerBean)con,Util.getLimit(req),Util.getFull(req),Util.getName(req),dimension);
 				}
 				//all

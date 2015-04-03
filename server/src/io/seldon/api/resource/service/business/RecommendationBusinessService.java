@@ -28,16 +28,12 @@ import io.seldon.api.resource.ResourceBean;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * Created by: marc on 14/08/2012 at 16:05
  */
 public interface RecommendationBusinessService {
 
-    ResourceBean recommendationsForUser(ConsumerBean consumerBean, HttpServletRequest request, String userId);
-
-    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int limit);
+    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int dimension, int limit);
 
     ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, String uuid, int limit);
 

@@ -34,16 +34,12 @@ import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.RecommendationBean;
 import io.seldon.api.resource.RecommendationsBean;
 import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.service.ABTestingServer;
-import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
 import io.seldon.trust.impl.Recommendation;
 import io.seldon.trust.impl.RecommendationResult;
-import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.SortResult;
 import io.seldon.trust.impl.jdo.LastRecommendationBean;
 import io.seldon.trust.impl.jdo.RecommendationPeer;
@@ -86,93 +82,6 @@ public class RecommendationService {
     private UserService userService;
     @Autowired
     private ActionHistoryCache actionCache;
-
-//    public RecommendationBean getRecommendation(ConsumerBean c, String userId, Integer type, int dimensionId, String itemId, long pos,List<String> algorithms) throws APIException {
-//        RecommendationBean bean;
-//        if(pos == Constants.POSITION_NOT_DEFINED) {
-//            ListBean recs = getRecommendations(c,userId,type,dimensionId,Constants.DEFAULT_BIGRESULT_LIMIT,false,algorithms);
-//            bean = findRecommendationBean(itemId,recs);
-//            if(bean == null) {
-//                bean = new RecommendationBean(itemId,Constants.POSITION_NOT_DEFINED,null);
-//            }
-//        }
-//        else { bean = new RecommendationBean(itemId,pos,null); }
-//        //Set source of the recommendation
-//        //bean.setSrcUsers(users);
-//        return bean;
-//    }
-
-    //FIX handle FULL
-    //TODO use TYPE
-    public ListBean getRecommendations(ConsumerBean c,String userId,List<String> keywords, int limit, boolean full,int dimension,List<String> algorithms) throws APIException {
-        logger.info("Get RecommendationsBean for " + userId + " with keywords:" + keywords);
-        //ALGORITHM
-        CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
-        ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(),cfAlgorithm, userId,keywords.toString(),full,dimension));
-        bean = Util.getLimitedBean(bean, limit);
-        if(bean == null) {
-            bean = new ListBean();
-
-            long pos = 1;
-            String word = "";
-            for (String k : keywords) {
-                word += k + " ";
-            }
-            List<SearchResult> res = recommender.searchContent(word, userService.getInternalUserId(c, userId), ItemService.getDimension(c, dimension), limit, cfAlgorithm);
-            for (SearchResult r : res) {
-                String itemId = null;
-                try {
-                    itemId = itemService.getClientItemId(c, r.getId());
-                }
-                //item not found
-                catch (APIException a) {
-                }
-                ;
-                if (itemId != null) {
-                    bean.addBean(new RecommendationBean(itemId, pos++, null));
-                }
-            }
-            if (Constants.CACHING && cfAlgorithm.getRecommendationCachingTimeSecs() > 0)
-                MemCachePeer.put(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(), cfAlgorithm, userId, keywords.toString(), full, dimension), bean, cfAlgorithm.getRecommendationCachingTimeSecs());
-        }
-        logger.info("Return RecommendationsBean for " + userId + " with keywords:" + keywords);
-        return bean;
-    }
-
-//    //FIX handle FULL
-//    public ListBean getRecommendations(ConsumerBean c,String userId,Integer type, int dimensionId, int limit, boolean full,List<String> algorithms) throws APIException {
-//        logger.info("Get RecommendationsBean for " + userId + " with dimension:" + dimensionId);
-//        //ALGORITHM
-//        CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
-//        ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(),cfAlgorithm,userId,type,dimensionId,full));
-//        bean = Util.getLimitedBean(bean, limit);
-//        if(bean == null) {
-//            bean = new ListBean();
-//
-//            Long internalUserId;
-//            try {
-//                internalUserId = UserService.getInternalUserId(c, userId);
-//            } catch (APIException e) {
-//                internalUserId = Constants.ANONYMOUS_USER;
-//            }
-//
-//            RecommendationResult recResult = recommender.getRecommendations(internalUserId, userId, type, dimensionId, limit, cfAlgorithm,null,null, null);//FIXME
-//            List<Recommendation> recs = recResult.getRecs();
-//            long pos = 1;
-//            for (Recommendation t : recs) {
-//                String itemId = ItemService.getClientItemId(c, t.getContent());
-//                if (itemId != null) {
-//                    bean.addBean(new RecommendationBean(itemId, pos++, null));
-//                }
-//            }
-//            bean.setRequested(limit);
-//            bean.setSize(recs.size());
-//            if (Constants.CACHING && cfAlgorithm.getRecommendationCachingTimeSecs() > 0)
-//                MemCachePeer.put(MemCacheKeys.getRecommendationsBeanKey(c.getShort_name(), cfAlgorithm,userId, type, dimensionId, full), bean, cfAlgorithm.getRecommendationCachingTimeSecs());
-//        }
-//        logger.info("Return RecommendationsBean for " + userId + " with dimension:" + dimensionId);
-//        return bean;
-//    }
 
 
     public static RecommendationBean findRecommendationBean(String itemId,ListBean list) {
@@ -292,11 +201,7 @@ public class RecommendationService {
         	}
         	else
         	{
-                //check if the AB testing is on and try to get algorithm if it is
-                if(DynamicParameterServer.isABTesting(c.getShort_name(),recTag)) 
-                {
-                    cfAlgorithm = ABTestingServer.getUserTest(c.getShort_name(), recTag,userId);
-                }
+                
                 
                 if (cfAlgorithm == null) // get server side assigned algorithm for client 
                 {

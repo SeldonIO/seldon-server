@@ -43,8 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 
 public class Util {
 
-	public enum BackEnd { MYSQL, MONGO };
-	private static BackEnd backEnd = BackEnd.MYSQL;
     private static AlgorithmService algorithmService;
  
 	public static void setAlgorithmService(AlgorithmService algorithmService) {
@@ -55,12 +53,7 @@ public class Util {
         return algorithmService;
     }
 	
-	public static void setBackEnd(BackEnd backEnd)
-	{
-		Util.backEnd = backEnd;
-	}
 	
-
 	
 	public static SqlItemPeer getItemPeer(String client) throws APIException {
 		PersistenceManager pm = JDOFactory.getPersistenceManager(client);

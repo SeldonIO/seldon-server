@@ -23,6 +23,9 @@
 
 package io.seldon.api.state;
 
+import io.seldon.api.service.ABTest;
+import io.seldon.api.service.ABTestingServer;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -30,15 +33,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-
-import org.apache.curator.framework.CuratorFramework;
-import io.seldon.api.resource.DynamicParameterBean;
-import io.seldon.api.service.ABTestingServer;
-import io.seldon.api.service.ABTest;
-import io.seldon.api.service.DynamicParameterServer;
 
 public class ZkABTestingUpdater  implements Runnable {
 
@@ -177,33 +175,7 @@ public class ZkABTestingUpdater  implements Runnable {
    	 				
        	 					System.out.println("Alg Path changed "+path);
        	 				
-       	 					if (path.endsWith(DYNAMIC_PARAM_PATH))
-       	 					{
-       	 						try
-       	 						{
-       	 							byte[] bytes = client.getData().forPath(DYNAMIC_PARAM_PATH);
-           	 						ObjectInputStream  in = new ObjectInputStream(new ByteArrayInputStream(bytes));
-           	 						DynamicParameterBean  bean = (DynamicParameterBean) in.readObject();
-           	 						in.close();
-           	 						logger.info("Updating dynamic parameter: "+bean.getName()+" and setting to value: "+bean.getValue()+" for client "+clientName);
-           	 						DynamicParameterServer.setParameterBean(clientName, bean);
-   	 								numUpdates++;
-       	 						}
-       	 						catch (ClassNotFoundException e)
-       	 						{
-       	 							logger.error("Can't find class ",e);
-       	 						}
-       	 						catch (IOException e)
-       	 						{
-       	 							logger.error("Failed to deserialize algorithm for client "+clientName,e);
-       	 						}
-       	 						finally
-       	 						{
-       	 							client.getData().usingWatcher(watcher).forPath(DYNAMIC_PARAM_PATH);
-       	 						}
-   	 						
-       	 					}
-       	 					else if (path.endsWith(AB_ALG_PATH))
+       	 					if (path.endsWith(AB_ALG_PATH))
        	 					{
        	 						try
        	 						{

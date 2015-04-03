@@ -77,7 +77,7 @@ public class Constants {
 	public final static int CACHING_TIME = 3600;
 	public final static int USERBEAN_CACHING_TIME = 7200;
 	public final static int LONG_CACHING_TIME = 86400;
-	public static boolean CACHING = true;
+	public final static boolean CACHING = true;
 	public final static double DEFAULT_OPINION_VALUE = 0;
 	public final static int NO_LIMIT = Integer.MAX_VALUE;
 	//URL QUERY PARAMETER

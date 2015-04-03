@@ -24,18 +24,14 @@
 package io.seldon.servlet;
 
 import io.seldon.api.Constants;
-import io.seldon.api.Util;
-import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.db.jdo.servlet.JDOStartup;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
-import io.seldon.semvec.SemanticVectorsStore;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +47,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 public class ResourceManagerListener  implements ServletContextListener {
 
 	private static Logger logger = Logger.getLogger( ResourceManagerListener.class.getName() );
-	public static String baseDir = "";
+	
 
     private ZkSubscriptionHandler zkSubHandler;
 
@@ -78,25 +74,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     		JDOStartup.contextInitialized(sce);
     		MemCachePeer.initialise(props);
     		
-    		baseDir = sce.getServletContext().getRealPath("/");
-    		SemanticVectorsStore.initialise(props);
-    
-    		String backend = props.getProperty("io.seldon.labs.backend");
-    		String caching = props.getProperty("io.seldon.labs.caching");
-    		if(caching !=null && caching.length() > 0) 
-    		{ 
-    			Constants.CACHING = Boolean.parseBoolean(caching); 
-    			logger.warn("CACHING changed to "+Constants.CACHING);
-    		}
-    		if (backend != null)
-    		{
-    			Util.setBackEnd(Util.BackEnd.MYSQL);
-    		}
-    		
-    		DynamicParameterServer.startReloadTimer();
-    		
     		StatsdPeer.initialise(props);
-    		JdoUserDimCache.initialise(props);
 
     		ZkCuratorHandler curatorHandler = ZkCuratorHandler.getPeer();
     		if (curatorHandler != null)
@@ -126,8 +104,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     
     public void contextDestroyed(ServletContextEvent sce)
     {
-    	baseDir = "";
-    	DynamicParameterServer.stopReloadTimer();
         if(MemCachePeer.getClient()!=null){
     	    MemCachePeer.getClient().shutdown();
         }

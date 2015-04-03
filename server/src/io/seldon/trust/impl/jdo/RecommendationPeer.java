@@ -24,11 +24,7 @@
 package io.seldon.trust.impl.jdo;
 
 import io.seldon.api.Constants;
-import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.DimensionBean;
-import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.state.ClientAlgorithmStore;
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.clustering.recommender.CountRecommender;
@@ -36,30 +32,18 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.general.ItemPeer;
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.ClientStrategy;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
-import io.seldon.semvec.DocumentIdTransform;
-import io.seldon.semvec.SemVectorResult;
-import io.seldon.semvec.SemVectorsPeer;
-import io.seldon.semvec.SemanticVectorsStore;
-import io.seldon.semvec.StringTransform;
 import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.CFAlgorithm.CF_ITEM_COMPARATOR;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
 import io.seldon.trust.impl.Recommendation;
 import io.seldon.trust.impl.RecommendationNetwork;
 import io.seldon.trust.impl.RecommendationResult;
-import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.SortResult;
-import io.seldon.trust.impl.Trust;
-import io.seldon.trust.impl.TrustNetworkSupplier.CF_TYPE;
 import io.seldon.util.CollectionTools;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -240,102 +224,7 @@ public class RecommendationPeer {
 	}
 
 
-	public List<SearchResult> findSimilar(long content, int type, int numResults, CFAlgorithm options) {
-		List<SearchResult> res = new ArrayList<>();
-		for(CF_ITEM_COMPARATOR comparator : options.getItemComparators())
-		{
-			switch(comparator)
-			{
-			case SEMANTIC_VECTORS:
-			{
-				SemVectorsPeer sem = SemanticVectorsStore.get(options.getName(), SemanticVectorsStore.PREFIX_FIND_SIMILAR, type);
-				ArrayList<SemVectorResult<Long>> results = new ArrayList<>();
-				sem.searchDocsUsingDocQuery(content, results, new DocumentIdTransform(),numResults);
-
-				int count = 0;
-				for(SemVectorResult<Long> r : results)
-				{
-					if (!r.getResult().equals(content))
-						res.add(new SearchResult(r.getResult(),r.getScore()));
-					if (++count>=numResults)
-						break;
-				}
-			}
-			break;
-			case TRUST_ITEM:
-			{
-				RecommendationNetwork trustNet = new SimpleTrustNetworkProvider(options).getTrustNetwork(content, Trust.TYPE_GENERAL, false, CF_TYPE.ITEM);
-				List<Long> people = trustNet.getSimilarityNeighbourhood(numResults);
-				int count = 0;
-				for(Long t : people)
-				{
-					res.add(new SearchResult(t,trustNet.getSimilarity(t)));
-					if (++count>=numResults)
-						break;
-				}
-			}
-			break;
-			}
-			switch (options.getItemComparatorStrategy())
-			{
-			case FIRST_SUCCESSFUL:
-				if (res != null && res.size()>0)
-				{
-					logger.info("Succesful call to " + comparator.name() + " strategy is "+options.getItemComparatorStrategy().name() + " returning recommendations");
-					return res;
-				}
-				else
-					logger.info("Unsuccessful call to " + comparator.name() + " will try next");
-				break;
-			case WEIGHTED:
-				//FIXME
-				break;
-			}
-
-		}
-
-		return res;
-	}
-
-	public List<SearchResult> searchContent(String query, Long user, DimensionBean d,int numResults,
-				CFAlgorithm options) {
-		ClientPersistable cp = new ClientPersistable(options.getName());
-
-        logger.info("Getting sem vectors peer for user " + user + " query="+query+" dimension item_type:"+(d != null ? d.getItemType() : "null")+" dimension attr:"+(d != null ? d.getAttr() : "null")+" dimension value:"+(d != null ? d.getVal() : "null"));
-		SemVectorsPeer sem = SemanticVectorsStore.get(options.getName(),SemanticVectorsStore.PREFIX_KEYWORD_SEARCH,d != null ? d.getItemType() : null);
-		logger.info("Got sem vectors peer for user " + user + " query="+query);
-		List<SearchResult> res = new ArrayList<>();
-		if (sem != null)
-		{
-			ArrayList<SemVectorResult<Long>> results = new ArrayList<>();
-			logger.info("semvec search start " + user + " query="+query);
-			long t = System.currentTimeMillis();
-			sem.searchDocsUsingTermQuery(query, results, new DocumentIdTransform(),new StringTransform(),numResults);
-			long dur = System.currentTimeMillis() - t;
-			logger.info("semvec search end " + user + " time:"+dur);
-
-			int count = 0;
-			ItemPeer iPeer = null;
-			if (d != null && d.getAttr() != null && d.getVal() != null)
-				iPeer = Util.getItemPeer(cp.getPM());
-			for(SemVectorResult<Long> r : results)
-			{
-				if (iPeer != null) // filter results
-				{
-					Collection<Integer> itemDimensions =  ItemService.getItemDimensions(new ConsumerBean(options.getName()), r.getResult());
-					if (itemDimensions == null || !itemDimensions.contains(d.getDimId()))
-						continue;
-				}
-				res.add(new SearchResult(r.getResult(),r.getScore()));
-				if (++count>=numResults)
-					break;
-			}
-
-
-			Collections.sort(res);
-		}
-		return res;
-	}
+	
 
 	public SortResult sort(Long userId,List<Long> items, CFAlgorithm options, List<Long> recentActions) {
         ClientPersistable cp = new ClientPersistable(options.getName());
@@ -361,39 +250,7 @@ public class RecommendationPeer {
 					break;
 
 
-				case SEMANTIC_VECTORS:
-				{
-					if (debugging)
-						logger.debug("Getting semantic vectors peer for client ["+options.getName()+"]");
-					SemVectorsPeer sem = SemanticVectorsStore.get(options.getName(),SemanticVectorsStore.PREFIX_FIND_SIMILAR);
-					if (debugging)
-						logger.debug("Getting recent actions for user "+userId+" SV History size:"+options.getTxHistorySizeForSV()+" with min "+options.getMinNumTxsForSV());
-					//FIXME - needs to ignore FacebookLikes etc.. needs this done in generic way
-					if (recentActions.size() >= options.getMinNumTxsForSV())
-					{
-						//Limiting the list size
-						List<Long> limitedRecentActions;
-						if(recentActions.size() > options.getTxHistorySizeForSV()) {
-							limitedRecentActions = recentActions.subList(0, options.getTxHistorySizeForSV());
-						}
-						else {
-							limitedRecentActions = recentActions;
-						}
-						if (debugging)
-							logger.debug("Calling semantic vectors to sort");
-						res = sem.sortDocsUsingDocQuery(limitedRecentActions, items, new DocumentIdTransform());
-						if (debugging)
-						{
-							if (res != null && res.size() > 0)
-								logger.debug("Got result of size "+res.size());
-							else
-								logger.debug("Got no results from semantic vectors");
-						}
-					}
-					else if (debugging)
-						logger.debug("Not enough tx for user "+userId+" they had "+recentActions.size()+" min is "+options.getMinNumTxsForSV());
-				}
-					break;
+				
 				case CLUSTER_COUNTS:
 				case CLUSTER_COUNTS_DYNAMIC:
 				{

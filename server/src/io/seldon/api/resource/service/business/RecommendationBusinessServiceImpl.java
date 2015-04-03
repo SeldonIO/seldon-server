@@ -23,18 +23,11 @@
 
 package io.seldon.api.resource.service.business;
 
-import io.seldon.api.APIException;
-import io.seldon.api.Constants;
-import io.seldon.api.Util;
 import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.RecommendationService;
-import io.seldon.api.service.ApiLoggerServer;
 
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +41,8 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
     private RecommendationService recommendationService;
 
     @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, null, 0, null, limit, null,null,null,null);
+    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int dimension, int limit) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimension, null, limit, null,null,null,null);
     }
 
     @Override
@@ -62,48 +55,7 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
         return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensionId, uuid, limit, attributes,algorithms,referrer,recTag);
     }
 
-    @Override
-    public ResourceBean recommendationsForUser(ConsumerBean consumerBean, HttpServletRequest request, String userId) {
-        ResourceBean res = null;
-        try {
-            List<String> keywords = Util.getKeywords(request);
-            Integer itemType = Util.getType(request);
-            Integer dimension = Util.getDimension(request);
-            List<String> algorithms = Util.getAlgorithms(request);
-            /*if(dimension == null) {
-                if(itemType == null) {
-                    dimension = Constants.DEFAULT_DIMENSION;
-                }
-                else {
-                    dimension = ItemService.getDimensionbyItemType((ConsumerBean)con, itemType);
-                }
-            }*/
-            if (dimension == null) {
-                dimension = Constants.DEFAULT_DIMENSION;
-            }
-            //with specific keywords
-            if (keywords != null) {
-                res = recommendationService.getRecommendations(consumerBean, userId, keywords, Util.getLimit(request), Util.getFull(request), dimension, algorithms);
-            } else {
-                int limit = Util.getLimit(request);
-                boolean full = Util.getFull(request);
-//                res = recommendationService.getRecommendations(consumerBean, userId, itemType, dimension, limit, full, algorithms);
-            }
-        } catch (APIException e) {
-            ApiLoggerServer.log(this, e);
-            res = new ErrorBean(e);
-        } catch (NullPointerException e) {
-            logger.error("NullPointer", e);
-            ApiLoggerServer.log(this, e);
-            APIException apiEx = new APIException(APIException.RESOURCE_NOT_FOUND);
-            res = new ErrorBean(apiEx);
-        } catch (Exception e) {
-            ApiLoggerServer.log(this, e);
-            APIException apiEx = new APIException(APIException.GENERIC_ERROR);
-            res = new ErrorBean(apiEx);
-        }
-        return res;
-    }
+  
 
    
 

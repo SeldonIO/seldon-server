@@ -42,8 +42,6 @@ import io.seldon.general.ItemType;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.jdo.RecommendationPeer;
 
 import java.util.Collection;
@@ -130,36 +128,7 @@ public class ItemService {
 		return bean;
 	} 
 	
-	public ListBean getItemsByKeyword(ConsumerBean c, List<String> keywords, int limit,boolean full,int dimension) throws APIException {
-		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getItemsBeanKey(c.getShort_name(),keywords.toString(), full));
-		bean = Util.getLimitedBean(bean, limit);
-		if(bean == null) {
-			bean = new ListBean();
-            CFAlgorithm cfAlgorithm;
-            try {
-                cfAlgorithm = Util.getAlgorithmService().getAlgorithmOptions(c);
-            } catch (CloneNotSupportedException e) {
-                throw new APIException(APIException.CANNOT_CLONE_CFALGORITHM);
-            }
-            int counter = 1;
-            for(String k : keywords) {
-				List<SearchResult> res = recommendationPeer.searchContent(k,null,ItemService.getDimension(c, dimension),limit,cfAlgorithm);
-				for(SearchResult r : res) {
-					Item i = null;
-					ItemBean ib = null;
-					if(full) { i = Util.getItemPeer(c).getItem(r.getId()); }
-					if(i!=null) { ib = new ItemBean(i,full,c); }
-					else {	ib = new ItemBean(c,r.getId());	}
-					bean.addBean(ib);
-					if(counter++>limit) { return bean; }
-				}
-				bean.setRequested(limit);
-				bean.setSize(bean.getSize()+res.size());
-			}
-			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getItemsBeanKey(c.getShort_name(),keywords.toString(),full),bean,ITEMS_CACHING_TIME_SECS);	
-		}
-		return bean;
-	}
+	
 	
 	public static ListBean getItemsByName(ConsumerBean c, int limit, boolean full, String name, int dimension) throws APIException {
 		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getItemsBeanKeyByName(c.getShort_name(), full, name,dimension));
