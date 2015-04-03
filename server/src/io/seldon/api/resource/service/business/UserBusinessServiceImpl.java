@@ -32,6 +32,7 @@ import io.seldon.api.resource.service.UserService;
 import io.seldon.api.service.ApiLoggerServer;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by: marc on 14/08/2012 at 10:56
@@ -39,7 +40,8 @@ import org.apache.log4j.Logger;
 public class UserBusinessServiceImpl implements UserBusinessService {
     private static final Logger logger = Logger.getLogger(UserBusinessServiceImpl.class);
 
-    
+    @Autowired
+	private UserService userService;
 
 
     @Override
@@ -47,7 +49,7 @@ public class UserBusinessServiceImpl implements UserBusinessService {
         ResourceBean responseBean;
         
         try {
-            UserService.updateUser((ConsumerBean) consumerBean, userBean,async);
+            userService.updateUser((ConsumerBean) consumerBean, userBean,async);
             responseBean = userBean;
         } catch (APIException e) {
             ApiLoggerServer.log(this, e);

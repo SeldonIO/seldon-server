@@ -23,12 +23,20 @@
 
 package io.seldon.api.caching;
 
-import java.util.Properties;
+import io.seldon.api.state.NewClientListener;
+import io.seldon.api.state.options.DefaultOptions;
+import io.seldon.api.state.zk.ZkClientConfigHandler;
+
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import javax.annotation.PostConstruct;
 
-public class ClientIdCacheStore {
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ClientIdCacheStore implements NewClientListener {
 	private static Logger logger = Logger.getLogger(ClientIdCacheStore.class.getName());
 	
 	private ConcurrentHashMap<String,ClientIdCache> userCaches = new ConcurrentHashMap<>();
@@ -37,17 +45,22 @@ public class ClientIdCacheStore {
 	private static final String PROP_PREFIX = "io.seldon.idstore";
 	private static final int DEF_USER_CACHE_SIZE = 10000;
 	private static final int DEF_ITEM_CACHE_SIZE = 500;
-	private static ClientIdCacheStore store;
 	
-	public static ClientIdCacheStore get()
+	DefaultOptions options;
+	ZkClientConfigHandler clientConfigHandler;
+	
+	@Autowired
+	public ClientIdCacheStore(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
 	{
-		return store;
+		this.options = options;
+		this.clientConfigHandler = clientConfigHandler;
+		clientConfigHandler.addNewClientListener(this, true);
 	}
 	
-	public static ClientIdCacheStore initialise(Properties props)
+	@PostConstruct
+	public void initialise()
 	{
-		store = new ClientIdCacheStore();
-		String clientProp = props.getProperty(PROP_PREFIX+".clients");
+		String clientProp = options.getOption(PROP_PREFIX+".clients");
 		if (clientProp != null)
 		{
 			String[] clients = clientProp.split(",");
@@ -55,20 +68,37 @@ public class ClientIdCacheStore {
 			{
 				String client = clients[i];
 				
-				int itemSize = DEF_ITEM_CACHE_SIZE;
-				String val = props.getProperty(PROP_PREFIX+"."+client+".maxitems");
-				if (val != null)
-					itemSize = Integer.parseInt(val);
-				store.addItemCache(client, itemSize);
-				
-				int userSize = DEF_USER_CACHE_SIZE;
-				val = props.getProperty(PROP_PREFIX+"."+client+".maxusers");
-				if (val != null)
-					userSize = Integer.parseInt(val);
-				store.addUserCache(client, userSize);
+				addClient(client);;
 			}
 		}
-		return store;
+	}
+	
+	private void addClient(String client)
+	{
+		int itemSize = DEF_ITEM_CACHE_SIZE;
+		String val = options.getOption(PROP_PREFIX+"."+client+".maxitems");
+		if (val != null)
+			itemSize = Integer.parseInt(val);
+		addItemCache(client, itemSize);
+		
+		int userSize = DEF_USER_CACHE_SIZE;
+		val = options.getOption(PROP_PREFIX+"."+client+".maxusers");
+		if (val != null)
+			userSize = Integer.parseInt(val);
+		addUserCache(client, userSize);
+	}
+	
+	@Override
+	public void clientAdded(String client) {
+		logger.info("Adding client: "+client);
+		addClient(client);
+	}
+
+	@Override
+	public void clientDeleted(String client) {
+		logger.info("Removing client: "+client);
+		itemCaches.remove(client);
+		userCaches.remove(client);
 	}
 	
 	private void addItemCache(String client,int size)

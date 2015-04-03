@@ -31,13 +31,18 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.service.ApiLoggerServer;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class ItemBusinessServiceImpl implements ItemBusinessService {
 
+	 @Autowired
+	 private ItemService itemService;
+	
     @Override
     public ResourceBean updateItem(ConsumerBean consumerBean, ItemBean itemBean) {
         ResourceBean responseBean;
         try {
-            ItemService.updateItem((ConsumerBean) consumerBean, itemBean);
+            itemService.updateItem((ConsumerBean) consumerBean, itemBean);
             responseBean = itemBean;
         } catch (APIException e) {
             ApiLoggerServer.log(this, e);

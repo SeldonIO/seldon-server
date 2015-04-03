@@ -40,6 +40,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,6 +49,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+	
+	@Autowired
+	private ClientIdCacheStore idCache;
 	
     private static Logger logger = Logger.getLogger(UserService.class.getName());
     public static final int USERNAME_MAX_LENGTH = 25;
@@ -98,12 +102,12 @@ public class UserService {
 	}
 
 
-    public static Long getInternalUserId(ConsumerBean c, String id) throws APIException {
+    public Long getInternalUserId(ConsumerBean c, String id) throws APIException {
         return getInternalUserId(c.getShort_name(), id);
     }
 
 
-    public static Long getInternalUserId(String consumerShortName, String id) throws APIException {
+    public Long getInternalUserId(String consumerShortName, String id) throws APIException {
 		 Long res = null;
 		 res = getInternalUserIdInternal(consumerShortName, id);
          if (res == null)
@@ -115,9 +119,9 @@ public class UserService {
 		return res;
 	}
 
-    public static Long getInternalUserIdInternal(String consumerShortName, String id) {
+    public Long getInternalUserIdInternal(String consumerShortName, String id) {
         Long res = null;
-        res = ClientIdCacheStore.get().getInternalUserId(consumerShortName, id);
+        res = idCache.getInternalUserId(consumerShortName, id);
         if (res == null)
         {
             String userInternalId = MemCacheKeys.getUserInternalId(consumerShortName, id);
@@ -126,7 +130,7 @@ public class UserService {
                 User u = Util.getUserPeer(consumerShortName).getUser(id);
                 if(u!=null) {
                     res = u.getUserId();
-                    ClientIdCacheStore.get().putUserId(consumerShortName, id, res);
+                    idCache.putUserId(consumerShortName, id, res);
                     //MemCachePeer.put(userInternalId, res);
                     cacheInternalUserId(consumerShortName, id, res);
                 }
@@ -146,10 +150,10 @@ public class UserService {
         MemCachePeer.put(clientIdKey, internalId,Constants.CACHING_TIME);
     }
 
-    public static String getClientUserId(String consumer, Long id){
+    public String getClientUserId(String consumer, Long id){
         if(id == null) { throw new APIException(APIException.USER_NOT_FOUND); }
         String res = null;
-        res = ClientIdCacheStore.get().getExternalUserId(consumer, id);
+        res = idCache.getExternalUserId(consumer, id);
         if (res == null)
             res = (String)MemCachePeer.get(MemCacheKeys.getUserClientId(consumer, id));
         if(res==null) {
@@ -158,7 +162,7 @@ public class UserService {
                 res = u.getClientUserId();
                 // users may be inferred, hence have no client id
                 if ( res != null ) {
-                    ClientIdCacheStore.get().putUserId(consumer, res, id);
+                    idCache.putUserId(consumer, res, id);
                     cacheClientUserId(consumer, id, res);
                 }
             }
@@ -170,7 +174,7 @@ public class UserService {
         return res;
     }
 
-	public static String getClientUserId(ConsumerBean c, Long id) throws APIException {
+	public String getClientUserId(ConsumerBean c, Long id) throws APIException {
         return getClientUserId(c.getShort_name(), id);
 	}
 
@@ -202,7 +206,7 @@ public class UserService {
         cacheInternalUserId(consumerBean.getShort_name(), clientId, internalId);
     }
 
-    public static User addUser(ConsumerBean c,UserBean bean) {
+    public User addUser(ConsumerBean c,UserBean bean) {
 		//check if the user is already in the system
 		if(bean.getId()!=null) {
 			Long id = getInternalUserIdInternal(c.getShort_name(),bean.getId());
@@ -224,14 +228,14 @@ public class UserService {
         return u;
 	}
 
-    private static void cacheUser(ConsumerBean c, UserBean bean, long userId) {
-        ClientIdCacheStore.get().putUserId(c.getShort_name(), bean.getId(), userId);
+    private void cacheUser(ConsumerBean c, UserBean bean, long userId) {
+        idCache.putUserId(c.getShort_name(), bean.getId(), userId);
         cacheInternalUserId(c.getShort_name(), bean.getId(), userId);
         MemCachePeer.put(MemCacheKeys.getUserBeanKey(c.getShort_name(),
                 bean.getId(), bean.getAttributesName() != null), bean, Constants.USERBEAN_CACHING_TIME);
     }
 
-    public static User updateUser(ConsumerBean c,UserBean bean,boolean async) {
+    public User updateUser(ConsumerBean c,UserBean bean,boolean async) {
         UserBean user = null;
         Long userId;
         boolean fullUpdate = (bean.getAttributes()!=null && bean.getAttributes().size() > 0)

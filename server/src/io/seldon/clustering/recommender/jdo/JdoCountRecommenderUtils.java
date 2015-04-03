@@ -29,25 +29,13 @@ import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.UserClusterStore;
 import io.seldon.db.jdo.ClientPersistable;
 
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
 
 public class JdoCountRecommenderUtils extends ClientPersistable {
 
 	private static Logger logger = Logger.getLogger(JdoCountRecommenderUtils.class.getName());
 	
-	public static boolean memoryBasedOnly = true;
-	
-	public static void initialise(Properties props)
-	{
-		String memOnly = props.getProperty("io.seldon.clusters.memoryonly");
-		if (memOnly != null)
-		{
-			memoryBasedOnly = Boolean.parseBoolean(memOnly);
-		}
-		logger.info("Memory cluster only set to:"+memoryBasedOnly);
-	}
+	public static boolean memoryBasedOnly = false;
 	
 	public JdoCountRecommenderUtils(String client) {
 		super(client);

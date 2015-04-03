@@ -30,27 +30,27 @@ public interface ClusterCountStore {
 	public void setAlpha(double alpha); // time decay parameter
 	public void add(int clusterId,long itemId,double weight,long clusterTimestamp);
 	public void add(int clusterId,long itemId,double weight,long clusterTimestamp,long time);
-	public double getCount(int clusterId,long itemId,long timestamp,long time);
+	public double getCount(int clusterId,long itemId,long timestamp);
 	
 	/*
 	 * Global methods
 	 */
 	//Global top counts
-	public Map<Long,Double> getTopCounts(long time,int limit, double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCounts(int limit, double decay) throws ClusterCountNoImplementationException;
 	//Global top counts but restricted to a dimension for returned items
-	public Map<Long,Double> getTopCountsByDimension(int dimension,long time,int limit, double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCountsByDimension(int dimension,int limit, double decay) throws ClusterCountNoImplementationException;
 	//Global top counts but restricted to two dimensions for returned items
-	public Map<Long,Double> getTopCountsByTwoDimensions(int dimension1,int dimension2,long time,int limit, double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCountsByTwoDimensions(int dimension1,int dimension2,int limit, double decay) throws ClusterCountNoImplementationException;
 	
 	/*
 	 * Methods restricted to a cluster
 	 */
 	//top counts within a cluster
-	public Map<Long,Double> getTopCounts(int clusterId,long timestamp,long time,int limit, double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCounts(int clusterId,long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;
 	//top counts within a cluster restricted to a dimension
-	public Map<Long,Double> getTopCountsByDimension(int clusterId,int dimension,long timestamp,long time,int limit, double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCountsByDimension(int clusterId,int dimension,long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;
 	//top significant items within a cluster restricted to a dimension
-	public Map<Long,Double> getTopSignificantCountsByDimension(int clusterId,int dimension,long timestamp,long time,int limit, double decay) throws ClusterCountNoImplementationException;	
+	public Map<Long,Double> getTopSignificantCountsByDimension(int clusterId,int dimension,long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;	
 
 
 

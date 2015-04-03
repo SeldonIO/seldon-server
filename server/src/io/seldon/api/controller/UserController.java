@@ -59,6 +59,9 @@ public class UserController {
 
     @Autowired
     private UserBusinessService userBusinessService;
+    
+    @Autowired
+	private UserService userService;
 
 	@RequestMapping(value="/users", method = RequestMethod.GET)
 	public @ResponseBody
@@ -133,7 +136,7 @@ public class UserController {
         if (con instanceof ConsumerBean) {
             try {
                 final ConsumerBean consumerBean = (ConsumerBean) con;
-                UserService.addUser(consumerBean, bean);
+                userService.addUser(consumerBean, bean);
                 responseBean = bean;
             } catch (APIException e) {
                 ApiLoggerServer.log(this, e);

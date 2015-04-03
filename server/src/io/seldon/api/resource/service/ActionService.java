@@ -25,7 +25,6 @@ package io.seldon.api.resource.service;
 
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.logging.ActionLogger;
@@ -80,17 +79,23 @@ public class ActionService {
     private ItemService itemService;
 
     @Autowired
+    private UserService userService;
+    
+    @Autowired
     private ClientAlgorithmStore clientAlgorithmStore;
 
     @Autowired
     private DefaultOptions defaultOptions;
+    
+    @Autowired
+    private JdoAsyncActionFactory asyncActionFactory;
 	
-	public static ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
+	public ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false));
 		bean = Util.getLimitedBean(bean, limit);
 		if(bean == null) {
 			bean = new ListBean();
-			Collection<Action> res = Util.getActionPeer(c).getUserActions(UserService.getInternalUserId(c, userId),limit);
+			Collection<Action> res = Util.getActionPeer(c).getUserActions(userService.getInternalUserId(c, userId),limit);
 			for(Action a : res) { bean.addBean(new ActionBean(a,c,full)); }
 			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false),bean,Constants.CACHING_TIME);
 		}
@@ -98,24 +103,24 @@ public class ActionService {
 			
 	}
 
-	public static ListBean getItemActions(ConsumerBean c, String itemId, int limit, boolean full) throws APIException {
+	public ListBean getItemActions(ConsumerBean c, String itemId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getItemActionsBeanKey(c.getShort_name(), itemId, full, false));
 		bean = Util.getLimitedBean(bean, limit);
 		if(bean == null) {
 			bean = new ListBean();
-			Collection<Action> res = Util.getActionPeer(c).getItemActions(ItemService.getInternalItemId(c, itemId), limit);
+			Collection<Action> res = Util.getActionPeer(c).getItemActions(itemService.getInternalItemId(c, itemId), limit);
 			for(Action a : res) { bean.addBean(new ActionBean(a,c,full)); }
 			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getItemActionsBeanKey(c.getShort_name(), itemId, full, false),bean,Constants.CACHING_TIME);
 		}
 		return bean;
 	} 
 	
-	public static ListBean getActions(ConsumerBean c, String userId, String itemId, int limit, boolean full) throws APIException {
+	public ListBean getActions(ConsumerBean c, String userId, String itemId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getUserItemActionBeanKey(c.getShort_name(), userId, itemId, full, false));
 		bean = Util.getLimitedBean(bean, limit);
 		if(bean == null) {
 			bean = new ListBean();
-			Collection<Action> res = Util.getActionPeer(c).getUserItemActions(ItemService.getInternalItemId(c, itemId), UserService.getInternalUserId(c, userId), limit);
+			Collection<Action> res = Util.getActionPeer(c).getUserItemActions(itemService.getInternalItemId(c, itemId), userService.getInternalUserId(c, userId), limit);
 			for(Action a : res) { bean.addBean(new ActionBean(a,c,full)); }
 			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getUserItemActionBeanKey(c.getShort_name(), userId, itemId, full, false),bean,Constants.CACHING_TIME);
 		}
@@ -167,10 +172,9 @@ public class ActionService {
 	
 	public void addAction(ConsumerBean c,ActionBean bean) {
 		
-		JdoAsyncActionFactory asyncFactory = JdoAsyncActionFactory.get();
 		AsyncActionQueue q = null;
-		if (asyncFactory != null)
-			q = asyncFactory.get(c.getShort_name());
+		if (asyncActionFactory != null)
+			q = asyncActionFactory.get(c.getShort_name());
 		boolean doAsyncAction = q != null;
 		
 		
@@ -181,7 +185,7 @@ public class ActionService {
 		
 		try 
 		{ 
-			itemId = ItemService.getInternalItemId(c, bean.getItem()); 
+			itemId = itemService.getInternalItemId(c, bean.getItem()); 
 		}
 		catch(APIException e) 
 		{
@@ -192,13 +196,13 @@ public class ActionService {
 					//TODO - addItem can throw an exception if item is now already created - change?
 					try
 					{
-						Item item = ItemService.addItem(c, new ItemBean(bean.getItem()));
+						Item item = itemService.addItem(c, new ItemBean(bean.getItem()));
 						itemId = item.getItemId();
 					}
 					catch (APIException e2)
 					{
 						if(e2.getError_id()==APIException.ITEM_DUPLICATED)
-							itemId = ItemService.getInternalItemId(c, bean.getItem()); 
+							itemId = itemService.getInternalItemId(c, bean.getItem()); 
 						else
 							throw e2;
 					}
@@ -212,7 +216,7 @@ public class ActionService {
 		
 		try 
 		{ 
-			userId = UserService.getInternalUserId(c, bean.getUser()); 
+			userId = userService.getInternalUserId(c, bean.getUser()); 
 		}
 		catch(APIException e) 
 		{
@@ -223,13 +227,13 @@ public class ActionService {
 					//TODO - addUser can throw an exception if user is now already created - change?
 					try
 					{
-						User user = UserService.addUser(c, new UserBean(bean.getUser()));
+						User user = userService.addUser(c, new UserBean(bean.getUser()));
 						userId = user.getUserId();
 					}
 					catch(APIException e2) 
 					{
 						if(e2.getError_id()==APIException.USER_DUPLICATED)
-							userId = UserService.getInternalUserId(c, bean.getUser()); 
+							userId = userService.getInternalUserId(c, bean.getUser()); 
 						else
 							throw e2;
 					}
@@ -245,8 +249,6 @@ public class ActionService {
 		if (userId != null && itemId != null)
 		{
 			Action a = bean.createAction(c,userId,itemId);
-			if (TestingUtils.get().getTesting())
-				TestingUtils.get().setLastActionTime(a.getDate());
 			logger.debug("Action created with Async "+doAsyncAction+" for client "+c.getShort_name()+" userId:"+userId+" itemId:"+itemId+" clientUserId:"+a.getClientUserId()+" clientItemId:"+a.getClientItemId());
 			
 			ActionLogger.log(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag());

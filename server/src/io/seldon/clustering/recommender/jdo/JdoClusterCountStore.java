@@ -23,6 +23,13 @@
 
 package io.seldon.clustering.recommender.jdo;
 
+import io.seldon.clustering.recommender.ClusterCountNoImplementationException;
+import io.seldon.clustering.recommender.ClusterCountStore;
+import io.seldon.db.jdo.ClientPersistable;
+import io.seldon.db.jdo.DatabaseException;
+import io.seldon.db.jdo.Transaction;
+import io.seldon.db.jdo.TransactionPeer;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,15 +38,7 @@ import java.util.Map;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
-import io.seldon.api.TestingUtils;
-import io.seldon.clustering.recommender.ClusterCountStore;
-import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.db.jdo.DatabaseException;
-import io.seldon.db.jdo.Transaction;
-import io.seldon.db.jdo.TransactionPeer;
 import org.apache.log4j.Logger;
-
-import io.seldon.clustering.recommender.ClusterCountNoImplementationException;
 
 public class JdoClusterCountStore extends ClientPersistable implements ClusterCountStore {
 
@@ -61,7 +60,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 		AsyncClusterCountStore asyncStore = AsyncClusterCountFactory.get().get(this.clientName);
 		if (asyncStore != null)
 		{
-			asyncStore.put(new AsyncClusterCountStore.ClusterCount(clusterId,itemId, TestingUtils.getTime(),weight));
+			asyncStore.put(new AsyncClusterCountStore.ClusterCount(clusterId,itemId,weight));
 		}
 		else
 		{
@@ -101,7 +100,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 		AsyncClusterCountStore asyncStore = AsyncClusterCountFactory.get().get(this.clientName);
 		if (asyncStore != null)
 		{
-			asyncStore.put(new AsyncClusterCountStore.ClusterCount(clusterId,itemId,time,weight));
+			asyncStore.put(new AsyncClusterCountStore.ClusterCount(clusterId,itemId,weight));
 		}
 		else
 		{
@@ -135,7 +134,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	 * timestamp and time is ignore for db counts - the db value for these is used. They are assumed to be up-todate with clusters.
 	 */
 	@Override
-	public double getCount(int clusterId, long itemId,long timestamp,long time) {
+	public double getCount(int clusterId, long itemId,long timestamp) {
 		final PersistenceManager pm = getPM();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select count from cluster_counts where id=? and item_id=?" );
 		query.setResultClass(Double.class);
@@ -165,8 +164,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	 * timestamp and time is ignore for db counts - the db value for these is used. They are assumed to be up-to-date with clusters.
 	 */
 	@Override
-	public Map<Long, Double> getTopCounts(int clusterId, long timestamp,
-			long time, int limit, double decay) {
+	public Map<Long, Double> getTopCounts(int clusterId, long timestamp, int limit, double decay) {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();
 		Query query = pm.newQuery( "javax.jdo.query.SQL", "select item_id,exp(-(greatest(unix_timestamp()-t,0)/?))*count as decayedCount from cluster_counts where id=? order by decayedCount desc limit "+limit );
@@ -183,7 +181,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	//TODO - need to use decay/alpha
 	//ignore time use db time
 	@Override
-	public Map<Long, Double> getTopCounts(long time, int limit, double decay)
+	public Map<Long, Double> getTopCounts(int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();
@@ -201,7 +199,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 
 	@Override
 	public Map<Long, Double> getTopCountsByDimension(int clusterId, int dimension,
-			long timestamp, long time, int limit, double decay)
+			long timestamp, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();
@@ -218,7 +216,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 
 	@Override
 	public Map<Long, Double> getTopSignificantCountsByDimension(int clusterId,
-			int dimension, long timestamp, long time, int limit, double decay)
+			int dimension, long timestamp, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();
@@ -241,8 +239,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 
 
 	@Override
-	public Map<Long, Double> getTopCountsByDimension(int dimension,
-		long time, int limit, double decay)
+	public Map<Long, Double> getTopCountsByDimension(int dimension, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();
@@ -260,7 +257,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 
 	@Override
 	public Map<Long, Double> getTopCountsByTwoDimensions(int dimension1,
-			int dimension2, long time, int limit, double decay)
+			int dimension2, int limit, double decay)
 			throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();

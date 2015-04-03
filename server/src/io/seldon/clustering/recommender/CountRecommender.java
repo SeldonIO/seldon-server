@@ -24,7 +24,6 @@
 package io.seldon.clustering.recommender;
 
 import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.service.ItemService;
@@ -42,7 +41,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -55,7 +53,6 @@ public class CountRecommender {
 	ClusterCountStore clusterCounts;
 	String client;
 	boolean fillInZerosWithMostPopular = true;
-	boolean testMode = false;
 	String referrer;
 	
 	private static int EXPIRE_COUNTS = 300;
@@ -63,29 +60,11 @@ public class CountRecommender {
 	public static final int BUCKET_CLUSTER_ID = -1;
 	
 	
-	public static void initialise(Properties props)
-	{
-		String expireCountsTimeout = props.getProperty("io.seldon.memcache.countrec.count.timeout");
-		if (expireCountsTimeout != null)
-		{
-			EXPIRE_COUNTS = Integer.parseInt(expireCountsTimeout);
-		}
-		String expireClustersTimeout = props.getProperty("io.seldon.memcache.countrec.clusters.timeout");
-		if (expireClustersTimeout != null)
-		{
-			EXPIRE_USER_CLUSTERS = Integer.parseInt(expireClustersTimeout);
-		}
-		logger.info("Expire timeout for count recommender counts:"+EXPIRE_COUNTS);
-		logger.info("Expire timeout for count recommender clusters:"+EXPIRE_USER_CLUSTERS);
-	}
-	
 	public CountRecommender(String client,UserClusterStore userClusters,
 			ClusterCountStore clusterCounts) {
 		this.userClusters = userClusters;
 		this.clusterCounts = clusterCounts;
 		this.client = client;
-		this.testMode = TestingUtils.get().getTesting();
-		logger.debug("Test mode is "+testMode);
 	}
 	
 	
@@ -512,7 +491,7 @@ public class CountRecommender {
 	{
 		List<UserCluster> clusters = null;
 		String memcacheKey = null;
-		if (userClusters.needsExternalCaching() && !testMode)
+		if (userClusters.needsExternalCaching())
 		{
 			memcacheKey = MemCacheKeys.getClustersForUser(client,userId);
 			clusters = (List<UserCluster>) MemCachePeer.get(memcacheKey);
@@ -520,7 +499,7 @@ public class CountRecommender {
 		if (clusters == null)
 		{
 			clusters = userClusters.getClusters(userId);
-			if (userClusters.needsExternalCaching()  && !testMode)
+			if (userClusters.needsExternalCaching())
 				MemCachePeer.put(memcacheKey, clusters, EXPIRE_USER_CLUSTERS);
 		}
 		
@@ -543,8 +522,8 @@ public class CountRecommender {
 					new UpdateRetriever<ClustersCounts>() {
 						@Override
 						public ClustersCounts retrieve() throws Exception {
-							logger.debug("Trying to get top counts for dimension from db : testMode is " + testMode + " for client " + client + " dimension:" + dimension + " dimension2:" + dimension2);
-							Map<Long, Double> itemMap = clusterCounts.getTopCountsByTwoDimensions(dimension, dimension2, TestingUtils.getTime(), limit, decay);
+							logger.debug("Trying to get top counts for dimension from db : for client " + client + " dimension:" + dimension + " dimension2:" + dimension2);
+							Map<Long, Double> itemMap = clusterCounts.getTopCountsByTwoDimensions(dimension, dimension2, limit, decay);
 							return new ClustersCounts(itemMap, 0);
 						}
 					}
@@ -554,8 +533,8 @@ public class CountRecommender {
 					new UpdateRetriever<ClustersCounts>() {
 						@Override
 						public ClustersCounts retrieve() throws Exception {
-							logger.debug("Trying to get top counts for dimension from db : testMode is " + testMode + " for client " + client + " dimension:" + dimension);
-							Map<Long, Double> itemMap = clusterCounts.getTopCountsByDimension(dimension, TestingUtils.getTime(), limit, decay);
+							logger.debug("Trying to get top counts for dimension from db : testMode is for client " + client + " dimension:" + dimension);
+							Map<Long, Double> itemMap = clusterCounts.getTopCountsByDimension(dimension, limit, decay);
 
 							return new ClustersCounts(itemMap, 0);
 						}
@@ -612,8 +591,8 @@ public class CountRecommender {
 						new UpdateRetriever<ClustersCounts>() {
 							@Override
 							public ClustersCounts retrieve() throws Exception{
-								logger.debug("Trying to get top counts from db : testMode is " + testMode + " for client " + client + " cluster id:" + clusterId + " dimension:" + dimension + " limit:" + limit);
-								Map<Long, Double> itemMap = clusterCounts.getTopSignificantCountsByDimension(clusterId, dimension, timestamp, TestingUtils.getTime(), limit, decay);
+								logger.debug("Trying to get top counts from db : testMode is for client " + client + " cluster id:" + clusterId + " dimension:" + dimension + " limit:" + limit);
+								Map<Long, Double> itemMap = clusterCounts.getTopSignificantCountsByDimension(clusterId, dimension, timestamp, limit, decay);
 								return new ClustersCounts(itemMap, timestamp);
 							}
 						}
@@ -623,8 +602,8 @@ public class CountRecommender {
 						new UpdateRetriever<ClustersCounts>() {
 							@Override
 							public ClustersCounts retrieve() throws Exception {
-								logger.debug("Trying to get top counts from db : testMode is " + testMode + " for client " + client + " cluster id:" + clusterId + " dimension:" + dimension + " limit:" + limit);
-								Map<Long, Double> itemMap = clusterCounts.getTopCountsByDimension(clusterId, dimension, timestamp, TestingUtils.getTime(), limit, decay);
+								logger.debug("Trying to get top counts from db : testMode is for client " + client + " cluster id:" + clusterId + " dimension:" + dimension + " limit:" + limit);
+								Map<Long, Double> itemMap = clusterCounts.getTopCountsByDimension(clusterId, dimension, timestamp, limit, decay);
 								return new ClustersCounts(itemMap, timestamp);
 							}
 						}
@@ -639,7 +618,7 @@ public class CountRecommender {
 			@Override
 			public ClustersCounts retrieve() throws Exception {
 				logger.debug("Retrieving global cluster top counts from store");
-				Map<Long,Double> itemMap = clusterCounts.getTopCounts(TestingUtils.getTime(), limit, decay);
+				Map<Long,Double> itemMap = clusterCounts.getTopCounts(limit, decay);
 				return new ClustersCounts(itemMap,0);
 			}
 		});
@@ -650,7 +629,7 @@ public class CountRecommender {
 		return getClusterCounts(MemCacheKeys.getTopClusterCounts(client, clusterId, limit), new UpdateRetriever<ClustersCounts>() {
 			@Override
 			public ClustersCounts retrieve() throws Exception {
-				Map<Long,Double> itemMap = clusterCounts.getTopCounts(clusterId, timestamp, TestingUtils.getTime(), limit, decay);
+				Map<Long,Double> itemMap = clusterCounts.getTopCounts(clusterId, timestamp, limit, decay);
 				return new ClustersCounts(itemMap,timestamp);
 			}
 		});
@@ -667,7 +646,7 @@ public class CountRecommender {
                     Map<Long,Double> itemMap = new HashMap<>();
                     for(Long itemId : items)
                     {
-                        double count = clusterCounts.getCount(clusterId, itemId, timestamp,TestingUtils.getTime());
+                        double count = clusterCounts.getCount(clusterId, itemId, timestamp);
                         itemMap.put(itemId, count);
                     }
                     return new ClustersCounts(itemMap,timestamp);

@@ -23,6 +23,9 @@
 
 package io.seldon.clustering.recommender.jdo;
 
+import io.seldon.db.jdbc.JDBCConnectionFactory;
+import io.seldon.general.Action;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -33,22 +36,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import io.seldon.db.jdbc.JDBCConnectionFactory;
-import io.seldon.general.Action;
-
 public class AsyncClusterCountStore implements Runnable {
 
 	public static class ClusterCount {
 		public int clusterId;
 		public long itemId;
-		public long time;
 		public double weight;
-		public ClusterCount(int clusterId, long itemId, long time,
+		public ClusterCount(int clusterId, long itemId,
 				double weight) {
 			super();
 			this.clusterId = clusterId;
 			this.itemId = itemId;
-			this.time = time;
 			this.weight = weight;
 		}
 		
@@ -323,14 +321,15 @@ public class AsyncClusterCountStore implements Runnable {
     
     private synchronized void addActionBatch(ClusterCount count) throws SQLException
     {
+    	long time = System.currentTimeMillis();
     	countPreparedStatement.setInt(1, count.clusterId);
 		countPreparedStatement.setLong(2, count.itemId);
 		countPreparedStatement.setDouble(3, count.weight);
-		countPreparedStatement.setLong(4,  count.time);
+		countPreparedStatement.setLong(4,  time);
 		countPreparedStatement.setDouble(5, count.weight);
-		countPreparedStatement.setLong(6, count.time);
+		countPreparedStatement.setLong(6, time);
 		countPreparedStatement.setDouble(7, decay);
-		countPreparedStatement.setLong(8,  count.time);
+		countPreparedStatement.setLong(8,  time);
     }
 
     private void addSQL(ClusterCount count) throws SQLException {

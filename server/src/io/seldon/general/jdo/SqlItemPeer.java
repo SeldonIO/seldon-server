@@ -25,7 +25,6 @@ package io.seldon.general.jdo;
 
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.DimensionBean;
 import io.seldon.api.resource.service.ItemService;
@@ -585,22 +584,10 @@ public class SqlItemPeer extends ItemPeer {
 	@Override
 	public List<Long> getRecentItemIds(int dimension, int limit, ConsumerBean c) {
 		Query query;
-		if (TestingUtils.get() != null && TestingUtils.get().getTesting())
-		{
-			logger.warn("Running test version og get recent items");
-			if (dimension != Constants.DEFAULT_DIMENSION)
-				query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id="+dimension+" and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) where unix_timestamp(i.first_op)<"+TestingUtils.getTime()+" order by i.item_id desc limit "+limit);
-			else
-				query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i unix_timestamp(i.first_op)<"+TestingUtils.getTime()+" order by i.item_id desc limit "+limit);
-
-		}
+		if (dimension != Constants.DEFAULT_DIMENSION)
+			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id="+dimension+" and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) order by i.item_id desc limit "+limit);
 		else
-		{
-			if (dimension != Constants.DEFAULT_DIMENSION)
-				query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id="+dimension+" and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) order by i.item_id desc limit "+limit);
-			else
-				query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i order by i.item_id desc limit "+limit);
-		}
+			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i order by i.item_id desc limit "+limit);
 		query.setResultClass(Long.class);
 		Collection<Long> res = (Collection<Long>) query.execute();
 		List<Long> resf = new ArrayList<>(res);

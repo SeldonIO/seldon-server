@@ -60,6 +60,9 @@ public class ActionsController {
 
     @Autowired
     private ActionBusinessServiceImpl actionBusinessService;
+    
+    @Autowired
+    private ActionService actionService;
 
     @RequestMapping(value="/users/{userId}/actions", method = RequestMethod.GET)
 	public @ResponseBody Object retrieveUserActions(@PathVariable String userId, HttpServletRequest req,
@@ -71,7 +74,7 @@ public class ActionsController {
 		if(con instanceof ConsumerBean) {
 			try {
 				MDCKeys.addKeysUser((ConsumerBean)con, userId);
-				res = ActionService.getUserActions((ConsumerBean)con, userId, Util.getLimit(req), Util.getFull(req));
+				res = actionService.getUserActions((ConsumerBean)con, userId, Util.getLimit(req), Util.getFull(req));
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);
@@ -100,7 +103,7 @@ public class ActionsController {
 		if(con instanceof ConsumerBean) {
 			try {
 				MDCKeys.addKeysItem((ConsumerBean)con, itemId);
-				res = ActionService.getItemActions((ConsumerBean)con, itemId, Util.getLimit(req), Util.getFull(req));
+				res = actionService.getItemActions((ConsumerBean)con, itemId, Util.getLimit(req), Util.getFull(req));
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);
@@ -125,7 +128,7 @@ public class ActionsController {
 		if(con instanceof ConsumerBean) {
 			try {
 				MDCKeys.addKeys((ConsumerBean)con, userId,itemId);
-				res = ActionService.getActions((ConsumerBean)con,userId,itemId,Util.getLimit(req), Util.getFull(req));
+				res = actionService.getActions((ConsumerBean)con,userId,itemId,Util.getLimit(req), Util.getFull(req));
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);

@@ -25,10 +25,15 @@ package io.seldon.api.resource.service;
 
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.resource.*;
+import io.seldon.api.resource.ActionBean;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.ItemBean;
+import io.seldon.api.resource.ListBean;
+import io.seldon.api.resource.RecommendationBean;
+import io.seldon.api.resource.RecommendationsBean;
+import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.service.ABTestingServer;
 import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.general.RecommendationStorage;
@@ -38,13 +43,18 @@ import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
 import io.seldon.trust.impl.Recommendation;
 import io.seldon.trust.impl.RecommendationResult;
-import io.seldon.trust.impl.RummbleLabsAPI;
 import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.SortResult;
 import io.seldon.trust.impl.jdo.LastRecommendationBean;
 import io.seldon.trust.impl.jdo.RecommendationPeer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import javax.jdo.JDODataStoreException;
 
@@ -72,7 +82,8 @@ public class RecommendationService {
     private RecommendationStorage recommendationStorage;
     @Autowired
     private ItemService itemService;
-
+    @Autowired
+    private UserService userService;
 
 //    public RecommendationBean getRecommendation(ConsumerBean c, String userId, Integer type, int dimensionId, String itemId, long pos,List<String> algorithms) throws APIException {
 //        RecommendationBean bean;
@@ -105,11 +116,11 @@ public class RecommendationService {
             for (String k : keywords) {
                 word += k + " ";
             }
-            List<SearchResult> res = recommender.searchContent(word, UserService.getInternalUserId(c, userId), ItemService.getDimension(c, dimension), limit, cfAlgorithm);
+            List<SearchResult> res = recommender.searchContent(word, userService.getInternalUserId(c, userId), ItemService.getDimension(c, dimension), limit, cfAlgorithm);
             for (SearchResult r : res) {
                 String itemId = null;
                 try {
-                    itemId = ItemService.getClientItemId(c, r.getId());
+                    itemId = itemService.getClientItemId(c, r.getId());
                 }
                 //item not found
                 catch (APIException a) {
@@ -191,7 +202,7 @@ public class RecommendationService {
 
         long intUserId;
         try { 
-            intUserId = UserService.getInternalUserId(c, userId);	
+            intUserId = userService.getInternalUserId(c, userId);	
         }
         // USER NOT EXISTING
         catch(Exception e) {
@@ -215,14 +226,12 @@ public class RecommendationService {
         List<Long> items = new ArrayList<>();
         for (RecommendationBean r : recs.getList()) {
             try {
-                items.add(ItemService.getInternalItemId(c, r.getItem()));
+                items.add(itemService.getInternalItemId(c, r.getItem()));
             }
             catch(Exception e) {
                 logger.warn("Not possible to rank the item " + r.getItem() + ". The item is not in the system", e);
             }
         }
-
-        boolean testing = TestingUtils.get().getTesting();
 
         //print input list
         logger.debug("Input list for user " + userId + " num." + items.size() + " => " + StringUtils.join(items,","));
@@ -234,7 +243,7 @@ public class RecommendationService {
         itemsToRemove.clear();
         itemsToRemove.addAll(hs);
         List<Long> filteredItems = items;
-        if(!itemsToRemove.isEmpty() && !testing && cfAlgorithm.isRankingRemoveHistory()) { // don't remove items if testing or alg options  says so
+        if(!itemsToRemove.isEmpty() && cfAlgorithm.isRankingRemoveHistory()) { // don't remove items if testing or alg options  says so
             logger.info("Removing recent items for user from list to rank");
             filteredItems = ListUtils.subtract(items, itemsToRemove);
         }
@@ -246,12 +255,12 @@ public class RecommendationService {
         logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
         //INCLUDE VIEWED ITEMS
         //append recentActions (that were in the input list) only if it was able to sort the items (otherwise return an empty list)
-        if(!itemsSorted.isEmpty() && !testing && cfAlgorithm.isRankingRemoveHistory()) { //only add back items if not testing
+        if(!itemsSorted.isEmpty() && cfAlgorithm.isRankingRemoveHistory()) { //only add back items if not testing
             itemsSorted.addAll(itemsToRemove);
         }
         //RESULT LIST
         int pos = 1;
-        for (Long l : itemsSorted) { resBean.addBean(new RecommendationBean(ItemService.getClientItemId(c, l), pos++, null)); }
+        for (Long l : itemsSorted) { resBean.addBean(new RecommendationBean(itemService.getClientItemId(c, l), pos++, null)); }
 
         /*MemCachePeer.put(memcacheKey, res,300);
 	    //}
@@ -325,7 +334,7 @@ public class RecommendationService {
 
             Long internalUserId;
             try {
-                internalUserId = UserService.getInternalUserId(consumerBean, userId);
+                internalUserId = userService.getInternalUserId(consumerBean, userId);
             } catch (APIException e) {
                 internalUserId = Constants.ANONYMOUS_USER;
             }
@@ -350,7 +359,7 @@ public class RecommendationService {
                 String recommendedItemId = null;
                 long internalId = recommendation.getContent();
                 try {
-                    recommendedItemId = ItemService.getClientItemId(consumerBean, internalId);
+                    recommendedItemId = itemService.getClientItemId(consumerBean, internalId);
                 } catch (APIException e) {
                     logger.warn("Item with internal ID " + internalId + " not found; ignoring..." , e);
                 }

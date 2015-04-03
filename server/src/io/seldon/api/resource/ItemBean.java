@@ -23,18 +23,20 @@
 
 package io.seldon.api.resource;
 
+import io.seldon.api.APIException;
+import io.seldon.api.Util;
+import io.seldon.api.resource.service.ItemService;
+import io.seldon.api.resource.service.UserService;
+import io.seldon.general.Item;
+import io.seldon.general.ItemDemographic;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
-import io.seldon.api.APIException;
-import io.seldon.api.Util;
-import io.seldon.api.resource.service.ItemService;
-import io.seldon.api.resource.service.UserService;
-import io.seldon.general.ItemDemographic;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import io.seldon.general.Item;
 
 
 /**
@@ -43,6 +45,10 @@ import io.seldon.general.Item;
 
 @Component
 public class ItemBean extends ResourceBean {
+	
+	@Autowired
+	private ItemService itemService;
+
 	
 	String id;
 	String name;
@@ -62,7 +68,7 @@ public class ItemBean extends ResourceBean {
 	}
 	
 	public ItemBean(ConsumerBean c,long internalItemId) {
-		this.id = ItemService.getClientItemId(c, internalItemId);
+		this.id = itemService.getClientItemId(c, internalItemId);
 	}
 	
 	public ItemBean(String id,String name) {

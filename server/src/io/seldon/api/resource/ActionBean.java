@@ -23,20 +23,28 @@
 
 package io.seldon.api.resource;
 
-import java.util.Date;
-import java.util.List;
-
 import io.seldon.api.APIException;
 import io.seldon.api.resource.service.ItemService;
-import org.springframework.stereotype.Component;
-
 import io.seldon.api.resource.service.UserService;
 import io.seldon.general.Action;
 import io.seldon.general.ExtAction;
 
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 @Component
 public class ActionBean extends ResourceBean {
 
+	 @Autowired
+	 private ItemService itemService;
+
+	 @Autowired
+	 private UserService userService;
+	    
+	
 	Long actionId;
 	String user;
 	String item;
@@ -62,8 +70,8 @@ public class ActionBean extends ResourceBean {
 	}
 	
 	public ActionBean(Action a,ConsumerBean c, boolean full) throws APIException {
-		user = UserService.getClientUserId(c, a.getUserId());
-		item = ItemService.getClientItemId(c, a.getItemId());
+		user = userService.getClientUserId(c, a.getUserId());
+		item = itemService.getClientItemId(c, a.getItemId());
 		actionId = a.getActionId();
 		type = a.getType();
 		date = a.getDate();
@@ -74,8 +82,8 @@ public class ActionBean extends ResourceBean {
 	}
 	
 	public ActionBean(ExtAction a,ConsumerBean c, boolean full) throws APIException {
-		user = UserService.getClientUserId(c, a.getUserId());
-		item = ItemService.getClientItemId(c, a.getItemId());
+		user = userService.getClientUserId(c, a.getUserId());
+		item = itemService.getClientItemId(c, a.getItemId());
 		actionId = a.getActionId();
 		type = a.getType();
 		date = a.getDate();
@@ -173,11 +181,6 @@ public class ActionBean extends ResourceBean {
 		this.recTag = recTag;
 	}
 
-	public Action createAction(ConsumerBean c) {
-		Long itemId = ItemService.getInternalItemId(c, this.getItem());
-		Long userId = UserService.getInternalUserId(c, this.getUser());
-		return createAction(c,userId,itemId);
-	}
 	
 	public Action createAction(ConsumerBean c,Long userId,Long itemId)
 	{

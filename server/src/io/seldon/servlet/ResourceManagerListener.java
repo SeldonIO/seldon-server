@@ -24,20 +24,15 @@
 package io.seldon.servlet;
 
 import io.seldon.api.Constants;
-import io.seldon.api.TestingUtils;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.caching.ClientIdCacheStore;
 import io.seldon.api.service.DynamicParameterServer;
-import io.seldon.api.service.async.JdoAsyncActionFactory;
 import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
-import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
-import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.db.jdo.servlet.JDOStartup;
@@ -83,11 +78,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		String defClientName = props.getProperty("io.seldon.labs.default.client");
     		if(defClientName !=null && defClientName.length() > 0) { Constants.DEFAULT_CLIENT = defClientName; }
 
-    		CountRecommender.initialise(props);
-    		
-    		TestingUtils.initialise(props);
-    		JdoCountRecommenderUtils.initialise(props);
-    		
     		JDOStartup.contextInitialized(sce);
     		MemCachePeer.initialise(props);
     		
@@ -117,11 +107,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     			//}
     		}
     		
-    		//Initialise local cache of user and item ids
-    		ClientIdCacheStore.initialise(props);
-    		
     		//Initialise AsynActionQueue
-    		JdoAsyncActionFactory.create(props);
     		AsyncClusterCountFactory.create(props);
     		
     		//Initialise Memory User Clusters (assumes JDO backend)

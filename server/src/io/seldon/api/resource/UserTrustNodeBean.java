@@ -24,13 +24,7 @@
 package io.seldon.api.resource;
 
 
-import java.util.Date;
-
-import io.seldon.api.resource.service.UserService;
-import io.seldon.general.ExplicitLink;
 import org.springframework.stereotype.Component;
-
-import io.seldon.api.Constants;
 
 /**
  * @author claudio
@@ -101,21 +95,6 @@ public class UserTrustNodeBean extends ResourceBean {
 			return 1;
 	}
 	
-	
-	public ExplicitLink createExplicitLink(ConsumerBean c) {
-		ExplicitLink e = new ExplicitLink();
-		e.setU1(UserService.getInternalUserId(c, this.center));
-		e.setU2(UserService.getInternalUserId(c, this.user));
-		e.setDate(new Date());
-		e.setValue(this.trust);
-		if(this.dimension == null) {
-			e.setType(Constants.DEFAULT_DIMENSION);
-		}
-		else {
-			e.setType(this.dimension);
-		}
-		return e;
-	}
 
 	public void setCenter(String userId) {
 		this.center = userId;

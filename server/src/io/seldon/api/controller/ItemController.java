@@ -23,12 +23,6 @@
 
 package io.seldon.api.controller;
 
-import javax.servlet.http.HttpServletRequest;
-
-import java.util.Date;
-import java.util.List;
-
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
@@ -43,9 +37,21 @@ import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.util.JSONPObject;
 
 /**
  * @author claudio
@@ -146,7 +152,7 @@ public class ItemController {
             try {
             	if (item != null)
             		MDCKeys.addKeysItem((ConsumerBean)con, item.getId());
-                ItemService.addItem((ConsumerBean) con, item);
+                itemService.addItem((ConsumerBean) con, item);
                 responseBean = item;
             } catch (APIException e) {
                 ApiLoggerServer.log(this, e);

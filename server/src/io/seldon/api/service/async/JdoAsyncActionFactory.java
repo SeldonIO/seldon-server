@@ -23,13 +23,22 @@
 
 package io.seldon.api.service.async;
 
+import io.seldon.api.state.NewClientListener;
+import io.seldon.api.state.options.DefaultOptions;
+import io.seldon.api.state.zk.ZkClientConfigHandler;
+
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import javax.annotation.PostConstruct;
 
-public class JdoAsyncActionFactory {
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class JdoAsyncActionFactory implements NewClientListener{
 
 	
 	private static final String DEF_HOSTNAME = "TEST";
@@ -38,7 +47,6 @@ public class JdoAsyncActionFactory {
 	
 	
 	private ConcurrentHashMap<String,AsyncActionQueue> queues = new ConcurrentHashMap<>();
-	private static JdoAsyncActionFactory factory;
 	
 	private static int DEF_QTIMEOUT_SECS = 5;
 	private static int DEF_MAXQSIZE = 100000;
@@ -51,86 +59,87 @@ public class JdoAsyncActionFactory {
 	public static final String ASYNC_PROP_PREFIX = "io.seldon.asyncactions";
 	private static Properties props;
 	
-	private static boolean asyncUserWrites = false;
-	private static boolean asyncItemWrites = false;
+	private static boolean asyncUserWrites = true;
+	private static boolean asyncItemWrites = true;
 	
 	public static boolean isActive() {
 		return active;
 	}
 
-	public static JdoAsyncActionFactory create(Properties properties)
+	DefaultOptions options;
+	ZkClientConfigHandler clientConfigHandler;
+	
+	@Autowired
+	public JdoAsyncActionFactory(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
 	{
-		props = properties;
-		asyncUserWrites = "true".equals(props.getProperty(ASYNC_PROP_PREFIX+".users"));
-		asyncItemWrites = "true".equals(props.getProperty(ASYNC_PROP_PREFIX+".items"));
-		String isActive = props.getProperty(ASYNC_PROP_PREFIX+".active");
-		active = "true".equals(isActive);
-		if (active)
+		this.options = options;
+		this.clientConfigHandler = clientConfigHandler;
+		clientConfigHandler.addNewClientListener(this, true);
+	}
+	
+	@PostConstruct
+	private void initialise()
+	{
+		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
+		if (clientList != null && clientList.length() > 0)
 		{
-			factory = new JdoAsyncActionFactory();
-			String clientList = props.getProperty(ASYNC_PROP_PREFIX+".start");
-			if (clientList != null && clientList.length() > 0)
+			String[] clients = clientList.split(",");
+			for(int i=0;i<clients.length;i++)
 			{
-				String[] clients = clientList.split(",");
-				for(int i=0;i<clients.length;i++)
-				{
-					factory.get(clients[i]);
-				}
-				
+				get(clients[i]);
 			}
-			return factory;
-		}
-		else
-			return null;
-	}
-	
-	public static void shutdown()
-	{
-		if (factory != null)
-		{
-			factory.shutdownQueues();
 		}
 	}
 	
-	public static JdoAsyncActionFactory get()
-	{
-		return factory;
+	@Override
+	public void clientAdded(String client) {
+		get(client);
+	}
+
+	@Override
+	public void clientDeleted(String client) {
+		AsyncActionQueue q = queues.get(client);
+		q.setKeepRunning(false);
+		queues.remove(client);
 	}
 	
-	private static AsyncActionQueue create(String client)
+	
+	
+	
+	private AsyncActionQueue create(String client)
 	{
 		int qTimeout = DEF_QTIMEOUT_SECS;
-		String val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".qtimeout");
+		String val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".qtimeout");
 		if (val != null)
 			qTimeout = Integer.parseInt(val);
 		
 		int maxqSize = DEF_MAXQSIZE;
-		val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".maxqsize");
+		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".maxqsize");
 		if (val != null)
 			maxqSize = Integer.parseInt(val);
 
 		int batchSize = DEF_BATCH_SIZE;
-		val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".batchsize");
+		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".batchsize");
 		if (val != null)
 			batchSize = Integer.parseInt(val);
 
 		int dbRetries = DEF_DB_RETRIES;
-		val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".dbretries");
+		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".dbretries");
 		if (val != null)
 			dbRetries = Integer.parseInt(val);
 		
 		boolean runUserItemUpdates = DEF_RUN_USERITEM_UPDATES;
-		val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".useritem.updates");
+		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".useritem.updates");
 		if (val != null)
 			runUserItemUpdates = "true".equals(val);
 		
 		boolean runUpdateIdsActionTable = DEF_UPDATE_IDS_ACTION_TABLE;
-		val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".update.ids");
+		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".update.ids");
 		if (val != null)
 			runUpdateIdsActionTable = "true".equals(val);
 		
 		boolean insertActions = DEF_INSERT_ACTIONS;
-		val = props.getProperty(ASYNC_PROP_PREFIX+"."+client+".insert.actions");
+		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".insert.actions");
 		if (val != null)
 			insertActions = "true".equals(val);
 		
@@ -180,7 +189,7 @@ public class JdoAsyncActionFactory {
 			e.getValue().setKeepRunning(false);
 		}
 	}
-	
+
 	
 	
 	

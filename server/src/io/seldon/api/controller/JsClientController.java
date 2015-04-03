@@ -26,7 +26,6 @@ package io.seldon.api.controller;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
-import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ActionBean;
@@ -35,15 +34,11 @@ import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ItemBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ItemService;
-import io.seldon.api.resource.service.RecommendationService;
-import io.seldon.api.resource.service.UserService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
 import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.statsd.StatsdPeer;
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -89,6 +84,9 @@ public class JsClientController {
     
     @Autowired
     private MessageSource messageSource;
+    
+    @Autowired
+    private ItemService itemService;
 
     private ConsumerBean retrieveConsumer(HttpSession session) {
         return (ConsumerBean) session.getAttribute("consumer");
@@ -211,7 +209,7 @@ public class JsClientController {
         Long internalItemId = null;
         if (itemId != null) {
             try {
-                internalItemId = ItemService.getInternalItemId(consumerBean, itemId);
+                internalItemId = itemService.getInternalItemId(consumerBean, itemId);
             } catch (APIException e) {
                 logger.warn("userRecommendations: item not found.");
             }

@@ -23,15 +23,13 @@
 
 package io.seldon.api.state.options;
 
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.stereotype.Component;
 
 /**
  * Store for default options.
@@ -47,6 +45,8 @@ public class DefaultOptions {
     @PostConstruct
     public void init() throws IOException {
         InputStream propStream = getClass().getClassLoader().getResourceAsStream("/alg_default.properties");
+        props.load(propStream);
+        propStream = getClass().getClassLoader().getResourceAsStream("/labs.properties");
         props.load(propStream);
     }
 

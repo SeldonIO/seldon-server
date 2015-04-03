@@ -23,29 +23,40 @@
 
 package io.seldon.api.resource.service;
 
-import java.util.*;
-
-
+import io.seldon.api.APIException;
+import io.seldon.api.Constants;
 import io.seldon.api.Util;
-import io.seldon.api.resource.*;
-import io.seldon.general.*;
-import io.seldon.trust.impl.jdo.LastRecommendationBean;
+import io.seldon.api.caching.ClientIdCacheStore;
+import io.seldon.api.resource.ActionBean;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.DimensionBean;
+import io.seldon.api.resource.ItemBean;
+import io.seldon.api.resource.ItemTypeBean;
+import io.seldon.api.resource.ListBean;
+import io.seldon.api.resource.ResourceBean;
+import io.seldon.general.Dimension;
+import io.seldon.general.Item;
+import io.seldon.general.ItemAttr;
+import io.seldon.general.ItemStorage;
+import io.seldon.general.ItemType;
+import io.seldon.general.RecommendationStorage;
+import io.seldon.memcache.MemCacheKeys;
+import io.seldon.memcache.MemCachePeer;
+import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.trust.impl.SearchResult;
 import io.seldon.trust.impl.jdo.RecommendationPeer;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import io.seldon.api.APIException;
-import io.seldon.api.Constants;
-import io.seldon.api.caching.ClientIdCacheStore;
-import io.seldon.memcache.DogpileHandler;
-import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
-import io.seldon.memcache.UpdateRetriever;
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.RummbleLabsAPI;
-import io.seldon.trust.impl.SearchResult;
 
 
 
@@ -68,6 +79,9 @@ public class ItemService {
 
     @Autowired
     private ItemStorage itemStorage;
+    
+    @Autowired
+    private ClientIdCacheStore idCache;
     
     public static ItemBean getItem(final ConsumerBean c, final String iid, final boolean full) throws APIException
     {
@@ -250,16 +264,16 @@ public class ItemService {
 	}
 	
 	
-	public static Long getInternalItemId(ConsumerBean c, String id) throws APIException {
+	public Long getInternalItemId(ConsumerBean c, String id) throws APIException {
 		Long res = null;
-		res = ClientIdCacheStore.get().getInternalItemId(c.getShort_name(), id);
+		res = idCache.getInternalItemId(c.getShort_name(), id);
 		if (res == null)
 			res = (Long)MemCachePeer.get(MemCacheKeys.getItemInternalId(c.getShort_name(), id));
 		if(res==null) {
 			Item i = Util.getItemPeer(c).getItem(id);
 			if(i!=null) {
 				res = i.getItemId();
-				ClientIdCacheStore.get().putItemId(c.getShort_name(), id, res);
+				idCache.putItemId(c.getShort_name(), id, res);
                 cacheInternalItemId(c, id, res);
             }
 			else {
@@ -281,17 +295,17 @@ public class ItemService {
         MemCachePeer.put(clientIdKey, internalId,Constants.CACHING_TIME);
     }
 
-    public static String getClientItemId(ConsumerBean c, Long id) throws APIException {
+    public String getClientItemId(ConsumerBean c, Long id) throws APIException {
 		if(id == null) { throw new APIException(APIException.ITEM_NOT_FOUND); }
 		String res = null;
-		res = ClientIdCacheStore.get().getExternalItemId(c.getShort_name(), id);
+		res = idCache.getExternalItemId(c.getShort_name(), id);
 		if (res == null)
 			res = (String)MemCachePeer.get(MemCacheKeys.getItemClientId(c.getShort_name(), id));
 		if(res==null) {
 			Item i = Util.getItemPeer(c).getItem(id);
 			if(i!=null) {
 				res = i.getClientItemId();
-				ClientIdCacheStore.get().putItemId(c.getShort_name(), res, id);
+				idCache.putItemId(c.getShort_name(), res, id);
                 cacheClientItemId(c, id, res);
             }
 			else {
@@ -345,7 +359,7 @@ public class ItemService {
         itemBean.setName(truncatedName);
     }
 	
-	public static Item addItem(ConsumerBean c,ItemBean bean) {
+	public Item addItem(ConsumerBean c,ItemBean bean) {
 		//check if the item is already in the system
 		try { 
 			getInternalItemId(c, bean.getId());
@@ -374,7 +388,7 @@ public class ItemService {
         return i;
     }
 
-    public static void updateItem(ConsumerBean c,ItemBean bean) {
+    public void updateItem(ConsumerBean c,ItemBean bean) {
         Long itemId = null;
         truncateItemName(bean, ITEM_NAME_LENGTH);
         //check if the item is already in the system
