@@ -23,37 +23,30 @@
 
 package io.seldon.external;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.client.utils.URIUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 /**
  * An Item Recommendation Algorithm that calls out to an HTTP endpoint for its recs.
@@ -93,18 +86,20 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         }
         URI uri = URI.create(baseUrl);
         try {
-            uri = new URIBuilder().setScheme("http")
+            URIBuilder builder = new URIBuilder().setScheme("http")
                                                     .setHost(uri.getHost())
                                                     .setPort(uri.getPort())
                                                     .setPath(uri.getPath())
                                                     .setParameter("client", client)
                                                     .setParameter("user_id", user.toString())
-                                                    .setParameter("item_id", ctxt.getCurrentItem().toString())
                                                     .setParameter("recent_interactions",StringUtils.join(recentItemInteractions,","))
                                                     .setParameter("dimension", new Integer(dimensionId).toString())
                                                     .setParameter("exclusion_items", StringUtils.join(ctxt.getExclusionItems(),","))
                                                     .setParameter("data_key", StringUtils.join(ctxt.getInclusionKeys(),","))
-                                                    .setParameter("limit", String.valueOf(maxRecsCount)).build();
+                                                    .setParameter("limit", String.valueOf(maxRecsCount));
+            if (ctxt.getCurrentItem() != null)
+                builder.setParameter("item_id", ctxt.getCurrentItem().toString());
+            uri = builder.build();
         } catch (URISyntaxException e) {
             logger.error("Couldn't create URI for external recommender with name " + recommenderName, e);
             return new ItemRecommendationResultSet(recommenderName);
@@ -119,7 +114,7 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                 AlgsResult recs = reader.readValue(resp.getEntity().getContent());
                 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>(recs.recommended.size());
                 for (AlgResult rec : recs.recommended) {
-                    new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score);
+                    results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
                 }
                 logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
                 return new ItemRecommendationResultSet(results,recommenderName);
