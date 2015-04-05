@@ -5,6 +5,7 @@ app = Flask(__name__)
 import json
 import pprint
 import pylibmc
+import hashlib
 
 app.config.from_object('recommender_config')
 _recs_mod = importlib.import_module(app.config['RECOMMENDER_ALG'])
@@ -12,13 +13,21 @@ _mc_pool = None
 
 def extract_input():
     user_id = long(request.args.get('user_id'))
-    item_id = long(request.args.get('item_id'))
+    item_id = None
+    if request.args.get('item_id'):
+        item_id = long(request.args.get('item_id'))
     client = request.args.get('client')
     limit = int(request.args.get('limit'))
     exclusion_items = request.args.get('exclusion_items')
-    exclusion_items_list = map(lambda x: long(x), exclusion_items.split(","))
+    if len(exclusion_items) > 0:
+        exclusion_items_list = map(lambda x: long(x), exclusion_items.split(","))
+    else:
+        exclusion_items_list = []
     recent_interactions = request.args.get('recent_interactions')
-    recent_interactions_list = map(lambda x: long(x), recent_interactions.split(","))
+    if len(recent_interactions) > 0:
+        recent_interactions_list = map(lambda x: long(x), recent_interactions.split(","))
+    else:
+        recent_interactions_list = []
     data_keys_list = map(lambda x: str(x), request.args.get('data_key').split(","))
     input = {
         "user_id" : user_id,
@@ -45,6 +54,7 @@ def get_data_set(raw_data):
 
 def memcache_get(key):
     key=str(key)
+    key = hashlib.md5(key).hexdigest()
     value=None
     with _mc_pool.reserve(block=True) as mc:
         value = mc.get(key)
@@ -58,6 +68,7 @@ def recommend():
     data_set = set()
     for data_key in input['data_keys_list']:
         raw_data = memcache_get(data_key)
+        print raw_data
         raw_data = raw_data if raw_data != None else '[]'
         data_set |= get_data_set(raw_data)
 
