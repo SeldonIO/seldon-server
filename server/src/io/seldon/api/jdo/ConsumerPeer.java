@@ -30,17 +30,22 @@ import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.db.jdo.JDOFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author claudio
  */
 
-
+@Component
 public class ConsumerPeer {
+
+	@Autowired
+	private JDOFactory jdoFactory;
 	
-	public static Consumer findConsumer(String consumerKey) throws APIException {
+	public Consumer findConsumer(String consumerKey) throws APIException {
 		try {
-			PersistenceManager pm =  JDOFactory.getPersistenceManager(Constants.API_DB);
+			PersistenceManager pm =  jdoFactory.getPersistenceManager(Constants.API_DB);
 			Query query = pm.newQuery(Consumer.class, "consumerKey == c");
 			query.declareParameters("java.lang.String c");
 			Collection<Consumer> c = (Collection<Consumer>) query.execute(consumerKey);

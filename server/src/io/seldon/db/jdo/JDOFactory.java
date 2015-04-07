@@ -29,67 +29,98 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.naming.NamingException;
 
+import io.seldon.api.state.ClientConfigHandler;
+import io.seldon.api.state.NewClientListener;
 import org.apache.log4j.Logger;
 
 import io.seldon.api.Constants;
 import io.seldon.db.jdbc.JDBCConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class JDOFactory 
+@Component
+public class JDOFactory implements NewClientListener
 {
-	private static Logger logger = Logger.getLogger( JDOFactory.class.getName() );
+	private static final Logger logger = Logger.getLogger( JDOFactory.class.getName() );
+	private static final String DEFAULT_DB_JNDI_NAME = "java:comp/env/jdbc/ClientDB";
+	private static final String DEFAULT_API_JNDI_NAME = "java:comp/env/jdbc/ApiDB";
 
-    private static JDOPMRetriever pmRet = new JDOPMRetriever();
-    private static Map<String, PersistenceManagerFactory> factories = new ConcurrentHashMap<>();
-    private static Map<String,String>  clientJNDINames = new ConcurrentHashMap<>();
-    private static Map<String,String>  clientToDBName = new ConcurrentHashMap<>();
-    public static void initialise(Properties props, Properties jdoProperties) throws NamingException {
-        for (Object key : jdoProperties.keySet()) {
-            String dbKey = (String) key;
-            String value = jdoProperties.getProperty(dbKey);
-            String[] values = value.split(",");
-            String connectionFactoryName = null;
-            String dbName = null;
-            if (values.length == 1)
-            {
-            	dbName = dbKey;
-            	connectionFactoryName = value;
-            }
-            else if (values.length == 2)
-            {
-            	dbName = values[0];
-            	connectionFactoryName = values[1];
-            }
-            else
-            	throw new JDOStartupException("Bad jdofactories.properties file");
-            
-            clientJNDINames.put(dbKey, connectionFactoryName);
-            clientToDBName.put(dbKey, dbName);
-            registerFactory(props, dbKey, dbName, connectionFactoryName);
-        }
-        JDBCConnectionFactory.initialise(clientJNDINames,clientToDBName);
-    }
+	private JDOPMRetriever pmRet = new JDOPMRetriever();
+    private Map<String, PersistenceManagerFactory> factories = new ConcurrentHashMap<>();
+    private Map<String,String>  clientJNDINames = new ConcurrentHashMap<>();
+    private Map<String,String>  clientToDBName = new ConcurrentHashMap<>();
+
+    @Autowired
+    private Properties dataNucleusProperties;
+
+	@Autowired
+	private JDBCConnectionFactory jdbcConnectionFactory;
+
+	@Autowired
+	private ClientConfigHandler clientConfigHandler;
+	private static JDOFactory jdoFactory;
+
+
+	@PostConstruct
+	public void intialise() throws NamingException {
+		clientConfigHandler.addNewClientListener(this, true);
+		registerFactory("api", "api", DEFAULT_API_JNDI_NAME);
+		jdbcConnectionFactory.addDataSource("api", DEFAULT_API_JNDI_NAME, "api");
+		jdoFactory = this;
+	}
+//    @PostConstruct
+//    public void initialise(Properties props, Properties jdoProperties) throws NamingException {
+//        for (Object key : jdoProperties.keySet()) {
+//            String dbKey = (String) key;
+//            String value = jdoProperties.getProperty(dbKey);
+//            String[] values = value.split(",");
+//            String connectionFactoryName = null;
+//            String dbName = null;
+//            if (values.length == 1)
+//            {
+//            	dbName = dbKey;
+//            	connectionFactoryName = value;
+//            }
+//            else if (values.length == 2)
+//            {
+//            	dbName = values[0];
+//            	connectionFactoryName = values[1];
+//            }
+//            else
+//            	throw new JDOStartupException("Bad jdofactories.properties file");
+//
+//            clientJNDINames.put(dbKey, connectionFactoryName);
+//            clientToDBName.put(dbKey, dbName);
+//            registerFactory(props, dbKey, dbName, connectionFactoryName);
+//        }
+//        JDBCConnectionFactory.initialise(clientJNDINames,clientToDBName);
+//    }
     
-    public static String getJNDIForClient(String client)
+    public String getJNDIForClient(String client)
     {
     	return clientJNDINames.get(client);
     }
 
-    public static void initialise(Properties jdoProperties, String clientName, String databaseName, String jndiResource) throws NamingException {
-    	if (databaseName == null)
-    		databaseName = clientName;
-        registerFactory(jdoProperties, clientName, databaseName, jndiResource);
-        clientJNDINames.put(clientName, jndiResource);
-        clientToDBName.put(clientName, databaseName);
-        JDBCConnectionFactory.initialise(clientJNDINames,clientToDBName);
-    }
+//    public static void initialise(Properties jdoProperties, String clientName, String databaseName, String jndiResource) throws NamingException {
+//    	if (databaseName == null)
+//    		databaseName = clientName;
+//        registerFactory(jdoProperties, clientName, databaseName, jndiResource);
+//        clientJNDINames.put(clientName, jndiResource);
+//        clientToDBName.put(clientName, databaseName);
+//		jdbcConnectionFactory.initialise(clientJNDINames,clientToDBName);
+//    }
 
-    private static void registerFactory(Properties connectionProperties, String clientName, String databaseName, String jndiResource) {
-    	connectionProperties.setProperty("javax.jdo.option.ConnectionFactoryName", jndiResource);
+    private void registerFactory(String clientName, String databaseName, String jndiResource) {
+    	Properties connectionProperties = (Properties) dataNucleusProperties.clone();
+		logger.info(connectionProperties.toString());
+		logger.info(dataNucleusProperties.toString());
+		connectionProperties.setProperty("javax.jdo.option.ConnectionFactoryName", jndiResource);
     	if (databaseName != null)
     		connectionProperties.setProperty("datanucleus.mapping.Catalog", databaseName);
     	logger.info("Adding PMF factory for client "+clientName+" with database "+databaseName+" with JNDI Datasource:"+jndiResource);
@@ -100,7 +131,7 @@ public class JDOFactory
     /**
 	 * 	Return the singleton persistence manager factory instance.
 	 */
-	public static synchronized PersistenceManagerFactory getPersistenceManagerFactory ()
+	public synchronized PersistenceManagerFactory getPersistenceManagerFactory ()
 	{
 		if (factories.size() == 1)
 			return factories.values().iterator().next();
@@ -108,12 +139,12 @@ public class JDOFactory
 			return null;
 	}
 
-	public static boolean isDefaultClient(String key)
+	public boolean isDefaultClient(String key)
 	{
 		return !factories.containsKey(key);
 	}
     
-	public static PersistenceManager getPersistenceManager(String key)
+	public PersistenceManager getPersistenceManager(String key)
     {
 	    PersistenceManagerFactory pmf = factories.get(key);
 	    if (pmf == null)
@@ -131,9 +162,40 @@ public class JDOFactory
 	    	return null;
     }
     
-    public static void cleanupPM()
+    public void cleanupPM()
     {
         pmRet.cleanup();
     }
 
+	@Override
+	public void clientAdded(String client, Map<String, String> initialConfig) {
+		String jndiName = initialConfig.get("DB_JNDI_NAME");
+
+		if(jndiName==null)
+			jndiName = DEFAULT_DB_JNDI_NAME;
+
+		String dbName = initialConfig.get("DB_NAME");
+
+		if(dbName==null)
+			dbName = client;
+
+		registerFactory(client,dbName,jndiName);
+		try {
+			jdbcConnectionFactory.addDataSource(client,jndiName,dbName);
+		} catch (NamingException e) {
+			logger.error("Couldn't add data source for client : " + client +
+					" jndi name " + jndiName + " and db name " + dbName,e);
+		}
+	}
+
+	@Override
+	public void clientDeleted(String client) {
+		logger.info("Removing PM factory for "+client);
+		factories.get(client).close();
+		factories.remove(client);
+	}
+
+	public static JDOFactory get(){
+		return jdoFactory;
+	}
 }

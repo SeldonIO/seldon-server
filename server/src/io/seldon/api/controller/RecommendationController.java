@@ -55,7 +55,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class RecommendationController {
 	private static Logger logger = Logger.getLogger(RecommendationController.class.getName());
 
-    @Autowired
+	@Autowired
+	private ResourceServer resourceServer;
+
+	@Autowired
     private RecommendationBusinessService recommendationBusinessService;
 
 
@@ -66,7 +69,7 @@ public class RecommendationController {
 	public @ResponseBody
     ResourceBean retrievRecommendations(@PathVariable String userId, HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {
@@ -80,7 +83,7 @@ public class RecommendationController {
 	@RequestMapping(value="/users/{userId}/recommendations/{itemId}", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveRecommendation(@PathVariable String userId, @PathVariable String itemId,HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		Integer itemType = Util.getType(req);
 		Integer dimension = Util.getDimension(req);
@@ -109,7 +112,7 @@ public class RecommendationController {
 	@RequestMapping(value="/users/{userId}/recommendations", method = RequestMethod.POST)
 	public @ResponseBody ResourceBean sort(@RequestBody RecommendationsBean recs,@PathVariable String userId,HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		String usedAlgorithm = null;
 		if(con instanceof ConsumerBean) {

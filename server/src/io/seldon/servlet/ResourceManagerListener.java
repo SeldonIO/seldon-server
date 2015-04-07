@@ -40,7 +40,6 @@ import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.clustering.recommender.jdo.JdoUserDimCache;
 import io.seldon.db.jdo.JDOFactory;
-import io.seldon.db.jdo.servlet.JDOStartup;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.semvec.SemanticVectorsStore;
@@ -66,10 +65,11 @@ public class ResourceManagerListener  implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce)
     {
         logger.info("**********************  STARTING API-SERVER INITIALISATION **********************");
+		JDOFactory jdoFactory = null;
     	try
     	{  
     		final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
-           
+			jdoFactory = (JDOFactory) springContext.getBean("JDOFactory");
 
        
     		zkSubHandler =(ZkSubscriptionHandler) springContext.getBean("zkSubscriptionHandler");
@@ -87,8 +87,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     		
     		TestingUtils.initialise(props);
     		JdoCountRecommenderUtils.initialise(props);
-    		
-    		JDOStartup.contextInitialized(sce);
+
     		MemCachePeer.initialise(props);
     		
     		baseDir = sce.getServletContext().getRealPath("/");
@@ -157,7 +156,8 @@ public class ResourceManagerListener  implements ServletContextListener {
     	}
     	finally
         {
-            JDOFactory.cleanupPM();
+			if(jdoFactory!=null)
+				jdoFactory.cleanupPM();
         }
     }
     

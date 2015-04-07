@@ -53,7 +53,7 @@ public class RecentItemsWithTagsManager {
 	 private ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 3, 10, TimeUnit.MINUTES, queue) {
         protected void afterExecute(java.lang.Runnable runnable, java.lang.Throwable throwable) 
         {
-        	        	JDOFactory.cleanupPM();
+        	        	JDOFactory.get().cleanupPM();
         }
     };
     

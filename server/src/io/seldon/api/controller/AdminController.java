@@ -33,6 +33,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.api.service.ResourceServer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,11 +43,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class AdminController {
 
+    @Autowired
+    private ResourceServer resourceServer;
+
     @RequestMapping(value = "/admin/dynamicparameters", method = RequestMethod.GET)
     public
     @ResponseBody
     ResourceBean retrieveDynamicParameters(HttpServletRequest req) {
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
         if (con instanceof ConsumerBean) {
         	try {
@@ -69,7 +73,7 @@ public class AdminController {
     @RequestMapping(value="/admin/dynamicparameters", method = RequestMethod.POST)
 	public @ResponseBody
     ResourceBean addDynamicParameter(@RequestBody DynamicParameterBean bean, HttpServletRequest req) {
-        ResourceBean con = ResourceServer.validateResourceRequest(req);
+        ResourceBean con = resourceServer.validateResourceRequest(req);
         ResourceBean responseBean = con;
         if (con instanceof ConsumerBean) {
             try {

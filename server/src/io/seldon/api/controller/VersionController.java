@@ -48,6 +48,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class VersionController {
 
+    @Autowired
+    private ResourceServer resourceServer;
+
     private static final Logger logger = LoggerFactory.getLogger(VersionController.class);
 
     @Autowired
@@ -61,7 +64,7 @@ public class VersionController {
     @RequestMapping("/version/me")
     public @ResponseBody
     ResourceBean clientVersion(HttpServletRequest req) {
-        ResourceBean requestBean = ResourceServer.validateResourceRequest(req);
+        ResourceBean requestBean = resourceServer.validateResourceRequest(req);
         return getClientVersionBean(requestBean);
     }
 

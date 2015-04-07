@@ -34,15 +34,20 @@ import io.seldon.db.jdo.DatabaseException;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.db.jdo.Transaction;
 import io.seldon.db.jdo.TransactionPeer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author claudio
  */
-
+@Component
 public class TokenPeer {
-	public static Token findToken(String tokenKey) throws APIException {
+
+	@Autowired
+	private JDOFactory jdoFactory;
+	public Token findToken(String tokenKey) throws APIException {
 		try {
-			PersistenceManager pm =  JDOFactory.getPersistenceManager(Constants.API_DB);
+			PersistenceManager pm =  jdoFactory.getPersistenceManager(Constants.API_DB);
 			Query query = pm.newQuery(Token.class, "tokenKey == t");
 			query.declareParameters("java.lang.String t");
 			Collection<Token> c = (Collection<Token>) query.execute(tokenKey);
@@ -58,7 +63,7 @@ public class TokenPeer {
 	}
 	
 	//check if the token is expired and update the active attribute
-	public static boolean isExpired(Token t) throws APIException {
+	public boolean isExpired(Token t) throws APIException {
 		//if token already expired or not valid anymore
 		if(!t.isActive())
 			return true;
@@ -73,9 +78,9 @@ public class TokenPeer {
 		return false;
 	}
 
-	public static void saveToken(final Token token) throws APIException {
+	public void saveToken(final Token token) throws APIException {
 		try {
-	    	final PersistenceManager pm =  JDOFactory.getPersistenceManager(Constants.API_DB);
+	    	final PersistenceManager pm =  jdoFactory.getPersistenceManager(Constants.API_DB);
 			TransactionPeer.runTransaction(new Transaction(pm) { 
 			    public void process()
 			    { 
@@ -89,9 +94,9 @@ public class TokenPeer {
 		}
 	}
 	
-	public static void invalidateToken(final Token token) throws APIException {
+	public void invalidateToken(final Token token) throws APIException {
 		try {
-			final PersistenceManager pm =  JDOFactory.getPersistenceManager(Constants.API_DB);
+			final PersistenceManager pm =  jdoFactory.getPersistenceManager(Constants.API_DB);
 			TransactionPeer.runTransaction(new Transaction(pm) { 
 			    public void process()
 			    { 

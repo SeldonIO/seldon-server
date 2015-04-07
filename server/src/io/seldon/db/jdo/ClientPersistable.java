@@ -48,7 +48,7 @@ public class ClientPersistable {
 	{
 		if (pm == null)
 		{
-			pm = JDOFactory.getPersistenceManager(clientName);
+			pm = JDOFactory.get().getPersistenceManager(clientName);
 			if(pm == null) {
     			throw new APIException(APIException.INTERNAL_DB_ERROR);
     		}

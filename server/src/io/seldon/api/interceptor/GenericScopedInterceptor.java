@@ -41,6 +41,7 @@ import io.seldon.api.service.TokenScope;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -55,6 +56,9 @@ import io.seldon.api.service.AuthorizationServer;
 abstract public class GenericScopedInterceptor extends HandlerInterceptorAdapter implements ScopedInterceptor {
     private static final Logger logger = Logger.getLogger(GenericScopedInterceptor.class);
     private static final String START_TIME = "startTime";
+
+    @Autowired
+    private AuthorizationServer authorizationServer;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -96,7 +100,7 @@ abstract public class GenericScopedInterceptor extends HandlerInterceptorAdapter
     }
 
     private ScopedConsumerBean authorise(HttpServletRequest request) {
-        final ScopedConsumerBean scopedConsumerBean = AuthorizationServer.getConsumer(request);
+        final ScopedConsumerBean scopedConsumerBean = authorizationServer.getConsumer(request);
         if (scopedConsumerBean != null)
         	MDCKeys.addKeysConsumer(scopedConsumerBean);
         final TokenScope.Scope tokenScope = TokenScope.fromString(scopedConsumerBean.getScope());

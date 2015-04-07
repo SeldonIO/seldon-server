@@ -69,7 +69,7 @@ public class JdoClusterFromReferrer implements IClusterFromReferrer {
 
 	private void updateClusterMap()
 	{
-		PersistenceManager pm = JDOFactory.getPersistenceManager(client);
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(client);
 		if (pm != null)
 		{
 			Query query = pm.newQuery( "javax.jdo.query.SQL","select referrer,cluster from cluster_referrer");
@@ -150,7 +150,7 @@ public class JdoClusterFromReferrer implements IClusterFromReferrer {
 				   }
 				   finally
 				   {
-					   JDOFactory.cleanupPM();
+					   JDOFactory.get().cleanupPM();
 				   }
 			   }
 		   }, delay, period);

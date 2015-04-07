@@ -54,7 +54,10 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class ItemController {
 
-    @Autowired
+	@Autowired
+	private ResourceServer resourceServer;
+
+	@Autowired
     private ItemBusinessService itemBusinessService;
 
 	@Autowired
@@ -64,7 +67,7 @@ public class ItemController {
 	public @ResponseBody Object retrieveItems(HttpServletRequest req,
 			@RequestParam(value = "jsonpCallback", required = false) String callback) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {
@@ -112,7 +115,7 @@ public class ItemController {
 	public @ResponseBody Object retrieveUser(@PathVariable String itemId,HttpServletRequest req,
 			@RequestParam(value = "jsonpCallback", required = false) String callback) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeysItem((ConsumerBean)con, itemId);
@@ -140,7 +143,7 @@ public class ItemController {
 	@RequestMapping(value="/items", method = RequestMethod.POST)
 	public @ResponseBody ResourceBean addItem(@RequestBody ItemBean item, HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
         ResourceBean responseBean;
         if (con instanceof ConsumerBean) {
             try {
@@ -166,7 +169,7 @@ public class ItemController {
     @RequestMapping(value = "/items", method = RequestMethod.PUT)
     public @ResponseBody ResourceBean updateItem(@RequestBody ItemBean item, HttpServletRequest req) {
         Date start = new Date();
-        ResourceBean con = ResourceServer.validateResourceRequest(req);
+        ResourceBean con = resourceServer.validateResourceRequest(req);
         ResourceBean responseBean;
         if (con instanceof ConsumerBean) {
         	if (item != null)
@@ -182,7 +185,7 @@ public class ItemController {
     @RequestMapping(value="/items/types", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveItemTypes(HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeysConsumer((ConsumerBean)con);

@@ -2,10 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:task="http://www.springframework.org/schema/task" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <task:annotation-driven executor="normalExecutor" scheduler="normalScheduler"/>
     <task:scheduler id="normalScheduler" pool-size="1"/>
@@ -18,7 +19,7 @@
     </context:component-scan>
     <context:property-placeholder
             location="classpath:version.properties,classpath:labs.properties,classpath:alg_default.properties"/>
-
+    <util:properties id="dataNucleusProperties" location="classpath:datanucleus.properties"/>
     <context:component-scan base-package="io.seldon.general"/>
     <context:component-scan base-package="io.seldon.clustering.recommender"/>
     <context:component-scan base-package="io.seldon.api.resource.service"/>

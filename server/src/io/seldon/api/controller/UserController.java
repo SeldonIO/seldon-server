@@ -60,11 +60,14 @@ public class UserController {
     @Autowired
     private UserBusinessService userBusinessService;
 
+	@Autowired
+	private ResourceServer resourceServer;
+
 	@RequestMapping(value="/users", method = RequestMethod.GET)
 	public @ResponseBody
 	ResourceBean retrieveUsers(HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {
@@ -99,7 +102,7 @@ public class UserController {
 	@RequestMapping(value="/users/{userId}", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveUser(@PathVariable String userId,HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {
@@ -128,7 +131,7 @@ public class UserController {
 	public @ResponseBody
     ResourceBean addUser(@RequestBody UserBean bean, HttpServletRequest req) {
         Date start = new Date();
-        ResourceBean con = ResourceServer.validateResourceRequest(req);
+        ResourceBean con = resourceServer.validateResourceRequest(req);
         ResourceBean responseBean;
         if (con instanceof ConsumerBean) {
             try {
@@ -159,7 +162,7 @@ public class UserController {
 	public @ResponseBody
     ResourceBean updateUser(@RequestBody UserBean user, HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
             responseBean = userBusinessService.updateUser((ConsumerBean) con, user, null,false, false);
