@@ -27,53 +27,59 @@ import javax.servlet.http.HttpServletRequest;
 
 import io.seldon.api.APIException;
 import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.DynamicParameterBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.resource.VersionBean;
-import io.seldon.api.resource.service.VersionService;
 import io.seldon.api.service.ApiLoggerServer;
+import io.seldon.api.service.DynamicParameterServer;
 import io.seldon.api.service.ResourceServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-/**
- * Determine the current API version; query a client for its declared version.
- * <p/>
- * Created by: marc on 10/08/2011 at 13:43
- */
 @Controller
-public class VersionController {
+public class AdminController {
 
     @Autowired
     private ResourceServer resourceServer;
 
-    private static final Logger logger = LoggerFactory.getLogger(VersionController.class);
-
-    @Autowired
-    private VersionBean apiVersion;
-
-    @RequestMapping("/version")
-    public @ResponseBody VersionBean getVersion() {
-        return apiVersion;
+    @RequestMapping(value = "/admin/dynamicparameters", method = RequestMethod.GET)
+    public
+    @ResponseBody
+    ResourceBean retrieveDynamicParameters(HttpServletRequest req) {
+		ResourceBean con = resourceServer.validateResourceRequest(req);
+		ResourceBean res = con;
+        if (con instanceof ConsumerBean) {
+        	try {
+           		ConsumerBean consumerBean = (ConsumerBean) con;
+            	res = DynamicParameterServer.getParametersBean(consumerBean.getShort_name());
+        	}
+			catch(APIException e) {
+				ApiLoggerServer.log(this, e);
+				res = new ErrorBean(e);
+			}
+			catch(Exception e) {
+				ApiLoggerServer.log(this, e);
+				APIException apiEx = new APIException(APIException.GENERIC_ERROR);
+				res = new ErrorBean(apiEx);
+			}
+        } 
+		return res;
     }
-
-    @RequestMapping("/version/me")
-    public @ResponseBody
-    ResourceBean clientVersion(HttpServletRequest req) {
-        ResourceBean requestBean = resourceServer.validateResourceRequest(req);
-        return getClientVersionBean(requestBean);
-    }
-
-    private ResourceBean getClientVersionBean(ResourceBean requestBean) {
-        ResourceBean responseBean = requestBean;
-
-        if (requestBean instanceof ConsumerBean) {
+    
+    @RequestMapping(value="/admin/dynamicparameters", method = RequestMethod.POST)
+	public @ResponseBody
+    ResourceBean addDynamicParameter(@RequestBody DynamicParameterBean bean, HttpServletRequest req) {
+        ResourceBean con = resourceServer.validateResourceRequest(req);
+        ResourceBean responseBean = con;
+        if (con instanceof ConsumerBean) {
             try {
-                responseBean = VersionService.getVersion((ConsumerBean) requestBean);
+                final ConsumerBean consumerBean = (ConsumerBean) con;
+                DynamicParameterServer.setParameterBean(consumerBean.getShort_name(), bean);
+                responseBean = bean;
             } catch (APIException e) {
                 ApiLoggerServer.log(this, e);
                 responseBean = new ErrorBean(e);
@@ -83,7 +89,6 @@ public class VersionController {
                 responseBean = new ErrorBean(apiEx);
             }
         }
-        
         return responseBean;
     }
 

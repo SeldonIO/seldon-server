@@ -23,6 +23,8 @@
 
 package io.seldon.api.state;
 
+import java.util.Map;
+
 /**
  * @author firemanphil
  *         Date: 01/04/15
@@ -30,7 +32,7 @@ package io.seldon.api.state;
  */
 public interface NewClientListener {
 
-    void clientAdded(String client);
+    void clientAdded(String client, Map<String, String> initialConfig);
 
     void clientDeleted(String client);
 

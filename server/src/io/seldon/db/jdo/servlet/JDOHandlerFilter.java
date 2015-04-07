@@ -59,7 +59,7 @@ public class JDOHandlerFilter implements Filter
         }
         finally
         {
-            JDOFactory.cleanupPM();
+            JDOFactory.get().cleanupPM();
         }
     }
 	

@@ -36,6 +36,7 @@ import io.seldon.api.resource.service.business.ActionBusinessServiceImpl;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
+
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -64,11 +65,14 @@ public class ActionsController {
     @Autowired
     private ActionService actionService;
 
-    @RequestMapping(value="/users/{userId}/actions", method = RequestMethod.GET)
+	@Autowired
+	private ResourceServer resourceServer;
+
+	@RequestMapping(value="/users/{userId}/actions", method = RequestMethod.GET)
 	public @ResponseBody Object retrieveUserActions(@PathVariable String userId, HttpServletRequest req,
 			@RequestParam(value = "jsonpCallback", required = false) String callback) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {
@@ -97,7 +101,7 @@ public class ActionsController {
 	@RequestMapping(value="/items/{itemId}/actions", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveItemActions(@PathVariable String itemId, HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {
@@ -123,7 +127,7 @@ public class ActionsController {
 	@RequestMapping(value="/users/{userId}/actions/{itemId}", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveUserItemActions(@PathVariable String userId, @PathVariable String itemId,HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {
@@ -152,7 +156,7 @@ public class ActionsController {
 	@RequestMapping(value="/actions/{actionId}", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveAction(@PathVariable String actionId, HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {
@@ -181,7 +185,7 @@ public class ActionsController {
 	@RequestMapping(value="/actions", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveActions(HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {
@@ -205,7 +209,7 @@ public class ActionsController {
 	public @ResponseBody
     ResourceBean addActions(@RequestBody ActionBean action, HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeys((ConsumerBean)con, action.getUser(),action.getItem());
@@ -221,7 +225,7 @@ public class ActionsController {
 	@RequestMapping(value="/actions/types", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveActionsTypes(HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		if(con instanceof ConsumerBean) {
 			try {

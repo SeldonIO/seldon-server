@@ -33,17 +33,11 @@ import org.springframework.stereotype.Component;
 public class JDOPersistenceProvider implements PersistenceProvider {
     
     @Autowired
-    private JDOManager manager;
-
-
-    public void setJdoManager(JDOManager manager){
-        this.manager = manager;
-    }
-
+    private JDOFactory factory;
 
 	@Override
 	public ItemPeer getItemPersister(String clientName) {
-		return new SqlItemPeer(manager.getJdoPersistenceManager(clientName));
+		return new SqlItemPeer(factory.getPersistenceManager(clientName));
 	}
 
 }

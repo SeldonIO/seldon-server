@@ -29,7 +29,6 @@ import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.db.jdo.JDOFactory;
-import io.seldon.db.jdo.servlet.JDOStartup;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 
@@ -54,10 +53,11 @@ public class ResourceManagerListener  implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce)
     {
         logger.info("**********************  STARTING API-SERVER INITIALISATION **********************");
+		JDOFactory jdoFactory = null;
     	try
     	{  
     		final WebApplicationContext springContext = WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
-           
+			jdoFactory = (JDOFactory) springContext.getBean("JDOFactory");
 
        
     		zkSubHandler =(ZkSubscriptionHandler) springContext.getBean("zkSubscriptionHandler");
@@ -71,7 +71,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		String defClientName = props.getProperty("io.seldon.labs.default.client");
     		if(defClientName !=null && defClientName.length() > 0) { Constants.DEFAULT_CLIENT = defClientName; }
 
-    		JDOStartup.contextInitialized(sce);
     		MemCachePeer.initialise(props);
     		
     		StatsdPeer.initialise(props);
@@ -98,7 +97,8 @@ public class ResourceManagerListener  implements ServletContextListener {
     	}
     	finally
         {
-            JDOFactory.cleanupPM();
+			if(jdoFactory!=null)
+				jdoFactory.cleanupPM();
         }
     }
     

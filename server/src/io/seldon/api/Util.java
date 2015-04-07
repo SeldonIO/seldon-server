@@ -56,7 +56,7 @@ public class Util {
 	
 	
 	public static SqlItemPeer getItemPeer(String client) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(client);
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(client);
 		if(pm == null) {
 			throw new APIException(APIException.INTERNAL_DB_ERROR);
 		}
@@ -64,7 +64,7 @@ public class Util {
 	}
 	
 	public static SqlItemPeer getItemPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(c.getShort_name());
 		if(pm == null) {
 			throw new APIException(APIException.INTERNAL_DB_ERROR);
 		}
@@ -83,7 +83,7 @@ public class Util {
     }
 	
 	public static SqlUserPeer getUserPeer(String consumer) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(consumer);
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(consumer);
 		if(pm == null) {
 			throw new APIException(APIException.INTERNAL_DB_ERROR);
 		}
@@ -100,7 +100,7 @@ public class Util {
 
 	
 	public static SqlActionPeer getActionPeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(c.getShort_name());
 		if(pm == null) {
 			throw new APIException(APIException.INTERNAL_DB_ERROR);
 		}
@@ -118,7 +118,7 @@ public class Util {
 	
 
     public static SqlVersionPeer getVersionPeer(ConsumerBean c) throws APIException {
-        PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
+        PersistenceManager pm = JDOFactory.get().getPersistenceManager(c.getShort_name());
         return getVersionPeer(pm);
     }
 
@@ -194,7 +194,7 @@ public class Util {
 	}
 
 	public static UserAttributePeer getUserAttributePeer(ConsumerBean c) throws APIException {
-		PersistenceManager pm = JDOFactory.getPersistenceManager(c.getShort_name());
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(c.getShort_name());
 		return getUserAttributePeer(pm);
 	}
 	

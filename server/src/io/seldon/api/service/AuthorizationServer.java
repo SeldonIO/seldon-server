@@ -27,17 +27,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import io.seldon.api.resource.ScopedConsumerBean;
 import io.seldon.api.APIException;
 import io.seldon.api.jdo.TokenPeer;
 import io.seldon.api.resource.TokenBean;
+import io.seldon.api.state.ClientConfigHandler;
+import io.seldon.api.state.NewClientListener;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import io.seldon.api.Constants;
@@ -50,15 +54,32 @@ import io.seldon.api.jdo.Token;
  */
 
 @Service
-public class AuthorizationServer {
+public class AuthorizationServer implements NewClientListener {
     private final static Pattern pattern = Pattern.compile("/S+");
     private final static Logger logger = Logger.getLogger(AuthorizationServer.class);
 
     private final static Map<String, ScopedConsumerBean> consumerCache = new ConcurrentHashMap<>();
     public static final int CONSUMER_REFRESH_INTERVAL = 300000;
 
+	@Autowired
+	private JDOFactory jdoFactory;
+
+	@Autowired
+	private ConsumerPeer consumerPeer;
+
+	@Autowired
+	private TokenPeer tokenPeer;
+
+	@Autowired
+	private ClientConfigHandler clientConfigHandler;
+
+	@PostConstruct
+	public void startup(){
+		clientConfigHandler.addNewClientListener(this, false);
+	}
+
     //METHODS
-    public static ScopedConsumerBean getConsumer(HttpServletRequest request) throws APIException {
+    public ScopedConsumerBean getConsumer(HttpServletRequest request) throws APIException {
         if (request == null) {
             throw new APIException(APIException.NOT_VALID_CONNECTION);
         }
@@ -66,11 +87,11 @@ public class AuthorizationServer {
         return retrieveConsumerBean(consumerKey);
     }
 
-    private static ScopedConsumerBean retrieveConsumerBean(String consumerKey) {
+    private ScopedConsumerBean retrieveConsumerBean(String consumerKey) {
         return retrieveConsumerBean(consumerKey, true);
     }
 
-    private static ScopedConsumerBean retrieveConsumerBean(String consumerKey, boolean allowCached) {
+    private ScopedConsumerBean retrieveConsumerBean(String consumerKey, boolean allowCached) {
         if (StringUtils.isBlank(consumerKey)) {
             throw new APIException(APIException.NOT_SPECIFIED_CONS_KEY);
         }
@@ -78,7 +99,7 @@ public class AuthorizationServer {
         if (cachedConsumerBean != null && allowCached) {
             return cachedConsumerBean;
         }
-        final Consumer consumer = ConsumerPeer.findConsumer(consumerKey);
+        final Consumer consumer = consumerPeer.findConsumer(consumerKey);
         if (consumer == null || StringUtils.isNotBlank(consumer.getSecret())) {
             // As a precaution: This method is only valid for consumers set up without a secret.
             throw new APIException(APIException.NOT_AUTHORIZED_CONS);
@@ -105,11 +126,11 @@ public class AuthorizationServer {
                 }
             }
         } finally {
-            JDOFactory.cleanupPM();
+			jdoFactory.cleanupPM();
         }
     }
 
-	public static Token getToken(HttpServletRequest req) throws APIException {
+	public Token getToken(HttpServletRequest req) throws APIException {
 		return getToken(req,true);
 	}
 	/**
@@ -117,7 +138,7 @@ public class AuthorizationServer {
 	 * Create and return an access token for a specific consumer.
 	 * It generates a new token even if the consumer has already a valid token active
 	 */
-	public static Token getToken(HttpServletRequest req,boolean makeTransient) throws APIException {
+	public Token getToken(HttpServletRequest req,boolean makeTransient) throws APIException {
 		
 		//init
 		String consumerKey = null;
@@ -146,12 +167,12 @@ public class AuthorizationServer {
 		}
 		token = new Token(consumer);
 		//make the token persistent
-		TokenPeer.saveToken(token);
+		tokenPeer.saveToken(token);
 		if (makeTransient)
 		{
 			//RAS-34 (ensure token is transient so JDO doesn't try to refresh against the read-replica the fields
 			//Maybe a better solution?
-			JDOFactory.getPersistenceManager(Constants.API_DB).makeTransient(token);
+			jdoFactory.getPersistenceManager(Constants.API_DB).makeTransient(token);
 		}
 		return token;
 	}
@@ -162,13 +183,13 @@ public class AuthorizationServer {
 	 * @return boolean
 	 * Check if the pair consumerId/consumerSecret is valid
 	 */
-	public static Consumer isConsumerValid(String consumerId, String consumerSecret)  throws APIException {
+	public Consumer isConsumerValid(String consumerId, String consumerSecret)  throws APIException {
 		Consumer consumer = null;
 		if(consumerId == null || consumerId.trim().equals("") ||consumerSecret == null || consumerSecret.trim().equals("")) {
 			throw new APIException(APIException.NOT_AUTHORIZED_CONS);
 		}
 		//if consumer key does not exists
-		consumer = ConsumerPeer.findConsumer(consumerId);
+		consumer = consumerPeer.findConsumer(consumerId);
 		if(consumer == null) {
 			throw new APIException(APIException.NOT_VALID_KEY_CONS);
 		}
@@ -183,7 +204,7 @@ public class AuthorizationServer {
 		return consumer;
 	}
 	
-	public static TokenBean isTokenValid(HttpServletRequest req) throws APIException {
+	public TokenBean isTokenValid(HttpServletRequest req) throws APIException {
 		//init
 		String tokenKey = null;
 		boolean safe = true;
@@ -219,7 +240,7 @@ public class AuthorizationServer {
 		//if is in memcached replicate the expired and security controls?
 		TokenBean res = (TokenBean) MemCachePeer.get(MemCacheKeys.getTokenBeanKey(tokenKey));
 		if(res==null) {
-			Token t = TokenPeer.findToken(tokenKey);
+			Token t = tokenPeer.findToken(tokenKey);
 			//if token not existing
 			if(t == null) {
 				throw new APIException(APIException.NOT_VALID_TOKEN_KEY);
@@ -229,11 +250,22 @@ public class AuthorizationServer {
 				throw new APIException(APIException.NOT_SECURE_TOKEN);
 			}
 			//if token expired or no longer valid
-			if(TokenPeer.isExpired(t)) {
+			if(tokenPeer.isExpired(t)) {
 				throw new APIException(APIException.NOT_VALID_TOKEN_EXPIRED);
 			}
 			res = new TokenBean(t);
 		}
 		return res;
+	}
+
+	@Override
+	public void clientAdded(String client, Map<String, String> initialConfig) {
+		logger.info("Reloading consumer table due to new client " + client);
+		refreshConsumerCache();
+	}
+
+	@Override
+	public void clientDeleted(String client) {
+		// ignore
 	}
 }

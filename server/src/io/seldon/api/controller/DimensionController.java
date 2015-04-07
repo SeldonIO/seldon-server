@@ -35,6 +35,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,11 +50,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class DimensionController {
 
+	@Autowired
+	private ResourceServer resourceServer;
+
 	@RequestMapping(value="/dimensions", method = RequestMethod.GET)
 	public @ResponseBody
 	ResourceBean retrieveDimensions(HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {
@@ -77,7 +81,7 @@ public class DimensionController {
 	@RequestMapping(value="/dimensions/{dimId}", method = RequestMethod.GET)
 	public @ResponseBody ResourceBean retrieveDimensions(@PathVariable String dimId,HttpServletRequest req) {
 		Date start = new Date();
-		ResourceBean con = ResourceServer.validateResourceRequest(req);
+		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean res = con;
 		//request authorized
 		if(con instanceof ConsumerBean) {

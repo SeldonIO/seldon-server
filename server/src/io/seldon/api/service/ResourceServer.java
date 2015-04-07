@@ -29,6 +29,7 @@ import io.seldon.api.APIException;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -42,17 +43,20 @@ import io.seldon.api.resource.TokenBean;
 @Service
 public class ResourceServer {
 	private final static Logger logger = Logger.getLogger(ResourceServer.class);
-	
+
+
+	@Autowired
+	private AuthorizationServer authorizationServer;
 	/**
 	 * @return Resource r
 	 * @throws io.seldon.api.APIException
 	 * return the resource representation
 	 */
-	public static ResourceBean validateResourceRequest(HttpServletRequest req) {
+	public ResourceBean validateResourceRequest(HttpServletRequest req) {
 		ResourceBean bean;
 		try {
 			//check if the token is valid
-			TokenBean t = AuthorizationServer.isTokenValid(req);
+			TokenBean t = authorizationServer.isTokenValid(req);
             final String tokenScopeName = t.getToken_scope();
             final TokenScope.Scope tokenScope = TokenScope.fromString(tokenScopeName);
 

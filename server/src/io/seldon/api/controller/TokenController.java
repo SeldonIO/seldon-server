@@ -34,6 +34,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -53,6 +54,9 @@ import io.seldon.api.service.AuthorizationServer;
 @Controller
 @RequestMapping(value="/token")
 public class TokenController {
+
+	@Autowired
+	private AuthorizationServer authorizationServer;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody Object getToken(HttpServletRequest req, HttpServletResponse resp,
@@ -78,7 +82,7 @@ public class TokenController {
 			/*resp.setContentType(Constants.CONTENT_TYPE_JSON);
 			resp.setHeader(Constants.CACHE_CONTROL, Constants.NO_CACHE);*/
 			//retrieve token
-			Token token = AuthorizationServer.getToken(req);
+			Token token = authorizationServer.getToken(req);
 			//if successful
 			resp.setStatus(HttpServletResponse.SC_OK);
 			TokenBean bean = new TokenBean(token);

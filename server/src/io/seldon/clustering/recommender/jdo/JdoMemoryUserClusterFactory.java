@@ -109,7 +109,7 @@ public class JdoMemoryUserClusterFactory {
 	
 	private synchronized void loadTransientClustersFromDB(String client)
 	{
-		PersistenceManager pm = JDOFactory.getPersistenceManager(client);
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(client);
 		if (pm != null)
 		{
 				JdoUserClusterStore jdoStore = new JdoUserClusterStore(client);
@@ -130,10 +130,10 @@ public class JdoMemoryUserClusterFactory {
 					logger.debug("No new transient clusters to load for "+client);
 		}
 	}
-	
+
 	private void loadClustersFromDB(String client)
 	{
-		PersistenceManager pm = JDOFactory.getPersistenceManager(client);
+		PersistenceManager pm = JDOFactory.get().getPersistenceManager(client);
 		if (pm != null)
 		{
 			JdoUserClusterStore jdoStore = new JdoUserClusterStore(client);
@@ -145,11 +145,11 @@ public class JdoMemoryUserClusterFactory {
 			storeClusters(store,clusters);
 			store.setLoaded(true);
 			factory.store(client, store);
-			
+
 			//load transient clusters
 			lastTransientId.put(client, -1L);
 			loadTransientClustersFromDB(client);
-			
+
 			logger.info("Loaded user clusters for "+client);
 		}
 		else {
@@ -176,7 +176,7 @@ public class JdoMemoryUserClusterFactory {
                 public void run() {
                     try {
                         logger.debug("Looking at possible reload of clusters for client " + client);
-                        PersistenceManager pm = JDOFactory.getPersistenceManager(client);
+                        PersistenceManager pm = JDOFactory.get().getPersistenceManager(client);
                         if (pm != null) {
                             logger.debug("Getting jdo user cluster store " + client);
                             JdoUserClusterStore jdoStore = new JdoUserClusterStore(client);
@@ -201,7 +201,7 @@ public class JdoMemoryUserClusterFactory {
                     } catch (Exception e) {
                         logger.error("Exception while updating clusters", e);
                     } finally {
-                        JDOFactory.cleanupPM();
+                        JDOFactory.get().cleanupPM();
                     }
                 }
             });
@@ -223,7 +223,7 @@ public class JdoMemoryUserClusterFactory {
                     } catch (Exception e) {
                         logger.error("Caught exception trying to load transient clusters", e);
                     } finally {
-                        JDOFactory.cleanupPM();
+                        JDOFactory.get().cleanupPM();
                     }
                 }
             });

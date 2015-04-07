@@ -23,6 +23,11 @@
 
 package io.seldon.api.state.zk;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.util.JSONParseException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.*;
 import io.seldon.api.state.*;
@@ -32,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -43,17 +49,18 @@ import java.util.*;
 public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpdateListener, ClientConfigHandler {
     private static Logger logger = Logger.getLogger(ZkClientConfigHandler.class.getName());
     private final ZkSubscriptionHandler handler;
-    private Set<String> clientSet;
+    private Map<String,Map<String,String>> clientsWithInitialConfig;
     private final Set<ClientConfigUpdateListener> listeners;
     private final Set<NewClientListener> newClientListeners;
     private static final String CLIENT_LIST_LOCATION = "all_clients";
+    private ObjectMapper jsonMapper = new ObjectMapper();
 
     @Autowired
     public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler) {
         this.handler = handler;
         this.newClientListeners = new HashSet<>();
         this.listeners = new HashSet<>();
-        this.clientSet = new HashSet<>();
+        this.clientsWithInitialConfig = new HashMap<>();
     }
 
     @PostConstruct
@@ -79,11 +86,11 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
         if (configValue!=null){
             String[] clientsArray  = configValue.split(",");
             for (String client : clientsArray){
-                if(!clientSet.contains(client)){
+                if(!clientsWithInitialConfig.keySet().contains(client)){
                     logger.info("Found new client in list : " + client);
                     try {
                         handler.addSubscription("/" + client, this);
-                        clientSet.add(client);
+                        clientsWithInitialConfig.keySet().add(client);
                     }catch (Exception e){
                         logger.error("Couldn't add listener for client " + client, e);
                     }
@@ -110,10 +117,10 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
 
     @Override
     public void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData) {
-        logger.info("Adding client config listener, current clients are " + StringUtils.join(clientSet,','));
+        logger.info("Adding client config listener, current clients are " + StringUtils.join(clientsWithInitialConfig.keySet(),','));
         listeners.add(listener);
         if(notifyOnExistingData) {
-            for (String client : clientSet)
+            for (String client : clientsWithInitialConfig.keySet())
                 doInitialRead(client,listener);
         }
     }
@@ -122,8 +129,8 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     public void addNewClientListener(NewClientListener listener, boolean notifyExistingClients) {
         newClientListeners.add(listener);
         if(notifyExistingClients){
-            for(String client : clientSet)
-                listener.clientAdded(client);
+            for(String client : clientsWithInitialConfig.keySet())
+                listener.clientAdded(client, clientsWithInitialConfig.get(client));
         }
     }
 
@@ -139,10 +146,17 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                 String path = event.getData().getPath();
                 if(isClientPath(path)){
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
-                    clientSet.add(clientName);
                     logger.info("Found new client : " + clientName);
-                    for (NewClientListener listener: newClientListeners){
-                        listener.clientAdded(clientName);
+                    try {
+                        Map<String, String> initialConfig = jsonMapper.readValue(
+                                event.getData().getData(), new TypeReference<Map<String, String>>() {
+                                });
+                        clientsWithInitialConfig.put(clientName, initialConfig);
+                        for (NewClientListener listener : newClientListeners) {
+                            listener.clientAdded(clientName, initialConfig);
+                        }
+                    } catch (IOException  e){
+                        logger.error("Couldn't read JSON at "+path,e);
                     }
                     break;
                 } //purposeful cascade as the below deals with the rest of the cases
@@ -168,7 +182,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                 path = event.getData().getPath();
                 if(isClientPath(path)){
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
-                    clientSet.remove(clientName);
+                    clientsWithInitialConfig.keySet().remove(clientName);
                     logger.info("Deleted client : " + clientName);
                     for (NewClientListener listener: newClientListeners)
                         listener.clientDeleted(clientName);

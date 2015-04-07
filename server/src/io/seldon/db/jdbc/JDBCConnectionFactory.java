@@ -33,7 +33,9 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
+@Component
 public class JDBCConnectionFactory {
 
 	private static Logger logger = Logger.getLogger( JDBCConnectionFactory.class.getName() );
@@ -42,25 +44,36 @@ public class JDBCConnectionFactory {
 	
 	private Map<String,DataSource> dataSources = new ConcurrentHashMap<>();
 	private Map<String,String> clientToCatalog = new ConcurrentHashMap<>();
-	
-	public static JDBCConnectionFactory initialise( Map<String,String> jndiKeys,Map<String,String> clientToCatalog) throws NamingException
-	{
-		if (factory == null)
-			factory = new JDBCConnectionFactory();
-		
-		InitialContext ctx = new InitialContext();
-		for(Map.Entry<String, String> jndiKey : jndiKeys.entrySet())
-			factory.addDataSource(ctx, jndiKey.getKey(), jndiKey.getValue(),clientToCatalog.get(jndiKey.getKey()));
-		
-		return factory;
+	private InitialContext ctx;
+
+
+	public JDBCConnectionFactory(){
+		try {
+			ctx = new InitialContext();
+		} catch (NamingException e) {
+			ctx = null;
+			logger.error("Couldn't start JDNI context",e);
+		}
+		factory = this;
 	}
+
+//	public static JDBCConnectionFactory initialise( Map<String,String> jndiKeys,Map<String,String> clientToCatalog) throws NamingException
+//	{
+//		if (factory == null)
+//			factory = new JDBCConnectionFactory();
+//
+//		for(Map.Entry<String, String> jndiKey : jndiKeys.entrySet())
+//			factory.addDataSource(ctx, jndiKey.getKey(), jndiKey.getValue(),clientToCatalog.get(jndiKey.getKey()));
+//
+//		return factory;
+//	}
 	
 	public static JDBCConnectionFactory get()
 	{
 		return factory;
 	}
 	
-	private void addDataSource(InitialContext ctx,String key,String jndi,String dbName) throws NamingException
+	public void addDataSource(String key,String jndi,String dbName) throws NamingException
 	{
 		 DataSource ds = (DataSource)ctx.lookup(jndi);
 		 dataSources.put(key, ds);
