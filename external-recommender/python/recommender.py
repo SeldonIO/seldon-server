@@ -52,6 +52,12 @@ def format_recs(recs):
 def get_data_set(raw_data):
     return set(json.loads(raw_data))
 
+def memcache_set(key,value,time):
+    key=str(key)
+    key = hashlib.md5(key).hexdigest()
+    with _mc_pool.reserve(block=True) as mc:
+        mc.set(key,value,time)
+
 def memcache_get(key):
     key=str(key)
     key = hashlib.md5(key).hexdigest()
@@ -95,6 +101,7 @@ def mc_init():
     _mc_pool = pylibmc.ClientPool(mc, mc_pool_size)
 
 mc_init()
+_recs_mod.init(_mc_pool,app.config)
 app.debug = True
 
 if __name__ == "__main__":

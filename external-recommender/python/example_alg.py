@@ -1,6 +1,11 @@
 import random
 import operator
 
+def init(mc,config):
+    global mc_pool
+    mc_pool = mc
+
+
 def get_recommendations(
         user_id,
         item_id,
