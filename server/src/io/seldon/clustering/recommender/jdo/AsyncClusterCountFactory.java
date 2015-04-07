@@ -27,6 +27,7 @@ import io.seldon.api.state.NewClientListener;
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.api.state.zk.ZkClientConfigHandler;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
@@ -63,7 +64,7 @@ public class AsyncClusterCountFactory implements NewClientListener {
 	}
 	
 	@Override
-	public void clientAdded(String client) {
+	public void clientAdded(String client, Map<String, String> initialConfig) {
 		logger.info("Adding client:"+client);
 		createAndStore(client);
 	}

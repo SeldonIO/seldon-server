@@ -74,7 +74,7 @@ public class ClusterFromReferrerPeer implements NewClientListener {
 	}
 	
 	@Override
-	public void clientAdded(String client) {
+	public void clientAdded(String client, Map<String, String> initialConfig) {
 		logger.info("Adding client: "+client);
 		addClient(client);
 	}

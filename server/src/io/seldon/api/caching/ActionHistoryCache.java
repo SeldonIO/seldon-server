@@ -32,6 +32,7 @@ import io.seldon.memcache.MemCachePeer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.spy.memcached.CASMutation;
@@ -60,7 +61,7 @@ public class ActionHistoryCache implements NewClientListener {
 	}
 	
 	@Override
-	public void clientAdded(String client) {
+	public void clientAdded(String client, Map<String, String> initialConfig) {
 	}
 
 	@Override
