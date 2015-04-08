@@ -5,7 +5,6 @@ app = Flask(__name__)
 import json
 import pprint
 import pylibmc
-import hashlib
 
 app.config.from_object('recommender_config')
 _recs_mod = importlib.import_module(app.config['RECOMMENDER_ALG'])
@@ -50,13 +49,11 @@ def get_data_set(raw_data):
 
 def memcache_set(key,value,time):
     key=str(key)
-    key = hashlib.md5(key).hexdigest()
     with _mc_pool.reserve(block=True) as mc:
         mc.set(key,value,time)
 
 def memcache_get(key):
     key=str(key)
-    key = hashlib.md5(key).hexdigest()
     value=None
     with _mc_pool.reserve(block=True) as mc:
         value = mc.get(key)
