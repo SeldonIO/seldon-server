@@ -13,9 +13,6 @@ _mc_pool = None
 
 def extract_input():
     user_id = long(request.args.get('user_id'))
-    item_id = None
-    if request.args.get('item_id'):
-        item_id = long(request.args.get('item_id'))
     client = request.args.get('client')
     limit = int(request.args.get('limit'))
     exclusion_items = request.args.get('exclusion_items')
@@ -31,7 +28,6 @@ def extract_input():
     data_keys_list = map(lambda x: str(x), request.args.get('data_key').split(","))
     input = {
         "user_id" : user_id,
-        "item_id" : item_id,
         "client" : client,
         "limit" : limit,
         "exclusion_items_list" : exclusion_items_list,
@@ -82,7 +78,6 @@ def recommend():
 
     recs = _recs_mod.get_recommendations(
             input['user_id'],
-            input['item_id'],
             input['client'],
             input['recent_interactions_list'],
             data_set,
