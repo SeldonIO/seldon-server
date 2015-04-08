@@ -34,6 +34,11 @@ import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.feature.IDF
 import org.joda.time.Duration
 import org.joda.time.LocalDateTime
+import org.apache.spark.mllib.linalg.SparseVector
+import org.apache.spark.mllib.linalg.Vectors
+import io.seldon.spark.rdd.FileUtils
+import io.seldon.spark.rdd.DataSourceMode
+import scala.util.control.Breaks._
 
 case class ActionConfig(
     local : Boolean = false,
@@ -46,10 +51,9 @@ case class ActionConfig(
     startDay : Int = 0,
     days : Int = 1,
     awsSecret : String = "",
-    minNumActionsPerUser : Int = 11,
-    maxNumActionsPerUser : Int = 100,
-    actionNumToStart : Int = 10,
-    minTermDocFreq : Int = 10)
+    maxNumActionsPerUser : Int = 25,
+    actionNumToStart : Int = 5,
+    minTermDocFreq : Int = 100)
     
     
 class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) {
@@ -108,37 +112,44 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
       
       val rddCombined = rddActions.join(rddItems)
       
-      val minNumActions = config.minNumActionsPerUser
+      val countCombined = rddCombined.count()
+      println("actions with tags count is "+countCombined.toString())
+      
       val maxNumActions = config.maxNumActionsPerUser
       val actionNumToStart = config.actionNumToStart
+      
+      println("max actions "+maxNumActions.toString()+" start at "+actionNumToStart.toString())
       // create feature for current item and the user history of items viewed
-      val rddFeatures = rddCombined.map{ case (item,((user,time),tags)) => (user,(item,time,tags))}.groupByKey().filter(_._2.size > minNumActions).filter(_._2.size < maxNumActions)
+      val rddFeatures = rddCombined.map{ case (item,((user,time),tags)) => (user,(item,time,tags))}.groupByKey()
           .flatMapValues{v =>
         val buf = new ListBuffer[String]()
         val sorted = v.toArray.sortBy(_._2) // _.2 is time
-        var userHistory = Set[String]()
+        var userHistory = ListBuffer[String]()
         var c = 0
-        for ((item,t,tags) <- sorted)
+        breakable { for ((item,t,tags) <- sorted)
         {
-          var line = new StringBuilder()
-          if (c > actionNumToStart)
+          if (c > maxNumActions)
+            break;
+          if (c >= actionNumToStart)
           {
-           for(tag <- tags.split(","))
+            var line = new StringBuilder()
+            for(tag <- tags.split(","))
            {
+             val tagToken = tag.trim().toLowerCase().replaceAll("[ :;'\",]", "_")
             // create a set of item tag features for each tag in current item
-            if (tag.trim().size > 0)
+            if (tagToken.size > 0)
             {
               line ++= " i_"
-              line ++= tag.trim().replaceAll(" ", "_")
+              line ++= tagToken
              }
             }
             // create a set if user tag features for each tag in user history
             for (tag <- userHistory)
             {
-             if (tag.trim().size > 0)
+             if (tag.size > 0)
              {
               line ++= " u_"
-              line ++= tag.trim()
+              line ++= tag
              }  
             }
             buf.append(line.toString().trim())
@@ -146,14 +157,19 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
            // add all tags from current item to user history
            for (tag <- tags.split(","))
            {
-              if (tag.trim().size > 0)
-                userHistory += tag.trim().replaceAll(" ", "_")
+             val tagToken = tag.trim().toLowerCase().replaceAll("[ :;'\",]", "_")
+             if (tagToken.size > 0)
+                userHistory.append(tagToken)
             }
           c += 1
-         } 
+         }
+        }
          buf 
-      }.cache()
+      }
 
+      val countFeatures = rddFeatures.count()
+      println("Count of rddFeatures "+countFeatures.toString())
+      
       val featuresIter = rddFeatures.map(_._2.split(" ").toSeq)
 
       val hashingTF = new HashingTF()
@@ -176,7 +192,7 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
             val id = hashingTF.indexOf(feature)
             val tfidf = tfidfVec(id)
             val field = if (feature.startsWith("u_")) "1" else "2"
-            line ++= " "+field+":"+id.toString()+":"+tfidf
+            line ++= " "+field+":"+feature+":"+tfidf
             fset += feature
           }
         }
@@ -185,6 +201,21 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
        
       val outPath = config.outputPath + "/" + config.client + "/features/"+config.startDay
       rddFeatureIds.saveAsTextFile(outPath)
+      
+
+      val rddTags = rddFeatures.flatMap{case (user,features) => features.split(" ")}.distinct
+      val bcIDF = rddTags.context.broadcast(idf)
+      val tagIDFs = rddTags.map { tag =>  
+        val idf = bcIDF.value
+        val hashingTF = new HashingTF()
+        val id = hashingTF.indexOf(tag)
+        val vec =  Vectors.sparse(id+1, Seq((id,1.0)))
+        val idfVec = idf.transform(vec)
+        (tag,idfVec(id))
+        }.map{case (tag,idf) => tag+","+idf}
+      
+      val idfOutPath = config.outputPath + "/" + config.client + "/idf/"+config.startDay
+      FileUtils.outputModelToFile(tagIDFs, idfOutPath, DataSourceMode.fromString(idfOutPath), "idf.csv")
     }
     
     
@@ -211,7 +242,6 @@ object CreateActionFeatures
     opt[String]('t', "tagAttr") required() action { (x, c) =>c.copy(tagAttr = x) } text("tag attribute in database")    
     opt[Int]('r', "numdays") required() action { (x, c) =>c.copy(days = x) } text("number of days in past to get actions for")
     opt[Int]("start-day") required() action { (x, c) =>c.copy(startDay = x) } text("start day in unix time")
-    opt[Int]("minNumActionsPerUser") action { (x, c) =>c.copy(minNumActionsPerUser = x) } text("min number of actions a user must have")
     opt[Int]("maxNumActionsPerUser") action { (x, c) =>c.copy(maxNumActionsPerUser = x) } text("max number of actions a user must have")
     opt[Int]("actionNumToStart") action { (x, c) =>c.copy(actionNumToStart = x) } text("wait until this number of actions for a user before creating features")
 
@@ -223,7 +253,7 @@ object CreateActionFeatures
       
     if (config.local)
       conf.setMaster("local")
-    .set("spark.executor.memory", "8g")
+    .set("spark.executor.memory", "13g")
     
     val sc = new SparkContext(conf)
     try
