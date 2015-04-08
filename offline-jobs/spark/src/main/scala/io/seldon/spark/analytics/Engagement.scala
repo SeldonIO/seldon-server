@@ -93,10 +93,10 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
     println(glob)
     val maxGapMsecs = config.maxIntraSessionGapSecs * 1000
     val maxSessionPageViews = config.maxSessionPageView
-    val data = parseJson(glob)
+    val data = parseJson(glob).coalesce(50, false)
 
     // calulate session time and number of page views per session for each user page view history
-    val perUserStats = data.groupByKey(50).flatMapValues{v => 
+    val perUserStats = data.groupByKey().flatMapValues{v => 
       val buf = new ListBuffer[(Long,Long,String,String,Int,Int,Int)]()
       val sorted = v.toArray.sortBy(_.time)
       var lastTime : Long = 0
@@ -176,8 +176,8 @@ object Engagement {
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[String]('i', "input-path") required() valueName("path url") action { (x, c) => c.copy(inputPath = x) } text("path prefix for input")
     opt[String]('o', "output-path") required() valueName("path url") action { (x, c) => c.copy(outputPath = x) } text("path prefix for output")
-    opt[String]('a', "awskey") required() valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
-    opt[String]('s', "awssecret") required() valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
+    opt[String]('a', "awskey") valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
+    opt[String]('s', "awssecret") valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
     opt[String]('d', "start-date") required() valueName("start date") action { (x, c) => c.copy(startDate = x) } text("start date yyyy-mm-dd")
     opt[String]('e', "end-date") required() valueName("end date") action { (x, c) => c.copy(endDate = x) } text("end date yyyy-mm-dd")
     opt[Int]('m', "max-session-pv") valueName("max session page views") action { (x, c) => c.copy(maxSessionPageView = x) } text("max session page views")
@@ -196,8 +196,11 @@ object Engagement {
     try
     {
       sc.hadoopConfiguration.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
-      sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
-      sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
+      if (config.awsKey.nonEmpty && config.awsSecret.nonEmpty)
+      {
+        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
+        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
+      }
       val cByd = new Engagement(sc,config)
       cByd.run()
     }
