@@ -147,16 +147,19 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                 if(isClientPath(path)){
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
                     logger.info("Found new client : " + clientName);
+                    Map<String, String> initialConfig = new HashMap<>();
                     try {
-                        Map<String, String> initialConfig = jsonMapper.readValue(
+                         initialConfig = jsonMapper.readValue(
                                 event.getData().getData(), new TypeReference<Map<String, String>>() {
                                 });
-                        clientsWithInitialConfig.put(clientName, initialConfig);
-                        for (NewClientListener listener : newClientListeners) {
-                            listener.clientAdded(clientName, initialConfig);
-                        }
+
                     } catch (IOException  e){
-                        logger.error("Couldn't read JSON at "+path,e);
+
+                        logger.warn("Couldn't read JSON at " + path + ", ignoring");
+                    }
+                    clientsWithInitialConfig.put(clientName, initialConfig);
+                    for (NewClientListener listener : newClientListeners) {
+                        listener.clientAdded(clientName, initialConfig);
                     }
                     break;
                 } //purposeful cascade as the below deals with the rest of the cases
