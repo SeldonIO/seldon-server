@@ -23,13 +23,12 @@
 
 package io.seldon.general;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.reflect.TypeResolver;
 import io.seldon.api.resource.service.PersistenceProvider;
 import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
+import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.memcache.UpdateRetriever;
 import io.seldon.trust.impl.filters.FilteredItems;
 
@@ -44,6 +43,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -100,7 +100,7 @@ public class ItemStorage {
         for (SqlItemPeer.ItemAndScore itemAndScore : retrievedItems){
             toReturn.add(itemAndScore.item);
         }
-        return new FilteredItems(toReturn.size() >= numItems ? new ArrayList<>(toReturn).subList(0,numItems) : toReturn, key);
+        return new FilteredItems(toReturn.size() >= numItems ? new ArrayList<>(toReturn).subList(0,numItems) : toReturn, SecurityHashPeer.md5(key));
     }
     
     public FilteredItems retrieveRecentlyAddedItems(final String client, final int numItems, final int dimension){
@@ -111,7 +111,7 @@ public class ItemStorage {
                 return provider.getItemPersister(client).getRecentItemIds(dimension, numItems, null);
             }
         }, new TypeReference<List<Long>>() {}, RECENT_ITEMS_EXPIRE_TIME);
-        return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,key);
+        return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,SecurityHashPeer.md5(key));
     }
 
     private <T extends List> T retrieveUsingJSON(String key, int numItemsRequired, UpdateRetriever<T> retriever,
