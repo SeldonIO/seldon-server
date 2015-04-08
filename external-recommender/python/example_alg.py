@@ -8,7 +8,6 @@ def init(mc,config):
 
 def get_recommendations(
         user_id,
-        item_id,
         client,
         recent_interactions_list,
         data_set,
@@ -17,7 +16,7 @@ def get_recommendations(
 
     scores = {}
     for i in data_set:
-        scores[i]=random.randint(0,100)
+        scores[i]=random.uniform(0,1)
 
     sorted_scores=sorted(scores.items(), key=operator.itemgetter(1))
     sorted_scores = sorted_scores[::-1]
