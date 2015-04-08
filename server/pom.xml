@@ -161,7 +161,7 @@
                 <version>1.5</version>
                 <configuration>
                     <resourceBundles>
-                        <resourceBundle>io.seldon:seldon-server-config-local:${project.version}</resourceBundle>
+                        <resourceBundle>io.seldon:seldon-server-config-${config.version}:${project.version}</resourceBundle>
                     </resourceBundles>
                     <includes>
                         <include>**/*.*</include>
