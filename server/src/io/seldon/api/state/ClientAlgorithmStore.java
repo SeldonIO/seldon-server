@@ -52,6 +52,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
@@ -340,24 +341,30 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     @Override
     public void configUpdated(String configKey, String configValue) {
+        configValue = StringUtils.strip(configValue);
         logger.info("KEY WAS " + configKey);
         logger.info("Received new default strategy: " + configValue);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            List<AlgorithmStrategy> strategies = new ArrayList<>();
-            AlgorithmConfig config = mapper.readValue(configValue, AlgorithmConfig.class);
+        
+        if (StringUtils.length(configValue) == 0) {
+        	logger.warn("*WARNING* no default strategy is set!");
+        } else {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                List<AlgorithmStrategy> strategies = new ArrayList<>();
+                AlgorithmConfig config = mapper.readValue(configValue, AlgorithmConfig.class);
 
-            for (Algorithm alg : config.algorithms){
-                strategies.add(toAlgorithmStrategy(alg));
+                for (Algorithm alg : config.algorithms){
+                    strategies.add(toAlgorithmStrategy(alg));
+                }
+                AlgorithmResultsCombiner combiner = applicationContext.getBean(
+                        config.combiner,AlgorithmResultsCombiner.class);
+                Map<Integer,Double> actionWeightMap = toActionWeightMap(config.actionWeights);
+                ClientStrategy strat = new SimpleClientStrategy(strategies, combiner, config.diversityLevel,"-",actionWeightMap);
+                defaultStrategy = strat;
+                logger.info("Successfully changed default strategy.");
+            } catch (IOException e){
+                logger.error("Problem changing default strategy ", e);
             }
-            AlgorithmResultsCombiner combiner = applicationContext.getBean(
-                    config.combiner,AlgorithmResultsCombiner.class);
-            Map<Integer,Double> actionWeightMap = toActionWeightMap(config.actionWeights);
-            ClientStrategy strat = new SimpleClientStrategy(strategies, combiner, config.diversityLevel,"-",actionWeightMap);
-            defaultStrategy = strat;
-            logger.info("Successfully changed default strategy.");
-        } catch (IOException e){
-            logger.error("Problem changing default strategy ", e);
         }
     }
 
