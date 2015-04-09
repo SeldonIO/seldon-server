@@ -68,6 +68,7 @@ public class APIException extends RuntimeException {
     public static final int CONCURRENT_ITEM_UPDATE = 34;
     public static final int CONCURRENT_USER_UPDATE = 35;
     public static final int FACEBOOK_RESPONSE = 36;
+	public static final int NOT_VALID_STRATEGY = 37;
 
     //ATTRIBUTES
     int error_id;
@@ -217,6 +218,10 @@ public class APIException extends RuntimeException {
                 error_msg = "Facebook response status exception, not code 1. https://developers.facebook.com/docs/reference/api/errors/";
                 httpResponse = 500;
                 break;
+			case NOT_VALID_STRATEGY:
+				error_msg = "Invalid or Null Strategy. The default strategy or a per client strategy needs to be set correctly.";
+				httpResponse = 500;
+				break;
 		}
 	}
 	

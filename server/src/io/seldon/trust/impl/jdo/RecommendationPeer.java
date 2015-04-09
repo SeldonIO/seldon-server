@@ -23,6 +23,7 @@
 
 package io.seldon.trust.impl.jdo;
 
+import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.state.ClientAlgorithmStore;
@@ -101,6 +102,10 @@ public class RecommendationPeer {
             strategy  = algStore.retrieveStrategy(client, algorithmOverride);
         } else {
             strategy = algStore.retrieveStrategy(client);
+        }
+
+        if (strategy == null) {
+            throw new APIException(APIException.NOT_VALID_STRATEGY);
         }
 
 		//Set base values - will be used for anonymous users
