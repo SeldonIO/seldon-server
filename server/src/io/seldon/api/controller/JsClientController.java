@@ -102,20 +102,6 @@ public class JsClientController {
         return asCallback(jsonpCallback, new ErrorBean(ex));
     }
 
-    @RequestMapping("/user/new")
-    public
-    String registerUser(HttpSession session,
-                             @RequestParam("id") String userId,
-                             @RequestParam(value = "fb", required = false) Boolean facebookEnabled,
-                             @RequestParam(value = "fbId", required = false) String facebookId,
-                             @RequestParam(value = "fbToken", required = false) String facebookToken,
-                             @RequestParam(value = "fbAppId", required = false) String facebookAppId,                             
-                             @RequestParam("jsonpCallback") String callback,
-                             @RequestParam(value = "async", defaultValue="false", required = false) Boolean async,
-                             @CookieValue(value = "rlId_ctu", required = false) String inviterCookie) {
-        return "forward:/acquire/user/new";
-    }
-
     @RequestMapping("/action/new")
     public
     @ResponseBody
@@ -137,44 +123,6 @@ public class JsClientController {
         boolean isCTR = StringUtils.isNotBlank(rlabs);
 
         return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag));
-    }
-    
-
-
-    @RequestMapping("/share")
-    public
-    String shareItem(HttpSession session,
-                          @RequestParam("consumer_key") String consumerKey,
-                          @RequestParam("user") String userId,
-                          @RequestParam(value = "keywords", required = false) String keywords,
-                          @RequestParam(value = "item", required = false, defaultValue = "") String itemId,
-                          @RequestParam(value = "algorithms", required = false) String algorithms,
-                          @RequestParam(value= "full", defaultValue="false", required=false) String full,
-                          @RequestParam(value = "limit", defaultValue = "10") Integer userLimit,
-                          @RequestParam(value = "shown", defaultValue = "4", required = false) Integer usersShown,
-                          @RequestParam(value = "locations", required = false) String locations,
-                          @RequestParam(value = "categories", required = false) String categories,
-                          @RequestParam(value = "nonAppUsers", required = false) String nonAppUsers,
-                          @RequestParam(value = "demographics", required = false) String demographics,
-                          @RequestParam(value = "fbToken", required = false) String facebookToken,                          
-                          @RequestParam(value = "impression", defaultValue="true", required=false) String impressionEnabledString,
-                          @RequestParam(value = "addUser", defaultValue="false", required = false) Boolean addUser,                          
-                          @RequestParam(value = "asyncUserAdd", defaultValue="false", required = false) Boolean async, 
-                          @RequestParam(value = "fbId", required = false) String facebookId,
-                          @RequestParam(value = "fbAppId", required = false) String facebookAppId, 
-                          @RequestParam("jsonpCallback") String callback) {
-        return "forward:/acquire/share";
-    }
-    
-    @RequestMapping("/tracking")
-    public
-    String tracking(HttpSession session,
-                          @RequestParam("consumer_key") String consumerKey,
-                          @RequestParam("user") String userId,
-                          @RequestParam("event") String eventType,
-                          @RequestParam("jsonpCallback") String callback) {
-        
-        return "forward:/acquire/tracking";
     }
 
     @RequestMapping("/recommendations")
