@@ -60,7 +60,6 @@ public class AsyncClusterCountFactory implements NewClientListener {
 	{
 		this.options = options;
 		this.clientConfigHandler = clientConfigHandler;
-		clientConfigHandler.addNewClientListener(this, true);
 	}
 	
 	@Override
@@ -80,6 +79,7 @@ public class AsyncClusterCountFactory implements NewClientListener {
 	@PostConstruct
 	public void initialise()
 	{
+		clientConfigHandler.addNewClientListener(this, true);
 		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
 		if (clientList != null && clientList.length() > 0)
 		{

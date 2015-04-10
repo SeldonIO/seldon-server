@@ -23,31 +23,33 @@
 
 package io.seldon.api.service;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-
-import io.seldon.api.resource.ScopedConsumerBean;
 import io.seldon.api.APIException;
+import io.seldon.api.Constants;
+import io.seldon.api.jdo.Consumer;
+import io.seldon.api.jdo.ConsumerPeer;
+import io.seldon.api.jdo.Token;
 import io.seldon.api.jdo.TokenPeer;
+import io.seldon.api.resource.ScopedConsumerBean;
 import io.seldon.api.resource.TokenBean;
 import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import io.seldon.api.Constants;
-import io.seldon.api.jdo.Consumer;
-import io.seldon.api.jdo.ConsumerPeer;
-import io.seldon.api.jdo.Token;
 
 /**
  * @author claudio
@@ -75,6 +77,7 @@ public class AuthorizationServer implements NewClientListener {
 
 	@PostConstruct
 	public void startup(){
+		logger.info("Adding new client listener");
 		clientConfigHandler.addNewClientListener(this, false);
 	}
 

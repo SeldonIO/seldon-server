@@ -74,12 +74,13 @@ public class JdoAsyncActionFactory implements NewClientListener{
 	{
 		this.options = options;
 		this.clientConfigHandler = clientConfigHandler;
-		clientConfigHandler.addNewClientListener(this, true);
 	}
 	
 	@PostConstruct
 	private void initialise()
 	{
+		logger.info("Adding new client listener");
+		clientConfigHandler.addNewClientListener(this, true);
 		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
 		if (clientList != null && clientList.length() > 0)
 		{

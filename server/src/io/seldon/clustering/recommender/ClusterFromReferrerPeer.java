@@ -53,12 +53,13 @@ public class ClusterFromReferrerPeer implements NewClientListener {
 	{
 		this.options = options;
 		this.clientConfigHandler = clientConfigHandler;
-		clientConfigHandler.addNewClientListener(this, true);
 	}
 	
 	@PostConstruct
 	private void initialise()
 	{
+		logger.info("Adding new client listener");
+		clientConfigHandler.addNewClientListener(this, true);
 		String clientsProp = options.getOption(PROP);
 		if (StringUtils.isNotBlank(clientsProp))
 		{

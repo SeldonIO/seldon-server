@@ -23,22 +23,36 @@
 
 package io.seldon.api.state.zk;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.util.JSONParseException;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.*;
-import io.seldon.api.state.*;
+import io.seldon.api.state.ClientConfigHandler;
+import io.seldon.api.state.ClientConfigUpdateListener;
+import io.seldon.api.state.GlobalConfigHandler;
+import io.seldon.api.state.GlobalConfigUpdateListener;
+import io.seldon.api.state.NewClientListener;
+import io.seldon.api.state.ZkSubscriptionHandler;
+import io.seldon.db.jdo.JDOFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author firemanphil
@@ -51,16 +65,19 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     private final ZkSubscriptionHandler handler;
     private Map<String,Map<String,String>> clientsWithInitialConfig;
     private final Set<ClientConfigUpdateListener> listeners;
-    private final Set<NewClientListener> newClientListeners;
+    private final ArrayList<NewClientListener> newClientListeners;
     private static final String CLIENT_LIST_LOCATION = "all_clients";
     private ObjectMapper jsonMapper = new ObjectMapper();
 
     @Autowired
+    JDOFactory jdofactory;
+    
+    @Autowired
     public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler) {
         this.handler = handler;
-        this.newClientListeners = new HashSet<>();
+        this.newClientListeners = new ArrayList<>();
         this.listeners = new HashSet<>();
-        this.clientsWithInitialConfig = new HashMap<>();
+        this.clientsWithInitialConfig = new ConcurrentHashMap<>();
     }
 
     @PostConstruct
@@ -80,7 +97,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     }
 
     @Override
-    public void configUpdated(String configKey, String configValue) {
+    public synchronized void configUpdated(String configKey, String configValue) {
         logger.info("Received new list of clients: " + configValue);
         // client added/removed
         if (configValue!=null){
@@ -116,7 +133,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     }
 
     @Override
-    public void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData) {
+    public synchronized void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData) {
         logger.info("Adding client config listener, current clients are " + StringUtils.join(clientsWithInitialConfig.keySet(),','));
         listeners.add(listener);
         if(notifyOnExistingData) {
@@ -126,16 +143,30 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     }
 
     @Override
-    public void addNewClientListener(NewClientListener listener, boolean notifyExistingClients) {
+    public synchronized void addNewClientListener(NewClientListener listener, boolean notifyExistingClients) {
         newClientListeners.add(listener);
         if(notifyExistingClients){
             for(String client : clientsWithInitialConfig.keySet())
                 listener.clientAdded(client, clientsWithInitialConfig.get(client));
         }
     }
+    
+    @Override
+	public synchronized void addNewClientListener(NewClientListener listener,
+			boolean notifyExistingClients, boolean addFirst) {
+    	if (addFirst)
+    		newClientListeners.add(0, listener);
+    	else
+    		newClientListeners.add(listener);
+        if(notifyExistingClients){
+            for(String client : clientsWithInitialConfig.keySet())
+                listener.clientAdded(client, clientsWithInitialConfig.get(client));
+        }
+		
+	}
 
     @Override
-    public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+    public synchronized void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         if(event == null || event.getType() == null || event.getData() == null || event.getData().getPath()==null) {
             logger.warn("Event received was null somewhere");
             return;
@@ -157,6 +188,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
 
                         logger.warn("Couldn't read JSON at " + path + ", ignoring");
                     }
+                    jdofactory.clientAdded(clientName, initialConfig);
                     clientsWithInitialConfig.put(clientName, initialConfig);
                     for (NewClientListener listener : newClientListeners) {
                         listener.clientAdded(clientName, initialConfig);
@@ -186,11 +218,14 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                 if(isClientPath(path)){
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
                     clientsWithInitialConfig.keySet().remove(clientName);
-                    logger.info("Deleted client : " + clientName);
-                    for (NewClientListener listener: newClientListeners)
-                        listener.clientDeleted(clientName);
+                    logger.warn("Deleted client : " + clientName+" - presently resources will not be released");
+                    //jdofactory.clientDeleted(clientName);
+                    //for (NewClientListener listener: newClientListeners)
+                    //    listener.clientDeleted(clientName);
                 }
 
         }
     }
+
+	
 }

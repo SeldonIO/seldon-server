@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
+
 import net.spy.memcached.CASMutation;
 
 import org.apache.log4j.Logger;
@@ -57,7 +59,12 @@ public class ActionHistoryCache implements NewClientListener {
 	{
 		this.options = options;
 		this.clientConfigHandler = clientConfigHandler;
-		clientConfigHandler.addNewClientListener(this, true);
+	}
+	
+	@PostConstruct
+	public void startup(){
+		logger.info("Adding new client listener");
+		clientConfigHandler.addNewClientListener(this, false);
 	}
 	
 	@Override

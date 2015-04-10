@@ -25,6 +25,10 @@
 
 package io.seldon.db.jdo;
 
+import io.seldon.api.Constants;
+import io.seldon.api.state.NewClientListener;
+import io.seldon.db.jdbc.JDBCConnectionFactory;
+
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,12 +39,7 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.naming.NamingException;
 
-import io.seldon.api.state.ClientConfigHandler;
-import io.seldon.api.state.NewClientListener;
 import org.apache.log4j.Logger;
-
-import io.seldon.api.Constants;
-import io.seldon.db.jdbc.JDBCConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,14 +61,15 @@ public class JDOFactory implements NewClientListener
 	@Autowired
 	private JDBCConnectionFactory jdbcConnectionFactory;
 
-	@Autowired
-	private ClientConfigHandler clientConfigHandler;
+	//@Autowired
+	//private ClientConfigHandler clientConfigHandler;
 	private static JDOFactory jdoFactory;
 
 
 	@PostConstruct
 	public void intialise() throws NamingException {
-		clientConfigHandler.addNewClientListener(this, true);
+		//logger.info("Adding new client listener");
+		//clientConfigHandler.addNewClientListener(this, true, true);
 		registerFactory("api", "api", DEFAULT_API_JNDI_NAME);
 		jdbcConnectionFactory.addDataSource("api", DEFAULT_API_JNDI_NAME, "api");
 		jdoFactory = this;

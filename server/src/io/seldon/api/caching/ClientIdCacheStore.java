@@ -55,12 +55,13 @@ public class ClientIdCacheStore implements NewClientListener {
 	{
 		this.options = options;
 		this.clientConfigHandler = clientConfigHandler;
-		clientConfigHandler.addNewClientListener(this, true);
 	}
 	
 	@PostConstruct
 	public void initialise()
 	{
+		logger.info("Adding new client listener");
+		clientConfigHandler.addNewClientListener(this, true);
 		String clientProp = options.getOption(PROP_PREFIX+".clients");
 		if (clientProp != null)
 		{

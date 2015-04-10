@@ -36,5 +36,6 @@ public interface ClientConfigHandler {
     void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData);
 
     void addNewClientListener(NewClientListener listener, boolean notifyExistingClients);
+    void addNewClientListener(NewClientListener listener, boolean notifyExistingClients, boolean addFirst);
 }
 
