@@ -29,11 +29,14 @@ import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
 import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.UserClusterStore;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JdoCountRecommenderUtils {
+	
+	private static Logger logger = Logger.getLogger( JdoCountRecommenderUtils.class.getName() );
 	
 	@Autowired
 	AsyncClusterCountFactory asyncClusterCountFactory;
@@ -54,11 +57,15 @@ public class JdoCountRecommenderUtils {
 		userClusters = UserClusterManager.get().getStore(client); // Hack until we always use this class
 		if (userClusters == null)
 		{
+			logger.warn("UserClusterManager not found trying old methods for client "+client);
 			JdoMemoryUserClusterFactory memUserFac = JdoMemoryUserClusterFactory.get();
 			if (memUserFac != null)
 				userClusters = memUserFac.get(client);
-			if (userClusters == null) 
+			if (userClusters == null)
+			{
+				logger.warn("Using slow DB access to user clusers for client "+client);
 				userClusters = new JdoUserClusterStore(client);
+			}
 		}
 		
 		return new CountRecommender(client,userClusters,counter,clusterFromReferrerPeer.get(client));

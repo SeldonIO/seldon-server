@@ -188,7 +188,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
 
                         logger.warn("Couldn't read JSON at " + path + ", ignoring");
                     }
-                    jdofactory.clientAdded(clientName, initialConfig);
+                    jdofactory.clientAdded(clientName, initialConfig); // ensure called first as other listeners may need db access
                     clientsWithInitialConfig.put(clientName, initialConfig);
                     for (NewClientListener listener : newClientListeners) {
                         listener.clientAdded(clientName, initialConfig);
@@ -207,7 +207,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                     }
 
                 } else {
-                    logger.warn("Couldn't process message for node : " + location + " data : " + event.getData().getData());
+                    logger.warn("Couldn't process message for node : " + location + " data : " + new String(event.getData().getData()));
                 }
                 if (!foundAMatch)
                     logger.warn("Received message for node " + location +" but found no interested listeners");
@@ -219,9 +219,9 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                     String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
                     clientsWithInitialConfig.keySet().remove(clientName);
                     logger.warn("Deleted client : " + clientName+" - presently resources will not be released");
-                    //jdofactory.clientDeleted(clientName);
                     //for (NewClientListener listener: newClientListeners)
                     //    listener.clientDeleted(clientName);
+                    //jdofactory.clientDeleted(clientName); // ensure called last in case other client removal listeners need db
                 }
 
         }
