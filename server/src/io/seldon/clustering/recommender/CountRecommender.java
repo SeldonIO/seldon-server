@@ -562,8 +562,8 @@ public class CountRecommender {
 				return newItemCounts.getItemCounts();
 			} else {
 				if(itemCounts==null){
-					logger.debug("Couldn't get cluster counts from store or memcache. Returning null");
-					return null;
+					logger.warn("Couldn't get cluster counts from store or memcache. Returning null");
+					return new HashMap<Long,Double>();
 				} else {
 					return itemCounts.getItemCounts();
 				}
@@ -576,7 +576,7 @@ public class CountRecommender {
 					throw (ClusterCountNoImplementationException) e;
 				}else{
 					logger.error("Unknown exception:" , e);
-					return null;
+					return new HashMap<Long,Double>();
 				}
 			}
 		}
