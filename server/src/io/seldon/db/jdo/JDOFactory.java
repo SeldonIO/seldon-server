@@ -118,8 +118,6 @@ public class JDOFactory implements NewClientListener
 
     private void registerFactory(String clientName, String databaseName, String jndiResource) {
     	Properties connectionProperties = (Properties) dataNucleusProperties.clone();
-		logger.info(connectionProperties.toString());
-		logger.info(dataNucleusProperties.toString());
 		connectionProperties.setProperty("javax.jdo.option.ConnectionFactoryName", jndiResource);
     	if (databaseName != null)
     		connectionProperties.setProperty("datanucleus.mapping.Catalog", databaseName);

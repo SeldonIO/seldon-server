@@ -73,7 +73,6 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
     }
 
 
-
     private GlobalConfigUpdateListener createAllClientListeners(final String nodePattern, final PerClientExternalLocationListener listener) {
         return new GlobalConfigUpdateListener() {
             @Override
@@ -114,7 +113,7 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
     @Override
     public void configUpdated(String client, String configKey, String configValue) {
 
-        logger.info("Received new config " + client + " "+ configKey +  " " + configValue + " available watches "+ StringUtils.join(nodeWatches.keySet()) + " ava ilable clients "+ Joiner.on('\n').withKeyValueSeparator(" -> ").join(nodeWatches));;
+        logger.info("Received new config " + client + " "+ configKey +  " " + configValue + " available watches "+ StringUtils.join(nodeWatches.keySet()) + " available clients "+ Joiner.on('\n').withKeyValueSeparator(" -> ").join(nodeWatches));;
         Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(configKey);
         if(watchingClients!=null && watchingClients.containsKey(client)){
             watchingClients.get(client).newClientLocation(client,configValue,configKey);

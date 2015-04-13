@@ -84,8 +84,8 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     private void init() throws Exception {
         logger.info("Initializing...");
         handler.addSubscription("/" + CLIENT_LIST_LOCATION, this);
-        Collection<ChildData> children = handler.getChildren("/" + CLIENT_LIST_LOCATION);
-        logger.info("Found " +children.size() + " children under " +CLIENT_LIST_LOCATION );
+        Collection<ChildData> children = handler.getImmediateChildren("/" + CLIENT_LIST_LOCATION);
+        logger.info("Found " +children.size() + " clients under " +CLIENT_LIST_LOCATION );
         for(ChildData child : children)
             childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED,child));
 
@@ -210,7 +210,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                     logger.warn("Couldn't process message for node : " + location + " data : " + new String(event.getData().getData()));
                 }
                 if (!foundAMatch)
-                    logger.warn("Received message for node " + location +" but found no interested listeners");
+                    logger.warn("Received message for node " + location +" : " + event.getType() + " but found no interested listeners");
 
                 break;
             case NODE_REMOVED:

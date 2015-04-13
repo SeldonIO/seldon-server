@@ -90,7 +90,7 @@ public class ZkSubscriptionHandler {
 
             if(cache==null){
                 cache = findParentCache(node);
-                if (caches==null) return Collections.EMPTY_LIST;
+                if (cache==null) return Collections.EMPTY_LIST;
             }
             Map<String,ChildData> children = cache.getCurrentChildren(node);
             if (children==null)
@@ -179,6 +179,16 @@ public class ZkSubscriptionHandler {
     }
 
 
+    public Collection<ChildData> getImmediateChildren(String node) {
+        HashSet<ChildData> toReturn = new HashSet<>();
 
+        TreeCache cache = findParentCache(node);
+        if (cache==null) return Collections.EMPTY_LIST;
 
+        Map<String,ChildData> children = cache.getCurrentChildren(node);
+        if (children==null)
+            return toReturn;
+        toReturn.addAll(children.values());
+        return toReturn;
+    }
 }
