@@ -1,5 +1,7 @@
 # Seldon Server
 
+[![Join the chat at https://gitter.im/SeldonIO/seldon-server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/SeldonIO/seldon-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Welcome to the early release of Seldon Server, which provides a real-time REST API interface to a highly-scalable recommendation engine and predictive analytics platform. We are presently modifying this heavily and documenting here: http://docs.seldon.io
 
 ## Getting Started
