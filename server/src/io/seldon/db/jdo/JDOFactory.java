@@ -177,6 +177,7 @@ public class JDOFactory implements NewClientListener
 		if(dbName==null)
 			dbName = client;
 
+		logger.info("Adding client "+client+" JNDI="+jndiName+" dbName="+dbName);
 		registerFactory(client,dbName,jndiName);
 		try {
 			jdbcConnectionFactory.addDataSource(client,jndiName,dbName);
