@@ -31,5 +31,6 @@ build/seldon_lib.min.js: build/version build/seldon_lib.tmp.js rlHeader.js rlFoo
 	cat build/version rlHeader.js <(java -jar libs/compiler.jar build/seldon_lib.tmp.js) rlFooter.js > build/seldon_lib.min.js
 
 clean:
-	rm -f build/*
+	rm -rf build
+	rm -rf libs
 
