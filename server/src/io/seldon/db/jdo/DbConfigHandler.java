@@ -21,20 +21,15 @@
  * ********************************************************************************************
  */
 
-package io.seldon.api.state;
-
-import java.util.Map;
+package io.seldon.db.jdo;
 
 /**
  * @author firemanphil
- *         Date: 27/11/14
- *         Time: 11:39
+ *         Date: 14/04/15
+ *         Time: 10:26
  */
-public interface ClientConfigHandler {
-    Map<String, String> requestCacheDump(String client);
+public interface DbConfigHandler {
 
-    void addListener(ClientConfigUpdateListener listener);
+    void addDbConfigListener(DbConfigListener listener);
 
-    void addNewClientListener(NewClientListener listener, boolean notifyExistingClients);
 }
-

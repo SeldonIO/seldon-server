@@ -21,20 +21,17 @@
  * ********************************************************************************************
  */
 
-package io.seldon.api.state;
-
-import java.util.Map;
+package io.seldon.db.jdo;
 
 /**
+ *
+ * Provides notifications when a client-to-db association is set up.
+ *
  * @author firemanphil
- *         Date: 27/11/14
- *         Time: 11:39
+ *         Date: 14/04/15
+ *         Time: 10:27
  */
-public interface ClientConfigHandler {
-    Map<String, String> requestCacheDump(String client);
+public interface DbConfigListener {
 
-    void addListener(ClientConfigUpdateListener listener);
-
-    void addNewClientListener(NewClientListener listener, boolean notifyExistingClients);
+    void dbConfigInitialised(String client);
 }
-

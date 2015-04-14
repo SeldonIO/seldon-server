@@ -33,12 +33,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
+import io.seldon.db.jdo.DbConfigHandler;
+import io.seldon.db.jdo.DbConfigListener;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JdoAsyncActionFactory implements NewClientListener{
+public class JdoAsyncActionFactory implements DbConfigListener{
 
 	
 	private static final String DEF_HOSTNAME = "TEST";
@@ -67,20 +69,18 @@ public class JdoAsyncActionFactory implements NewClientListener{
 	}
 
 	DefaultOptions options;
-	ZkClientConfigHandler clientConfigHandler;
 	
 	@Autowired
-	public JdoAsyncActionFactory(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
+	public JdoAsyncActionFactory(DefaultOptions options,DbConfigHandler dbConfigHandler)
 	{
 		this.options = options;
-		this.clientConfigHandler = clientConfigHandler;
+		dbConfigHandler.addDbConfigListener(this);
 	}
 	
 	@PostConstruct
 	private void initialise()
 	{
-		logger.info("Adding new client listener");
-		clientConfigHandler.addNewClientListener(this, true);
+
 		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
 		if (clientList != null && clientList.length() > 0)
 		{
@@ -91,14 +91,7 @@ public class JdoAsyncActionFactory implements NewClientListener{
 			}
 		}
 	}
-	
-	@Override
-	public void clientAdded(String client, Map<String, String> initialConfig) {
-		logger.info("Adding client: "+client);
-		get(client);
-	}
 
-	@Override
 	public void clientDeleted(String client) {
 		logger.info("Removing client:"+client);
 		AsyncActionQueue q = queues.get(client);
@@ -198,7 +191,10 @@ public class JdoAsyncActionFactory implements NewClientListener{
 		}
 	}
 
-	
-	
-	
+
+	@Override
+	public void dbConfigInitialised(String client) {
+		logger.info("Adding client: "+client);
+		get(client);
+	}
 }

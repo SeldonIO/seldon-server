@@ -75,11 +75,11 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
                              NewResourceNotifier notifier){
         this.featuresFileHandler = featuresFileHandler;
         this.notifier = notifier;
+        notifier.addListener(MF_NEW_LOC_PATTERN, this);
     }
 
     @PostConstruct
     public void init(){
-        notifier.addListener(MF_NEW_LOC_PATTERN, this);
     }
 
     public void reloadFeatures(final String location, final String client){
