@@ -33,6 +33,8 @@ import io.seldon.api.resource.ScopedConsumerBean;
 import io.seldon.api.resource.TokenBean;
 import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.NewClientListener;
+import io.seldon.db.jdo.DbConfigHandler;
+import io.seldon.db.jdo.DbConfigListener;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
@@ -56,29 +58,27 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class AuthorizationServer implements NewClientListener {
+public class AuthorizationServer implements DbConfigListener {
     private final static Pattern pattern = Pattern.compile("/S+");
     private final static Logger logger = Logger.getLogger(AuthorizationServer.class);
 
     private final static Map<String, ScopedConsumerBean> consumerCache = new ConcurrentHashMap<>();
     public static final int CONSUMER_REFRESH_INTERVAL = 300000;
 
-	@Autowired
 	private JDOFactory jdoFactory;
 
-	@Autowired
 	private ConsumerPeer consumerPeer;
 
-	@Autowired
 	private TokenPeer tokenPeer;
 
 	@Autowired
-	private ClientConfigHandler clientConfigHandler;
+	public AuthorizationServer(JDOFactory jdoFactory, ConsumerPeer consumerPeer, TokenPeer tokenPeer,
+							   DbConfigHandler dbConfigHandler){
+		this.jdoFactory = jdoFactory;
+		this.consumerPeer = consumerPeer;
+		this.tokenPeer = tokenPeer;
 
-	@PostConstruct
-	public void startup(){
-		logger.info("Adding new client listener");
-		clientConfigHandler.addNewClientListener(this, false);
+		dbConfigHandler.addDbConfigListener(this);
 	}
 
     //METHODS
@@ -261,14 +261,15 @@ public class AuthorizationServer implements NewClientListener {
 		return res;
 	}
 
-	@Override
-	public void clientAdded(String client, Map<String, String> initialConfig) {
-		logger.info("Reloading consumer table due to new client " + client);
-		refreshConsumerCache();
+
+
+	public void clientDeleted(String client) {
+		// ignore
 	}
 
 	@Override
-	public void clientDeleted(String client) {
-		// ignore
+	public void dbConfigInitialised(String client) {
+		logger.info("Reloading consumer table due to new client " + client);
+		refreshConsumerCache();
 	}
 }

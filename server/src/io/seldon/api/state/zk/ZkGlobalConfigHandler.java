@@ -34,6 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
 /**
  * Zookeeper subscription service for GlobalConfigUpdateListeners
  *
@@ -42,7 +45,7 @@ import org.springframework.util.StringUtils;
  *         Time: 11:11
  */
 @Component
-public class ZkGlobalConfigHandler implements ZkNodeChangeListener, GlobalConfigHandler {
+public class ZkGlobalConfigHandler implements ZkNodeChangeListener, GlobalConfigHandler, ServletContextListener {
 
     private static Logger logger = Logger.getLogger(ZkGlobalConfigHandler.class.getName());
     private final Multimap<String,GlobalConfigUpdateListener> nodeListeners;
@@ -79,5 +82,15 @@ public class ZkGlobalConfigHandler implements ZkNodeChangeListener, GlobalConfig
     @Override
     public void nodeDeleted(String node) {
         // can't think of a reason to implement this
+    }
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        logger.info("Context init");
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+
     }
 }

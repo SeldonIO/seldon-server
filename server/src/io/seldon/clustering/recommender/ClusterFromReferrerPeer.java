@@ -33,33 +33,32 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
+import io.seldon.db.jdo.DbConfigHandler;
+import io.seldon.db.jdo.DbConfigListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ClusterFromReferrerPeer implements NewClientListener {
+public class ClusterFromReferrerPeer implements DbConfigListener {
 
 	private static Logger logger = Logger.getLogger(ClusterFromReferrerPeer.class.getName());
 	public static final String PROP = "io.seldon.clusters.referrer.clients";
 	
 	Map<String,IClusterFromReferrer> referrerHandlerMap = new ConcurrentHashMap<>();
 	DefaultOptions options;
-	ZkClientConfigHandler clientConfigHandler;
 	
 	@Autowired
-	public ClusterFromReferrerPeer(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
+	public ClusterFromReferrerPeer(DefaultOptions options, DbConfigHandler dbConfigHandler)
 	{
 		this.options = options;
-		this.clientConfigHandler = clientConfigHandler;
+		dbConfigHandler.addDbConfigListener(this);
 	}
 	
 	@PostConstruct
 	private void initialise()
 	{
-		logger.info("Adding new client listener");
-		clientConfigHandler.addNewClientListener(this, true);
 		String clientsProp = options.getOption(PROP);
 		if (StringUtils.isNotBlank(clientsProp))
 		{
@@ -73,14 +72,7 @@ public class ClusterFromReferrerPeer implements NewClientListener {
 	{
 		referrerHandlerMap.put(client, new JdoClusterFromReferrer(client));
 	}
-	
-	@Override
-	public void clientAdded(String client, Map<String, String> initialConfig) {
-		logger.info("Adding client: "+client);
-		addClient(client);
-	}
 
-	@Override
 	public void clientDeleted(String client) {
 		logger.info("Removing client:"+client);
 		IClusterFromReferrer cfr = referrerHandlerMap.get(client);
@@ -106,4 +98,9 @@ public class ClusterFromReferrerPeer implements NewClientListener {
 		return referrerHandlerMap.get(client);
 	}
 
+	@Override
+	public void dbConfigInitialised(String client) {
+		logger.info("Adding client: "+client);
+		addClient(client);
+	}
 }

@@ -25,19 +25,12 @@ package io.seldon.api.state.zk;
 
 import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.ClientConfigUpdateListener;
-import io.seldon.api.state.GlobalConfigHandler;
-import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.api.state.ZkSubscriptionHandler;
 import io.seldon.db.jdo.JDOFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
@@ -60,7 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *         Time: 13:51
  */
 @Component
-public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpdateListener, ClientConfigHandler {
+public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHandler {
     private static Logger logger = Logger.getLogger(ZkClientConfigHandler.class.getName());
     private final ZkSubscriptionHandler handler;
     private Map<String,Map<String,String>> clientsWithInitialConfig;
@@ -69,26 +62,15 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     private static final String CLIENT_LIST_LOCATION = "all_clients";
     private ObjectMapper jsonMapper = new ObjectMapper();
 
+    private boolean initalized = false;
+
+
     @Autowired
-    JDOFactory jdofactory;
-    
-    @Autowired
-    public ZkClientConfigHandler(ZkSubscriptionHandler handler, GlobalConfigHandler clientListHandler) {
+    public ZkClientConfigHandler(ZkSubscriptionHandler handler){
         this.handler = handler;
         this.newClientListeners = new ArrayList<>();
         this.listeners = new HashSet<>();
         this.clientsWithInitialConfig = new ConcurrentHashMap<>();
-    }
-
-    @PostConstruct
-    private void init() throws Exception {
-        logger.info("Initializing...");
-        handler.addSubscription("/" + CLIENT_LIST_LOCATION, this);
-        Collection<ChildData> children = handler.getImmediateChildren("/" + CLIENT_LIST_LOCATION);
-        logger.info("Found " +children.size() + " clients under " +CLIENT_LIST_LOCATION );
-        for(ChildData child : children)
-            childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED,child));
-
     }
 
     private boolean isClientPath(String path) {
@@ -97,49 +79,18 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
     }
 
     @Override
-    public synchronized void configUpdated(String configKey, String configValue) {
-        logger.info("Received new list of clients: " + configValue);
-        // client added/removed
-        if (configValue!=null){
-            String[] clientsArray  = configValue.split(",");
-            for (String client : clientsArray){
-                if(!clientsWithInitialConfig.keySet().contains(client)){
-                    logger.info("Found new client in list : " + client);
-                    try {
-                        handler.addSubscription("/" + client, this);
-                        clientsWithInitialConfig.keySet().add(client);
-                    }catch (Exception e){
-                        logger.error("Couldn't add listener for client " + client, e);
-                    }
-                }
-            }
-        }
-
-
-    }
-
-    private void doInitialRead(String client, ClientConfigUpdateListener listener) {
-        if(!listeners.isEmpty()) {
-            Map<String, String> values = handler.getChildrenValues("/" +CLIENT_LIST_LOCATION+"/"+client);
-            for (Map.Entry<String, String> entry : values.entrySet()) {
-                listener.configUpdated(client, StringUtils.remove(entry.getKey(),"/"+client+"/"), entry.getValue());
-            }
-        }
-    }
-
-    @Override
     public Map<String, String> requestCacheDump(String client){
-        return handler.getChildrenValues("/" +CLIENT_LIST_LOCATION+"/"+client);
+        if(initalized) {
+            return handler.getChildrenValues("/" + CLIENT_LIST_LOCATION + "/" + client);
+        } else {
+            return Collections.emptyMap();
+        }
     }
 
     @Override
-    public synchronized void addListener(ClientConfigUpdateListener listener, boolean notifyOnExistingData) {
+    public synchronized void addListener(ClientConfigUpdateListener listener) {
         logger.info("Adding client config listener, current clients are " + StringUtils.join(clientsWithInitialConfig.keySet(),','));
         listeners.add(listener);
-        if(notifyOnExistingData) {
-            for (String client : clientsWithInitialConfig.keySet())
-                doInitialRead(client,listener);
-        }
     }
 
     @Override
@@ -150,33 +101,27 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
                 listener.clientAdded(client, clientsWithInitialConfig.get(client));
         }
     }
-    
-    @Override
-	public synchronized void addNewClientListener(NewClientListener listener,
-			boolean notifyExistingClients, boolean addFirst) {
-    	if (addFirst)
-    		newClientListeners.add(0, listener);
-    	else
-    		newClientListeners.add(listener);
-        if(notifyExistingClients){
-            for(String client : clientsWithInitialConfig.keySet())
-                listener.clientAdded(client, clientsWithInitialConfig.get(client));
-        }
-		
-	}
 
     @Override
     public synchronized void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        if(event == null || event.getType() == null || event.getData() == null || event.getData().getPath()==null) {
+        if(event == null || event.getType() == null) {
             logger.warn("Event received was null somewhere");
             return;
         }
-        logger.info("Received a message of type " + event.getType() + " at " + event.getData().getPath());
+
+        if(!initalized && event.getType() != TreeCacheEvent.Type.INITIALIZED) {
+            logger.debug("Ignore event as we are not in an initialised state.");
+            return;
+        }
         switch (event.getType()){
             case NODE_ADDED:
+                if( event.getData() == null || event.getData().getPath()==null) {
+                    logger.warn("Event received was null somewhere");
+                    return;
+                }
                 String path = event.getData().getPath();
                 if(isClientPath(path)){
-                    String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
+                    String clientName = retrieveClientName(path);
                     logger.info("Found new client : " + clientName);
                     Map<String, String> initialConfig = new HashMap<>();
                     try {
@@ -188,7 +133,6 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
 
                         logger.warn("Couldn't read JSON at " + path + ", ignoring");
                     }
-                    jdofactory.clientAdded(clientName, initialConfig); // ensure called first as other listeners may need db access
                     clientsWithInitialConfig.put(clientName, initialConfig);
                     for (NewClientListener listener : newClientListeners) {
                         listener.clientAdded(clientName, initialConfig);
@@ -199,7 +143,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
             case NODE_UPDATED:
                 String location = event.getData().getPath();
                 boolean foundAMatch = false;
-                String[] clientAndNode = location.replace("/"+CLIENT_LIST_LOCATION +"/","").split("/");
+                String[] clientAndNode = location.replace("/" + CLIENT_LIST_LOCATION + "/", "").split("/");
                 if(clientAndNode !=null && clientAndNode.length==2){
                     for(ClientConfigUpdateListener listener: listeners){
                         foundAMatch = true;
@@ -216,16 +160,43 @@ public class ZkClientConfigHandler implements TreeCacheListener, GlobalConfigUpd
             case NODE_REMOVED:
                 path = event.getData().getPath();
                 if(isClientPath(path)){
-                    String clientName = path.replace("/"+CLIENT_LIST_LOCATION+"/","");
+                    String clientName = retrieveClientName(path);
                     clientsWithInitialConfig.keySet().remove(clientName);
                     logger.warn("Deleted client : " + clientName+" - presently resources will not be released");
                     //for (NewClientListener listener: newClientListeners)
                     //    listener.clientDeleted(clientName);
                     //jdofactory.clientDeleted(clientName); // ensure called last in case other client removal listeners need db
                 }
+                break;
+            case INITIALIZED:
+                initalized = true;
+                logger.info("Finished building '/all_clients' tree cache. ");
+                afterCacheBuilt();
 
         }
     }
 
-	
+    public static String retrieveClientName(String path) {
+        return path.replace("/"+CLIENT_LIST_LOCATION+"/","").split("/")[0];
+    }
+
+    private void afterCacheBuilt() throws Exception {
+        // first get the clients
+        Collection<ChildData> clientChildrenData = handler.getImmediateChildren("/" + CLIENT_LIST_LOCATION);
+        logger.info("Found " +clientChildrenData.size() + " clients on start up.");
+        for(ChildData clientChildData : clientChildrenData) {
+            childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, clientChildData));
+            // then the children of clients
+            Collection<ChildData> furtherChildren = handler.getChildren(clientChildData.getPath());
+            logger.info("Found " +furtherChildren.size() + " children for client "+ retrieveClientName(clientChildData.getPath())+" on startup");
+            for (ChildData child : furtherChildren){
+                childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, child));
+            }
+        }
+
+    }
+
+    public void contextIntialised() throws Exception {
+        handler.addSubscription("/" + CLIENT_LIST_LOCATION, this);
+    }
 }

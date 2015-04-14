@@ -26,7 +26,7 @@ package io.seldon.servlet;
 import io.seldon.api.Constants;
 import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
-import io.seldon.api.state.ZkSubscriptionHandler;
+import io.seldon.api.state.zk.ZkClientConfigHandler;
 import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.memcache.MemCachePeer;
@@ -48,7 +48,7 @@ public class ResourceManagerListener  implements ServletContextListener {
 	private static Logger logger = Logger.getLogger( ResourceManagerListener.class.getName() );
 	
 
-    private ZkSubscriptionHandler zkSubHandler;
+    private ZkClientConfigHandler zkClientConfigHandler;
 
     public void contextInitialized(ServletContextEvent sce)
     {
@@ -60,7 +60,7 @@ public class ResourceManagerListener  implements ServletContextListener {
 			jdoFactory = (JDOFactory) springContext.getBean("JDOFactory");
 
        
-    		zkSubHandler =(ZkSubscriptionHandler) springContext.getBean("zkSubscriptionHandler");
+    		zkClientConfigHandler =(ZkClientConfigHandler) springContext.getBean("zkClientConfigHandler");
     		//InputStream propStream = sce.getServletContext().getResourceAsStream("/WEB-INF/labs.properties");
     		InputStream propStream = getClass().getClassLoader().getResourceAsStream("/labs.properties");
     		SecurityHashPeer.initialise();
@@ -81,6 +81,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     			ZkAlgorithmUpdaterFactory.initialise(props,curatorHandler);
     		}
     		
+			zkClientConfigHandler.contextIntialised();
     		logger.info("**********************  ENDING API-SERVER INITIALISATION **********************");
     	}
     	catch( IOException ex )

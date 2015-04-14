@@ -32,12 +32,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
+import io.seldon.db.jdo.DbConfigHandler;
+import io.seldon.db.jdo.DbConfigListener;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AsyncClusterCountFactory implements NewClientListener {
+public class AsyncClusterCountFactory implements DbConfigListener {
 
 	private static Logger logger = Logger.getLogger(AsyncClusterCountFactory.class.getName());
 
@@ -53,22 +55,14 @@ public class AsyncClusterCountFactory implements NewClientListener {
 	private static final String ASYNC_PROP_PREFIX = "io.seldon.async.counter";
 	
 	DefaultOptions options;
-	ZkClientConfigHandler clientConfigHandler;
 	
 	@Autowired
-	public AsyncClusterCountFactory(DefaultOptions options,ZkClientConfigHandler clientConfigHandler)
+	public AsyncClusterCountFactory(DefaultOptions options, DbConfigHandler dbConfigHandler)
 	{
 		this.options = options;
-		this.clientConfigHandler = clientConfigHandler;
-	}
-	
-	@Override
-	public void clientAdded(String client, Map<String, String> initialConfig) {
-		logger.info("Adding client:"+client);
-		createAndStore(client);
+		dbConfigHandler.addDbConfigListener(this);
 	}
 
-	@Override
 	public void clientDeleted(String client) {
 		logger.info("Removing client:"+client);
 		AsyncClusterCountStore q = queues.get(client);
@@ -79,7 +73,6 @@ public class AsyncClusterCountFactory implements NewClientListener {
 	@PostConstruct
 	public void initialise()
 	{
-		clientConfigHandler.addNewClientListener(this, true);
 		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
 		if (clientList != null && clientList.length() > 0)
 		{
@@ -153,5 +146,10 @@ public class AsyncClusterCountFactory implements NewClientListener {
 		}
 		return queue;
 	}
-	
+
+	@Override
+	public void dbConfigInitialised(String client) {
+		logger.info("Adding client:"+client);
+		createAndStore(client);
+	}
 }

@@ -26,9 +26,12 @@
 package io.seldon.db.jdo;
 
 import io.seldon.api.Constants;
+import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.db.jdbc.JDBCConnectionFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JDOFactory implements NewClientListener
+public class JDOFactory implements NewClientListener, DbConfigHandler
 {
 	private static final Logger logger = Logger.getLogger( JDOFactory.class.getName() );
 	private static final String DEFAULT_DB_JNDI_NAME = "java:comp/env/jdbc/ClientDB";
@@ -61,15 +64,15 @@ public class JDOFactory implements NewClientListener
 	@Autowired
 	private JDBCConnectionFactory jdbcConnectionFactory;
 
-	//@Autowired
-	//private ClientConfigHandler clientConfigHandler;
+	@Autowired
+	private ClientConfigHandler clientConfigHandler;
 	private static JDOFactory jdoFactory;
+	private List<DbConfigListener> listeners = new ArrayList<>();
 
 
 	@PostConstruct
 	public void intialise() throws NamingException {
-		//logger.info("Adding new client listener");
-		//clientConfigHandler.addNewClientListener(this, true, true);
+		clientConfigHandler.addNewClientListener(this, true);
 		registerFactory("api", "api", DEFAULT_API_JNDI_NAME);
 		jdbcConnectionFactory.addDataSource("api", DEFAULT_API_JNDI_NAME, "api");
 		jdoFactory = this;
@@ -177,9 +180,13 @@ public class JDOFactory implements NewClientListener
 		if(dbName==null)
 			dbName = client;
 
+		logger.info("Adding client "+client+" JNDI="+jndiName+" dbName="+dbName);
 		registerFactory(client,dbName,jndiName);
 		try {
 			jdbcConnectionFactory.addDataSource(client,jndiName,dbName);
+			for(DbConfigListener listener: listeners){
+				listener.dbConfigInitialised(client);
+			}
 		} catch (NamingException e) {
 			logger.error("Couldn't add data source for client : " + client +
 					" jndi name " + jndiName + " and db name " + dbName,e);
@@ -195,5 +202,10 @@ public class JDOFactory implements NewClientListener
 
 	public static JDOFactory get(){
 		return jdoFactory;
+	}
+
+	@Override
+	public void addDbConfigListener(DbConfigListener listener) {
+		listeners.add(listener);
 	}
 }

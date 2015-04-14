@@ -51,12 +51,12 @@ public class ZkSubscriptionHandler {
 
     public void addSubscription(String location, TreeCacheListener listener) throws Exception {
         CuratorFramework client = curator.getCurator();
-        TreeCache cache = new TreeCache(client, location);
-        cache.start();
-        caches.put(location, cache);
         EnsurePath ensureMvTestPath = new EnsurePath(location);
         ensureMvTestPath.ensure(client.getZookeeperClient());
+        TreeCache cache = new TreeCache(client, location);
         cache.getListenable().addListener(listener);
+        cache.start();
+        caches.put(location, cache);
         logger.info("Added ZooKeeper subscriber for " + location + " children.");
     }
 
@@ -188,6 +188,8 @@ public class ZkSubscriptionHandler {
         Map<String,ChildData> children = cache.getCurrentChildren(node);
         if (children==null)
             return toReturn;
+        for (ChildData child : children.values())
+            toReturn.addAll(getChildren(child.getPath(), cache));
         toReturn.addAll(children.values());
         return toReturn;
     }

@@ -118,7 +118,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     @PostConstruct
     private void init(){
         logger.info("Initializing...");
-        configHandler.addListener(this, true);
+        configHandler.addListener(this);
         globalConfigHandler.addSubscriber("default_strategy", this);
 //        globalConfigHandler.addSubscriber("named_strategies", this);
     }

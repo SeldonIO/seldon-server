@@ -30,26 +30,38 @@ import org.joda.time.format.DateTimeFormat
 import java.sql.ResultSet
 import scala.collection.mutable.ListBuffer
 import io.seldon.spark.SparkUtils
+import org.apache.spark.mllib.feature.HashingTF
+import org.apache.spark.mllib.feature.IDF
+import org.joda.time.Duration
+import org.joda.time.LocalDateTime
+import org.apache.spark.mllib.linalg.SparseVector
+import org.apache.spark.mllib.linalg.Vectors
+import io.seldon.spark.rdd.FileUtils
+import io.seldon.spark.rdd.DataSourceMode
+import scala.collection.mutable.ListMap
 
-case class NextItemConfig(
+case class NextActionConfig(
     local : Boolean = false,
     client : String = "",    
     inputPath : String = "",
     outputPath : String = "",
     awsKey : String = "",
     jdbc : String = "",
-    tagAttrId : Int = 9,  
+    tagAttr : String = "tag",  
     startDay : Int = 0,
     days : Int = 1,
     awsSecret : String = "",
-    numItemTagsToKeep : Int = 400)
+    maxNumActionsPerUser : Int = 500,
+    actionNumToStart : Int = 2,
+    maxUserHistoryFeatures : Int = 20,
+    minTermDocFreq : Int = 100)
     
     
-class CreateNextItemFeatures(private val sc : SparkContext,config : NextItemConfig) {
+class CreateNextItemFeatures(private val sc : SparkContext,config : NextActionConfig) {
 
    def parseJsonActions(path : String) = {
     
-    val rdd = sc.textFile(path).map{line =>
+    val rdd = sc.textFile(path).flatMap{line =>
       import org.json4s._
       import org.json4s.jackson.JsonMethods._
       implicit val formats = DefaultFormats
@@ -57,20 +69,27 @@ class CreateNextItemFeatures(private val sc : SparkContext,config : NextItemConf
       val json = parse(line)
       val user = (json \ "userid").extract[Int]
       val item = (json \ "itemid").extract[Int]
+      val value = (json \ "value").extract[Float]
       val dateUtc = (json \ "timestamp_utc").extract[String]
       
-      val date = formatter.parseDateTime(dateUtc)
-      
-      
-      (item,(user,date.getMillis()))
+      if (value > 3)
+      {
+        val date1 = org.joda.time.format.ISODateTimeFormat.dateTimeParser.withZoneUTC.parseDateTime(dateUtc)
+        Seq((item,(user,date1.getMillis())))
+      }
+      else
+        None
       }
     
     rdd
   }
    
-   def getItemTagsFromDb(jdbc : String,tagAttrId : Int) = 
+      def getItemTagsFromDb(jdbc : String,attr : String) = 
   {
-    val sql = "select i.item_id,i.client_item_id,unix_timestamp(first_op),tags.value as tags from items i join item_map_varchar tags on (i.item_id=tags.item_id and tags.attr_id="+tagAttrId.toString()+") where i.item_id>? and i.item_id<?"
+    //val sql = "select i.item_id,i.client_item_id,unix_timestamp(first_op),tags.value as tags from items i join item_map_"+table+" tags on (i.item_id=tags.item_id and tags.attr_id="+tagAttrId.toString()+") where i.item_id>? and i.item_id<?"
+    val sql = "select * from (SELECT i.item_id,i.client_item_id,unix_timestamp(first_op),CASE WHEN imi.value IS NOT NULL THEN cast(imi.value as char) WHEN imd.value IS NOT NULL THEN cast(imd.value as char) WHEN imb.value IS NOT NULL THEN cast(imb.value as char) WHEN imboo.value IS NOT NULL THEN cast(imboo.value as char) WHEN imt.value IS NOT NULL THEN imt.value WHEN imdt.value IS NOT NULL THEN cast(imdt.value as char) WHEN imv.value IS NOT NULL THEN imv.value WHEN e.value_name IS NOT NULL THEN e.value_name END" +  
+      " tags FROM  items i INNER JOIN item_attr a ON a.name in ('"+attr+"') and i.type=a.item_type LEFT JOIN item_map_int imi ON i.item_id=imi.item_id AND a.attr_id=imi.attr_id LEFT JOIN item_map_double imd ON i.item_id=imd.item_id AND a.attr_id=imd.attr_id LEFT JOIN item_map_enum ime ON i.item_id=ime.item_id AND a.attr_id=ime.attr_id LEFT JOIN item_map_bigint imb ON i.item_id=imb.item_id AND a.attr_id=imb.attr_id LEFT JOIN item_map_boolean imboo ON i.item_id=imboo.item_id AND a.attr_id=imboo.attr_id LEFT JOIN item_map_text imt ON i.item_id=imt.item_id AND a.attr_id=imt.attr_id LEFT JOIN item_map_datetime imdt ON i.item_id=imdt.item_id AND a.attr_id=imdt.attr_id LEFT JOIN item_map_varchar imv ON i.item_id=imv.item_id AND a.attr_id=imv.attr_id LEFT JOIN item_attr_enum e ON ime.attr_id =e.attr_id AND ime.value_id=e.value_id " +
+      " where i.item_id>? and i.item_id<? order by imv.pos) t where not t.tags is null"
     val rdd = new org.apache.spark.rdd.JdbcRDD(
     sc,
     () => {
@@ -83,6 +102,8 @@ class CreateNextItemFeatures(private val sc : SparkContext,config : NextItemConf
     )
     rdd
   }
+   
+  
 
 
     def run()
@@ -92,128 +113,150 @@ class CreateNextItemFeatures(private val sc : SparkContext,config : NextItemConf
       
       val rddActions = parseJsonActions(actionsGlob)
       
-      val rddItems = getItemTagsFromDb(config.jdbc, config.tagAttrId)
+      val rddItems = getItemTagsFromDb(config.jdbc, config.tagAttr)
       
       val rddCombined = rddActions.join(rddItems)
       
+      val countCombined = rddCombined.count()
+      println("actions with tags count is "+countCombined.toString())
+      
+      val maxNumActions = config.maxNumActionsPerUser
+      val actionNumToStart = config.actionNumToStart
+      
+      println("max actions "+maxNumActions.toString()+" start at "+actionNumToStart.toString())
       // create feature for current item and the user history of items viewed
-      val rddFeatures = rddCombined.map{ case (item,((user,time),tags)) => (user,(item,time,tags))}.groupByKey().flatMapValues{v =>
+      val rddFeatures = rddCombined.map{ case (item,((user,time),tags)) => (user,(item,time,tags))}.groupByKey()
+          .flatMapValues{v =>
         val buf = new ListBuffer[String]()
-        val sorted = v.toArray.sortBy(_._2)
-        var userHistory = Set[String]()
-        val s = sorted.size
-        var pos = 0
-        for ((item1,t1,tags1) <- sorted)
+        val sorted = v.toArray.sortBy(_._2) // _.2 is time
+        var userHistory = ListBuffer[String]()
+        var c = 0
+        for ((item,t,tags) <- sorted)
         {
-          if (pos > 0){
-          val (item2,t2,tags2) = sorted(pos-1)
-          if (t2-t1 < 300)
+          if (c <= maxNumActions)
+          {
+          if (c >= actionNumToStart)
           {
             var line = new StringBuilder()
-            var tagSet = Set[String]()
-            for(tag <- tags1.split(","))
+            for(tag <- tags.split(","))
+           {
+             val tagToken = tag.trim().toLowerCase().replaceAll("[ :;'\",]", "_")
+            // create a set of item tag features for each tag in current item
+            if (tagToken.size > 0)
             {
-              if (!tagSet.contains(tag) && tag.trim().size > 0)
-              {
-                line ++= " item1_tag_"
-                line ++= tag.trim().replaceAll(" ", "_")
-                tagSet += tag
-              }
+              line ++= " i_"
+              line ++= tagToken
+             }
             }
-            tagSet = Set[String]()
-            for(tag <- tags2.split(","))
+            // create a set if user tag features for each tag in user history
+            for (tag <- userHistory)
             {
-              if (!tagSet.contains(tag) && tag.trim().size > 0)
-              {
-                line ++= " item2_tag_"
-                line ++= tag.trim().replaceAll(" ", "_")
-                tagSet += tag
-              }
+             if (tag.size > 0)
+             {
+              line ++= " u_"
+              line ++= tag
+             }  
             }
             buf.append(line.toString().trim())
+           }
+           // add all tags from current item to user history
+           userHistory.clear()
+           for (tag <- tags.split(","))
+           {
+             val tagToken = tag.trim().toLowerCase().replaceAll("[ :;'\",]", "_")
+             if (tagToken.size > 0)
+                userHistory.append(tagToken)
+            }
+          c += 1
           }
-          }
-          pos += 1
-        }
+         }
+        
          buf 
-      }.cache()
-      
-      // create a set of ids for all features
-      //val rddIds = rddFeatures.flatMap(_._2.split(" ")).distinct().zipWithUniqueId();
-
-      val features = rddFeatures.flatMap(_._2.split(" ")).cache()
-      
-      val topItem1features = features.filter(_.startsWith("item1_tag_")).map(f => (f,1)).reduceByKey{case (c1,c2) => (c1+c2)}.map{case (f,c) => (c,f)}
-        .sortByKey(false).take(config.numItemTagsToKeep)
-      
-      val topItem2features = features.filter(_.startsWith("item2_tag_")).map(f => (f,1)).reduceByKey{case (c1,c2) => (c1+c2)}.map{case (f,c) => (c,f)}
-        .sortByKey(false).take(config.numItemTagsToKeep)
-
-      
-      var id = 1
-      var idMap = collection.mutable.Map[String,Int]()
-      for((c,f) <- topItem1features)
-      {
-        idMap.put(f, id)
-        id += 1
-      }
-      for((c,f) <- topItem2features)
-      {
-        idMap.put(f, id)
-        id += 1
       }
 
-      //save feature id mapping to file
-      val rddIds = sc.parallelize(idMap.toSeq,1)
-      val idsOutPath = config.outputPath + "/" + config.client + "/feature_mapping/"+config.startDay
-      rddIds.saveAsTextFile(idsOutPath)
+      val countFeatures = rddFeatures.count()
+      println("Count of rddFeatures "+countFeatures.toString())
       
-      val broadcastMap = sc.broadcast(idMap)
-      val broadcastTopItem1Features = sc.broadcast(topItem1features.map(v => v._2).toSet)
-      val broadcastTopItem2Features = sc.broadcast(topItem2features.map(v => v._2).toSet)
+      val featuresIter = rddFeatures.map(_._2.split(" ").toSeq)
+
+      val hashingTF = new HashingTF()
+      val tf = hashingTF.transform(featuresIter)
+      val idf = new IDF(config.minTermDocFreq).fit(tf)
+      val tfidf = idf.transform(tf)
+      
+      val featuresWithTfidf = rddFeatures.zip(tfidf)
+      
+      val maxUserHistoryFeatures = config.maxUserHistoryFeatures
       
       // map strings or orderd list of ids using broadcast map
-      val rddFeatureIds = rddFeatures.map{v => 
-        val tagToId = broadcastMap.value
-        val validItem1Features = broadcastTopItem1Features.value
-        val validItem2Features = broadcastTopItem2Features.value
-        val features = v._2.split(" ")
-        var line = new StringBuilder(v._1.toString()+" 1 ")
-        var ids = ListBuffer[Long]()
-        var item1FeaturesFound = false
-        var item2FeaturesFound = false
-        for (feature <- features)
+      val rddFeatureIds = featuresWithTfidf.map{case ((user,features),tfidfVec) => 
+        
+        var line = new StringBuilder()
+        val hashingTF = new HashingTF()
+        var fset = Set[String]()
+        val utfidfMap = scala.collection.mutable.Map[String,Double]()
+        val itfidfMap = scala.collection.mutable.Map[String,Double]()
+        for (feature <- features.split(" "))
         {
-          if (validItem1Features.contains(feature) || validItem2Features.contains(feature))
-            ids.append(tagToId(feature))
-          if (!item2FeaturesFound && validItem2Features.contains(feature))
+            if (!fset.contains(feature))
+            {
+              val id = hashingTF.indexOf(feature)
+              val tfidf = tfidfVec(id)
+              if (feature.startsWith("i_"))
+              {
+               itfidfMap.put(feature, tfidf) 
+              } 
+              else
+              {
+               utfidfMap.put(feature, tfidf) 
+              }
+             fset += feature
+            }
+        }
+        line  ++= "1"
+        val itfidfSorted = ListMap(itfidfMap.toSeq.sortWith(_._2 < _._2):_*)
+        var c = 0
+        line ++= " |i "
+        for((feature,tfidf) <- itfidfSorted)
+        {
+          if (c <= maxUserHistoryFeatures)
           {
-            item2FeaturesFound = true
-          }
-          if (!item1FeaturesFound && validItem1Features.contains(feature))
-          {
-            item1FeaturesFound = true
+            line  ++= " "+feature+":"+tfidf
+            c += 1
           }
         }
-        if (item1FeaturesFound && item2FeaturesFound)
+        val tfidfSorted = ListMap(utfidfMap.toSeq.sortWith(_._2 < _._2):_*)
+        c = 0
+        line ++= " |u "
+        for((feature,tfidf) <- tfidfSorted)
         {
-          ids = ids.sorted
-          for (id <- ids)
+          if (c <= maxUserHistoryFeatures)
           {
-            line ++= " "
-            line ++= id.toString()
-            line ++= ":1"
+            line  ++= " "+feature+":"+tfidf
+            c += 1
           }
-          line.toString().trim()
         }
-        else
-        {
-          ""
+            
+        line.toString().trim()
         }
-        }.filter(_.length()>3)
        
       val outPath = config.outputPath + "/" + config.client + "/features/"+config.startDay
       rddFeatureIds.saveAsTextFile(outPath)
+      
+
+      val rddTags = rddFeatures.flatMap{case (user,features) => features.split(" ")}.distinct
+      val bcIDF = rddTags.context.broadcast(idf)
+      val tagIDFs = rddTags.map { tag =>  
+        val idf = bcIDF.value
+        val hashingTF = new HashingTF()
+        val id = hashingTF.indexOf(tag)
+        val vec =  Vectors.sparse(id+1, Seq((id,1.0)))
+        val idfVec = idf.transform(vec)
+        (tag,idfVec(id))
+        }.map{case (tag,idf) => tag+","+idf}
+      
+      val idfOutPath = config.outputPath + "/" + config.client + "/idf/"+config.startDay
+      FileUtils.outputModelToFile(tagIDFs, idfOutPath, DataSourceMode.fromString(idfOutPath), "idf.csv")
     }
     
     
@@ -228,37 +271,42 @@ object CreateNextItemFeatures
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    val parser = new scopt.OptionParser[NextItemConfig]("CreateNextItemFeatures") {
-    head("CreateNextItemFeatures", "1.x")
+    val parser = new scopt.OptionParser[NextActionConfig]("CreateActionFeatures") {
+    head("CreateActionFeatures", "1.x")
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[String]('c', "client") required() valueName("<client>") action { (x, c) => c.copy(client = x) } text("client name (will be used as db and folder suffix)")    
     opt[String]('i', "input-path") required() valueName("path url") action { (x, c) => c.copy(inputPath = x) } text("path prefix for input")
     opt[String]('o', "output-path") required() valueName("path url") action { (x, c) => c.copy(outputPath = x) } text("path prefix for output")
-    opt[String]('a', "awskey") required() valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
-    opt[String]('s', "awssecret") required() valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
+    opt[String]('a', "awskey")  valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
+    opt[String]('s', "awssecret") valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
     opt[String]('j', "jdbc") required() valueName("<JDBC URL>") action { (x, c) => c.copy(jdbc = x) } text("jdbc url (to get dimension for all items)")    
-    opt[Int]('t', "tagAttrId") required() action { (x, c) =>c.copy(tagAttrId = x) } text("tag attribute id in database")    
+    opt[String]('t', "tagAttr") required() action { (x, c) =>c.copy(tagAttr = x) } text("tag attribute in database")    
     opt[Int]('r', "numdays") required() action { (x, c) =>c.copy(days = x) } text("number of days in past to get actions for")
     opt[Int]("start-day") required() action { (x, c) =>c.copy(startDay = x) } text("start day in unix time")
-    opt[Int]("numItemTagsToKeep") required() action { (x, c) =>c.copy(numItemTagsToKeep = x) } text("number of top item tags to keep")
+    opt[Int]("maxNumActionsPerUser") action { (x, c) =>c.copy(maxNumActionsPerUser = x) } text("max number of actions a user must have")
+    opt[Int]("maxUserHistoryFeatures") action { (x, c) =>c.copy(maxUserHistoryFeatures = x) } text("max number of features from user history to include")    
+    opt[Int]("actionNumToStart") action { (x, c) =>c.copy(actionNumToStart = x) } text("wait until this number of actions for a user before creating features")
 
     }
     
-    parser.parse(args, NextItemConfig()) map { config =>
+    parser.parse(args, NextActionConfig()) map { config =>
     val conf = new SparkConf()
-      .setAppName("CreateNextItemFeatures")
+      .setAppName("CreateActionFeatures")
       
     if (config.local)
       conf.setMaster("local")
-    .set("spark.executor.memory", "8g")
+    .set("spark.executor.memory", "13g")
     
     val sc = new SparkContext(conf)
     try
     {
       sc.hadoopConfiguration.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
-      sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
-      sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
-
+      if (config.awsKey.nonEmpty && config.awsSecret.nonEmpty)
+      {
+        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
+        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
+      }
+      
       val cByd = new CreateNextItemFeatures(sc,config)
       cByd.run()
     }

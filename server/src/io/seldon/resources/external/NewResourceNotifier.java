@@ -69,7 +69,7 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
         logger.info("Adding listener for new resource pattern "+ nodePattern);
         nodeWatches.put(nodePattern, new HashMap<String, PerClientExternalLocationListener>());
         globalConfigHandler.addSubscriber(nodePattern, createAllClientListeners(nodePattern, listener));
-        clientConfigHandler.addListener(this, false);
+        clientConfigHandler.addListener(this);
     }
 
 
@@ -113,7 +113,7 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
     @Override
     public void configUpdated(String client, String configKey, String configValue) {
 
-        logger.info("Received new config " + client + " "+ configKey +  " " + configValue + " available watches "+ StringUtils.join(nodeWatches.keySet()) + " available clients "+ Joiner.on('\n').withKeyValueSeparator(" -> ").join(nodeWatches));;
+        logger.info("Received new config for client : \"" + client + "\", key : \""+ configKey +  "\", value \""  + configValue + "\"");
         Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(configKey);
         if(watchingClients!=null && watchingClients.containsKey(client)){
             watchingClients.get(client).newClientLocation(client,configValue,configKey);
