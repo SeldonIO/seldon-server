@@ -156,8 +156,8 @@ object Ctr {
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[String]('i', "input-path") required() valueName("path url") action { (x, c) => c.copy(inputPath = x) } text("path prefix for input")
     opt[String]('o', "output-path") required() valueName("path url") action { (x, c) => c.copy(outputPath = x) } text("path prefix for output")
-    opt[String]('a', "awskey") required() valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
-    opt[String]('s', "awssecret") required() valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
+    opt[String]('a', "awskey") valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
+    opt[String]('s', "awssecret") valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
     opt[String]('d', "start-date") required() valueName("start date") action { (x, c) => c.copy(startDate = x) } text("start date yyyy-mm-dd")
     opt[String]('e', "end-date") required() valueName("end date") action { (x, c) => c.copy(endDate = x) } text("end date yyyy-mm-dd")
     opt[String]("influxdb-host") valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
@@ -177,8 +177,11 @@ object Ctr {
     try
     {
       sc.hadoopConfiguration.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
-      sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
-      sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
+      if (config.awsKey.nonEmpty && config.awsSecret.nonEmpty)
+      {
+        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
+        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
+      }
       val cByd = new Ctr(sc,config)
       cByd.run()
     }

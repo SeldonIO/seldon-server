@@ -38,7 +38,7 @@ import org.apache.spark.mllib.linalg.SparseVector
 import org.apache.spark.mllib.linalg.Vectors
 import io.seldon.spark.rdd.FileUtils
 import io.seldon.spark.rdd.DataSourceMode
-import scala.util.control.Breaks._
+import scala.collection.mutable.ListMap
 
 case class ActionConfig(
     local : Boolean = false,
@@ -51,8 +51,9 @@ case class ActionConfig(
     startDay : Int = 0,
     days : Int = 1,
     awsSecret : String = "",
-    maxNumActionsPerUser : Int = 25,
+    maxNumActionsPerUser : Int = 50,
     actionNumToStart : Int = 5,
+    maxUserHistoryFeatures : Int = 20,
     minTermDocFreq : Int = 100)
     
     
@@ -126,10 +127,10 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
         val sorted = v.toArray.sortBy(_._2) // _.2 is time
         var userHistory = ListBuffer[String]()
         var c = 0
-        breakable { for ((item,t,tags) <- sorted)
+        for ((item,t,tags) <- sorted)
         {
-          if (c > maxNumActions)
-            break;
+          if (c <= maxNumActions)
+          {
           if (c >= actionNumToStart)
           {
             var line = new StringBuilder()
@@ -162,8 +163,9 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
                 userHistory.append(tagToken)
             }
           c += 1
+          }
          }
-        }
+        
          buf 
       }
 
@@ -179,23 +181,45 @@ class CreateActionFeatures(private val sc : SparkContext,config : ActionConfig) 
       
       val featuresWithTfidf = rddFeatures.zip(tfidf)
       
+      val maxUserHistoryFeatures = config.maxUserHistoryFeatures
+      
       // map strings or orderd list of ids using broadcast map
       val rddFeatureIds = featuresWithTfidf.map{case ((user,features),tfidfVec) => 
         
         var line = new StringBuilder()
         val hashingTF = new HashingTF()
         var fset = Set[String]()
+        val tfidfMap = scala.collection.mutable.Map[String,Double]()
+        line  ++= "1 |i "
         for (feature <- features.split(" "))
         {
-          if (!fset.contains(feature))
+            if (!fset.contains(feature))
+            {
+              val id = hashingTF.indexOf(feature)
+              val tfidf = tfidfVec(id)
+              if (feature.startsWith("i_"))
+              {
+               line ++= " "+feature+":"+tfidf
+              } 
+              else
+              {
+               tfidfMap.put(feature, tfidf) 
+              }
+             fset += feature
+            }
+        }
+        val tfidfSorted = ListMap(tfidfMap.toSeq.sortWith(_._2 < _._2):_*)
+        var c = 0
+        line ++= " |u "
+        for((feature,tfidf) <- tfidfSorted)
+        {
+          if (c <= maxUserHistoryFeatures)
           {
-            val id = hashingTF.indexOf(feature)
-            val tfidf = tfidfVec(id)
-            val field = if (feature.startsWith("u_")) "1" else "2"
-            line ++= " "+field+":"+feature+":"+tfidf
-            fset += feature
+            line  ++= " "+feature+":"+tfidf
+            c += 1
           }
         }
+            
         line.toString().trim()
         }
        
@@ -243,6 +267,7 @@ object CreateActionFeatures
     opt[Int]('r', "numdays") required() action { (x, c) =>c.copy(days = x) } text("number of days in past to get actions for")
     opt[Int]("start-day") required() action { (x, c) =>c.copy(startDay = x) } text("start day in unix time")
     opt[Int]("maxNumActionsPerUser") action { (x, c) =>c.copy(maxNumActionsPerUser = x) } text("max number of actions a user must have")
+    opt[Int]("maxUserHistoryFeatures") action { (x, c) =>c.copy(maxUserHistoryFeatures = x) } text("max number of features from user history to include")    
     opt[Int]("actionNumToStart") action { (x, c) =>c.copy(actionNumToStart = x) } text("wait until this number of actions for a user before creating features")
 
     }
