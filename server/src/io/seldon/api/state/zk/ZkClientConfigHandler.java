@@ -64,9 +64,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
 
     private boolean initalized = false;
 
-    @Autowired
-    JDOFactory jdofactory;
-    
+
     @Autowired
     public ZkClientConfigHandler(ZkSubscriptionHandler handler){
         this.handler = handler;
@@ -135,7 +133,6 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
 
                         logger.warn("Couldn't read JSON at " + path + ", ignoring");
                     }
-                    jdofactory.clientAdded(clientName, initialConfig); // ensure called first as other listeners may need db access
                     clientsWithInitialConfig.put(clientName, initialConfig);
                     for (NewClientListener listener : newClientListeners) {
                         listener.clientAdded(clientName, initialConfig);

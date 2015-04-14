@@ -26,6 +26,7 @@
 package io.seldon.db.jdo;
 
 import io.seldon.api.Constants;
+import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.db.jdbc.JDBCConnectionFactory;
 
@@ -63,16 +64,15 @@ public class JDOFactory implements NewClientListener, DbConfigHandler
 	@Autowired
 	private JDBCConnectionFactory jdbcConnectionFactory;
 
-	//@Autowired
-	//private ClientConfigHandler clientConfigHandler;
+	@Autowired
+	private ClientConfigHandler clientConfigHandler;
 	private static JDOFactory jdoFactory;
 	private List<DbConfigListener> listeners = new ArrayList<>();
 
 
 	@PostConstruct
 	public void intialise() throws NamingException {
-		//logger.info("Adding new client listener");
-		//clientConfigHandler.addNewClientListener(this, true, true);
+		clientConfigHandler.addNewClientListener(this, true);
 		registerFactory("api", "api", DEFAULT_API_JNDI_NAME);
 		jdbcConnectionFactory.addDataSource("api", DEFAULT_API_JNDI_NAME, "api");
 		jdoFactory = this;
