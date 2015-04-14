@@ -37,7 +37,6 @@ import org.apache.commons.dbcp.AbandonedConfig;
 import org.apache.commons.dbcp.DriverManagerConnectionFactory;
 import org.apache.commons.dbcp.PoolableConnectionFactory;
 import org.apache.commons.dbcp.PoolingDataSource;
-import org.apache.commons.dbcp.PoolingDriver;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
@@ -52,7 +51,6 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 
 	private final GlobalConfigHandler globalConfigHandler;
 	
-	private final Map<String,DbcpDetails> pools = new ConcurrentHashMap<String,DbcpDetails>();
 	private final Map<String,DataSource> dataSources = new ConcurrentHashMap<String,DataSource>();
 	List<DbcpInitialisedListener> listeners = new ArrayList<DbcpInitialisedListener>();
 	boolean initialised = false;
@@ -67,7 +65,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
     
 	private void create(DbcpConfig conf)
 	{
-		if (!pools.containsKey(conf.name))
+		if (!dataSources.containsKey(conf.name))
 		{
 			logger.info("Creating pool with name "+conf.name);
 			 // create a generic pool
@@ -96,11 +94,6 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		    DataSource ds = new PoolingDataSource(pool);
 		    dataSources.put(conf.name, ds);
 
-		    // register our pool and give it a name
-		    //PoolingDriver poolingDriver = new PoolingDriver();
-		    //poolingDriver.registerPool(conf.name, pool);
-		    
-		    //pools.put(conf.name, new DbcpDetails(pcf,poolingDriver));
 		    } catch (ClassNotFoundException e) {
 				logger.error("Failed to create datasource for "+conf.name+ " with class "+conf.driverClassName);
 			}
@@ -160,17 +153,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
         }
 	}
 	
-	private static class DbcpDetails
-	{
-		private PoolableConnectionFactory pcf;
-		private PoolingDriver poolingDriver;
-		
-		public DbcpDetails(PoolableConnectionFactory pcf,PoolingDriver poolingDriver) {
-			super();
-			this.pcf = pcf;
-			this.poolingDriver = poolingDriver;
-		}
-	}
+	
 	
 	public static class DbcpConfigList {
 		public List<DbcpConfig> dbs;
