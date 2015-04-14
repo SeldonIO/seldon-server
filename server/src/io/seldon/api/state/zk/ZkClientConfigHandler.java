@@ -191,7 +191,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
             childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, clientChildData));
             // then the children of clients
             Collection<ChildData> furtherChildren = handler.getChildren(clientChildData.getPath());
-            logger.info("Found " +furtherChildren.size() + " children for client " retrieveClientName(clientChildData.getPath())+" on startup");
+            logger.info("Found " +furtherChildren.size() + " children for client "+ retrieveClientName(clientChildData.getPath())+" on startup");
             for (ChildData child : furtherChildren){
                 childEvent(null, new TreeCacheEvent(TreeCacheEvent.Type.NODE_ADDED, child));
             }
