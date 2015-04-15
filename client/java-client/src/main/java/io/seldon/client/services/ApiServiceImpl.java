@@ -247,7 +247,7 @@ public class ApiServiceImpl implements ApiService {
     public ResourceBean getRecommendations(String uid) {
         String res = Constants.USERS + "/" + uid + "/" + Constants.RECOMMENDATIONS;
         String url = getUrl(res);
-        return getResource(url, RecommendationsBean.class);
+        return getResource(url, ItemsBean.class);
     }
 
     public ResourceBean getRecommendedUsers(String userId, String itemId) {

@@ -295,9 +295,9 @@ public class ApiBeansTest extends BaseBeansTest {
     public void retrieveRecommendationsForUser() throws ErrorBeanException {
         for (UserBean user : users) {
             String userId = user.getId();
-            RecommendationsBean recommendationsBean = (RecommendationsBean) checkedResource(apiService.getRecommendations(userId));
-            List<RecommendationBean> recommendations = recommendationsBean.getList();
-            for (RecommendationBean recommendation : recommendations) {
+            ItemsBean recommendationsBean = (ItemsBean) checkedResource(apiService.getRecommendations(userId));
+            List<ItemBean> recommendations = recommendationsBean.getList();
+            for (ItemBean recommendation : recommendations) {
                 logger.debug("Recommendation for user: " + userId + " => " + recommendation);
             }
         }
