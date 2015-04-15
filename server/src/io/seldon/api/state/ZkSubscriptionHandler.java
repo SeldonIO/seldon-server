@@ -186,11 +186,8 @@ public class ZkSubscriptionHandler {
         if (cache==null) return Collections.EMPTY_LIST;
 
         Map<String,ChildData> children = cache.getCurrentChildren(node);
-        if (children==null)
-            return toReturn;
-        for (ChildData child : children.values())
-            toReturn.addAll(getChildren(child.getPath(), cache));
-        toReturn.addAll(children.values());
+        if (children!=null)
+            toReturn.addAll(children.values());
         return toReturn;
     }
 }

@@ -110,9 +110,11 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
         }
 
         if(!initalized && event.getType() != TreeCacheEvent.Type.INITIALIZED) {
-            logger.debug("Ignore event as we are not in an initialised state.");
+            logger.info("Ignore event as we are not in an initialised state: " + event);
             return;
         }
+        if(event.getType()== TreeCacheEvent.Type.NODE_ADDED || event.getType() == TreeCacheEvent.Type.NODE_UPDATED)
+            logger.info("Message received from ZK : " + event.toString());
         switch (event.getType()){
             case NODE_ADDED:
                 if( event.getData() == null || event.getData().getPath()==null) {
