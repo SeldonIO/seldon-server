@@ -67,7 +67,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 	{
 		if (!dataSources.containsKey(conf.name))
 		{
-			logger.info("Creating pool with name "+conf.name);
+			logger.info("Creating pool "+conf.toString());
 			 // create a generic pool
 		    GenericObjectPool pool = new GenericObjectPool(null);
 		    pool.setMaxActive(conf.maxActive);
@@ -176,6 +176,24 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		public Boolean removeAbanadoned = true;
 		public Integer removeAbandonedTimeout = 60;
 		public Boolean logAbandonded = false;
+		@Override
+		public String toString() {
+			return "DbcpConfig [name=" + name + ", jdbc=" + jdbc
+					+ ", driverClassName=" + driverClassName + ", user=" + user
+					+ ", password=" + password + ", maxActive=" + maxActive
+					+ ", maxIdle=" + maxIdle + ", maxWait=" + maxWait
+					+ ", timeBetweenEvictionRunsMillis="
+					+ timeBetweenEvictionRunsMillis
+					+ ", minEvictableIdleTimeMillis="
+					+ minEvictableIdleTimeMillis + ", testWhileIdle="
+					+ testWhileIdle + ", testOnBorrow=" + testOnBorrow
+					+ ", validationQuery=" + validationQuery
+					+ ", removeAbanadoned=" + removeAbanadoned
+					+ ", removeAbandonedTimeout=" + removeAbandonedTimeout
+					+ ", logAbandonded=" + logAbandonded + "]";
+		}
+		
+		
 		
 	}
 
