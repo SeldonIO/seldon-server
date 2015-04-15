@@ -163,7 +163,7 @@ public class Util {
 	}
 
 	public static Integer getDimension(HttpServletRequest req) throws NumberFormatException {
-		Integer dimension = null;
+		Integer dimension = 0;
 		String sDim = req.getParameter(Constants.URL_ATTR_DIMENSION);
 		if(sDim != null) {
 			dimension = Integer.parseInt(sDim);
