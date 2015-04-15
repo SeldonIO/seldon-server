@@ -152,30 +152,6 @@ public class ApiBeansTest extends BaseBeansTest {
     }
 
     @Test
-    public void retrieveUserOpinions() throws ErrorBeanException {
-        for (UserBean user : users) {
-            String userId = user.getId();
-            OpinionsBean opinionsBean = (OpinionsBean) checkedResource(apiService.getOpinions(userId, USER_OPINION_LIMIT));
-            List<OpinionBean> opinions = opinionsBean.getList();
-            for (OpinionBean opinion : opinions) {
-                logger.debug("Opinion: " + opinion);
-            }
-        }
-    }
-
-    @Test
-    public void retrieveItemOpinions() throws ErrorBeanException {
-        for (ItemBean item : items) {
-            String itemId = item.getId();
-            OpinionsBean opinionsBean = (OpinionsBean) checkedResource(apiService.getItemOpinions(itemId, USER_OPINION_LIMIT));
-            List<OpinionBean> opinions = opinionsBean.getList();
-            for (OpinionBean opinion : opinions) {
-                logger.debug("Opinion: " + opinion);
-            }
-        }
-    }
-
-    @Test
     public void retrieveItems() throws ErrorBeanException {
         ItemsBean itemsBean = (ItemsBean) checkedResource(apiService.getItems(ITEM_LIMIT, false));
         List<ItemBean> itemsBeanList = itemsBean.getList();
@@ -232,34 +208,6 @@ public class ApiBeansTest extends BaseBeansTest {
     }
 
     @Test
-    public void trustGraph() throws ErrorBeanException {
-        for (UserBean userBean : users) {
-            logger.debug("* User: " + userBean);
-            UserGraphBean trustGraph = (UserGraphBean) checkedResource(
-                    apiService.getTrustedUsers(userBean.getId(), TRUSTED_USER_LIMIT)
-            );
-            List<UserTrustNodeBean> nodes = trustGraph.getList();
-            for (UserTrustNodeBean node : nodes) {
-                logger.debug("** Node: " + node);
-            }
-        }
-    }
-
-    @Test
-    public void similarityGraph() throws ErrorBeanException {
-        for (ItemBean itemBean : items) {
-            logger.debug("* Item: " + itemBean);
-            ItemGraphBean similarityGraph = (ItemGraphBean) checkedResource(
-                    apiService.getSimilarItems(itemBean.getId(), TRUSTED_ITEM_LIMIT)
-            );
-            List<ItemSimilarityNodeBean> nodes = similarityGraph.getList();
-            for (ItemSimilarityNodeBean node : nodes) {
-                logger.debug("** Node: " + node);
-            }
-        }
-    }
-
-    @Test
     public void retrieveActionsForUsers() throws ErrorBeanException {
         for (UserBean user : users) {
             String userId = user.getId();
@@ -295,9 +243,9 @@ public class ApiBeansTest extends BaseBeansTest {
     public void retrieveRecommendationsForUser() throws ErrorBeanException {
         for (UserBean user : users) {
             String userId = user.getId();
-            RecommendationsBean recommendationsBean = (RecommendationsBean) checkedResource(apiService.getRecommendations(userId));
-            List<RecommendationBean> recommendations = recommendationsBean.getList();
-            for (RecommendationBean recommendation : recommendations) {
+            ItemsBean recommendationsBean = (ItemsBean) checkedResource(apiService.getRecommendations(userId));
+            List<ItemBean> recommendations = recommendationsBean.getList();
+            for (ItemBean recommendation : recommendations) {
                 logger.debug("Recommendation for user: " + userId + " => " + recommendation);
             }
         }
@@ -311,11 +259,11 @@ public class ApiBeansTest extends BaseBeansTest {
             for (DimensionBean dimension : dimensions.subList(0, limit)) {
                 int dimensionId = dimension.getDimId();
                 @SuppressWarnings({"NullableProblems"})
-                RecommendationsBean recommendationsBean = (RecommendationsBean) checkedResource(
+                ItemsBean recommendationsBean = (ItemsBean) checkedResource(
                         apiService.getRecommendations(userId, null, dimensionId, USER_RECOMMENDATIONS_LIMIT,null)
                 );
-                List<RecommendationBean> recommendations = recommendationsBean.getList();
-                for (RecommendationBean recommendation : recommendations) {
+                List<ItemBean> recommendations = recommendationsBean.getList();
+                for (ItemBean recommendation : recommendations) {
                     logger.debug("Recommendation for user: " + userId + " => in dimension: " + dimension + " => " + recommendation);
                 }
             }
@@ -345,24 +293,14 @@ public class ApiBeansTest extends BaseBeansTest {
     	for(ItemTypeBean t : itemTypes) {
     		 for (UserBean user : users) {
     	            String userId = user.getId();
-    	            RecommendationsBean recommendationsBean = (RecommendationsBean) checkedResource(apiService.getRecommendationByItemType(userId, t.getTypeId(), USER_RECOMMENDATIONS_LIMIT));
-    	            List<RecommendationBean> recommendations = recommendationsBean.getList();
-    	            for (RecommendationBean recommendation : recommendations) {
+    	            ItemsBean recommendationsBean = (ItemsBean) checkedResource(apiService.getRecommendationByItemType(userId, t.getTypeId(), USER_RECOMMENDATIONS_LIMIT));
+    	            List<ItemBean> recommendations = recommendationsBean.getList();
+    	            for (ItemBean recommendation : recommendations) {
     	                logger.debug("RecommendationByType"+ t.getName() + " for user: " + userId + " => " + recommendation);
     	            }
     	        }
     	}
     	
-    }
-    
-    @Test
-    public void retrieveRankedItems() throws ErrorBeanException {
-    	String userId = users.iterator().next().getId();
-    	RecommendationsBean recommendationsBean = new RecommendationsBean();
-    	List<RecommendationBean> list = new ArrayList<RecommendationBean>();
-    	for(ItemBean i : items) { list.add(new RecommendationBean(i.getId(), null, null));  }
-    	recommendationsBean.setList(list);  
-        RecommendationsBean recs = (RecommendationsBean) checkedResource(apiService.getRankedItems(userId, recommendationsBean, ITEM_LIMIT));
     }
     
     private void logUserInfo(List<UserBean> userBeans) {

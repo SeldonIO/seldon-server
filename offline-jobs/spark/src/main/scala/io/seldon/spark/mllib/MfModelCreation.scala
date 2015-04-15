@@ -133,37 +133,22 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
       }.repartition(2).cache()
     val itemsByCount: RDD[(Int, Int)] = actions.map(x => (x._1, 1)).reduceByKey(_ + _)
     val itemsCount = itemsByCount.count()
-    val topQuarter = (itemsCount * 0.25).toInt
+    val topQuarter = (itemsCount * 1).toInt
+    println("total actions " + actions.count())
     println("total stories " + itemsByCount.count())
-    val topItems = sc.broadcast((itemsByCount.top(topQuarter)(Ordering[Int].on[(Int,Int)](_._2))).map(_._1).toSet)
 
-    val productFilteredActions = actions.filter{
-      case (product,(_,_)) => topItems.value.contains(product)
-    }
-    println("productFilteredActions " + productFilteredActions.count())
     val usersByCount = actions.map(x=>(x._2._1,1)).reduceByKey(_+_)
     val usersCount = usersByCount.count()
-    val topQuarterUsers = (usersCount * 0.25).toInt
-    val topUsers = sc.broadcast(usersByCount.top(topQuarterUsers)(Ordering[Int].on[(Int,Int)](_._2)).map(_._1).toSet)
-    println("total users " + usersCount + ", afterfilter users " + topUsers.value.size)
+    println("total users " + usersCount)
 
-    val allFilteredActions = productFilteredActions.filter{
-      case(_,(user,_)) => topUsers.value.contains(user)
-    }
-
-    println("allFilteredActions " + allFilteredActions.count())
-
-    val ratings = allFilteredActions.map{
+    val ratings = actions.map{
       case (product, (user, rating)) => Rating(user,product,rating)
     }.repartition(2).cache()
 
-    println("before filtering, actions count " + actions.count() + " after filtering " + ratings.count())
-
-   
-    
-   
     val timeFirst = System.currentTimeMillis()
+    println("munging data took "+(timeFirst-timeStart)+"ms")
     val model: MatrixFactorizationModel = ALS.trainImplicit(ratings, rank, iterations, lambda, alpha)
+    println("training model took "+(System.currentTimeMillis() - timeFirst)+"ms")
     outputModelToFile(model, toOutputResource(outputFilesLocation,outputDataSourceMode), outputDataSourceMode, client,date)
 
     if (config.activate)
