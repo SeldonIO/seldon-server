@@ -56,7 +56,7 @@ public class BaseJavascriptTest extends BaseClientTest {
         objectMapper = new ObjectMapper();
     }
 
-    @Test
+    //@Test
     public void createUser() throws IOException {
         String newUser = "/js/user/new";
 
@@ -70,7 +70,7 @@ public class BaseJavascriptTest extends BaseClientTest {
         System.out.println("Response: " + userBean);
     }
 
-    @Test
+    //@Test
     public void createItem() throws IOException {
         String newItem = "/js/item/new";
 
