@@ -101,7 +101,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		}
 		else
 		{
-			logger.error("Pool "+conf.name+" already exists. Can't change or create a new one at present.");
+			logger.error("Pool "+conf.name+" already exists. Can't change existing datasource at present.");
 		}
 	}
 
