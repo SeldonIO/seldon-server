@@ -209,7 +209,7 @@ public interface ApiClient {
      * @return a {@link List} of recommendation beans
      * @throws ApiException in the event of an API error.
      */
-    List<RecommendationBean> getRecommendations(String uid, String keyword, Integer dimension, int limit) throws ApiException;
+    List<ItemBean> getRecommendations(String uid, String keyword, Integer dimension, int limit) throws ApiException;
 
     /**
      * Get recommendations for the supplied user optionally filtered by keyword and dimension.
@@ -221,7 +221,7 @@ public interface ApiClient {
      * @return a {@link List} of recommendation beans
      * @throws ApiException in the event of an API error.
      */
-    List<RecommendationBean> getRecommendations(String uid, String keyword, int limit) throws ApiException;
+    List<ItemBean> getRecommendations(String uid, String keyword, int limit) throws ApiException;
 
     /**
      * Get recommendations for the supplied user optionally filtered by keyword and dimension.
@@ -244,7 +244,7 @@ public interface ApiClient {
      * @return a {@link List} of recommendation beans
      * @throws ApiException in the event of an API error.
      */
-    List<RecommendationBean> getRecommendations(String uid, Integer dimension, int limit) throws ApiException;
+    List<ItemBean> getRecommendations(String uid, Integer dimension, int limit) throws ApiException;
 
     /**
      * Get recommendations for the supplied user optionally filtered by keyword and dimension.
@@ -268,7 +268,7 @@ public interface ApiClient {
      * @return a {@link List} of recommendation beans
      * @throws ApiException in the event of an API error.
      */
-    List<RecommendationBean> getRecommendations(String uid, String keyword, Integer dimension, int limit,AlgorithmOptions options) throws ApiException;
+    List<ItemBean> getRecommendations(String uid, String keyword, Integer dimension, int limit,AlgorithmOptions options) throws ApiException;
 
     
     /**
@@ -278,7 +278,7 @@ public interface ApiClient {
      * @return a {@link List} of recommendation beans
      * @throws ApiException in the event of an API error.
      */
-    List<RecommendationBean> getRecommendations(String uid) throws ApiException;
+    List<ItemBean> getRecommendations(String uid) throws ApiException;
 
     /**
      * Retrieve a list of users from a user's trust graph that might like a specific item.
