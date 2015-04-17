@@ -2,7 +2,7 @@
   "name": "seldon-js-client",
   "version": "0.91.0",
   "authors": [
-    "Philip Ince <fireman.phil@gmail.com>"
+
   ],
   "description": "A Javascript client for retrieving recommendations from Seldon",
   "license": "apache",
