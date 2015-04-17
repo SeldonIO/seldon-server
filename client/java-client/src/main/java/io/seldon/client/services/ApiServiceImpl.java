@@ -241,13 +241,13 @@ public class ApiServiceImpl implements ApiService {
                 url += "&algorithms=" + aoString;
             }
         }
-        return getResource(url, RecommendationsBean.class);
+        return getResource(url, ItemsBean.class);
     }
 
     public ResourceBean getRecommendations(String uid) {
         String res = Constants.USERS + "/" + uid + "/" + Constants.RECOMMENDATIONS;
         String url = getUrl(res);
-        return getResource(url, RecommendationsBean.class);
+        return getResource(url, ItemsBean.class);
     }
 
     public ResourceBean getRecommendedUsers(String userId, String itemId) {
@@ -322,7 +322,7 @@ public class ApiServiceImpl implements ApiService {
     public ResourceBean getRecommendationByItemType(String uid, int itemType, int limit) {
         String res = Constants.USERS + "/" + uid + "/" + Constants.RECOMMENDATIONS;
         String url = getUrl(res) + "type=" + itemType + "&limit=" + limit;
-        return getResource(url, RecommendationsBean.class);
+        return getResource(url, ItemsBean.class);
     }
 
     @Override
