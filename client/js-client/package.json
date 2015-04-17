@@ -1,0 +1,22 @@
+{
+  "name": "seldon-js-client",
+  "version": "0.91.0",
+  "description": "A JavaScript client to the Seldon API",
+  "main": "Gruntfile.js",
+  "dependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-bower-concat": "^0.4.0",
+    "grunt-contrib-uglify": "^0.9.1",
+    "grunt-jslint": "^1.1.14",
+    "grunt-contrib-jshint": "^0.11.1"
+  },
+  "devDependencies": {
+    "grunt-bower-task": "^0.4.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
