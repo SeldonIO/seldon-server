@@ -185,48 +185,50 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     new File(outputFilesLocation+yesterdayUnix).mkdirs()
     val userFile = new File(outputFilesLocation+yesterdayUnix+"/userFeatures.txt");
     userFile.createNewFile()
-    printToFile(userFile){
+
+    val productFile = new File(outputFilesLocation+yesterdayUnix+"/productFeatures.txt");
+    productFile.createNewFile()
+
+    outputToFile(model, userFile, productFile)
+  }
+
+  def outputToFile(model: MatrixFactorizationModel, userFile: File, prodFile: File): Unit = {
+    printToFile(userFile) {
       p => model.userFeatures.collect().foreach {
         u => {
-          p.println(u._1.toString +"|" +u._2.mkString(","))
+          p.println(u._1.toString + "|" + u._2.mkString(","))
         }
       }
     }
-    val productFile = new File(outputFilesLocation+yesterdayUnix+"/productFeatures.txt");
-    productFile.createNewFile()
-    printToFile(productFile){
+    printToFile(prodFile) {
       p => model.productFeatures.collect().foreach {
         u => {
-          p.println(u._1.toString +"|" +u._2.mkString(","))
+          p.println(u._1.toString + "|" + u._2.mkString(","))
         }
+
       }
     }
   }
 
   def outputModelToS3File(model: MatrixFactorizationModel, outputFilesLocation: String, yesterdayUnix: Long) = {
+    // write to temp file first
+    val tmpUserFile = File.createTempFile("mfmodelUser",".tmp");
+    tmpUserFile.deleteOnExit()
+    val tmpProdFile = File.createTempFile("mfModelProduct",".tmp")
+    tmpProdFile.deleteOnExit()
+    outputToFile(model, tmpUserFile, tmpProdFile)
     val service: S3Service = new RestS3Service(new AWSCredentials(System.getenv("AWS_ACCESS_KEY_ID"), System.getenv("AWS_SECRET_ACCESS_KEY")))
     val bucketString = outputFilesLocation.split("/")(0)
     val bucket = service.getBucket(bucketString)
     val s3Folder = outputFilesLocation.replace(bucketString+"/","")
-    val outUser = new StringBuffer()
-    model.userFeatures.collect().foreach(u => {
-      outUser.append(u._1.toString)
-      outUser.append("|")
-      outUser.append(u._2.mkString(","))
-      outUser.append("\n")
-    }
-    )
-    val obj = new S3Object(s3Folder+yesterdayUnix+"/userFeatures.txt", outUser.toString())
+
+    val obj = new S3Object(tmpUserFile)
+    obj.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt")
     service.putObject(bucket, obj)
-    val outProduct = new StringBuffer()
-    model.productFeatures.collect().foreach(u => {
-      outProduct.append(u._1.toString)
-      outProduct.append("|")
-      outProduct.append(u._2.mkString(","))
-      outProduct.append("\n")
-    }
-    )
-    val objProd = new S3Object(s3Folder+yesterdayUnix+"/productFeatures.txt", outProduct.toString())
+    System.out.println("Uploading user features to " + bucketString + " bucket " + obj.getKey + " file")
+    val objProd = new S3Object(tmpProdFile)
+    objProd.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt")
+    System.out.println("Uploading product features to " + bucketString + " bucket " + objProd.getKey + " file")
     service.putObject(bucket, objProd)
   }
 
