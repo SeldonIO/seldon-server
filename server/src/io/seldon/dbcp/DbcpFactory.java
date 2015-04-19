@@ -25,6 +25,7 @@ import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.db.jdo.JDOFactory;
 
+import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Component
 public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
@@ -61,9 +63,42 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
     	this.globalConfigHandler = globalConfigHandler;
     	globalConfigHandler.addSubscriber("dbcp", this);
     }
+	
+	
+	
+	private void createC3p0(DbcpConfig conf) 
+	{
+		if (!dataSources.containsKey(conf.name))
+		{
+			try
+			{
+				logger.info("Creating c3p0 pool "+conf.toString());
+				ComboPooledDataSource cpds = new ComboPooledDataSource();
+				cpds.setDriverClass( conf.driverClassName ); //loads the jdbc driver            
+				cpds.setJdbcUrl( conf.jdbc );
+				cpds.setUser( conf.user);                                  
+				cpds.setPassword( conf.password);                                  
+				
+				// the settings below are optional -- c3p0 can work with defaults
+				cpds.setMinPoolSize(conf.maxIdle);                                     
+				cpds.setAcquireIncrement(5);
+				cpds.setMaxPoolSize(conf.maxActive);
+				cpds.setPreferredTestQuery(conf.validationQuery);
+				cpds.setNumHelperThreads(10);
+			
+				dataSources.put(conf.name, cpds);
+			} catch (PropertyVetoException e) {
+				logger.error("Failed to create c3p0 datasource ",e);
+			}
+			
+		}
+		else
+		{
+			logger.error("Pool "+conf.name+" already exists. Can't change existing datasource at present.");
+		}
+	}
     
-    
-	private void create(DbcpConfig conf)
+	private void createDbcp(DbcpConfig conf)
 	{
 		if (!dataSources.containsKey(conf.name))
 		{
@@ -144,12 +179,12 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
                 DbcpConfigList configs = mapper.readValue(configValue, DbcpConfigList.class);
                 
                 for (DbcpConfig config : configs.dbs)
-                	create(config);
+                	createDbcp(config);
                 updateInitialised();
                 logger.info("Successfully set dbcp.");
             } catch (IOException e){
                 logger.error("Problem changing dbcp ", e);
-            }
+            } 
         }
 	}
 	
