@@ -25,7 +25,6 @@ import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.db.jdo.JDOFactory;
 
-import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,18 +33,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.AbandonedConfig;
-import org.apache.commons.dbcp.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp.PoolableConnectionFactory;
-import org.apache.commons.dbcp.PoolingDataSource;
+import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp2.PoolableConnection;
+import org.apache.commons.dbcp2.PoolableConnectionFactory;
+import org.apache.commons.dbcp2.PoolingDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.AbandonedConfig;
+import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Component
 public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
@@ -64,70 +63,44 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
     	globalConfigHandler.addSubscriber("dbcp", this);
     }
 	
-	
-	
-	private void createC3p0(DbcpConfig conf) 
-	{
-		if (!dataSources.containsKey(conf.name))
-		{
-			try
-			{
-				logger.info("Creating c3p0 pool "+conf.toString());
-				ComboPooledDataSource cpds = new ComboPooledDataSource();
-				cpds.setDriverClass( conf.driverClassName ); //loads the jdbc driver            
-				cpds.setJdbcUrl( conf.jdbc );
-				cpds.setUser( conf.user);                                  
-				cpds.setPassword( conf.password);                                  
-				
-				// the settings below are optional -- c3p0 can work with defaults
-				cpds.setMinPoolSize(conf.maxIdle);                                     
-				cpds.setAcquireIncrement(5);
-				cpds.setMaxPoolSize(conf.maxActive);
-				cpds.setPreferredTestQuery(conf.validationQuery);
-				cpds.setNumHelperThreads(10);
-			
-				dataSources.put(conf.name, cpds);
-			} catch (PropertyVetoException e) {
-				logger.error("Failed to create c3p0 datasource ",e);
-			}
-			
-		}
-		else
-		{
-			logger.error("Pool "+conf.name+" already exists. Can't change existing datasource at present.");
-		}
-	}
+
     
 	private void createDbcp(DbcpConfig conf)
 	{
 		if (!dataSources.containsKey(conf.name))
 		{
-			logger.info("Creating pool "+conf.toString());
-			 // create a generic pool
-		    GenericObjectPool pool = new GenericObjectPool(null);
-		    pool.setMaxActive(conf.maxActive);
-		    pool.setMaxIdle(conf.maxIdle);
-		    pool.setMaxWait(conf.maxWait);
-		    pool.setTimeBetweenEvictionRunsMillis(conf.timeBetweenEvictionRunsMillis);
-		    pool.setMinEvictableIdleTimeMillis(conf.minEvictableIdleTimeMillis);
-		    pool.setTestWhileIdle(conf.testWhileIdle);
-		    pool.setTestOnBorrow(conf.testOnBorrow);
-		    
-		    AbandonedConfig abandondedConfig = new AbandonedConfig();
-		    abandondedConfig.setRemoveAbandoned(conf.removeAbanadoned);
-		    abandondedConfig.setRemoveAbandonedTimeout(conf.removeAbandonedTimeout);
-		    abandondedConfig.setLogAbandoned(conf.logAbandonded);
-		    
-		    try
+			try
 		    {
-		    Class.forName(conf.driverClassName);
+				
+				Class.forName(conf.driverClassName);
+			    
+			    DriverManagerConnectionFactory cf =  new DriverManagerConnectionFactory(conf.jdbc,conf.user,conf.password);
+			    
+			    PoolableConnectionFactory pcf  =  new PoolableConnectionFactory(cf,null);
+			    pcf.setValidationQuery(conf.validationQuery);
+			    //, pool, null, conf.validationQuery, false, true,abandondedConfig);
+				
+			    logger.info("Creating pool "+conf.toString());
+			    // create a generic pool
+			    GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<PoolableConnection>(pcf);
+			    pool.setMaxTotal(conf.maxActive);
+			    pool.setMaxIdle(conf.maxIdle);
+			    pool.setMaxWaitMillis(conf.maxWait);
+			    pool.setTimeBetweenEvictionRunsMillis(conf.timeBetweenEvictionRunsMillis);
+			    pool.setMinEvictableIdleTimeMillis(conf.minEvictableIdleTimeMillis);
+			    pool.setTestWhileIdle(conf.testWhileIdle);
+			    pool.setTestOnBorrow(conf.testOnBorrow);
 		    
-		    DriverManagerConnectionFactory cf =  new DriverManagerConnectionFactory(conf.jdbc,conf.user,conf.password);
+			    AbandonedConfig abandonedConfig = new AbandonedConfig();
+			    abandonedConfig.setRemoveAbandonedOnMaintenance(conf.removeAbanadoned);
+			    abandonedConfig.setRemoveAbandonedTimeout(conf.removeAbandonedTimeout);
+			    abandonedConfig.setLogAbandoned(conf.logAbandonded);
 		    
-		    PoolableConnectionFactory pcf  =  new PoolableConnectionFactory(cf, pool, null, conf.validationQuery, false, true,abandondedConfig);
-		   
-		    DataSource ds = new PoolingDataSource(pool);
-		    dataSources.put(conf.name, ds);
+			    pool.setAbandonedConfig(abandonedConfig);
+		    
+			    pcf.setPool(pool);
+			    DataSource ds = new PoolingDataSource(pool);
+			    dataSources.put(conf.name, ds);
 
 		    } catch (ClassNotFoundException e) {
 				logger.error("Failed to create datasource for "+conf.name+ " with class "+conf.driverClassName);
@@ -185,6 +158,11 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
             } catch (IOException e){
                 logger.error("Problem changing dbcp ", e);
             } 
+        }
+        
+        if (dataSources.size() == 0)
+        {
+        	logger.error("No DBCP settings. Seldon will not run without a database connection. Please add settings to /config/dbcp");
         }
 	}
 	
