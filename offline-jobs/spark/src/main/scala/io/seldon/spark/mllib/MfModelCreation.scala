@@ -196,14 +196,16 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     printToFile(userFile) {
       p => model.userFeatures.collect().foreach {
         u => {
-          p.println(u._1.toString + "|" + u._2.mkString(","))
+          val strings = u._2.map(d => f"$d%.5g")
+          p.println(u._1.toString + "|" + strings.mkString(","))
         }
       }
     }
     printToFile(prodFile) {
       p => model.productFeatures.collect().foreach {
         u => {
-          p.println(u._1.toString + "|" + u._2.mkString(","))
+          val strings = u._2.map(d => f"$d%.5g")
+          p.println(u._1.toString + "|" + strings.mkString(","))
         }
 
       }
