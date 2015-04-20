@@ -21,31 +21,36 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.jdo;
+package io.seldon.recommendation;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class LastRecommendationBean implements Serializable {
+public class RecommendationResult implements Serializable {
 
-	String algorithm;
-	List<Long> recs;
-	public LastRecommendationBean(String algorithm, List<Long> recs) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	List<Recommendation> recs;
+	String uuid;
+	public RecommendationResult(List<Recommendation> recs, String uuid) {
 		super();
-		this.algorithm = algorithm;
 		this.recs = recs;
+		this.uuid = uuid;
 	}
-	public String getAlgorithm() {
-		return algorithm;
-	}
-	public void setAlgorithm(String algorithm) {
-		this.algorithm = algorithm;
-	}
-	public List<Long> getRecs() {
+	public List<Recommendation> getRecs() {
 		return recs;
 	}
-	public void setRecs(List<Long> recs) {
+	public void setRecs(List<Recommendation> recs) {
 		this.recs = recs;
+	}
+	public String getUuid() {
+		return uuid;
+	}
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 	
 	

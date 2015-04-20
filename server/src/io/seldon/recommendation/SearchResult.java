@@ -21,29 +21,39 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters;
+package io.seldon.recommendation;
 
-import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.ItemIncluder;
+public class SearchResult implements Comparable<SearchResult>{
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-/**
- * @author firemanphil
- *         Date: 19/11/14
- *         Time: 11:49
- */
-@Component
-public class MostPopularIncluder implements ItemIncluder {
-
-    @Autowired
-    private ItemStorage retriever;
-
-
-    @Override
-    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
-        // first stab at this: lets return, say, the top 200 items.
-        return  retriever.retrieveMostPopularItems(client,numItems,dimension);
-    }
+	private long id;
+	private double score; // higher the better
+	
+	public SearchResult(long id, double confidence) {
+		this.id = id;
+		this.score = confidence;
+	}
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public double getScore() {
+		return score;
+	}
+	public void setScore(double score) {
+		this.score = score;
+	}
+	@Override
+	public int compareTo(SearchResult o) {
+		if (this.score==o.score)
+			return 0;
+		else if (this.score > o.score)
+			return -1;
+		else
+			return 1;
+	}
+	
+	
+	
 }

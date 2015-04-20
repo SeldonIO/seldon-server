@@ -21,39 +21,41 @@
  * ********************************************************************************************
  */
 
-package io.seldon.general;
+package io.seldon.recommendation.filters.base;
 
-import io.seldon.api.resource.service.PersistenceProvider;
-import io.seldon.memcache.DogpileHandler;
-import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
-import io.seldon.recommendation.LastRecommendationBean;
-import net.spy.memcached.MemcachedClient;
+import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.general.ItemStorage;
+import io.seldon.recommendation.ItemFilter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 /**
+ * Filter to exclude items that the user has been shown and yet ignored.
  * @author firemanphil
- *         Date: 04/03/15
- *         Time: 15:30
+ *         Date: 10/12/14
+ *         Time: 14:47
  */
 @Component
-public class RecommendationStorage {
+public class IgnoredRecsFilter implements ItemFilter {
 
-    private final MemcachedClient memcache;
-    private final PersistenceProvider provider;
-    private final DogpileHandler dogpileHandler;
+
+    private final ItemStorage itemStorage;
 
     @Autowired
-    public RecommendationStorage(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
-        this.memcache = memcache;
-        this.provider = provider;
-        this.dogpileHandler = dogpileHandler;
+    public IgnoredRecsFilter(ItemStorage itemStorage){
+        this.itemStorage = itemStorage;
     }
 
-    public LastRecommendationBean retrieveLastRecommendations(String client, String user, String recsCounter){
-        int userRecCounter = Integer.parseInt(recsCounter.trim());
-        return (LastRecommendationBean) MemCachePeer.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
+    @Override
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId,RecommendationContext.OptionsHolder optsHolder,
+                                           Long currentItem, String lastRecListUUID, int numRecommendations) {
+        Set<Long> alreadyRecommendedAndViewedItems = itemStorage.retrieveIgnoredItems(client, clientUserId);
+
+        return new ArrayList<>(alreadyRecommendedAndViewedItems);
     }
 }

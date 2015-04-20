@@ -21,7 +21,7 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
 import io.seldon.sv.SemanticVectorsManager;
 

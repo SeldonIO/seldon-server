@@ -21,21 +21,21 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters;
+package io.seldon.recommendation.filters;
 
 import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.ItemIncluder;
+import io.seldon.recommendation.ItemIncluder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author firemanphil
- *         Date: 25/11/14
- *         Time: 13:57
+ *         Date: 19/11/14
+ *         Time: 11:49
  */
 @Component
-public class RecentItemsIncluder implements ItemIncluder {
+public class MostPopularIncluder implements ItemIncluder {
 
     @Autowired
     private ItemStorage retriever;
@@ -43,6 +43,7 @@ public class RecentItemsIncluder implements ItemIncluder {
 
     @Override
     public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
-        return retriever.retrieveRecentlyAddedItems(client, numItems, dimension);
+        // first stab at this: lets return, say, the top 200 items.
+        return  retriever.retrieveMostPopularItems(client,numItems,dimension);
     }
 }

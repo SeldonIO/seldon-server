@@ -21,9 +21,9 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
-import io.seldon.trust.impl.filters.FilteredItems;
+import io.seldon.recommendation.filters.FilteredItems;
 
 /**
  * @author firemanphil

@@ -21,40 +21,28 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters.base;
+package io.seldon.recommendation.filters;
 
-import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.ItemFilter;
+import io.seldon.recommendation.ItemIncluder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 /**
- * Filter to exclude items that the user has been shown and yet ignored.
  * @author firemanphil
- *         Date: 10/12/14
- *         Time: 14:47
+ *         Date: 25/11/14
+ *         Time: 13:57
  */
 @Component
-public class IgnoredRecsFilter implements ItemFilter {
-
-
-    private final ItemStorage itemStorage;
+public class RecentItemsIncluder implements ItemIncluder {
 
     @Autowired
-    public IgnoredRecsFilter(ItemStorage itemStorage){
-        this.itemStorage = itemStorage;
-    }
+    private ItemStorage retriever;
+
 
     @Override
-    public List<Long> produceExcludedItems(String client, Long user, String clientUserId,RecommendationContext.OptionsHolder optsHolder,
-                                           Long currentItem, String lastRecListUUID, int numRecommendations) {
-        Set<Long> alreadyRecommendedAndViewedItems = itemStorage.retrieveIgnoredItems(client, clientUserId);
-
-        return new ArrayList<>(alreadyRecommendedAndViewedItems);
+    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
+        return retriever.retrieveRecentlyAddedItems(client, numItems, dimension);
     }
 }

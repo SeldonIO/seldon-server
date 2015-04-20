@@ -28,7 +28,7 @@ import java.util.Set;
 
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
+import io.seldon.recommendation.RecommendationUtils;
 
 public class BaselineRecommender {
 

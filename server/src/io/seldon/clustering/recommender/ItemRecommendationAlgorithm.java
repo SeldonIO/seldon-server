@@ -25,7 +25,7 @@ package io.seldon.clustering.recommender;
 
 import java.util.List;
 
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
 
 /**
  * @author firemanphil

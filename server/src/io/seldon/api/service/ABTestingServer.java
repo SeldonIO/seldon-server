@@ -28,7 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 

@@ -23,7 +23,7 @@
 
 package io.seldon.recommendation.combiner;
 
-import io.seldon.trust.impl.jdo.RecommendationPeer;
+import io.seldon.recommendation.RecommendationPeer;
 
 import java.util.List;
 

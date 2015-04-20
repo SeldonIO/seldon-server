@@ -24,7 +24,8 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import static io.seldon.trust.impl.jdo.RecommendationPeer.*;
+import static io.seldon.recommendation.RecommendationPeer.*;
+
 import org.junit.Before;
 import org.junit.Test;
 

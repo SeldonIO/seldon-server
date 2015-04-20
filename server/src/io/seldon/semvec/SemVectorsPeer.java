@@ -24,7 +24,7 @@
 package io.seldon.semvec;
 
 import io.seldon.api.APIException;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
+import io.seldon.recommendation.RecommendationUtils;
 import io.seldon.util.CollectionTools;
 
 import java.io.File;

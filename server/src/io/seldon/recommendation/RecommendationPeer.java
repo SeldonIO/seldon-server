@@ -21,7 +21,7 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.jdo;
+package io.seldon.recommendation;
 
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
@@ -33,14 +33,8 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.recommendation.AlgorithmStrategy;
-import io.seldon.recommendation.ClientStrategy;
+import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
-import io.seldon.trust.impl.Recommendation;
-import io.seldon.trust.impl.RecommendationResult;
-import io.seldon.trust.impl.SortResult;
 import io.seldon.util.CollectionTools;
 
 import java.util.ArrayList;

@@ -21,19 +21,28 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation.filters.base;
 
 import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.recommendation.ItemFilter;
 
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 import java.util.List;
 
 /**
+ * Filter for the item that the user is currently interacting with.
  * @author firemanphil
- *         Date: 19/11/14
- *         Time: 11:29
+ *         Date: 05/12/14
+ *         Time: 15:31
  */
-public interface ItemFilter {
-
-    List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
-                                    Long currentItem,String lastRecListUUID, int numRecommendations);
+@Component
+public class CurrentItemFilter implements ItemFilter {
+    @Override
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
+                                           Long currentItem,String lastRecListUUID, int numRecommendations) {
+        return Collections.singletonList(currentItem);
+    }
 }
+

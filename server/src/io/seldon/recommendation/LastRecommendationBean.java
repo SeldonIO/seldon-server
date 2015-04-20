@@ -21,39 +21,33 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
-public class SearchResult implements Comparable<SearchResult>{
+import java.io.Serializable;
+import java.util.List;
 
-	private long id;
-	private double score; // higher the better
-	
-	public SearchResult(long id, double confidence) {
-		this.id = id;
-		this.score = confidence;
+public class LastRecommendationBean implements Serializable {
+
+	String algorithm;
+	List<Long> recs;
+	public LastRecommendationBean(String algorithm, List<Long> recs) {
+		super();
+		this.algorithm = algorithm;
+		this.recs = recs;
 	}
-	public long getId() {
-		return id;
+	public String getAlgorithm() {
+		return algorithm;
 	}
-	public void setId(long id) {
-		this.id = id;
+	public void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
 	}
-	public double getScore() {
-		return score;
+	public List<Long> getRecs() {
+		return recs;
 	}
-	public void setScore(double score) {
-		this.score = score;
-	}
-	@Override
-	public int compareTo(SearchResult o) {
-		if (this.score==o.score)
-			return 0;
-		else if (this.score > o.score)
-			return -1;
-		else
-			return 1;
+	public void setRecs(List<Long> recs) {
+		this.recs = recs;
 	}
 	
 	
-	
+
 }

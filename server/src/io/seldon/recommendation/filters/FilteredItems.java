@@ -19,7 +19,7 @@
  *
  ********************************************************************************************** 
 */
-package io.seldon.trust.impl.filters;
+package io.seldon.recommendation.filters;
 
 import java.util.List;
 

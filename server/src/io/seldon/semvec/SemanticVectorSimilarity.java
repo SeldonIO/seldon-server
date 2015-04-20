@@ -25,7 +25,7 @@ package io.seldon.semvec;
 
 import java.util.ArrayList;
 
-import io.seldon.trust.impl.SearchResult;
+import io.seldon.recommendation.SearchResult;
 
 public interface SemanticVectorSimilarity {
 

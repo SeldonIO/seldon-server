@@ -21,12 +21,12 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters.base;
+package io.seldon.recommendation.filters.base;
 
 import io.seldon.api.Constants;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.trust.impl.ItemFilter;
+import io.seldon.recommendation.ItemFilter;
 
 import java.util.Collections;
 import java.util.List;

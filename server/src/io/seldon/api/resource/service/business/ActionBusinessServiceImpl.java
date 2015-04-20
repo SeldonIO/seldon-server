@@ -33,8 +33,8 @@ import io.seldon.api.resource.service.ActionService;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.service.ApiLoggerServer;
+import io.seldon.recommendation.LastRecommendationBean;
 
-import io.seldon.trust.impl.jdo.LastRecommendationBean;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

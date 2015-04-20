@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
 import io.seldon.util.CollectionTools;
 
 

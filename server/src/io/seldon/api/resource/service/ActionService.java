@@ -54,7 +54,7 @@ import io.seldon.general.User;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.recommendation.AlgorithmStrategy;
-import io.seldon.trust.impl.jdo.LastRecommendationBean;
+import io.seldon.recommendation.LastRecommendationBean;
 
 import java.util.Collection;
 import java.util.Map;
