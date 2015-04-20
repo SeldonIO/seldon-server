@@ -23,8 +23,9 @@
 
 package io.seldon.api.state;
 
-import org.apache.log4j.Logger;
+import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
@@ -37,20 +38,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class ZkCuratorHandler implements ConnectionStateListener {
 
-	public final static String ZKSERVER_PROP = "${io.seldon.zkservers}";
 	private static Logger logger = Logger.getLogger(ZkCuratorHandler.class.getName());
 	private static ZkCuratorHandler peer;
+	final private static String ENV_VAR_SELDON_ZKSERVERS="SELDON_ZKSERVERS";
 
-    @Autowired
-	public  ZkCuratorHandler(@Value(ZKSERVER_PROP) String servers)
-	{
-		if (servers != null)
-		{
+    public ZkCuratorHandler() {
+        String servers = null;
+        servers = System.getenv(ENV_VAR_SELDON_ZKSERVERS);
+        logger.info(String.format("using %s[%s]", ENV_VAR_SELDON_ZKSERVERS, servers));
+        if (servers != null) {
             this.zkServers = servers;
             startClient();
-			peer = this;
-		}
-	}
+            peer = this;
+        } else {
+            logger.warn("*WARNING* SELDON_ZKSERVERS environment variable not set!");
+        }
+    }
 	
 	public static void shutdown()
 	{
@@ -111,4 +114,13 @@ public class ZkCuratorHandler implements ConnectionStateListener {
 		
 	}
 
+	public static void dump_env() {
+        Map<String, String> env = System.getenv();
+        logger.info("*** ENV ***");
+        StringBuilder lines = new StringBuilder();
+        for (String envName : env.keySet()) {
+            lines.append(String.format("%s=%s%n", envName, env.get(envName)));
+        }
+        logger.info(lines.toString());
+	}
 }
