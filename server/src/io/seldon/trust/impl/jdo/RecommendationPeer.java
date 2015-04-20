@@ -39,7 +39,6 @@ import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.trust.impl.CFAlgorithm.CF_SORTER;
 import io.seldon.trust.impl.Recommendation;
-import io.seldon.trust.impl.RecommendationNetwork;
 import io.seldon.trust.impl.RecommendationResult;
 import io.seldon.trust.impl.SortResult;
 import io.seldon.util.CollectionTools;
@@ -217,19 +216,6 @@ public class RecommendationPeer {
     		recBeans.add(new Recommendation(itemId, 0, 0.0));
     	return new RecommendationResult(recBeans, uuid);
     }
-
-
-
-
-
-
-
-	public RecommendationNetwork getNetwork(long user, int type, CFAlgorithm cfAlgorithm) {
-		return new SimpleTrustNetworkProvider(cfAlgorithm).getTrustNetwork(user, type);
-	}
-
-
-	
 
 	public SortResult sort(Long userId,List<Long> items, CFAlgorithm options, List<Long> recentActions) {
         ClientPersistable cp = new ClientPersistable(options.getName());
