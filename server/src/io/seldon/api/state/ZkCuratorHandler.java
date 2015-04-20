@@ -25,96 +25,86 @@ package io.seldon.api.state;
 
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ZkCuratorHandler implements ConnectionStateListener {
 
-	private static Logger logger = Logger.getLogger(ZkCuratorHandler.class.getName());
-	private static ZkCuratorHandler peer;
-	final private static String ENV_VAR_SELDON_ZKSERVERS="SELDON_ZKSERVERS";
+    private static Logger logger = Logger.getLogger(ZkCuratorHandler.class.getName());
+    private static ZkCuratorHandler peer;
+    final private static String ENV_VAR_SELDON_ZKSERVERS = "SELDON_ZKSERVERS";
 
     public ZkCuratorHandler() {
         String servers = null;
         servers = System.getenv(ENV_VAR_SELDON_ZKSERVERS);
         logger.info(String.format("using %s[%s]", ENV_VAR_SELDON_ZKSERVERS, servers));
-        if (servers != null) {
-            this.zkServers = servers;
-            startClient();
-            peer = this;
-        } else {
+        if (servers == null) {
             logger.warn("*WARNING* SELDON_ZKSERVERS environment variable not set!");
+            servers = "localhost";
         }
+        this.zkServers = servers;
+        startClient();
+        peer = this;
     }
-	
-	public static void shutdown()
-	{
-		if (peer != null)
-			peer.stopClient();
-	}
 
-	public static ZkCuratorHandler getPeer() {
-		return peer;
-	}
+    public static void shutdown() {
+        if (peer != null)
+            peer.stopClient();
+    }
 
-	
-	CuratorFramework curator;
-	String zkServers;
-	private void stopClient()
-	{
-		curator.close();
-	}
-	
-	private void startClient()
-	{
-		CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder();
-		logger.info("Trying to connect to servers at "+zkServers);
-		curator = builder.connectString(zkServers).retryPolicy(new ExponentialBackoffRetry(1000,100)).build();
-		curator.getConnectionStateListenable().addListener(this);
-		curator.start();
-	}
+    public static ZkCuratorHandler getPeer() {
+        return peer;
+    }
 
-	public CuratorFramework getCurator() {
-		return curator;
-	}
+    CuratorFramework curator;
+    String zkServers;
 
-	@Override
-	public void stateChanged(CuratorFramework client, ConnectionState state) {
-		switch (state)
-		{
-		case RECONNECTED:
-		{
-			logger.warn("Reconnection to zookeeper "+zkServers);
-		}
-		break;
-		case LOST:
-		{
-			logger.error("Connection lost to zookeeper "+zkServers);
-		}
-		break;
-		case CONNECTED:
-		{
-			logger.info("Connection to zookeeper "+zkServers);
-		}
-		break;
-		case SUSPENDED:
-		{
-			logger.error("Connection suspended to zookeeper "+zkServers);
-		}
-		break;
-		}
-		
-	}
+    private void stopClient() {
+        curator.close();
+    }
 
-	public static void dump_env() {
+    private void startClient() {
+        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder();
+        logger.info("Trying to connect to servers at " + zkServers);
+        curator = builder.connectString(zkServers).retryPolicy(new ExponentialBackoffRetry(1000, 100)).build();
+        curator.getConnectionStateListenable().addListener(this);
+        curator.start();
+    }
+
+    public CuratorFramework getCurator() {
+        return curator;
+    }
+
+    @Override
+    public void stateChanged(CuratorFramework client, ConnectionState state) {
+        switch (state) {
+        case RECONNECTED: {
+            logger.warn("Reconnection to zookeeper " + zkServers);
+        }
+            break;
+        case LOST: {
+            logger.error("Connection lost to zookeeper " + zkServers);
+        }
+            break;
+        case CONNECTED: {
+            logger.info("Connection to zookeeper " + zkServers);
+        }
+            break;
+        case SUSPENDED: {
+            logger.error("Connection suspended to zookeeper " + zkServers);
+        }
+            break;
+        }
+
+    }
+
+    public static void dump_env() {
         Map<String, String> env = System.getenv();
         logger.info("*** ENV ***");
         StringBuilder lines = new StringBuilder();
@@ -122,5 +112,5 @@ public class ZkCuratorHandler implements ConnectionStateListener {
             lines.append(String.format("%s=%s%n", envName, env.get(envName)));
         }
         logger.info(lines.toString());
-	}
+    }
 }
