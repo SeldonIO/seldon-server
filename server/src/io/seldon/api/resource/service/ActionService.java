@@ -351,7 +351,7 @@ public class ActionService {
     public void logAction(ConsumerBean consumerBean, ActionBean actionBean, LastRecommendationBean lastRecs, int clickIndex,
                           String recTag, String recsCounter) {
         StatsdPeer.logClick(consumerBean.getShort_name(), recTag);
-        String stratName = clientAlgorithmStore.retrieveStrategy(consumerBean.getShort_name()).getName();
+        String stratName = clientAlgorithmStore.retrieveStrategy(consumerBean.getShort_name()).getName(actionBean.getUser());
         CtrFullLogger.log(true, consumerBean.getShort_name(), actionBean.getUser(),
                 actionBean.getItem(), recTag);
         String algorithmsString = lastRecs==null? "UNKNOWN": lastRecs.getAlgorithm();
