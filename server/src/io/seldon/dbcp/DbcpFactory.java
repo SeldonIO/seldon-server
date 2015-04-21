@@ -83,8 +83,9 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 			    logger.info("Creating pool "+conf.toString());
 			    // create a generic pool
 			    GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<PoolableConnection>(pcf);
-			    pool.setMaxTotal(conf.maxActive);
+			    pool.setMaxTotal(conf.maxTotal);
 			    pool.setMaxIdle(conf.maxIdle);
+			    pool.setMinIdle(conf.minIdle);
 			    pool.setMaxWaitMillis(conf.maxWait);
 			    pool.setTimeBetweenEvictionRunsMillis(conf.timeBetweenEvictionRunsMillis);
 			    pool.setMinEvictableIdleTimeMillis(conf.minEvictableIdleTimeMillis);
@@ -178,8 +179,9 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		public String driverClassName = "com.mysql.jdbc.ReplicationDriver";
 		public String user = "user1";
 		public String password = "mypass";
-		public Integer maxActive = 600;
-		public Integer maxIdle = 5;
+		public Integer maxTotal = 600;
+		public Integer maxIdle = 50;
+		public Integer minIdle = 20;
 		public Integer maxWait = 20000;
 		public Integer timeBetweenEvictionRunsMillis = 10000;
 		public Integer minEvictableIdleTimeMillis = 60000;
@@ -193,7 +195,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		public String toString() {
 			return "DbcpConfig [name=" + name + ", jdbc=" + jdbc
 					+ ", driverClassName=" + driverClassName + ", user=" + user
-					+ ", password=" + password + ", maxActive=" + maxActive
+					+ ", password=" + password + ", maxActive=" + maxTotal
 					+ ", maxIdle=" + maxIdle + ", maxWait=" + maxWait
 					+ ", timeBetweenEvictionRunsMillis="
 					+ timeBetweenEvictionRunsMillis
