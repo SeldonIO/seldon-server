@@ -151,9 +151,11 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
             	logger.info("Processing configs "+configValue);
                 ObjectMapper mapper = new ObjectMapper();
                 DbcpConfigList configs = mapper.readValue(configValue, DbcpConfigList.class);
-                
-                for (DbcpConfig config : configs.dbs)
-                	createDbcp(config);
+                if (configs != null && configs.dbs != null)
+                {
+                	for (DbcpConfig config : configs.dbs)
+                		createDbcp(config);
+                }
                 updateInitialised();
                 logger.info("Successfully set dbcp.");
             } catch (IOException e){
@@ -164,6 +166,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
         if (dataSources.size() == 0)
         {
         	logger.error("No DBCP settings. Seldon will not run without a database connection. Please add settings to /config/dbcp");
+        	throw new DbcpUninitialisedException();
         }
 	}
 	
