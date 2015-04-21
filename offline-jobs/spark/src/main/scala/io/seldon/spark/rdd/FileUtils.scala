@@ -1,7 +1,9 @@
 package io.seldon.spark.rdd
 
+import java.util.zip.GZIPOutputStream
+
 import org.apache.spark.rdd.RDD
-import java.io.File
+import java.io._
 
 
  
@@ -74,6 +76,42 @@ object FileUtils {
       outBuf.append("\n")
     })
      val obj = new S3Object(s3Folder+"/"+filename, outBuf.toString())
+  }
+
+  def gzip(path: String):File = {
+    val buf = new Array[Byte](1024)
+    val src = new File(path)
+    val dst = new File(path ++ ".gz")
+
+    try {
+      val in  = new BufferedInputStream(new FileInputStream(src))
+      try {
+        val out = new GZIPOutputStream(new FileOutputStream(dst))
+        try {
+          var n = in.read(buf)
+          while (n >= 0) {
+            out.write(buf, 0, n)
+            n = in.read(buf)
+          }
+        }
+        finally {
+          out.flush
+          out.close()
+          in.close()
+        }
+      } catch {
+        case _:FileNotFoundException =>
+          System.err.printf("Permission Denied: %s", path ++ ".gz")
+        case _:SecurityException =>
+          System.err.printf("Permission Denied: %s", path ++ ".gz")
+      }
+    } catch {
+      case _: FileNotFoundException =>
+        System.err.printf("File Not Found: %s", path)
+      case _: SecurityException =>
+        System.err.printf("Permission Denied: %s", path)
+    }
+    return dst;
   }
   
 }
