@@ -21,6 +21,7 @@
 */
 package io.seldon.spark.mllib
 
+import _root_.io.seldon.spark.rdd.FileUtils
 import io.seldon.spark.zookeeper.ZkCuratorHandler
 import java.io.File
 import java.text.SimpleDateFormat
@@ -190,6 +191,9 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     productFile.createNewFile()
 
     outputToFile(model, userFile, productFile)
+    val gzipUserFile:File = FileUtils.gzip(userFile.getAbsolutePath)
+    println(gzipUserFile.getAbsolutePath)
+    val gzipProdFile = FileUtils.gzip(productFile.getAbsolutePath)
   }
 
   def outputToFile(model: MatrixFactorizationModel, userFile: File, prodFile: File): Unit = {
@@ -210,6 +214,7 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
 
       }
     }
+
   }
 
   def outputModelToS3File(model: MatrixFactorizationModel, outputFilesLocation: String, yesterdayUnix: Long) = {
@@ -219,6 +224,9 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     val tmpProdFile = File.createTempFile("mfModelProduct",".tmp")
     tmpProdFile.deleteOnExit()
     outputToFile(model, tmpUserFile, tmpProdFile)
+    val gzipUserFile:File = FileUtils.gzip(tmpUserFile.getAbsolutePath)
+    println(gzipUserFile.getAbsolutePath)
+    val gzipProdFile = FileUtils.gzip(tmpProdFile.getAbsolutePath)
     val service: S3Service = new RestS3Service(new AWSCredentials(System.getenv("AWS_ACCESS_KEY_ID"), System.getenv("AWS_SECRET_ACCESS_KEY")))
     val bucketString = outputFilesLocation.split("/")(0)
     val bucket = service.getBucket(bucketString)
@@ -227,11 +235,17 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     val obj = new S3Object(tmpUserFile)
     obj.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt")
     service.putObject(bucket, obj)
+    val objZip = new S3Object(gzipUserFile)
+    objZip.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt.gz")
+    service.putObject(bucket, objZip)
     System.out.println("Uploading user features to " + bucketString + " bucket " + obj.getKey + " file")
     val objProd = new S3Object(tmpProdFile)
     objProd.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt")
-    System.out.println("Uploading product features to " + bucketString + " bucket " + objProd.getKey + " file")
     service.putObject(bucket, objProd)
+    val objProdZip = new S3Object(gzipProdFile)
+    objProdZip.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt.gz")
+    service.putObject(bucket, objProdZip)
+    System.out.println("Uploading product features to " + bucketString + " bucket " + objProd.getKey + " file")
   }
 
   def outputModelToFile(model: MatrixFactorizationModel,outputFilesLocation:String, outputType:DataSourceMode, client:String, yesterdayUnix: Long) {
