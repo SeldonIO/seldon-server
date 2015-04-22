@@ -155,26 +155,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-remote-resources-plugin</artifactId>
-                <version>1.5</version>
-                <configuration>
-                    <resourceBundles>
-                        <resourceBundle>io.seldon:seldon-server-config-${config.version}:${project.version}</resourceBundle>
-                    </resourceBundles>
-                    <includes>
-                        <include>**/*.*</include>
-                    </includes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+
         </plugins>
     </build>
 
