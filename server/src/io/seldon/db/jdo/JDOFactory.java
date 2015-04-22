@@ -25,6 +25,7 @@
 
 package io.seldon.db.jdo;
 
+import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.NewClientListener;
@@ -150,7 +151,7 @@ public class JDOFactory implements NewClientListener, DbConfigHandler
 	    PersistenceManagerFactory pmf = factories.get(key);
 	    if (pmf == null)
 	    {
-	    	pmf = factories.get(Constants.DEFAULT_CLIENT);
+			throw new APIException(APIException.INTERNAL_DB_ERROR);
 	    }
 	    if (pmf != null)
 	    {
