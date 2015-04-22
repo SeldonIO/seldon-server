@@ -71,8 +71,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     		String defClientName = props.getProperty("io.seldon.labs.default.client");
     		if(defClientName !=null && defClientName.length() > 0) { Constants.DEFAULT_CLIENT = defClientName; }
 
-    		MemCachePeer.initialise(props);
-    		
     		StatsdPeer.initialise(props);
 
     		ZkCuratorHandler curatorHandler = ZkCuratorHandler.getPeer();

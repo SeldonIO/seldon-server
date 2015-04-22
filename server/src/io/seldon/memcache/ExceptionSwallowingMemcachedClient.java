@@ -68,6 +68,8 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
             memcachedClient = new MemcachedClient(new ConnectionFactoryBuilder(new DefaultConnectionFactory()).setOpTimeout(1000).build(),
                     AddrUtil.getAddresses(servers));
             logger.info(String.format("MemcachedClient initialized using %s[%s]", ZK_CONFIG_KEY_MEMCACHED_SERVERS, servers));
+            
+            MemCachePeer.initialise(servers);
         }
 
         if (memcachedClient == null) {
