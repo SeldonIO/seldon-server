@@ -30,13 +30,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import io.seldon.api.Util;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-
 import org.apache.curator.framework.CuratorFramework;
-import io.seldon.trust.impl.CFAlgorithm;
+
+import io.seldon.recommendation.CFAlgorithm;
 
 public class ZkAlgorithmUpdater implements Runnable {
 

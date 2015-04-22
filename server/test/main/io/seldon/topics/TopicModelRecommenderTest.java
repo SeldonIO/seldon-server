@@ -30,8 +30,8 @@ import static org.easymock.EasyMock.verify;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.items.RecentItemsWithTagsManager;
+import io.seldon.recommendation.CFAlgorithm;
 import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
-import io.seldon.trust.impl.CFAlgorithm;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -27,8 +27,8 @@ import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.items.RecentItemsWithTagsManager;
+import io.seldon.recommendation.RecommendationUtils;
 import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

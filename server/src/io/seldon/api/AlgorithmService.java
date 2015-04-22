@@ -24,7 +24,7 @@
 package io.seldon.api;
 
 import io.seldon.api.resource.ConsumerBean;
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
 
 /**
  * Created by: marc on 22/11/2011 at 17:39

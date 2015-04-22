@@ -21,7 +21,7 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.jdo;
+package io.seldon.recommendation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,9 +35,8 @@ import io.seldon.api.logging.CtrLogger;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.recommendation.ClientStrategy;
-import io.seldon.trust.impl.CFAlgorithm;
 import io.seldon.util.CollectionTools;
+
 import org.apache.log4j.Logger;
 
 public class RecommendationUtils {

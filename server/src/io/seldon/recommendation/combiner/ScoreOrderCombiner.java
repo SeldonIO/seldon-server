@@ -24,7 +24,8 @@
 package io.seldon.recommendation.combiner;
 
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import io.seldon.trust.impl.jdo.RecommendationPeer;
+import io.seldon.recommendation.RecommendationPeer;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 

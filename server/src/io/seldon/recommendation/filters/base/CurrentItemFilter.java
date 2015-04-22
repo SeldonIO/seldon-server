@@ -21,18 +21,28 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation.filters.base;
 
-import java.util.Set;
+import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.recommendation.ItemFilter;
 
+import org.springframework.stereotype.Component;
 
-public interface TrustNetworkSupplier {
-	public enum CF_TYPE { USER, ITEM };
-	
-	public RecommendationNetwork getTrustNetwork(long user, int type);
-	public RecommendationNetwork getTrustNetwork(long id, int type, boolean fullNetworkNeeded,CF_TYPE trustType);
-	public void addTrustLink(long u1,int type,long u2,double trust);
-	public RecommendationNetwork getCooccurenceNetwork(long user);
-	public RecommendationNetwork getJaccardUpdatedNetwork(long userId,Set<Long> users, Long actions);
+import java.util.Collections;
+import java.util.List;
 
+/**
+ * Filter for the item that the user is currently interacting with.
+ * @author firemanphil
+ *         Date: 05/12/14
+ *         Time: 15:31
+ */
+@Component
+public class CurrentItemFilter implements ItemFilter {
+    @Override
+    public List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
+                                           Long currentItem,String lastRecListUUID, int numRecommendations) {
+        return Collections.singletonList(currentItem);
+    }
 }
+

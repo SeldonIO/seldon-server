@@ -24,8 +24,6 @@
 package io.seldon.recommendation;
 
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
-import io.seldon.trust.impl.ItemFilter;
-import io.seldon.trust.impl.ItemIncluder;
 
 import java.util.Map;
 import java.util.Set;

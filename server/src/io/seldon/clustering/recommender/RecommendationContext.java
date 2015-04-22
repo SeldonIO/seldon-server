@@ -25,9 +25,9 @@ package io.seldon.clustering.recommender;
 
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.recommendation.AlgorithmStrategy;
-import io.seldon.trust.impl.ItemFilter;
-import io.seldon.trust.impl.ItemIncluder;
-import io.seldon.trust.impl.filters.FilteredItems;
+import io.seldon.recommendation.ItemFilter;
+import io.seldon.recommendation.ItemIncluder;
+import io.seldon.recommendation.filters.FilteredItems;
 
 import java.util.ArrayList;
 import java.util.Collections;

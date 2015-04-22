@@ -27,8 +27,9 @@ import io.seldon.api.resource.service.PersistenceProvider;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.jdo.LastRecommendationBean;
+import io.seldon.recommendation.LastRecommendationBean;
 import net.spy.memcached.MemcachedClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -21,10 +21,10 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters;
+package io.seldon.recommendation.filters;
 
 import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.ItemIncluder;
+import io.seldon.recommendation.ItemIncluder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -29,7 +29,8 @@ import io.seldon.db.jdo.ClientPersistable;
 import io.seldon.general.ItemPeer;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
+
 import org.apache.log4j.Logger;
 
 /**

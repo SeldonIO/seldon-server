@@ -21,11 +21,12 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters.base;
+package io.seldon.recommendation.filters.base;
 
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.ItemFilter;
+import io.seldon.recommendation.ItemFilter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
