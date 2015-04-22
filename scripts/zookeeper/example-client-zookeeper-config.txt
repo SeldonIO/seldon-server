@@ -1,0 +1,21 @@
+#
+# Example settings change client1 to the name of your client
+#
+# each line has 3 values space separated:
+# <list of clients comma separated> <zookeeper node> <data>
+# $CLIENT will be replaced with each client name in turn if found
+# for non-client nodes just add a single initial value to first column, e.g. void
+#
+
+#
+# database pool
+#
+void /config/dbcp {"dbs":[{"name":"ClientDB","jdbc":"jdbc:mysql://localhost:3306?characterEncoding=utf8","driverClassName":"com.mysql.jdbc.ReplicationDriver","user":"user1","password":"mypass"}]}
+#
+# Client dbcp name
+#
+client1 /all_clients/$CLIENT {"DB_JNDI_NAME":"ClientDB"}
+#
+#
+#
+client1 /all_clients/$CLIENT/algs {"algorithms":[{"name":"recentItemsRecommender","includers":[]}],"combiner":"firstSuccessfulCombiner"}

@@ -76,6 +76,11 @@ public class JDBCConnectionFactory {
 	public void addDataSource(String key,String jndi,String dbName) throws NamingException
 	{
 		 DataSource ds = (DataSource)ctx.lookup(jndi);
+		 addDataSource(key, ds, dbName);
+	}
+	
+	public void addDataSource(String key,DataSource ds,String dbName) 
+	{
 		 dataSources.put(key, ds);
 		 if (dbName != null)
 			 clientToCatalog.put(key, dbName);
