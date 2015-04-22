@@ -24,10 +24,8 @@
 package io.seldon.servlet;
 
 import io.seldon.api.Constants;
-import io.seldon.api.state.ZkAlgorithmUpdaterFactory;
 import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.zk.ZkClientConfigHandler;
-import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
@@ -61,23 +59,9 @@ public class ResourceManagerListener  implements ServletContextListener {
 
        
     		zkClientConfigHandler =(ZkClientConfigHandler) springContext.getBean("zkClientConfigHandler");
-    		//InputStream propStream = sce.getServletContext().getResourceAsStream("/WEB-INF/labs.properties");
-    		InputStream propStream = getClass().getClassLoader().getResourceAsStream("/labs.properties");
     		SecurityHashPeer.initialise();
-    		Properties props = new Properties();
-    		props.load( propStream );
     	
-    		// Set the default client name from properties if it exists
-    		String defClientName = props.getProperty("io.seldon.labs.default.client");
-    		if(defClientName !=null && defClientName.length() > 0) { Constants.DEFAULT_CLIENT = defClientName; }
-
-    		StatsdPeer.initialise(props);
-
     		ZkCuratorHandler curatorHandler = ZkCuratorHandler.getPeer();
-    		if (curatorHandler != null)
-    		{
-    			ZkAlgorithmUpdaterFactory.initialise(props,curatorHandler);
-    		}
     		
 			zkClientConfigHandler.contextIntialised();
     		logger.info("**********************  ENDING API-SERVER INITIALISATION **********************");
@@ -105,11 +89,6 @@ public class ResourceManagerListener  implements ServletContextListener {
     {
         if(MemCachePeer.getClient()!=null){
     	    MemCachePeer.getClient().shutdown();
-        }
-        try {
-            ZkAlgorithmUpdaterFactory.destroy();
-        } catch (InterruptedException e) {
-
         }
         ZkCuratorHandler.shutdown();
     }

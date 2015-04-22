@@ -18,25 +18,106 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * ********************************************************************************************
+ * *******************************************************************************************
  */
 
 package io.seldon.api.statsd;
+
+import io.seldon.api.state.GlobalConfigHandler;
+import io.seldon.api.state.GlobalConfigUpdateListener;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 public class StatsdPeer {
+   
+    public static class StatsdConfig {
+
+        public String server;
+        public int port;
+        public String id = "sandbox";
+        public float sample_rate = 1.0f;
+        
+        @Override
+        public String toString() {
+            return String.format(""
+                    + "server[%s], "
+                    + "port[%s], "
+                    + "id[%s], "
+                    + "sample_rate[%s]"
+                    + "", server,port,id,sample_rate);
+        }
+    }
+    
+    @Component
+    public static class ConfigListener implements GlobalConfigUpdateListener {
+
+        private static Logger configListenerLogger = Logger.getLogger(ConfigListener.class.getName());
+        private final String ZK_CONFIG_KEY_STATSD = "statsd";
+        private final String ZK_CONFIG_KEY_STATSD_FPATH = "/config/" + ZK_CONFIG_KEY_STATSD;
+
+        @Autowired
+        public ConfigListener(GlobalConfigHandler globalConfigHandler) {
+            configListenerLogger.info("Subscribing for updates to " + ZK_CONFIG_KEY_STATSD_FPATH);
+            globalConfigHandler.addSubscriber(ZK_CONFIG_KEY_STATSD, this);
+        }
+
+        @Override
+        public void configUpdated(String configKey, String configValue) {
+            configListenerLogger.info(String.format("received config update %s[%s]", configKey, configValue));
+            if ((StatsdPeer.client == null) && (configValue.length() > 0)) {
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    StatsdConfig statsdConfig = mapper.readValue(configValue, StatsdConfig.class);
+                    StatsdPeer.initialise(statsdConfig);
+                } catch (Exception e) {
+                    throw new RuntimeException(String.format("* Error * parsing statsd configValue[%s]", configValue),e);
+                }
+            }
+        }
+    }
 
 	private static Logger logger = Logger.getLogger(StatsdPeer.class.getName());
 	
 	private static StatsdClient client;
 	static String installId = "sandbox";
 	static float sampleRate = 1.0f;
+
+	public static boolean initialise(StatsdConfig statsdConfig) {
+
+		String statsdServer = statsdConfig.server;
+		int port = statsdConfig.port;
+		String installId = statsdConfig.id;
+		float sampleRate = statsdConfig.sample_rate;
+		if (statsdServer != null && port != 0)
+		{
+			try {
+				logger.info("Creating statsd client for host "+statsdServer+" on port "+port+" and using install id of "+installId+" and default sampling of "+sampleRate);
+				client = new StatsdClient(statsdServer, port);
+				return true;
+			} catch (UnknownHostException e) {
+				logger.error("Failed to create statsdClient ",e);
+				return false;
+			} catch (IOException e) {
+				logger.error("Failed to create statsdClient ",e);
+				return false;
+			}
+		}
+		else
+		{
+			logger.info("No statsd properties not creating client");
+			return false;
+		}
+	}
 	
+	@Deprecated
 	public static boolean initialise(Properties props) 
 	{
 		String statsdServer = props.getProperty("statsd.server");
