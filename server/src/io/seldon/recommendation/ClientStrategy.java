@@ -42,7 +42,7 @@ public interface ClientStrategy {
 
     AlgorithmResultsCombiner getAlgorithmResultsCombiner(String userId, String recTag);
 
-    String getName();
+    String getName(String userId);
     
     Map<Integer,Double> getActionsWeights(String userId, String recTag);
 }

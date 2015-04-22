@@ -41,10 +41,7 @@ public class ApiBeansTest extends BaseBeansTest {
 
     private static final Integer USER_LIMIT = 10;
     private static final Integer ITEM_LIMIT = 10;
-    private static final Integer TRUSTED_USER_LIMIT = 10;
-    private static final Integer TRUSTED_ITEM_LIMIT = 10;
     private static final Integer USER_ACTION_LIMIT = 10;
-    private static final Integer USER_OPINION_LIMIT = 10;
     private static final Integer USER_RECOMMENDATIONS_LIMIT = 10;
     private static final Integer DIMENSIONS_LIMIT = 15;
 

@@ -40,8 +40,8 @@ public class ActionBean extends ResourceBean {
 	private Integer times = 1; // workaround (null isn't accepted by the server)
 	private String comment;
 	private List<String> tags;
-	
-	String referrer;
+	private String recTag;
+	private String referrer;
 	
 	public ActionBean() {}
 
@@ -126,6 +126,14 @@ public class ActionBean extends ResourceBean {
 	public String getComment() { return this.comment; }
 	
 	public void setComment(String c) { this.comment=c; }
+	
+    public String getRecTag() {
+        return recTag;
+    }
+
+    public void setRecTag(String recTag) {
+        this.recTag = recTag;
+    }
 
 	public String getReferrer() {
 		return referrer;
@@ -148,6 +156,8 @@ public class ActionBean extends ResourceBean {
                 ", times=" + times +
                 ", comment='" + comment + '\'' +
                 ", tags=" + tags +
+                ", referrer=" + referrer +
+                ", recTag=" + recTag +
                 '}';
     }
 

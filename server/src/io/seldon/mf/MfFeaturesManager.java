@@ -90,7 +90,7 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
 
                 try {
                     BufferedReader userFeaturesReader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/userFeatures.txt")
+                            featuresFileHandler.getResourceStream(location + "/userFeatures.txt.gz")
                     ));
                     Map<Long, float[]> userFeatures = readFeatures(userFeaturesReader);
                     int rank= 0;
@@ -99,7 +99,7 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
                         rank = userFeatures.get(firstUser).length;
                     }
                     BufferedReader productFeaturesReader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/productFeatures.txt")
+                            featuresFileHandler.getResourceStream(location + "/productFeatures.txt.gz")
                     ));
                     Map<Long, float[]> productFeatures = readFeatures(productFeaturesReader);
                     clientStores.put(client, new ClientMfFeaturesStore(userFeatures, productFeatures));

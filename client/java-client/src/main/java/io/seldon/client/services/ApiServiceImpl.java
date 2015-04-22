@@ -99,7 +99,7 @@ public class ApiServiceImpl implements ApiService {
                 this.tokenExpiry = timeInMillis + tokenBean.getExpires_in();
                 this.token = tokenBean.getAccess_token();
             }
-
+            logger.info("* Fetched token: " + token);
             return res;
     }
 

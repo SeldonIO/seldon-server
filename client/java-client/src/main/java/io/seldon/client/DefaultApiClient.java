@@ -311,41 +311,41 @@ public class DefaultApiClient implements ApiClient {
     }
 
     @Override
-    public List<RecommendationBean> getRecommendations(String uid, String keyword, Integer dimension, int limit) throws ApiException {
+    public List<ItemBean> getRecommendations(String uid, String keyword, Integer dimension, int limit) throws ApiException {
        return getRecommendations(uid, keyword, dimension, limit, null);
     }
 
     @Override
-    public List<RecommendationBean> getRecommendations(String uid, String keyword, Integer dimension, int limit,AlgorithmOptions algorithmOptions) throws ApiException {
+    public List<ItemBean> getRecommendations(String uid, String keyword, Integer dimension, int limit,AlgorithmOptions algorithmOptions) throws ApiException {
         ResourceBean resourceBean;
         try {
             resourceBean = apiService.getRecommendations(uid, keyword, dimension, limit,algorithmOptions);
         } catch (Throwable e) {
             throw new ApiException(e);
         }
-        RecommendationsBean recommendationsBean = retrieveResource(resourceBean, RecommendationsBean.class);
+        ItemsBean recommendationsBean = retrieveResource(resourceBean, ItemsBean.class);
         return recommendationsBean.getList();
     }
 
     @Override
-    public List<RecommendationBean> getRecommendations(String uid, String keyword, int limit) throws ApiException {
+    public List<ItemBean> getRecommendations(String uid, String keyword, int limit) throws ApiException {
         return getRecommendations(uid, keyword, null, limit);
     }
 
     @Override
-    public List<RecommendationBean> getRecommendations(String uid, Integer dimension, int limit) throws ApiException {
+    public List<ItemBean> getRecommendations(String uid, Integer dimension, int limit) throws ApiException {
         return getRecommendations(uid, null, dimension, limit);
     }
 
     @Override
-    public List<RecommendationBean> getRecommendations(String uid) throws ApiException {
+    public List<ItemBean> getRecommendations(String uid) throws ApiException {
         ResourceBean resourceBean;
         try {
             resourceBean = apiService.getRecommendations(uid);
         } catch (Throwable e) {
             throw new ApiException(e);
         }
-        RecommendationsBean recommendationsBean = retrieveResource(resourceBean, RecommendationsBean.class);
+        ItemsBean recommendationsBean = retrieveResource(resourceBean, ItemsBean.class);
         return recommendationsBean.getList();
     }
 

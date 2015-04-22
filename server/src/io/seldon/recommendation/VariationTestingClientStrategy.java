@@ -36,7 +36,7 @@ import org.apache.commons.lang.math.Range;
 import org.apache.mahout.math.MurmurHash;
 
 /**
- * Client strategy for testing different lists of algorthm strategies against each other. Different users get shown
+ * Client strategy for testing different lists of algorithm strategies against each other. Different users get shown
  * different strategies but a given user will always be shown the same set.
  * @author firemanphil
  *         Date: 02/12/14
@@ -67,8 +67,8 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName() {
-        return "-";
+    public String getName(String userId) {
+        return sample(userId).getName(userId);
     }
     
     @Override

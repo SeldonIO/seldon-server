@@ -37,14 +37,11 @@ public class ApiClientTest extends BaseClientTest {
 
     private static final Logger logger = Logger.getLogger(ApiClientTest.class);
 
-    private static final int USER_LIMIT = 25;
-    private static final int USER_OPINION_LIMIT = 25;
-    private static final int ITEM_LIMIT = 25;
-    private static final int DIMENSIONS_LIMIT = 25;
-    private static final int USER_RECOMMENDATIONS_LIMIT = 25;
-    private static final int TRUSTED_USER_LIMIT = 25;
+    private static final int USER_LIMIT = 10;
+    private static final int ITEM_LIMIT = 10;
+    private static final int DIMENSIONS_LIMIT = 10;
+    private static final int USER_RECOMMENDATIONS_LIMIT = 10;
     private static final int USER_ACTION_LIMIT = 25;
-    private static final int TRUSTED_ITEM_LIMIT = 25;
 
     @Test
     public void getActions() throws ApiException {
@@ -105,30 +102,6 @@ public class ApiClientTest extends BaseClientTest {
     }
 
     @Test
-    public void retrieveUserOpinions() throws ApiException {
-        List<UserBean> users = apiClient.getUsers(USER_LIMIT, false);
-        for (UserBean user : users) {
-            String userId = user.getId();
-            List<OpinionBean> opinions = apiClient.getOpinions(userId, USER_OPINION_LIMIT);
-            for (OpinionBean opinion : opinions) {
-                logger.info("Opinion: " + opinion);
-            }
-        }
-    }
-
-    @Test
-    public void retrieveItemOpinions() throws ApiException {
-        List<ItemBean> items = apiClient.getItems(ITEM_LIMIT, false);
-        for (ItemBean item : items) {
-            String itemId = item.getId();
-            List<OpinionBean> opinions = apiClient.getItemOpinions(itemId, USER_OPINION_LIMIT);
-            for (OpinionBean opinion : opinions) {
-                logger.info("Opinion: " + opinion);
-            }
-        }
-    }
-
-    @Test
     public void retrieveRecommendationsWithDimensionsForUser() throws ApiException {
         List<UserBean> users = apiClient.getUsers(USER_LIMIT, false);
         List<DimensionBean> dimensions = apiClient.getDimensions();
@@ -138,10 +111,11 @@ public class ApiClientTest extends BaseClientTest {
             for (DimensionBean dimension : dimensions.subList(0, limit)) {
                 int dimensionId = dimension.getDimId();
                 @SuppressWarnings({"NullableProblems"})
-                List<RecommendationBean> recommendations =
-                        apiClient.getRecommendations(userId, null, dimensionId, USER_RECOMMENDATIONS_LIMIT);
-                for (RecommendationBean recommendation : recommendations) {
-                    logger.info("Recommendation for user: " + userId + " => in dimension: " + dimension + " => " + recommendation);
+                final int recommendations_limit = USER_RECOMMENDATIONS_LIMIT;
+                List<ItemBean> recommendations =
+                        apiClient.getRecommendations(userId, null, dimensionId, recommendations_limit);
+                for (ItemBean recommendation : recommendations) {
+                    logger.debug("Recommendation for user: " + userId + " => in dimension: " + dimension + " => " + recommendation);
                 }
             }
         }
@@ -203,30 +177,6 @@ public class ApiClientTest extends BaseClientTest {
     }
 
     @Test
-    public void trustGraph() throws ApiException {
-        List<UserBean> users = apiClient.getUsers(USER_LIMIT, false);
-        for (UserBean userBean : users) {
-            logger.info("* User: " + userBean);
-            List<UserTrustNodeBean> nodes = apiClient.getTrustedUsers(userBean.getId(), TRUSTED_USER_LIMIT);
-            for (UserTrustNodeBean node : nodes) {
-                logger.info("** Node: " + node);
-            }
-        }
-    }
-
-    @Test
-    public void similarityGraph() throws ApiException {
-        List<ItemBean> items = apiClient.getItems(ITEM_LIMIT, false);
-        for (ItemBean itemBean : items) {
-            logger.info("* Item: " + itemBean);
-            List<ItemSimilarityNodeBean> nodes = apiClient.getSimilarItems(itemBean.getId(), TRUSTED_ITEM_LIMIT);
-            for (ItemSimilarityNodeBean node : nodes) {
-                logger.info("** Node: " + node);
-            }
-        }
-    }
-
-    @Test
     public void retrieveActionsForUsers() throws ApiException {
         List<UserBean> users = apiClient.getUsers(USER_LIMIT, false);
         for (UserBean user : users) {
@@ -261,8 +211,8 @@ public class ApiClientTest extends BaseClientTest {
         List<UserBean> users = apiClient.getUsers(USER_LIMIT, false);
         for (UserBean user : users) {
             String userId = user.getId();
-            List<RecommendationBean> recommendations = apiClient.getRecommendations(userId);
-            for (RecommendationBean recommendation : recommendations) {
+            List<ItemBean> recommendations = apiClient.getRecommendations(userId);
+            for (ItemBean recommendation : recommendations) {
                 logger.info("Recommendation for user: " + userId + " => " + recommendation);
             }
         }

@@ -35,7 +35,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -62,7 +64,7 @@ public class S3FileStreamer  {
     }
 
 
-    public InputStream getResourceStream(String reference) {
+    public InputStream getResourceStream(String reference) throws IOException {
         logger.info("Reading file from s3://"+reference);
         AmazonS3Client client;
         if(creds != null) {
@@ -70,12 +72,17 @@ public class S3FileStreamer  {
         } else {
             client = new AmazonS3Client();
         }
-        String[] bucketAndFile = reference.split("/",2);
+        String[] bucketAndFile = reference.split("/", 2);
         if(bucketAndFile.length!=2){
             return null;
         }
         S3Object object = client.getObject(new GetObjectRequest(bucketAndFile[0], bucketAndFile[1]));
-        return new S3ObjectInputStreamWrapper(object.getObjectContent(), client);
+        if(reference.endsWith(".gz")){
+            return new S3ObjectInputStreamWrapper(new GZIPInputStream(object.getObjectContent()),client);
+
+        } else {
+            return new S3ObjectInputStreamWrapper(object.getObjectContent(), client);
+        }
     }
 
     // to fix a bug in the S3 lib where if the client gets GCed before the data is read, everything breaks
@@ -89,7 +96,7 @@ public class S3FileStreamer  {
             super(inputStream);
         }
 
-        public S3ObjectInputStreamWrapper(S3ObjectInputStream inputStream, AmazonS3Client client) {
+        public S3ObjectInputStreamWrapper(InputStream inputStream, AmazonS3Client client) {
             super(inputStream);
             this.client = client;
         }

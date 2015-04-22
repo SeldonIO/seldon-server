@@ -1,1 +1,0 @@
-return { client: rlClient, session: rlSession} }())

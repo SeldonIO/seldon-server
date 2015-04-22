@@ -23,11 +23,8 @@
 
 package io.seldon.resources.external;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -41,10 +38,17 @@ import org.springframework.stereotype.Component;
 public class LocalFileStreamer {
 
     private static Logger logger = Logger.getLogger(LocalFileStreamer.class.getName());
-    public InputStream getResourceStream(String reference) throws FileNotFoundException {
+    public InputStream getResourceStream(String reference) throws IOException {
         logger.info("Reading file from local://"+reference);
+
         File f = new File(reference);
-        return new BufferedInputStream(new FileInputStream(f));
+
+        if(reference.endsWith(".gz")) {
+            return new BufferedInputStream(new GZIPInputStream(new FileInputStream(f)));
+        } else {
+            return new BufferedInputStream(new FileInputStream(f));
+        }
+
         //return LocalFileStreamer.class.getResourceAsStream(reference);
     }
 }
