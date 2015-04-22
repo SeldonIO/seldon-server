@@ -64,6 +64,7 @@ public class MemCachePeer {
     		ConnectionFactoryBuilder cb = new ConnectionFactoryBuilder(new DefaultConnectionFactory());
     		cb.setOpTimeout(1000);
         	client=new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList));
+        	logger.info(String.format("MemcachedClient initialised using serverList[%s]",serverList));
             return client;
         }
         catch (IOException e)

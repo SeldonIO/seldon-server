@@ -23,6 +23,17 @@
 
 package io.seldon.memcache;
 
+import io.seldon.api.state.GlobalConfigHandler;
+import io.seldon.api.state.GlobalConfigUpdateListener;
+import io.seldon.api.state.ZkCuratorHandler;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.PostConstruct;
+
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.DefaultConnectionFactory;
@@ -30,72 +41,77 @@ import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.internal.OperationFuture;
 
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 /**
- * @author firemanphil
- *         Date: 18/11/14
- *         Time: 14:06
+ * @author firemanphil Date: 18/11/14 Time: 14:06
  */
 @Component
-public class ExceptionSwallowingMemcachedClient extends MemcachedClient {
+public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateListener {
 
-    private static Logger logger = Logger.getLogger( ExceptionSwallowingMemcachedClient.class.getName() );
+    private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS = "memcached_servers";
+    private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH = "/config/" + ZK_CONFIG_KEY_MEMCACHED_SERVERS;
+    private static Logger logger = Logger.getLogger(ExceptionSwallowingMemcachedClient.class.getName());
+
+    private MemcachedClient memcachedClient = null;
 
     @Autowired
-    public ExceptionSwallowingMemcachedClient(@Value("${io.seldon.memcached.servers}") String servers) throws IOException {
-        super(new ConnectionFactoryBuilder(new DefaultConnectionFactory()).setOpTimeout(1000).build(),AddrUtil.getAddresses(servers));
+    public ExceptionSwallowingMemcachedClient(GlobalConfigHandler globalConfigHandler, ZkCuratorHandler zkCuratorHandler) throws Exception {
+        logger.info("Initializing...");
+
+        Stat stat = zkCuratorHandler.getCurator().checkExists().forPath(ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH);
+        if (stat != null) {
+            byte[] bytes = zkCuratorHandler.getCurator().getData().forPath(ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH);
+            String servers = new String(bytes);
+            memcachedClient = new MemcachedClient(new ConnectionFactoryBuilder(new DefaultConnectionFactory()).setOpTimeout(1000).build(),
+                    AddrUtil.getAddresses(servers));
+            logger.info(String.format("MemcachedClient initialized using %s[%s]", ZK_CONFIG_KEY_MEMCACHED_SERVERS, servers));
+        }
+
+        if (memcachedClient == null) {
+            throw new Exception("*Warning* Memcached NOT initialized!");
+        }
+        globalConfigHandler.addSubscriber(ZK_CONFIG_KEY_MEMCACHED_SERVERS, this);
     }
 
     /*
-	 *  Expire in seconds
-	 */
-    @Override
-    public OperationFuture<Boolean> set(String key,int expireSeconds,Object obj)
-    {
-        try
-        {
-            return super.set(hashKey(key), expireSeconds, obj);
-        }
-        catch (Exception ex)
-        {
-            logger.warn("Memcache put expire exeption ",ex);
+     * Expire in seconds
+     */
+    public OperationFuture<Boolean> set(String key, int expireSeconds, Object obj) {
+        try {
+            return memcachedClient.set(hashKey(key), expireSeconds, obj);
+        } catch (Exception ex) {
+            logger.warn("Memcache put expire exeption ", ex);
             return null;
         }
     }
 
-    @Override
-    public Object get(String key)
-    {
-    	Object myObj=null;
-    	Future<Object> f=super.asyncGet(hashKey(key));
-    	try 
-    	{
-    		myObj=f.get(500, TimeUnit.MILLISECONDS);
-    	} catch(TimeoutException e) {
-				logger.warn("Timeout exception in get ",e);
-				f.cancel(false);
-    	} catch (InterruptedException e) {
-				logger.error("Interrupted in get ",e);
-				f.cancel(false);
-    	} catch (ExecutionException e) {
-				logger.error("Execution exception in get ",e);
-				f.cancel(false);
-    	}
-	    return myObj;
+    public Object get(String key) {
+        Object myObj = null;
+        Future<Object> f = memcachedClient.asyncGet(hashKey(key));
+        try {
+            myObj = f.get(500, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            logger.warn("Timeout exception in get ", e);
+            f.cancel(false);
+        } catch (InterruptedException e) {
+            logger.error("Interrupted in get ", e);
+            f.cancel(false);
+        } catch (ExecutionException e) {
+            logger.error("Execution exception in get ", e);
+            f.cancel(false);
+        }
+        return myObj;
     }
 
-
-    private static String hashKey(String key)
-    {
+    private static String hashKey(String key) {
         return SecurityHashPeer.md5digest(key);
+    }
+
+    @Override
+    public void configUpdated(String configKey, String configValue) {
+        // TODO memcached config updated in zookeeper
     }
 }

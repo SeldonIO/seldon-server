@@ -25,12 +25,14 @@ package io.seldon.general;
 
 import io.seldon.api.resource.service.PersistenceProvider;
 import io.seldon.memcache.DogpileHandler;
+import io.seldon.memcache.ExceptionSwallowingMemcachedClient;
 import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
 import io.seldon.trust.impl.jdo.LastRecommendationBean;
-import net.spy.memcached.MemcachedClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author firemanphil
@@ -40,19 +42,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class RecommendationStorage {
 
-    private final MemcachedClient memcache;
+    private static final Logger logger = Logger.getLogger(RecommendationStorage.class.getName());
     private final PersistenceProvider provider;
     private final DogpileHandler dogpileHandler;
+    private final ExceptionSwallowingMemcachedClient memcachedClient;
 
     @Autowired
-    public RecommendationStorage(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
-        this.memcache = memcache;
+    public RecommendationStorage(PersistenceProvider provider, ExceptionSwallowingMemcachedClient memcachedClient, DogpileHandler dogpileHandler) {
         this.provider = provider;
+        this.memcachedClient = memcachedClient;
         this.dogpileHandler = dogpileHandler;
     }
 
     public LastRecommendationBean retrieveLastRecommendations(String client, String user, String recsCounter){
         int userRecCounter = Integer.parseInt(recsCounter.trim());
-        return (LastRecommendationBean) MemCachePeer.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
+        LastRecommendationBean lastRecommendations = (LastRecommendationBean) memcachedClient.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
+        return lastRecommendations;
     }
 }

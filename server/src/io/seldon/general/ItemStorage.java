@@ -37,8 +37,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import net.spy.memcached.MemcachedClient;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -65,7 +63,7 @@ public class ItemStorage {
     private final DogpileHandler dogpileHandler;
 
     @Autowired
-    public ItemStorage(PersistenceProvider provider, MemcachedClient memcache, DogpileHandler dogpileHandler) {
+    public ItemStorage(PersistenceProvider provider, DogpileHandler dogpileHandler) {
         this.provider = provider;
         this.dogpileHandler = dogpileHandler;
     }
