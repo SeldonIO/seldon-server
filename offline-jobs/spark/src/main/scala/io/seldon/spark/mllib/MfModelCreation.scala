@@ -39,9 +39,16 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{HashPartitioner, SparkContext, SparkConf}
+import scala.collection.mutable
 import scala.util.Random._
 import java.net.URLClassLoader
 
+case class ActionWeightings (actionMapping: List[ActionWeighting])
+
+case class ActionWeighting (actionType:Int = 1,
+                             valuePerAction:Double = 1.0,
+                             maxSum:Double = 1.0
+                             )
 case class MfConfig(
     client : String = "",
     inputPath : String = "/seldon-models",
@@ -57,7 +64,8 @@ case class MfConfig(
     rank : Int = 30,
     lambda : Double = 0.1,
     alpha : Double = 1,
-    iterations : Int = 2
+    iterations : Int = 2,
+    actionWeightings: Option[List[ActionWeighting]] = None
  )
  
 
@@ -114,8 +122,13 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
       println("output file location must start with local:// or s3n://")
       sys.exit(1)
     }
+    val actionWeightings = config.actionWeightings.getOrElse(List(ActionWeighting()))
+    // any action not mentioned in the weightings map has a default score of 0.0
+    val weightingsMap = actionWeightings.map(
+      aw => (aw.actionType, (aw.valuePerAction,aw.maxSum))
+    ).toMap.withDefaultValue(.0,.0)
 
-
+    println("Using weightings map"+weightingsMap)
     val startTime = System.currentTimeMillis()
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
@@ -123,27 +136,46 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     val timeStart = System.currentTimeMillis()
     val glob= toSparkResource(inputFilesLocation, inputDataSourceMode) + ((date - daysOfActions + 1) to date).mkString("{", ",", "}")
     println("Looking at "+glob)
-    val actions:RDD[(Int, (Int, Int))] = sc.textFile(glob)
+    val actions:RDD[((Int, Int), Int)] = sc.textFile(glob)
       .map { line =>
         val json = parse(line)
         import org.json4s._
         implicit val formats = DefaultFormats
         val user = (json \ "userid").extract[Int]
         val item = (json \ "itemid").extract[Int]
-        (item,(user,1))
+        val actionType = (json \"type").extract[Int]
+        ((item,user),actionType)
       }.repartition(2).cache()
-    val itemsByCount: RDD[(Int, Int)] = actions.map(x => (x._1, 1)).reduceByKey(_ + _)
+
+    // group actions by user-item key
+    val actionsByType:RDD[((Int,Int),List[Int])] = actions.combineByKey((x:Int)=>List[Int](x),
+                                                                        (list:List[Int],y:Int)=>y :: list,
+                                                                        (l1:List[Int],l2:List[Int])=> l1 ::: l2)
+    // count the grouped actions by action type
+    val actionsByTypeCount:RDD[((Int,Int),Map[Int,Int])] = actionsByType.map{
+      case (key,value:List[Int]) => (key,value.groupBy(identity).mapValues(_.size).map(identity))
+    }
+
+    // apply weigtings map
+    val actionsByScore:RDD[((Int,Int),Double)] = actionsByTypeCount.mapValues{
+      case x:Map[Int,Int]=> x.map {
+        case y: (Int, Int) => Math.min(weightingsMap(y._1)._1 * y._2, weightingsMap(y._1)._2)
+      }.reduce(_+_)
+    }
+
+    actionsByScore.take(10).foreach(println)
+    val itemsByCount: RDD[(Int, Int)] = actionsByScore.map(x => (x._1._1, 1)).reduceByKey(_ + _)
     val itemsCount = itemsByCount.count()
     val topQuarter = (itemsCount * 1).toInt
     println("total actions " + actions.count())
     println("total stories " + itemsByCount.count())
 
-    val usersByCount = actions.map(x=>(x._2._1,1)).reduceByKey(_+_)
+    val usersByCount = actionsByScore.map(x=>(x._2,1)).reduceByKey(_+_)
     val usersCount = usersByCount.count()
     println("total users " + usersCount)
 
-    val ratings = actions.map{
-      case (product, (user, rating)) => Rating(user,product,rating)
+    val ratings = actionsByScore.map{
+      case ((product, user), rating) => Rating(user,product,rating)
     }.repartition(2).cache()
 
     val timeFirst = System.currentTimeMillis()
