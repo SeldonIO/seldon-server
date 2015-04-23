@@ -30,6 +30,8 @@ import io.seldon.api.Constants;
 import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.db.jdbc.JDBCConnectionFactory;
+import io.seldon.dbcp.DbcpInitialisedListener;
+import io.seldon.dbcp.DbcpPoolHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,18 +43,17 @@ import javax.annotation.PostConstruct;
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
-import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JDOFactory implements NewClientListener, DbConfigHandler
+public class JDOFactory implements NewClientListener, DbConfigHandler, DbcpInitialisedListener
 {
 	private static final Logger logger = Logger.getLogger( JDOFactory.class.getName() );
-	private static final String DEFAULT_DB_JNDI_NAME = "java:comp/env/jdbc/ClientDB";
-	private static final String DEFAULT_API_JNDI_NAME = "java:comp/env/jdbc/ApiDB";
+	public static final String DEFAULT_DB_JNDI_NAME = "ClientDB";
 
 	private JDOPMRetriever pmRet = new JDOPMRetriever();
     private Map<String, PersistenceManagerFactory> factories = new ConcurrentHashMap<>();
@@ -66,66 +67,54 @@ public class JDOFactory implements NewClientListener, DbConfigHandler
 	private JDBCConnectionFactory jdbcConnectionFactory;
 
 	@Autowired
+	private DbcpPoolHandler dbcpPoolHandler;
+	
+	@Autowired
 	private ClientConfigHandler clientConfigHandler;
 	private static JDOFactory jdoFactory;
 	private List<DbConfigListener> listeners = new ArrayList<>();
 
 
 	@PostConstruct
-	public void intialise() throws NamingException {
-		clientConfigHandler.addNewClientListener(this, true);
-		registerFactory("api", "api", DEFAULT_API_JNDI_NAME);
-		jdbcConnectionFactory.addDataSource("api", DEFAULT_API_JNDI_NAME, "api");
-		jdoFactory = this;
+	public void setup()
+	{
+		dbcpPoolHandler.addInitialisedListener(this);
 	}
-//    @PostConstruct
-//    public void initialise(Properties props, Properties jdoProperties) throws NamingException {
-//        for (Object key : jdoProperties.keySet()) {
-//            String dbKey = (String) key;
-//            String value = jdoProperties.getProperty(dbKey);
-//            String[] values = value.split(",");
-//            String connectionFactoryName = null;
-//            String dbName = null;
-//            if (values.length == 1)
-//            {
-//            	dbName = dbKey;
-//            	connectionFactoryName = value;
-//            }
-//            else if (values.length == 2)
-//            {
-//            	dbName = values[0];
-//            	connectionFactoryName = values[1];
-//            }
-//            else
-//            	throw new JDOStartupException("Bad jdofactories.properties file");
-//
-//            clientJNDINames.put(dbKey, connectionFactoryName);
-//            clientToDBName.put(dbKey, dbName);
-//            registerFactory(props, dbKey, dbName, connectionFactoryName);
-//        }
-//        JDBCConnectionFactory.initialise(clientJNDINames,clientToDBName);
-//    }
+	
+	@Override
+	public void dbcpInitialised() {
+		addDataSource("api", "api", DEFAULT_DB_JNDI_NAME);
+		clientConfigHandler.addNewClientListener(this, true);
+		jdoFactory = this; // should be removed at some point
+	}
     
     public String getJNDIForClient(String client)
     {
     	return clientJNDINames.get(client);
     }
 
-//    public static void initialise(Properties jdoProperties, String clientName, String databaseName, String jndiResource) throws NamingException {
-//    	if (databaseName == null)
-//    		databaseName = clientName;
-//        registerFactory(jdoProperties, clientName, databaseName, jndiResource);
-//        clientJNDINames.put(clientName, jndiResource);
-//        clientToDBName.put(clientName, databaseName);
-//		jdbcConnectionFactory.initialise(clientJNDINames,clientToDBName);
-//    }
-
-    private void registerFactory(String clientName, String databaseName, String jndiResource) {
+    private boolean addDataSource(String client,String dbName,String jndiName)
+    {
+    	DataSource ds = dbcpPoolHandler.get(jndiName);
+		if (ds != null)
+		{
+			registerFactory(client,dbName,ds);
+			jdbcConnectionFactory.addDataSource(client,ds,dbName);
+			return true;
+		}
+		else
+		{
+			logger.error("Failed to get datasource for client "+client+" with jndiName="+jndiName);
+			return false;
+		}
+    }
+    
+    private void registerFactory(String clientName, String databaseName, DataSource ds) {
     	Properties connectionProperties = (Properties) dataNucleusProperties.clone();
-		connectionProperties.setProperty("javax.jdo.option.ConnectionFactoryName", jndiResource);
-    	if (databaseName != null)
+    	connectionProperties.put("javax.jdo.option.ConnectionFactory", ds);
+		if (databaseName != null)
     		connectionProperties.setProperty("datanucleus.mapping.Catalog", databaseName);
-    	logger.info("Adding PMF factory for client "+clientName+" with database "+databaseName+" with JNDI Datasource:"+jndiResource);
+    	logger.info("Adding PMF factory for client "+clientName+" with database "+databaseName);
         PersistenceManagerFactory factory = JDOHelper.getPersistenceManagerFactory(connectionProperties);
         factories.put(clientName, factory);
     }
@@ -170,7 +159,7 @@ public class JDOFactory implements NewClientListener, DbConfigHandler
     }
 
 	@Override
-	public void clientAdded(String client, Map<String, String> initialConfig) {
+	public synchronized void clientAdded(String client, Map<String, String> initialConfig) {
 		String jndiName = initialConfig.get("DB_JNDI_NAME");
 
 		if(jndiName==null)
@@ -182,15 +171,10 @@ public class JDOFactory implements NewClientListener, DbConfigHandler
 			dbName = client;
 
 		logger.info("Adding client "+client+" JNDI="+jndiName+" dbName="+dbName);
-		registerFactory(client,dbName,jndiName);
-		try {
-			jdbcConnectionFactory.addDataSource(client,jndiName,dbName);
-			for(DbConfigListener listener: listeners){
+		if (addDataSource(client, dbName, jndiName))
+		{
+			for(DbConfigListener listener: listeners)
 				listener.dbConfigInitialised(client);
-			}
-		} catch (NamingException e) {
-			logger.error("Couldn't add data source for client : " + client +
-					" jndi name " + jndiName + " and db name " + dbName,e);
 		}
 	}
 
@@ -209,4 +193,7 @@ public class JDOFactory implements NewClientListener, DbConfigHandler
 	public void addDbConfigListener(DbConfigListener listener) {
 		listeners.add(listener);
 	}
+
+
+	
 }

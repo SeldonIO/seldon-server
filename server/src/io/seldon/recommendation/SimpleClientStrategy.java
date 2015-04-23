@@ -64,7 +64,7 @@ public class SimpleClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName() {
+    public String getName(String userId) {
         return name;
     }
 

@@ -61,7 +61,7 @@ public class RecTagClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName() {
+    public String getName(String userId) {
         return "-";
     }
     

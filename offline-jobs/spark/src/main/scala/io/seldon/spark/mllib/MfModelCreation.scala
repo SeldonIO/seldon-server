@@ -21,6 +21,7 @@
 */
 package io.seldon.spark.mllib
 
+import _root_.io.seldon.spark.rdd.FileUtils
 import io.seldon.spark.zookeeper.ZkCuratorHandler
 import java.io.File
 import java.text.SimpleDateFormat
@@ -38,9 +39,16 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{HashPartitioner, SparkContext, SparkConf}
+import scala.collection.mutable
 import scala.util.Random._
 import java.net.URLClassLoader
 
+case class ActionWeightings (actionMapping: List[ActionWeighting])
+
+case class ActionWeighting (actionType:Int = 1,
+                             valuePerAction:Double = 1.0,
+                             maxSum:Double = 1.0
+                             )
 case class MfConfig(
     client : String = "",
     inputPath : String = "/seldon-models",
@@ -56,7 +64,8 @@ case class MfConfig(
     rank : Int = 30,
     lambda : Double = 0.1,
     alpha : Double = 1,
-    iterations : Int = 2
+    iterations : Int = 2,
+    actionWeightings: Option[List[ActionWeighting]] = None
  )
  
 
@@ -113,8 +122,13 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
       println("output file location must start with local:// or s3n://")
       sys.exit(1)
     }
+    val actionWeightings = config.actionWeightings.getOrElse(List(ActionWeighting()))
+    // any action not mentioned in the weightings map has a default score of 0.0
+    val weightingsMap = actionWeightings.map(
+      aw => (aw.actionType, (aw.valuePerAction,aw.maxSum))
+    ).toMap.withDefaultValue(.0,.0)
 
-
+    println("Using weightings map"+weightingsMap)
     val startTime = System.currentTimeMillis()
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
@@ -122,27 +136,46 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     val timeStart = System.currentTimeMillis()
     val glob= toSparkResource(inputFilesLocation, inputDataSourceMode) + ((date - daysOfActions + 1) to date).mkString("{", ",", "}")
     println("Looking at "+glob)
-    val actions:RDD[(Int, (Int, Int))] = sc.textFile(glob)
+    val actions:RDD[((Int, Int), Int)] = sc.textFile(glob)
       .map { line =>
         val json = parse(line)
         import org.json4s._
         implicit val formats = DefaultFormats
         val user = (json \ "userid").extract[Int]
         val item = (json \ "itemid").extract[Int]
-        (item,(user,1))
+        val actionType = (json \"type").extract[Int]
+        ((item,user),actionType)
       }.repartition(2).cache()
-    val itemsByCount: RDD[(Int, Int)] = actions.map(x => (x._1, 1)).reduceByKey(_ + _)
+
+    // group actions by user-item key
+    val actionsByType:RDD[((Int,Int),List[Int])] = actions.combineByKey((x:Int)=>List[Int](x),
+                                                                        (list:List[Int],y:Int)=>y :: list,
+                                                                        (l1:List[Int],l2:List[Int])=> l1 ::: l2)
+    // count the grouped actions by action type
+    val actionsByTypeCount:RDD[((Int,Int),Map[Int,Int])] = actionsByType.map{
+      case (key,value:List[Int]) => (key,value.groupBy(identity).mapValues(_.size).map(identity))
+    }
+
+    // apply weigtings map
+    val actionsByScore:RDD[((Int,Int),Double)] = actionsByTypeCount.mapValues{
+      case x:Map[Int,Int]=> x.map {
+        case y: (Int, Int) => Math.min(weightingsMap(y._1)._1 * y._2, weightingsMap(y._1)._2)
+      }.reduce(_+_)
+    }
+
+    actionsByScore.take(10).foreach(println)
+    val itemsByCount: RDD[(Int, Int)] = actionsByScore.map(x => (x._1._1, 1)).reduceByKey(_ + _)
     val itemsCount = itemsByCount.count()
     val topQuarter = (itemsCount * 1).toInt
     println("total actions " + actions.count())
     println("total stories " + itemsByCount.count())
 
-    val usersByCount = actions.map(x=>(x._2._1,1)).reduceByKey(_+_)
+    val usersByCount = actionsByScore.map(x=>(x._2,1)).reduceByKey(_+_)
     val usersCount = usersByCount.count()
     println("total users " + usersCount)
 
-    val ratings = actions.map{
-      case (product, (user, rating)) => Rating(user,product,rating)
+    val ratings = actionsByScore.map{
+      case ((product, user), rating) => Rating(user,product,rating)
     }.repartition(2).cache()
 
     val timeFirst = System.currentTimeMillis()
@@ -185,49 +218,66 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     new File(outputFilesLocation+yesterdayUnix).mkdirs()
     val userFile = new File(outputFilesLocation+yesterdayUnix+"/userFeatures.txt");
     userFile.createNewFile()
-    printToFile(userFile){
-      p => model.userFeatures.collect().foreach {
-        u => {
-          p.println(u._1.toString +"|" +u._2.mkString(","))
-        }
-      }
-    }
+
     val productFile = new File(outputFilesLocation+yesterdayUnix+"/productFeatures.txt");
     productFile.createNewFile()
-    printToFile(productFile){
-      p => model.productFeatures.collect().foreach {
+
+    outputToFile(model, userFile, productFile)
+    val gzipUserFile:File = FileUtils.gzip(userFile.getAbsolutePath)
+    println(gzipUserFile.getAbsolutePath)
+    val gzipProdFile = FileUtils.gzip(productFile.getAbsolutePath)
+  }
+
+  def outputToFile(model: MatrixFactorizationModel, userFile: File, prodFile: File): Unit = {
+    printToFile(userFile) {
+      p => model.userFeatures.collect().foreach {
         u => {
-          p.println(u._1.toString +"|" +u._2.mkString(","))
+          val strings = u._2.map(d => f"$d%.5g")
+          p.println(u._1.toString + "|" + strings.mkString(","))
         }
       }
     }
+    printToFile(prodFile) {
+      p => model.productFeatures.collect().foreach {
+        u => {
+          val strings = u._2.map(d => f"$d%.5g")
+          p.println(u._1.toString + "|" + strings.mkString(","))
+        }
+
+      }
+    }
+
   }
 
   def outputModelToS3File(model: MatrixFactorizationModel, outputFilesLocation: String, yesterdayUnix: Long) = {
+    // write to temp file first
+    val tmpUserFile = File.createTempFile("mfmodelUser",".tmp");
+    tmpUserFile.deleteOnExit()
+    val tmpProdFile = File.createTempFile("mfModelProduct",".tmp")
+    tmpProdFile.deleteOnExit()
+    outputToFile(model, tmpUserFile, tmpProdFile)
+    val gzipUserFile:File = FileUtils.gzip(tmpUserFile.getAbsolutePath)
+    println(gzipUserFile.getAbsolutePath)
+    val gzipProdFile = FileUtils.gzip(tmpProdFile.getAbsolutePath)
     val service: S3Service = new RestS3Service(new AWSCredentials(System.getenv("AWS_ACCESS_KEY_ID"), System.getenv("AWS_SECRET_ACCESS_KEY")))
     val bucketString = outputFilesLocation.split("/")(0)
     val bucket = service.getBucket(bucketString)
     val s3Folder = outputFilesLocation.replace(bucketString+"/","")
-    val outUser = new StringBuffer()
-    model.userFeatures.collect().foreach(u => {
-      outUser.append(u._1.toString)
-      outUser.append("|")
-      outUser.append(u._2.mkString(","))
-      outUser.append("\n")
-    }
-    )
-    val obj = new S3Object(s3Folder+yesterdayUnix+"/userFeatures.txt", outUser.toString())
+
+    val obj = new S3Object(tmpUserFile)
+    obj.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt")
     service.putObject(bucket, obj)
-    val outProduct = new StringBuffer()
-    model.productFeatures.collect().foreach(u => {
-      outProduct.append(u._1.toString)
-      outProduct.append("|")
-      outProduct.append(u._2.mkString(","))
-      outProduct.append("\n")
-    }
-    )
-    val objProd = new S3Object(s3Folder+yesterdayUnix+"/productFeatures.txt", outProduct.toString())
+    val objZip = new S3Object(gzipUserFile)
+    objZip.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt.gz")
+    service.putObject(bucket, objZip)
+    System.out.println("Uploading user features to " + bucketString + " bucket " + obj.getKey + " file")
+    val objProd = new S3Object(tmpProdFile)
+    objProd.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt")
     service.putObject(bucket, objProd)
+    val objProdZip = new S3Object(gzipProdFile)
+    objProdZip.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt.gz")
+    service.putObject(bucket, objProdZip)
+    System.out.println("Uploading product features to " + bucketString + " bucket " + objProd.getKey + " file")
   }
 
   def outputModelToFile(model: MatrixFactorizationModel,outputFilesLocation:String, outputType:DataSourceMode, client:String, yesterdayUnix: Long) {
