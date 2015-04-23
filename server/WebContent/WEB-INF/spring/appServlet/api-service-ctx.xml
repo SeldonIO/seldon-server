@@ -18,7 +18,7 @@
                             expression="org.springframework.stereotype.Controller" />
     </context:component-scan>
     <context:property-placeholder
-            location="classpath:version.properties,classpath:labs.properties,classpath:alg_default.properties"/>
+            location="classpath:version.properties,classpath:alg_default.properties"/>
     <util:properties id="dataNucleusProperties" location="classpath:datanucleus.properties"/>
     <context:component-scan base-package="io.seldon.general"/>
     <context:component-scan base-package="io.seldon.clustering.recommender"/>
