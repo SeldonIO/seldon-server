@@ -25,7 +25,7 @@ package io.seldon.api.service;
 
 import java.io.Serializable;
 
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
 
 //STORE TEST OPTIONS
 public class ABTest implements Serializable {

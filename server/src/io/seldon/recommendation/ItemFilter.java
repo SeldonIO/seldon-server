@@ -21,29 +21,19 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl.filters;
+package io.seldon.recommendation;
 
-import io.seldon.general.ItemStorage;
-import io.seldon.trust.impl.ItemIncluder;
+import io.seldon.clustering.recommender.RecommendationContext;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
 /**
  * @author firemanphil
  *         Date: 19/11/14
- *         Time: 11:49
+ *         Time: 11:29
  */
-@Component
-public class MostPopularIncluder implements ItemIncluder {
+public interface ItemFilter {
 
-    @Autowired
-    private ItemStorage retriever;
-
-
-    @Override
-    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
-        // first stab at this: lets return, say, the top 200 items.
-        return  retriever.retrieveMostPopularItems(client,numItems,dimension);
-    }
+    List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
+                                    Long currentItem,String lastRecListUUID, int numRecommendations);
 }

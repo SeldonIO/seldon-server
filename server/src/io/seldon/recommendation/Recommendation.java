@@ -21,7 +21,7 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
 import java.io.Serializable;
 

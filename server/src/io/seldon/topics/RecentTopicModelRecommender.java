@@ -28,10 +28,10 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.items.RecentItemsWithTagsManager;
+import io.seldon.recommendation.ItemFilter;
+import io.seldon.recommendation.ItemIncluder;
+import io.seldon.recommendation.RecommendationUtils;
 import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
-import io.seldon.trust.impl.ItemFilter;
-import io.seldon.trust.impl.ItemIncluder;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

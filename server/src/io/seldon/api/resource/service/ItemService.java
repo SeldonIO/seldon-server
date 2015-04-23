@@ -42,7 +42,7 @@ import io.seldon.general.ItemType;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.trust.impl.jdo.RecommendationPeer;
+import io.seldon.recommendation.RecommendationPeer;
 
 import java.util.Collection;
 import java.util.HashMap;

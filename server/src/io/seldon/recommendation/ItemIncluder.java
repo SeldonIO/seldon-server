@@ -21,19 +21,26 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
-import io.seldon.clustering.recommender.RecommendationContext;
-
-import java.util.List;
+import io.seldon.recommendation.filters.FilteredItems;
 
 /**
  * @author firemanphil
  *         Date: 19/11/14
  *         Time: 11:29
  */
-public interface ItemFilter {
+public interface ItemIncluder {
 
-    List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
-                                    Long currentItem,String lastRecListUUID, int numRecommendations);
+    public static final int NUMBER_OF_ITEMS_PER_INCLUDER_DEFAULT = 200;
+
+    /**
+     * Produces a list of item ids that should be considered by the
+     * recommendation algorithm.
+     * @param client the client to give items for
+     * @param numItems the number of items to generate as a maximum
+     * @return a list of item ids to include.
+     */
+    FilteredItems generateIncludedItems(String client, int dimension, int numItems);
+
 }

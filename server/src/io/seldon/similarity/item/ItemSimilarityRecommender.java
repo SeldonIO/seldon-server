@@ -30,7 +30,7 @@ import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.UpdateRetriever;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
+import io.seldon.recommendation.RecommendationUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

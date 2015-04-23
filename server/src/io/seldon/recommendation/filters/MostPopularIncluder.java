@@ -21,26 +21,29 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation.filters;
 
-import io.seldon.trust.impl.filters.FilteredItems;
+import io.seldon.general.ItemStorage;
+import io.seldon.recommendation.ItemIncluder;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author firemanphil
  *         Date: 19/11/14
- *         Time: 11:29
+ *         Time: 11:49
  */
-public interface ItemIncluder {
+@Component
+public class MostPopularIncluder implements ItemIncluder {
 
-    public static final int NUMBER_OF_ITEMS_PER_INCLUDER_DEFAULT = 200;
+    @Autowired
+    private ItemStorage retriever;
 
-    /**
-     * Produces a list of item ids that should be considered by the
-     * recommendation algorithm.
-     * @param client the client to give items for
-     * @param numItems the number of items to generate as a maximum
-     * @return a list of item ids to include.
-     */
-    FilteredItems generateIncludedItems(String client, int dimension, int numItems);
 
+    @Override
+    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
+        // first stab at this: lets return, say, the top 200 items.
+        return  retriever.retrieveMostPopularItems(client,numItems,dimension);
+    }
 }

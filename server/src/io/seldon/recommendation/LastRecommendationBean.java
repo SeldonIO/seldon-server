@@ -21,42 +21,33 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
+import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public interface RecommendationNetwork {
+public class LastRecommendationBean implements Serializable {
 
-	/**
-	 * 
-	 * @return the id for the user/item this network concerns
-	 */
-	public long getId();
-	/**
-	 * 
-	 * @return type of this network
-	 */
-	public int getType();
-	/**
-	 * 
-	 * @param id - user or item id
-	 * @return
-	 */
-	public Double getSimilarity(long id);
-	/**
-	 * 
-	 * @return set of ids similar for this network
-	 */
-	public Set<Long> getSimilarityNetwork();
-	/**
-	 * 
-	 * @param k - neighbourhood size
-	 * @return - a set of ids for the most similar neighbours ordered by similarity
-	 */
-	public List<Long> getSimilarityNeighbourhood(int k);
+	String algorithm;
+	List<Long> recs;
+	public LastRecommendationBean(String algorithm, List<Long> recs) {
+		super();
+		this.algorithm = algorithm;
+		this.recs = recs;
+	}
+	public String getAlgorithm() {
+		return algorithm;
+	}
+	public void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
+	}
+	public List<Long> getRecs() {
+		return recs;
+	}
+	public void setRecs(List<Long> recs) {
+		this.recs = recs;
+	}
 	
-	public Map<Long,Double> getSimilarityNeighbourhoodMap(int k);
 	
+
 }

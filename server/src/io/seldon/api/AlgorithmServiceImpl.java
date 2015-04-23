@@ -26,7 +26,7 @@ package io.seldon.api;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountFactory;
 import io.seldon.clustering.recommender.jdo.AsyncClusterCountStore;
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
 
 import java.util.concurrent.ConcurrentHashMap;
 

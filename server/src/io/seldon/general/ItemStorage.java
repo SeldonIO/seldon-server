@@ -30,7 +30,7 @@ import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 import io.seldon.memcache.UpdateRetriever;
-import io.seldon.trust.impl.filters.FilteredItems;
+import io.seldon.recommendation.filters.FilteredItems;
 
 import java.util.ArrayList;
 import java.util.Collections;

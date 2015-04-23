@@ -28,8 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import io.seldon.trust.impl.CFAlgorithm;
-import io.seldon.trust.impl.TrustNetworkSupplier.CF_TYPE;
+import io.seldon.recommendation.CFAlgorithm;
 import io.seldon.util.CollectionTools;
 
 
@@ -37,7 +36,7 @@ public class MemCacheKeys {
 
 
     private enum keys {
-			UserTrustNetwork, ContentTrustNetwork, RummbleClient, SemanticVector, RecommendationNetwork, MongoRecs,
+			UserTrustNetwork, ContentTrustNetwork, RummbleClient, SemanticVector, RecommendationNetwork,
 			ConsumerBean,ItemBean,ItemsBean,ItemSimilarityGraphBean,OpinionBean,OpinionsBean,RecommendationsBean,TokenBean,UserBean,UsersBean,UsterTrustGraphBean,DimensionBean, ActionBean,
 			ActionsBean,ItemActionsBean,UserInternalId,ItemInternalId,UserClientId,ItemClientId,DimensionsBean,ItemsBeanByName,ItemAttrType,ItemType,ActionType,ItemDimensions,InternalActionsBean,
 			FacebookFriends,FacebookLikes,DBPediaSearch,RecommendedUsers,
@@ -52,21 +51,12 @@ public class MemCacheKeys {
 			};
 
 	
-	public static String getMongoRecsKey(String client, long user, int type, CF_TYPE trustType)
-	{
-		return "" + keys.MongoRecs + ":" + client + ":" + type + ":" + trustType.name() + ":" + user;
-	}
-			
     public static String getUserTrustNetworkKey(String client,long user,int type)	{
     	return "" + keys.UserTrustNetwork + ":" + client + ":" + user + ":" + type;
     }
     
     public static String getRecommendationsKey(String client,long user,int type)	{
     	return "" + keys.RecommendationNetwork + ":" + client + ":" + type + ":" + user;
-    }
-    
-    public static String getRecommendationNetworkKey(String client,long user,int type,CF_TYPE trustType)	{
-    	return "" + keys.RecommendationNetwork + ":" + client + ":" + type + ":" + trustType.name() + ":" + user;
     }
     
     public static String getContentTrustNetworkKey(String client,long user,int type)	{

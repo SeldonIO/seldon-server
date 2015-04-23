@@ -32,7 +32,7 @@ import io.seldon.general.jdo.SqlItemPeer;
 import io.seldon.general.jdo.SqlUserAttributePeer;
 import io.seldon.general.jdo.SqlUserPeer;
 import io.seldon.general.jdo.SqlVersionPeer;
-import io.seldon.trust.impl.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm;
 
 import java.util.Arrays;
 import java.util.List;

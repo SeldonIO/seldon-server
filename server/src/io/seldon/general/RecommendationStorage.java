@@ -27,11 +27,10 @@ import io.seldon.api.resource.service.PersistenceProvider;
 import io.seldon.memcache.DogpileHandler;
 import io.seldon.memcache.ExceptionSwallowingMemcachedClient;
 import io.seldon.memcache.MemCacheKeys;
-import io.seldon.trust.impl.jdo.LastRecommendationBean;
+import io.seldon.recommendation.LastRecommendationBean;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import org.apache.log4j.Logger;
 
 /**

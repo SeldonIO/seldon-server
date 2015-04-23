@@ -21,56 +21,38 @@
  * ********************************************************************************************
  */
 
-package io.seldon.trust.impl;
+package io.seldon.recommendation;
 
 import java.io.Serializable;
+import java.util.List;
 
-
-/**
- * The derived trust for a member
- * @author clive
- *
- */
-public class TrustNetworkMember implements Serializable,Comparable<TrustNetworkMember> {
+public class RecommendationResult implements Serializable {
 
 	/**
 	 * 
 	 */
+	private static final long serialVersionUID = 1L;
+	
+	List<Recommendation> recs;
+	String uuid;
+	public RecommendationResult(List<Recommendation> recs, String uuid) {
+		super();
+		this.recs = recs;
+		this.uuid = uuid;
+	}
+	public List<Recommendation> getRecs() {
+		return recs;
+	}
+	public void setRecs(List<Recommendation> recs) {
+		this.recs = recs;
+	}
+	public String getUuid() {
+		return uuid;
+	}
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+	
+	
 
-	long m;
-	Trust t; // transient
-	double e; // expected trust probability value 0->1
-	int sixd;
-	
-	public TrustNetworkMember(long m,Trust t,double e,int sixd)
-	{
-		this.m = m;
-		this.t = t;
-		this.e = e;
-		this.sixd = sixd;
-	}
-	
-	public long getMember() { return m; }
-	public Trust getTrust() { return t; }
-	public double getE() { return e; }
-	public int getSixd() { return sixd; }
-	
-	public boolean equals(Object obj)
-	{
-		if (!(obj instanceof TrustNetworkMember))
-			return false;
-		TrustNetworkMember other = (TrustNetworkMember) obj;
-		return (m == other.m);
-	}
-
-	@Override
-	public int compareTo(TrustNetworkMember o) {
-		if (this.e == o.e)
-			return 0;
-		else if (this.e > o.e)
-			return -1;
-		else 
-			return 1;
-	}
-	
 }

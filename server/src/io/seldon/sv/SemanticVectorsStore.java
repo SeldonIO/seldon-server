@@ -23,11 +23,11 @@
 
 package io.seldon.sv;
 
+import io.seldon.recommendation.RecommendationUtils;
 import io.seldon.semvec.QueryTransform;
 import io.seldon.semvec.SemVectorResult;
 import io.seldon.semvec.VectorStorePredictor;
 import io.seldon.semvec.VectorStoreRecommender;
-import io.seldon.trust.impl.jdo.RecommendationUtils;
 import io.seldon.util.CollectionTools;
 
 import java.util.ArrayList;
