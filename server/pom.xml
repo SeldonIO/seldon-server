@@ -122,7 +122,7 @@
                         </resource>
                         <!-- Copy context and manifest into WAR (should be deprecated in phase 2) -->
                         <resource>
-                            <directory>${project.build.outputDirectory}/META-INF</directory>
+                            <directory>${project.basedir}/WebContent/META-INF</directory>
                             <includes>
                                 <include>*</include>
                             </includes>
