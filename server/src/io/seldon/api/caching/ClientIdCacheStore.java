@@ -57,36 +57,12 @@ public class ClientIdCacheStore implements NewClientListener {
 		this.clientConfigHandler = clientConfigHandler;
 	}
 	
-	@PostConstruct
-	public void initialise()
-	{
-		logger.info("Adding new client listener");
-		clientConfigHandler.addNewClientListener(this, true);
-		String clientProp = options.getOption(PROP_PREFIX+".clients");
-		if (clientProp != null)
-		{
-			String[] clients = clientProp.split(",");
-			for(int i=0;i<clients.length;i++)
-			{
-				String client = clients[i];
-				
-				addClient(client);;
-			}
-		}
-	}
-	
 	private void addClient(String client)
 	{
 		int itemSize = DEF_ITEM_CACHE_SIZE;
-		String val = options.getOption(PROP_PREFIX+"."+client+".maxitems");
-		if (val != null)
-			itemSize = Integer.parseInt(val);
 		addItemCache(client, itemSize);
 		
 		int userSize = DEF_USER_CACHE_SIZE;
-		val = options.getOption(PROP_PREFIX+"."+client+".maxusers");
-		if (val != null)
-			userSize = Integer.parseInt(val);
 		addUserCache(client, userSize);
 	}
 	

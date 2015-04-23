@@ -56,18 +56,6 @@ public class ClusterFromReferrerPeer implements DbConfigListener {
 		dbConfigHandler.addDbConfigListener(this);
 	}
 	
-	@PostConstruct
-	private void initialise()
-	{
-		String clientsProp = options.getOption(PROP);
-		if (StringUtils.isNotBlank(clientsProp))
-		{
-			String[] clients = clientsProp.split(",");
-			for(int i=0;i<clients.length;i++)
-				addClient(clients[i]);
-		}
-	}
-	
 	private void addClient(String client)
 	{
 		referrerHandlerMap.put(client, new JdoClusterFromReferrer(client));

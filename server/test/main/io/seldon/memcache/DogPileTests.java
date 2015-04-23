@@ -37,7 +37,7 @@ public class DogPileTests {
 	@Before
 	public void setup()
 	{
-		new DogpileHandler("0.75","true");
+		new DogpileHandler();
 	}
 	
 	@Test

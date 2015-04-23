@@ -77,21 +77,6 @@ public class JdoAsyncActionFactory implements DbConfigListener{
 		dbConfigHandler.addDbConfigListener(this);
 	}
 	
-	@PostConstruct
-	private void initialise()
-	{
-
-		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
-		if (clientList != null && clientList.length() > 0)
-		{
-			String[] clients = clientList.split(",");
-			for(int i=0;i<clients.length;i++)
-			{
-				get(clients[i]);
-			}
-		}
-	}
-
 	public void clientDeleted(String client) {
 		logger.info("Removing client:"+client);
 		AsyncActionQueue q = queues.get(client);
@@ -110,40 +95,12 @@ public class JdoAsyncActionFactory implements DbConfigListener{
 	private AsyncActionQueue create(String client)
 	{
 		int qTimeout = DEF_QTIMEOUT_SECS;
-		String val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".qtimeout");
-		if (val != null)
-			qTimeout = Integer.parseInt(val);
-		
 		int maxqSize = DEF_MAXQSIZE;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".maxqsize");
-		if (val != null)
-			maxqSize = Integer.parseInt(val);
-
 		int batchSize = DEF_BATCH_SIZE;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".batchsize");
-		if (val != null)
-			batchSize = Integer.parseInt(val);
-
 		int dbRetries = DEF_DB_RETRIES;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".dbretries");
-		if (val != null)
-			dbRetries = Integer.parseInt(val);
-		
 		boolean runUserItemUpdates = DEF_RUN_USERITEM_UPDATES;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".useritem.updates");
-		if (val != null)
-			runUserItemUpdates = "true".equals(val);
-		
 		boolean runUpdateIdsActionTable = DEF_UPDATE_IDS_ACTION_TABLE;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".update.ids");
-		if (val != null)
-			runUpdateIdsActionTable = "true".equals(val);
-		
 		boolean insertActions = DEF_INSERT_ACTIONS;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".insert.actions");
-		if (val != null)
-			insertActions = "true".equals(val);
-		
 		
 		return create(client,qTimeout,batchSize,maxqSize,dbRetries,runUserItemUpdates,runUpdateIdsActionTable,insertActions);
 	}

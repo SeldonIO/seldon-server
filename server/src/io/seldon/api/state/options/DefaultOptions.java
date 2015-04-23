@@ -46,8 +46,6 @@ public class DefaultOptions {
     public void init() throws IOException {
         InputStream propStream = getClass().getClassLoader().getResourceAsStream("/alg_default.properties");
         props.load(propStream);
-        propStream = getClass().getClassLoader().getResourceAsStream("/labs.properties");
-        props.load(propStream);
     }
 
     public String getOption(String optionName){

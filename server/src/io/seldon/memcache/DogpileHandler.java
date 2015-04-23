@@ -40,13 +40,10 @@ public class DogpileHandler {
 	
 	private static DogpileHandler peer;
 
-	@Autowired
-    public  DogpileHandler (@Value("${io.seldon.dogpile.expire.factor:0.75}") String expireStr,
-    		@Value("${io.seldon.dogpile.active:true}") String  activeStr)
+    public  DogpileHandler ()
     {
-		expireFactor = Float.parseFloat(expireStr);
-		if ("true".equals(activeStr))
-			active = true;
+		expireFactor = DEF_EXPIRE_FACTOR;
+		active = true;
 		logger.info("Creating dogpile cache handler with active: "+active+" and expire factor "+expireFactor);
 		peer = this;
     }

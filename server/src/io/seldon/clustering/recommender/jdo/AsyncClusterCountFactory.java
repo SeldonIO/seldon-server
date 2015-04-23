@@ -70,21 +70,6 @@ public class AsyncClusterCountFactory implements DbConfigListener {
 		queues.remove(client);
 	}
 
-	@PostConstruct
-	public void initialise()
-	{
-		String clientList = options.getOption(ASYNC_PROP_PREFIX+".start");
-		if (clientList != null && clientList.length() > 0)
-		{
-			String[] clients = clientList.split(",");
-			for(int i=0;i<clients.length;i++)
-			{
-				createAndStore(clients[i]);
-			}
-				
-		}
-	}
-	
 	private void createAndStore(String client)
 	{
 		queues.putIfAbsent(client, create(client));
@@ -93,36 +78,11 @@ public class AsyncClusterCountFactory implements DbConfigListener {
 	private AsyncClusterCountStore create(String client)
 	{
 		int qTimeout = DEF_QTIMEOUT_SECS;
-		String val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".qtimeout");
-		if (val != null)
-			qTimeout = Integer.parseInt(val);
-		
 		int maxqSize = DEF_MAXQSIZE;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".maxqsize");
-		if (val != null)
-			maxqSize = Integer.parseInt(val);
-
 		int batchSize = DEF_BATCH_SIZE;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".batchsize");
-		if (val != null)
-			batchSize = Integer.parseInt(val);
-
 		int dbRetries = DEF_DB_RETRIES;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".dbretries");
-		if (val != null)
-			dbRetries = Integer.parseInt(val);
-		
 		double decay = DEF_DECAY;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".decay");
-		if (val != null)
-			decay = Double.parseDouble(val);
-		 
 		boolean useDBTime = DEF_USE_DB_TIME;
-		val = options.getOption(ASYNC_PROP_PREFIX+"."+client+".useDBTime");
-		if (val != null)
-			useDBTime = Boolean.parseBoolean(val);
-		
-		
 		return create(client,qTimeout,batchSize,maxqSize,dbRetries,decay,useDBTime);
 	}
 	
