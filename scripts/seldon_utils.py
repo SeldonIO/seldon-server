@@ -20,6 +20,7 @@ def dbSetup(zk,data,zkNode):
 		del(db["host"])
 		del(db["port"])
 		db['jdbc'] = jdbcString
+		db['name'] = dbName
 		dbs.append(db)
 	dbcpObj = {"dbs": dbs}
 	zk.ensure_path(zkNode)
@@ -102,6 +103,8 @@ def clientSetup(zk, client_data, db_data, zkNode):
 		addClientDb(client['name'],dbs[dbname])
 		clientNode = zkNode + "/" + client['name']
 		zk.ensure_path(clientNode)
+		clientNodeValue = {"DB_JNDI_NAME":dbname}
+		zk.set(clientNode,json.dumps(clientNodeValue))
 		for setting in client:
 			if setting != "name" and setting != "db":
 				zk.ensure_path(clientNode + "/" + setting)
