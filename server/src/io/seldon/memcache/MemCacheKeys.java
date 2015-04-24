@@ -23,13 +23,13 @@
 
 package io.seldon.memcache;
 
+import io.seldon.recommendation.CFAlgorithm;
+import io.seldon.util.CollectionTools;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import io.seldon.recommendation.CFAlgorithm;
-import io.seldon.util.CollectionTools;
 
 
 public class MemCacheKeys {
@@ -47,7 +47,7 @@ public class MemCacheKeys {
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUID, RecommendationUUIDDim,
 			RecentRecsForUsers, RecentItems, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItems
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItems, ActionFullHistory
 			};
 
 	
@@ -323,6 +323,11 @@ public class MemCacheKeys {
 	public static String getActionHistory(String client,long userId)
 	{
 		return ""+keys.ActionHistory+":"+client+":"+userId;
+	}
+
+	public static String getActionFullHistory(String client,long userId)
+	{
+		return ""+keys.ActionFullHistory+":"+client+":"+userId;
 	}
 
 	

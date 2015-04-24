@@ -70,7 +70,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ActionService {
 
-    private static final String BUCKET_CLUSTER_OPTION_NAME = "io.seldon.algorithm.clusters.usebucketcluster";
+	private static final String BUCKET_CLUSTER_OPTION_NAME = "io.seldon.algorithm.clusters.usebucketcluster";
+	private static final String FULL_ACTION_STORE_OPTION_NAME = "io.seldon.algorithm.actions.storefullactions";
     private static Logger logger = Logger.getLogger(ActionService.class.getName());
 	
 	@Autowired
@@ -274,14 +275,18 @@ public class ActionService {
 			{
 				
                 boolean useBucketCluster = false;
+                boolean storeFullActions = false;
 				CountRecommender cRec = cUtils.getCountRecommender(c.getShort_name());
                 for (AlgorithmStrategy strat : clientAlgorithmStore.retrieveStrategy(c.getShort_name()).getAlgorithms(a.getClientUserId(), bean.getRecTag())){
                     RecommendationContext.OptionsHolder holder = new RecommendationContext.OptionsHolder(defaultOptions, strat.config);
                     if (holder.getBooleanOption(BUCKET_CLUSTER_OPTION_NAME)) {
                         useBucketCluster = true;
-                        break;
+                    }
+                    if (holder.getBooleanOption(FULL_ACTION_STORE_OPTION_NAME)) {
+                        storeFullActions = true;
                     }
                 }
+                
 				if (cRec != null)
 				{
 					boolean addCount = true;
@@ -302,7 +307,8 @@ public class ActionService {
 				
 
 				actionCache.addAction(c.getShort_name(),userId, itemId);
-					
+				if (storeFullActions)
+					actionCache.addFullAction(c.getShort_name(), a);
 				
 			}
 		}

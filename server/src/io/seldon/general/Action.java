@@ -23,12 +23,13 @@
 
 package io.seldon.general;
 
+import io.seldon.api.Constants;
+
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import io.seldon.api.Constants;
-
-public class Action {
+public class Action implements Serializable {
 
 	Long actionId;
 	long userId;

@@ -27,6 +27,7 @@ import io.seldon.api.APIException;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.api.state.zk.ZkClientConfigHandler;
+import io.seldon.general.Action;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
 
@@ -99,6 +100,42 @@ public class ActionHistoryCache implements NewClientListener {
 			logger.debug("Got action history for user "+userId+" from memcache");
 		}
 		return res;
+	}
+
+	public List<Action> getRecentFullActions(String clientName,long userId,int numActions)
+	{
+		String mkey = MemCacheKeys.getActionFullHistory(clientName, userId);
+		List<Action> res = (List<Action>) MemCachePeer.get(mkey);
+		if (res == null)
+		{
+			logger.debug("creating empty action full history for user "+userId+" for client "+clientName);
+			res = new ArrayList<Action>();
+		}
+		else 
+		{
+			if (res.size() > numActions)
+				res = res.subList(0, numActions);
+			logger.debug("Got action full history for user "+userId+" from memcache");
+		}
+		return res;
+	}
+	
+	public void addFullAction(String clientName,final Action a)
+	{
+		logger.debug("Adding full action to cache for "+a.getUserId()+" item "+a.getItemId());
+        CASMutation<List<Action>> mutation = new CASMutation<List<Action>>() {
+
+            // This is only invoked when a value actually exists.
+            public List<Action> getNewValue(List<Action> current) {
+	                current.add(0, a);
+	            return current;
+            }
+        };
+        List<Action> actions = new ArrayList<Action>();
+        actions.add(a);
+		String mkey = MemCacheKeys.getActionFullHistory(clientName, a.getUserId());
+        MemCachePeer.cas(mkey, mutation, actions,CACHE_TIME);
+		
 	}
 	
 	public void addAction(String clientName,long userId,final long itemId) throws APIException
