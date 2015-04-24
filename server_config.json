@@ -1,0 +1,28 @@
+{
+	"db": {
+		"servers": [
+			{
+				"name":"db1",
+				"host":"localhost",
+				"port":3306,
+				"user":"root",
+				"password":"root"
+			}
+		]
+	},
+	"memcached": {
+		"servers": [
+			{
+				"host":"localhost",
+				"port":11211
+			}
+		]
+	},
+	"clients": [
+		{
+			"name":"testcssd",
+			"algfgsf":"sfgfdgf",
+			"db":"db1"
+		}
+	]
+}
