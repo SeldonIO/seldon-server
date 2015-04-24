@@ -21,7 +21,6 @@ def dbSetup(zk,data,zkNode):
 		del(db["port"])
 		db['jdbc'] = jdbcString
 		dbs.append(db)
-	print dbs
 	dbcpObj = {"dbs": dbs}
 	zk.ensure_path(zkNode)
 	zk.set(zkNode,json.dumps(dbcpObj))
