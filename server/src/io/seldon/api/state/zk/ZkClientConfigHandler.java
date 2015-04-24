@@ -110,7 +110,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
         }
 
         if(!initalized && event.getType() != TreeCacheEvent.Type.INITIALIZED) {
-            logger.info("Ignore event as we are not in an initialised state: " + event);
+            logger.debug("Ignore event as we are not in an initialised state: " + event);
             return;
         }
         if(event.getType()== TreeCacheEvent.Type.NODE_ADDED || event.getType() == TreeCacheEvent.Type.NODE_UPDATED)
@@ -127,9 +127,11 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
                     logger.info("Found new client : " + clientName);
                     Map<String, String> initialConfig = new HashMap<>();
                     try {
-                         initialConfig = jsonMapper.readValue(
-                                event.getData().getData(), new TypeReference<Map<String, String>>() {
-                                });
+                         if(event.getData().getData()!=null) {
+                             initialConfig = jsonMapper.readValue(
+                                     event.getData().getData(), new TypeReference<Map<String, String>>() {
+                                     });
+                         }
 
                     } catch (IOException  e){
 
@@ -149,7 +151,9 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
                 if(clientAndNode !=null && clientAndNode.length==2){
                     for(ClientConfigUpdateListener listener: listeners){
                         foundAMatch = true;
-                        listener.configUpdated(clientAndNode[0], clientAndNode[1], new String(event.getData().getData()));
+                        byte[] data = event.getData().getData();
+                        String dataString = data == null ? "" : new String(data);
+                        listener.configUpdated(clientAndNode[0], clientAndNode[1],dataString);
                     }
 
                 } else {
