@@ -19,7 +19,7 @@ case class Config(
     jdbc : String = "",
     inputPath : String = "/seldon-models",
     outputPath : String = "/seldon-models",
-    tagFilterPath : String = null,
+    tagFilterPath : String = "",
     awsKey : String = "",
     awsSecret : String = "",
     startDay : Int = 1,
@@ -106,6 +106,7 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     // get item tags from db
     val rddItems = getItemTagsFromDb(config.jdbc, config.tagAttr)
     
+    // Calculate for each tag the percentage of articles in which it appears
     val numItems = rddItems.count()
     val tagCounts = rddItems.flatMap(_._2.split(",")).map { x => (x.trim().toLowerCase(),1) }.reduceByKey(_ + _).collectAsMap
     val tagPercent = scala.collection.mutable.Map[String,Float]()
@@ -139,19 +140,19 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
         (allTags.mkString(","),v.size)
       }
     
-    /*
+    
     val featuresIter = rddFeatures.map(_._2._1.split(",").toSeq)
     val hashingTF = new HashingTF()
     val tf = hashingTF.transform(featuresIter)
-    val idfModel = new IDF(config.minTermDocFreq).fit(tf)
+    val idfModel = new IDF(1).fit(tf)
     val idf = idfModel.idf
     val tfidf = idfModel.transform(tf)
     val fCount = rddFeatures.count()
     val tfidfCount = tfidf.count()
     val tfCount = tf.count()
     println("featuresAg "+fCount+ " tfidf count "+tfidfCount+" tf count "+tfCount)
-    val featuresAg = rddFeatures.zip(tfidf).zip(tf)
-*/
+    val featuresAg = rddFeatures.zip(tf)
+
     //val tfidfSummary: MultivariateStatisticalSummary = Statistics.colStats(tfidf)
     //val avg_tfidf = tfidfSummary.mean
     //val bc_avg_tfidf = sc.broadcast(avg_tfidf)
@@ -159,13 +160,16 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     
     val minTagCount = config.minTagCount
     val minPcIncrease = config.minPcIncrease
-    val tagAffinity = rddFeatures.flatMap{case (user,(tags,numDocs)) =>
+    val tagAffinity = featuresAg.flatMap{case ((user,(tags,numDocs)),tf) =>
       var allTags = ListBuffer[(Int,String,Double,Double,Double,Double,Double)]()
       val tagPercent = bc_tagPercent.value
+      val hashId = new HashingTF()
       val tagCounts = tags.split(",").groupBy { l => l }.map(t => (t._1, t._2.length))
       for (tag <- tags.split(",").toSet[String])
       {
         val tag_tf = tagCounts(tag)
+        val id = hashId.indexOf(tag)
+        val tag_tf2 = tf(id)
         if (tag_tf > minTagCount)
         {
           val tagPc = tag_tf/numDocs.toFloat
@@ -174,7 +178,7 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
           if (pc_increase > minPcIncrease)
           {
             val affinity = pc_increase
-            allTags.append((user,tag,tag_tf,affinity,tagPc,tagPcGlobal,pc_increase))
+            allTags.append((user,tag,tag_tf,tag_tf2,tagPc,tagPcGlobal,pc_increase))
           }
         }
       }
