@@ -44,7 +44,7 @@ public class MemCacheKeys {
 			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
 			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
-			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUID, RecommendationUUIDDim,
+			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
 			RecentRecsForUsers, RecentItemsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
             FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory
@@ -389,7 +389,7 @@ public class MemCacheKeys {
 	
 	public static String getRecommendationListUUID(String client,String userId,int counter)
 	{
-		return ""+keys.RecommendationUUID.name()+":"+client+":"+userId+":"+counter;
+		return ""+keys.RecommendationUUIDNew.name()+":"+client+":"+userId+":"+counter;
 	}
 	
 	public static String getRecommendationListUUIDWithDimension(String client,int dimension, String userId,int counter)
