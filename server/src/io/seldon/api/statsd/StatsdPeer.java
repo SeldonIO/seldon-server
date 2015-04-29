@@ -97,9 +97,9 @@ public class StatsdPeer {
 		if (statsdServer != null && port != 0)
 		{
 			try {
-				logger.info("Creating statsd client for host "+statsdServer+" on port "+port+" and using install id of "+installId+" and default sampling of "+sampleRate);
 				installId = statsdConfig.id;
 				sampleRate = statsdConfig.sample_rate;
+				logger.info("Creating statsd client for host "+statsdServer+" on port "+port+" and using install id of "+installId+" and default sampling of "+sampleRate);
 				client = new StatsdClient(statsdServer, port);
 				return true;
 			} catch (UnknownHostException e) {
