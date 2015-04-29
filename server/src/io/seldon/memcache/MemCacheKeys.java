@@ -45,9 +45,9 @@ public class MemCacheKeys {
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
 			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUID, RecommendationUUIDDim,
-			RecentRecsForUsers, RecentItems, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
+			RecentRecsForUsers, RecentItemsNew, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItems, ActionFullHistory
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsNew, ActionFullHistory
 			};
 
 	
@@ -409,11 +409,11 @@ public class MemCacheKeys {
 	
 	public static String getRecentItems(String client,int dimension,int size)
 	{
-		return ""+keys.RecentItems.name()+":"+client+":"+dimension+":"+size;
+		return ""+keys.RecentItemsNew.name()+":"+client+":"+dimension+":"+size;
 	}
 
 	public static String getPopularItems(String client, int dimension, int size){
-		return ""+keys.PopularItems.name()+":"+client+":"+dimension+":"+size;
+		return ""+keys.PopularItemsNew.name()+":"+client+":"+dimension+":"+size;
 	}
 	
 	public static String getDbpediaHasBeenSearched(String client,long itemId)
