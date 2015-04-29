@@ -183,8 +183,8 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		public String user = "user1";
 		public String password = "mypass";
 		public Integer maxTotal = 600;
-		public Integer maxIdle = 50;
-		public Integer minIdle = 20;
+		public Integer maxIdle = 5;
+		public Integer minIdle = 0;
 		public Integer maxWait = 20000;
 		public Integer timeBetweenEvictionRunsMillis = 10000;
 		public Integer minEvictableIdleTimeMillis = 60000;
