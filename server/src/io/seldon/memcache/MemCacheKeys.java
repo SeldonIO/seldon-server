@@ -37,8 +37,8 @@ public class MemCacheKeys {
 
     private enum keys {
 			UserTrustNetwork, ContentTrustNetwork, RummbleClient, SemanticVector, RecommendationNetwork,
-			ConsumerBean,ItemBean,ItemsBean,ItemSimilarityGraphBean,OpinionBean,OpinionsBean,RecommendationsBean,TokenBean,UserBean,UsersBean,UsterTrustGraphBean,DimensionBean, ActionBean,
-			ActionsBean,ItemActionsBean,UserInternalId,ItemInternalId,UserClientId,ItemClientId,DimensionsBean,ItemsBeanByName,ItemAttrType,ItemType,ActionType,ItemDimensions,InternalActionsBean,
+			ConsumerBean,ItemBean,ItemsBeanNew,ItemSimilarityGraphBean,OpinionBean,OpinionsBean,RecommendationsBean,TokenBean,UserBean,UsersBean,UsterTrustGraphBean,DimensionBean, ActionBean,
+			ActionsBean,ItemActionsBean,UserInternalId,ItemInternalId,UserClientId,ItemClientId,DimensionsBean,ItemsBeanByNameNew,ItemAttrType,ItemType,ActionType,ItemDimensions,InternalActionsBean,
 			FacebookFriends,FacebookLikes,DBPediaSearch,RecommendedUsers,
 			DimensionByItemType,DemographicBean,DBPediaHits, ItemSemanticAttribute, CooccurenceNetwork,
 			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,
@@ -79,15 +79,15 @@ public class MemCacheKeys {
   
     
     public static String getItemsBeanKey(String client, boolean full,String sort, int dimension) {
-    	return "" + keys.ItemsBean + ":" + client + ":" + full + ":" + sort + ":" + dimension;
+    	return "" + keys.ItemsBeanNew + ":" + client + ":" + full + ":" + sort + ":" + dimension;
     }
     
     public static String getItemsBeanKey(String client, String keywords, boolean full) {
-    	return "" + keys.ItemsBean + ":" + client + ":" + keywords + ":" + full;
+    	return "" + keys.ItemsBeanNew + ":" + client + ":" + keywords + ":" + full;
     }
 
     public static String getItemBeanKey(String client, String id, boolean full) {
-    	return "" + keys.ItemsBean + ":" + client + ":" + id + ":" + full;
+    	return "" + keys.ItemsBeanNew + ":" + client + ":" + id + ":" + full;
     }
     
     public static String getItemSimilarityGraphBeanKey(String client, String id) {
@@ -181,7 +181,7 @@ public class MemCacheKeys {
 	}
 	
 	 public static String getItemsBeanKeyByName(String client, boolean full, String name, int dimension) {
-	    	return "" + keys.ItemsBeanByName + ":" + client + ":" + full + ":" + name + ":" + dimension;
+	    	return "" + keys.ItemsBeanByNameNew + ":" + client + ":" + full + ":" + name + ":" + dimension;
 	 }
 	 
 	 public static String getItemAttrType(String client, int itemType, String name) {
