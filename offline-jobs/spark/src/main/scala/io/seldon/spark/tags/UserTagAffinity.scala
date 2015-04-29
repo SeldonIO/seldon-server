@@ -107,13 +107,17 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     val rddItems = getItemTagsFromDb(config.jdbc, config.tagAttr)
     
     // Calculate for each tag the percentage of articles in which it appears
-    val numItems = rddItems.count()
-    val tagCounts = rddItems.flatMap(_._2.split(",")).map { x => (x.trim().toLowerCase(),1) }.reduceByKey(_ + _).collectAsMap
-    val tagPercent = scala.collection.mutable.Map[String,Float]()
-    for((t,c) <- tagCounts) tagPercent(t) = c/numItems.toFloat
-    println("tagCounts size is "+tagCounts.size)
+    
+    
     
     val rddCombined = rddActions.join(rddItems)
+    
+    val numActions = rddCombined.count()
+    val tagCounts = rddCombined.flatMap(_._2._2.split(",")).map { x => (x.trim().toLowerCase(),1) }.reduceByKey(_ + _).collectAsMap
+    val tagPercent = scala.collection.mutable.Map[String,Float]()
+    for((t,c) <- tagCounts) tagPercent(t) = c/numActions.toFloat
+    println("tagCounts size is "+tagCounts.size)
+    
 
     val rddFeatures = rddCombined.map{ case (item,(user,tags)) => (user,(item,tags))}.groupByKey()
           .mapValues{v =>
