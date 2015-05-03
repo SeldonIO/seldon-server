@@ -281,6 +281,44 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 
 
 
+	@Override
+	public Map<Long, Double> getTopCountsByTagAndDimension(String tag,
+			int tagAttrId, int dimension, int limit, double decay)
+			throws ClusterCountNoImplementationException {
+		final PersistenceManager pm = getPM();
+		Map<Long,Double> map = new HashMap<>();
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select cluster_counts.item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedSumCount from cluster_counts natural join item_map_enum natural join dimension join item_map_varchar on (cluster_counts.item_id=item_map_varchar.item_id and item_map_varchar.attr_id=?) where dim_id = ? and value regexp \"(^|,)[ ]*"+tag+"[ ]*(,|$)\" group by item_id order by decayedSumCount desc limit "+limit );
+		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,tagAttrId,dimension);
+		for(Object[] r : res)
+		{
+			Long itemId = (Long) r[0];
+			Double count = (Double) r[1];
+			map.put(itemId, count);
+		}
+		return map;
+	}
+
+
+
+	@Override
+	public Map<Long, Double> getTopCountsByTag(String tag, int tagAttrId,
+			int limit, double decay)
+			throws ClusterCountNoImplementationException {
+		final PersistenceManager pm = getPM();
+		Map<Long,Double> map = new HashMap<>();
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select cluster_counts.item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedSumCount from cluster_counts join item_map_varchar on (cluster_counts.item_id=item_map_varchar.item_id and item_map_varchar.attr_id=?) where value regexp \"(^|,)[ ]*"+tag+"[ ]*(,|$)\" group by item_id order by decayedSumCount desc limit "+limit );
+		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,tagAttrId);
+		for(Object[] r : res)
+		{
+			Long itemId = (Long) r[0];
+			Double count = (Double) r[1];
+			map.put(itemId, count);
+		}
+		return map;
+	}
+
+
+
 	
 
 	
