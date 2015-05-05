@@ -23,21 +23,22 @@
 
 package io.seldon.mf;
 
+import io.seldon.resources.external.ExternalResourceStreamer;
+import io.seldon.resources.external.NewResourceNotifier;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import io.seldon.resources.external.ExternalResourceStreamer;
-import io.seldon.resources.external.NewResourceNotifier;
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.InvalidMatrixException;
 import org.apache.commons.math.linear.LUDecompositionImpl;
@@ -45,8 +46,6 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  *
@@ -197,7 +196,7 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
         	}
         	catch (InvalidMatrixException e)
         	{
-        		logger.warn("Failed to create inverse of products feature matrix");
+        		logger.warn("Failed to create inverse of products feature matrix",e);
         		return null;
         	}
     	  }
