@@ -71,18 +71,15 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     actions.groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => (v._2,v._1)) // filter users with no enough actions and transpose to item first
   }
   
-  def convertJson(affinity : org.apache.spark.rdd.RDD[(Int,String,Double,Double,Double,Double)]) = {
+  def convertJson(affinity : org.apache.spark.rdd.RDD[(Int,String,Double)]) = {
     import org.json4s._
     import org.json4s.JsonDSL._
     import org.json4s.jackson.JsonMethods._
 
-    val userJson = affinity.map{case (user,tag,tagTf,tagPc,tagPcGlobal,pcIncrease) =>
+    val userJson = affinity.map{case (user,tag,pcIncrease) =>
       val json = (("user" -> user ) ~
             ("tag" -> tag ) ~
-            ("tagTf" -> tagTf ) ~            
-            ("tagPc" -> tagPc ) ~ 
-            ("tagPcGlobal" -> tagPcGlobal ) ~             
-            ("pcincr" -> pcIncrease )           
+            ("weight" -> pcIncrease )           
             )
        val jsonText = compact(render(json))    
        jsonText
@@ -167,7 +164,7 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     val minTagCount = config.minTagCount
     val minPcIncrease = config.minPcIncrease
     val tagAffinity = rddFeatures.flatMap{case (user,(tags,numDocs)) =>
-      var allTags = ListBuffer[(Int,String,Double,Double,Double,Double)]()
+      var allTags = ListBuffer[(Int,String,Double)]()
       val tagPercent = bc_tagPercent.value
       val tagCounts = tags.split(",").groupBy { l => l }.map(t => (t._1, t._2.length))
       for (tag <- tags.split(",").toSet[String])
@@ -181,7 +178,7 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
           if (pc_increase > minPcIncrease)
           {
             val affinity = pc_increase
-            allTags.append((user,tag,tag_tf,tagPc,tagPcGlobal,pc_increase))
+            allTags.append((user,tag,pc_increase))
           }
         }
       }
