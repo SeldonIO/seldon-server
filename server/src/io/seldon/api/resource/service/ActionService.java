@@ -57,6 +57,7 @@ import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.LastRecommendationBean;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -98,18 +99,19 @@ public class ActionService {
     @Autowired
     ActionHistoryCache actionCache;
 	
-	public ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
-		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false));
-		bean = Util.getLimitedBean(bean, limit);
-		if(bean == null) {
-			bean = new ListBean();
-			Collection<Action> res = Util.getActionPeer(c).getUserActions(userService.getInternalUserId(c, userId),limit);
-			for(Action a : res) { bean.addBean(new ActionBean(a,c,full)); }
-			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getUserActionsBeanKey(c.getShort_name(), userId, full, false),bean,Constants.CACHING_TIME);
-		}
-		return bean;
-			
-	}
+    public ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
+        ListBean bean = new ListBean();
+        String clientName = c.getShort_name();
+        int numActions = limit;
+        long internalUserId = userService.getInternalUserId(c, userId);
+        List<Long> recentActionsItemIdList = actionCache.getRecentActions(clientName, internalUserId, numActions);
+        for (Long internalItemId : recentActionsItemIdList) {
+            String clientItemId = itemService.getClientItemId(c, internalItemId);
+            ActionBean actionBean = new ActionBean(null, userId, clientItemId, 1, null, null, 0);
+            bean.addBean(actionBean);
+        }
+        return bean;
+    }
 
 	public ListBean getItemActions(ConsumerBean c, String itemId, int limit, boolean full) throws APIException {
 		ListBean bean = (ListBean) MemCachePeer.get(MemCacheKeys.getItemActionsBeanKey(c.getShort_name(), itemId, full, false));
