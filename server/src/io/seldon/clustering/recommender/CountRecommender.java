@@ -142,7 +142,7 @@ public class CountRecommender {
 		}
 	}
 	
-	public Map<Long,Double> recommendUsingTag(Map<String,Float> tagWeights,int tagAttrId,int dimension,int numRecommendations,Set<Long> exclusions,double decay,int minNumItems)
+	public Map<Long,Double> recommendUsingTag(Map<String,Float> tagWeights,int tagAttrId,int dimension,Integer dimension2,int numRecommendations,Set<Long> exclusions,double decay,int minNumItems)
 	{
 		boolean checkDimension = !(dimension == Constants.DEFAULT_DIMENSION || dimension == Constants.NO_TRUST_DIMENSION);
 		int minAllowed = minNumItems < numRecommendations ? minNumItems : numRecommendations;
@@ -150,7 +150,7 @@ public class CountRecommender {
 		int numTopCounts = numRecommendations * 2; // number of counts to get - defaults to twice the final number recommendations to return
 		for(Map.Entry<String,Float> e : tagWeights.entrySet())
 		{
-			updateTagCounts(e.getKey(), e.getValue(), tagAttrId, dimension, checkDimension, numTopCounts, exclusions, counts, decay);
+			updateTagCounts(e.getKey(), e.getValue(), tagAttrId, dimension, dimension2, checkDimension, numTopCounts, exclusions, counts, decay);
 		}
 
 		if (counts.keySet().size() < minAllowed)
@@ -162,7 +162,7 @@ public class CountRecommender {
 		return RecommendationUtils.rescaleScoresToOne(counts, numRecommendations);
 	}
 	
-	private void updateTagCounts(String tag,Float tagWeight,int tagAttrId,int dimension,boolean checkDimension,int limit,Set<Long> exclusions,Map<Long,Double> counts,double decay)
+	private void updateTagCounts(String tag,Float tagWeight,int tagAttrId,int dimension,Integer dimension2,boolean checkDimension,int limit,Set<Long> exclusions,Map<Long,Double> counts,double decay)
 	{
 		Map<Long,Double> itemCounts = null;
 		boolean localDimensionCheckNeeded = false;
@@ -170,7 +170,7 @@ public class CountRecommender {
 		{
 			try 
 			{
-				itemCounts = getClusterTopCountsForTagAndDimension(tag, tagAttrId, dimension, limit, decay);
+				itemCounts = getClusterTopCountsForTagAndDimensions(tag, tagAttrId, dimension, dimension2,limit, decay);
 			} 
 			catch (ClusterCountNoImplementationException e) 
 			{
@@ -633,8 +633,24 @@ public class CountRecommender {
 		);
 }
 	
-	private Map<Long,Double> getClusterTopCountsForTagAndDimension(final String tag,final int tagAttrId,final int dimension, final int limit, final double decay) throws ClusterCountNoImplementationException {
+	private Map<Long,Double> getClusterTopCountsForTagAndDimensions(final String tag,final int tagAttrId,final int dimension, final Integer dimension2, final int limit, final double decay) throws ClusterCountNoImplementationException {
 		
+		if (dimension2 != null)
+		{
+			return getClusterCounts(MemCacheKeys.getTopClusterCountsForTagAndDimension(client, tag, tagAttrId, dimension, limit),
+					new UpdateRetriever<ClustersCounts>() {
+						@Override
+						public ClustersCounts retrieve() throws Exception {
+							logger.debug("Trying to get top counts for tag and dimension from db : testMode is for client " + client + " dimension:" + dimension);
+							Map<Long, Double> itemMap = clusterCounts.getTopCountsByTagAndTwoDimensions(tag, tagAttrId, dimension, dimension2, limit, decay);
+
+							return new ClustersCounts(itemMap, 0);
+						}
+					}
+			);
+		}
+		else
+		{
 			return getClusterCounts(MemCacheKeys.getTopClusterCountsForTagAndDimension(client, tag, tagAttrId, dimension, limit),
 					new UpdateRetriever<ClustersCounts>() {
 						@Override
@@ -646,6 +662,8 @@ public class CountRecommender {
 						}
 					}
 			);
+			
+		}
 	}
 
 	private Map<Long, Double> getClusterCounts(String memcacheKey,UpdateRetriever<ClustersCounts> retriever) throws ClusterCountNoImplementationException {

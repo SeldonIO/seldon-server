@@ -21,7 +21,7 @@
 */
 package io.seldon.tags;
 
-import io.seldon.clustering.recommender.BaseClusterCountsRecommender;
+import io.seldon.clustering.recommender.BaseItemCategoryRecommender;
 import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
@@ -41,13 +41,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserTagAffinityRecommender extends BaseClusterCountsRecommender implements ItemRecommendationAlgorithm {
+public class UserTagAffinityRecommender extends BaseItemCategoryRecommender implements ItemRecommendationAlgorithm {
 	private static Logger logger = Logger.getLogger(UserTagAffinityRecommender.class.getName());
 	private static final String name = UserTagAffinityRecommender.class.getSimpleName();
 	private static final String MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME
        = "io.seldon.algorithm.clusters.minnumberitemsforvalidclusterresult";
 	private static final String DECAY_RATE_OPTION_NAME = "io.seldon.algorithm.clusters.decayratesecs";
 	private static final String TAG_ATTR_ID_OPTION_NAME = "io.seldon.algorithm.tags.attrid";
+	private static final String USE_ITEM_DIMENSION_OPTION_NAME = "io.seldon.algorithm.tags.useitemdim";
 	
 	UserTagAffinityManager tagAffinityManager;
     JdoCountRecommenderUtils cUtils;
@@ -85,7 +86,13 @@ public class UserTagAffinityRecommender extends BaseClusterCountsRecommender imp
         	Integer minClusterItems = optionsHolder.getIntegerOption(MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME);
         	Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
         	Integer tagAttrId = optionsHolder.getIntegerOption(TAG_ATTR_ID_OPTION_NAME);
-        	Map<Long, Double> recommendations = r.recommendUsingTag(tagMap, tagAttrId, dimensionId, maxRecsCount, exclusions, decayRate, minClusterItems);
+        	Boolean useItemDim = optionsHolder.getBooleanOption(USE_ITEM_DIMENSION_OPTION_NAME);
+        	Integer dimension2 = null;
+        	if (useItemDim && ctxt.getCurrentItem() != null)
+        	{
+        		dimension2 = getDimensionForAttrName(ctxt.getCurrentItem(),client,ctxt);
+        	}
+        	Map<Long, Double> recommendations = r.recommendUsingTag(tagMap, tagAttrId, dimensionId, dimension2, maxRecsCount, exclusions, decayRate, minClusterItems);
                 long t2 = System.currentTimeMillis();
                 logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1));
                 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

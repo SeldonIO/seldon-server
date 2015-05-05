@@ -41,8 +41,13 @@ public interface ClusterCountStore {
 	public Map<Long,Double> getTopCountsByDimension(int dimension,int limit, double decay) throws ClusterCountNoImplementationException;
 	//Global top counts but restricted to two dimensions for returned items
 	public Map<Long,Double> getTopCountsByTwoDimensions(int dimension1,int dimension2,int limit, double decay) throws ClusterCountNoImplementationException;
+
+	/*
+	 * Tag menthods
+	 */
 	//Global counts but using a tag from a textual attribute plus general dimension
 	public Map<Long,Double> getTopCountsByTagAndDimension(String tag,int tagAttrId,int dimension,int limit,double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCountsByTagAndTwoDimensions(String tag,int tagAttrId,int dimension,int dimension2,int limit,double decay) throws ClusterCountNoImplementationException;
 	public Map<Long,Double> getTopCountsByTag(String tag,int tagAttrId,int limit,double decay) throws ClusterCountNoImplementationException;
 	/*
 	 * Methods restricted to a cluster
