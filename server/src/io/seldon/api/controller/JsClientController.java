@@ -33,6 +33,7 @@ import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ItemBean;
 import io.seldon.api.resource.ResourceBean;
+import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
 import io.seldon.api.resource.service.business.ItemBusinessService;
@@ -123,6 +124,21 @@ public class JsClientController {
         boolean isCTR = StringUtils.isNotBlank(rlabs);
 
         return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag));
+    }
+    
+    @RequestMapping("/user/new")
+    public @ResponseBody
+    JSONPObject registerUser(HttpSession session,
+                            @RequestParam("user") String userId,
+                            @RequestParam(value = "username", required = false) String username,
+                            @RequestParam("jsonpCallback") String callback) {
+        username = (username != null) ? username : userId;
+        final ConsumerBean consumerBean = retrieveConsumer(session);
+        UserBean user = new UserBean(userId, username);
+        user.setType(1);
+        logger.debug("Creating user: " + userId + " for consumer: " + consumerBean.getShort_name());
+        ResourceBean responseBean = userBusinessService.updateUser((ConsumerBean) consumerBean, user, null, false, false);
+        return asCallback(callback, responseBean);
     }
 
     @RequestMapping("/recommendations")

@@ -43,7 +43,6 @@
         <mvc:interceptor>
             <mvc:mapping path="/js/**"/>
             <mvc:mapping path="/acquire/**"/>
-            <mvc:exclude-mapping path="/js/user/new"/>
 			<mvc:exclude-mapping path="/js/share"/>
 			<mvc:exclude-mapping path="/js/interaction/new"/>
 			<mvc:exclude-mapping path="/js/tracking"/>
