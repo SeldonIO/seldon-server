@@ -47,7 +47,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.util.JSONPObject;
 
 /**
  * @author claudio
@@ -146,7 +149,7 @@ public class UserController {
                 responseBean = new ErrorBean(e);
                 //Keep It?
                 if (e.getError_id() == APIException.USER_DUPLICATED) {
-                    updateUser(bean, req);
+                    updateUser(bean, req, null);
 
                 }
             } catch (Exception e) {
@@ -161,20 +164,27 @@ public class UserController {
         return responseBean;
     }
 
-	@RequestMapping(value="/users", method = RequestMethod.PUT)
-	public @ResponseBody
-    ResourceBean updateUser(@RequestBody UserBean user, HttpServletRequest req) {
-		Date start = new Date();
-		ResourceBean con = resourceServer.validateResourceRequest(req);
-		ResourceBean responseBean;
-		if(con instanceof ConsumerBean) {
-            responseBean = userBusinessService.updateUser((ConsumerBean) con, user, null,false, false);
+    @RequestMapping(value = "/users", method = RequestMethod.PUT)
+    public @ResponseBody Object updateUser(@RequestBody UserBean user, HttpServletRequest req,
+            @RequestParam(value = "jsonpCallback", required = false) String callback) {
+        Date start = new Date();
+        ResourceBean con = resourceServer.validateResourceRequest(req);
+        ResourceBean responseBean;
+        if (con instanceof ConsumerBean) {
+            responseBean = userBusinessService.updateUser((ConsumerBean) con, user, null, false, false);
+        } else {
+            responseBean = con;
         }
-		else {
-			responseBean = con;
-		}
-		ApiLogger.log("users",start,new Date(),con,responseBean,req);
-        return responseBean;
-	}
+        ApiLogger.log("users", start, new Date(), con, responseBean, req);
+        if (callback != null) {
+            return asCallback(callback, responseBean);
+        } else {
+            return responseBean;
+        }
+    }
+
+    private JSONPObject asCallback(String callbackName, Object valueObject) {
+        return new JSONPObject(callbackName, valueObject);
+    }
 
 }
