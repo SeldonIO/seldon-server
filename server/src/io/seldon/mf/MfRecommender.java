@@ -59,7 +59,7 @@ public class MfRecommender implements ItemRecommendationAlgorithm {
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, int dimension, int maxRecsCount,
             RecommendationContext ctxt, List<Long> recentitemInteractions) {
-        MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
+        MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client,ctxt);
 
         if(clientStore==null || clientStore.userFeatures.get(user)==null) {
             logger.debug("Couldn't find a matrix factorization store for this client or this user");

@@ -114,7 +114,8 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
     public void configUpdated(String client, String configKey, String configValue) {
 
         logger.info("Received new config for client : \"" + client + "\", key : \""+ configKey +  "\", value \""  + configValue + "\"");
-        Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(configKey);
+        String firstPartOfKey = configKey.split("/")[0];
+        Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(firstPartOfKey);
         if(watchingClients!=null && watchingClients.containsKey(client)){
             watchingClients.get(client).newClientLocation(client,configValue,configKey);
         }

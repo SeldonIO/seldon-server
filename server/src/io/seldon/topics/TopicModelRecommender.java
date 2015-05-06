@@ -66,7 +66,7 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
 		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
 		Integer minNumTagsForWeights = options.getIntegerOption(MIN_NUM_WEIGHTS_PROPERTY_NAME);
-		TopicFeaturesStore store = featuresManager.getClientStore(client);
+		TopicFeaturesStore store = featuresManager.getClientStore(client,ctxt);
 		if (store == null)
 		{
 			logger.debug("Failed to find topic features for client "+client);

@@ -110,7 +110,8 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
         }
 
         if(!initalized && event.getType() != TreeCacheEvent.Type.INITIALIZED) {
-            logger.debug("Ignore event as we are not in an initialised state: " + event);
+            logger.debug
+                    ("Ignore event as we are not in an initialised state: " + event);
             return;
         }
         if(event.getType()== TreeCacheEvent.Type.NODE_ADDED || event.getType() == TreeCacheEvent.Type.NODE_UPDATED)
@@ -147,7 +148,7 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
             case NODE_UPDATED:
                 String location = event.getData().getPath();
                 boolean foundAMatch = false;
-                String[] clientAndNode = location.replace("/" + CLIENT_LIST_LOCATION + "/", "").split("/");
+                String[] clientAndNode = location.replace("/" + CLIENT_LIST_LOCATION + "/", "").split("/",2);
                 if(clientAndNode !=null && clientAndNode.length==2){
                     for(ClientConfigUpdateListener listener: listeners){
                         foundAMatch = true;

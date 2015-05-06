@@ -68,7 +68,7 @@ public class TopicModelRecommenderTest {
 	{
 		final String client = "test";
 		final int dimension = 1;
-		expect(mockFeaturesManager.getClientStore(client)).andReturn(null);
+		expect(mockFeaturesManager.getClientStore(client,mockCtxt)).andReturn(null);
 		replay(mockFeaturesManager);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
@@ -108,7 +108,7 @@ public class TopicModelRecommenderTest {
 		replay(mockTagsManager, mockOptions);
 
 		TopicFeaturesStore tfs = new TopicFeaturesStore(Collections.<Long, Map<Integer,Float>>emptyMap(),Collections.<String, Map<Integer,Float>>emptyMap());
-		expect(mockFeaturesManager.getClientStore(client)).andReturn(tfs);
+		expect(mockFeaturesManager.getClientStore(client,mockCtxt)).andReturn(tfs);
 		replay(mockFeaturesManager);
 		expect(mockCtxt.getContextItems()).andReturn(Collections.singleton(1L)).times(3);
 		replay(mockCtxt);
@@ -160,7 +160,7 @@ public class TopicModelRecommenderTest {
 		tagWeights.put(topic, tagWeight);
 		tagTopicWeights.put(tag, tagWeights);
 		TopicFeaturesStore tfs = new TopicFeaturesStore(userTopicWeights,tagTopicWeights);
-		expect(mockFeaturesManager.getClientStore(client)).andReturn(tfs);
+		expect(mockFeaturesManager.getClientStore(client,mockCtxt)).andReturn(tfs);
 		replay(mockFeaturesManager);
 		expect(mockCtxt.getContextItems()).andReturn(recentItems).times(3);
 		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);

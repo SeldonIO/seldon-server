@@ -27,15 +27,14 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import io.seldon.api.state.ClientAlgorithmStore;
+import io.seldon.recommendation.model.ModelManager;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
@@ -58,68 +57,52 @@ import javax.annotation.PostConstruct;
  *         Time: 15:35
  */
 @Component
-public class MfFeaturesManager implements PerClientExternalLocationListener {
+public class MfFeaturesManager extends ModelManager<MfFeaturesManager.ClientMfFeaturesStore>{
 
 
     private static Logger logger = Logger.getLogger(MfFeaturesManager.class.getName());
-    private final ConcurrentMap<String, ClientMfFeaturesStore> clientStores
-            = new ConcurrentHashMap<>();
-    private NewResourceNotifier notifier;
     private final ExternalResourceStreamer featuresFileHandler;
     private static final String MF_NEW_LOC_PATTERN = "mf";
 
-    private final Executor executor = Executors.newFixedThreadPool(5);
 
     @Autowired
     public MfFeaturesManager(ExternalResourceStreamer featuresFileHandler,
                              NewResourceNotifier notifier){
+        super(notifier, Collections.singleton(MF_NEW_LOC_PATTERN));
         this.featuresFileHandler = featuresFileHandler;
-        this.notifier = notifier;
-        notifier.addListener(MF_NEW_LOC_PATTERN, this);
     }
 
-    @PostConstruct
-    public void init(){
-    }
+    public ClientMfFeaturesStore loadModel(String location, String client){
+        logger.info("Reloading matrix factorization features for client: "+ client);
 
-    public void reloadFeatures(final String location, final String client){
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                logger.info("Reloading matrix factorization features for client: "+ client);
-
-                try {
-                    BufferedReader userFeaturesReader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/userFeatures.txt.gz")
-                    ));
-                    Map<Long, float[]> userFeatures = readFeatures(userFeaturesReader);
-                    int rank= 0;
-                    if(!userFeatures.isEmpty()){
-                        Long firstUser = userFeatures.keySet().iterator().next();
-                        rank = userFeatures.get(firstUser).length;
-                    }
-                    BufferedReader productFeaturesReader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/productFeatures.txt.gz")
-                    ));
-                    Map<Long, float[]> productFeatures = readFeatures(productFeaturesReader);
-                    clientStores.put(client, new ClientMfFeaturesStore(userFeatures, productFeatures));
-                    logger.info("Finished loading MF features ("+userFeatures.size()+" users and "+productFeatures.size() +
-                            " products at rank " + rank +") for " + client);
-                    userFeaturesReader.close();
-                    productFeaturesReader.close();
-                } catch (FileNotFoundException e) {
-                    logger.error("Couldn't reloadFeatures for client "+ client, e);
-                } catch (IOException e) {
-                    logger.error("Couldn't reloadFeatures for client "+ client, e);
-                }
+        try {
+            BufferedReader userFeaturesReader = new BufferedReader(new InputStreamReader(
+                    featuresFileHandler.getResourceStream(location + "/userFeatures.txt.gz")
+            ));
+            Map<Long, float[]> userFeatures = readFeatures(userFeaturesReader);
+            int rank= 0;
+            if(!userFeatures.isEmpty()){
+                Long firstUser = userFeatures.keySet().iterator().next();
+                rank = userFeatures.get(firstUser).length;
             }
-        });
-
+            BufferedReader productFeaturesReader = new BufferedReader(new InputStreamReader(
+                    featuresFileHandler.getResourceStream(location + "/productFeatures.txt.gz")
+            ));
+            Map<Long, float[]> productFeatures = readFeatures(productFeaturesReader);
+            logger.info("Finished loading MF features ("+userFeatures.size()+" users and "+productFeatures.size() +
+                    " products at rank " + rank +") for " + client);
+            userFeaturesReader.close();
+            productFeaturesReader.close();
+            return new ClientMfFeaturesStore(userFeatures, productFeatures);
+        } catch (FileNotFoundException e) {
+            logger.error("Couldn't reloadFeatures for client "+ client, e);
+        } catch (IOException e) {
+            logger.error("Couldn't reloadFeatures for client "+ client, e);
+        }
+        return null;
     }
 
-    public ClientMfFeaturesStore getClientStore(String client){
-        return clientStores.get(client);
-    }
+
 
 
     private Map<Long,float[]> readFeatures(BufferedReader reader) throws IOException {
@@ -139,15 +122,16 @@ public class MfFeaturesManager implements PerClientExternalLocationListener {
         return toReturn;
     }
 
-    @Override
-    public void newClientLocation(String client, String location,String nodePattern) {
-        reloadFeatures(location,client);
-    }
+//
+//    public void newClientLocation(String client, String location,String nodePattern) {
+//        reloadFeatures(location,client);
+//    }
+//
+//    @Override
+//    public void clientLocationDeleted(String client,String nodePattern) {
+//        clientStores.remove(client);
+//    }
 
-    @Override
-    public void clientLocationDeleted(String client,String nodePattern) {
-        clientStores.remove(client);
-    }
 
     public static class ClientMfFeaturesStore {
 

@@ -170,7 +170,8 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 AlgorithmResultsCombiner combiner = applicationContext.getBean(
                         config.combiner,AlgorithmResultsCombiner.class);
                 Map<Integer,Double> actionWeightMap = toActionWeightMap(config.actionWeights);
-                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,"-",actionWeightMap));
+                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,
+                        ClientStrategy.DEFAULT_NAME,actionWeightMap));
                 storeMap.put(client, Collections.unmodifiableMap(stratMap));
                 logger.info("Successfully added new algorithm config for "+client);
             } catch (IOException | BeansException e) {
@@ -231,7 +232,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                         config.defaultAlg.combiner,AlgorithmResultsCombiner.class);
                 Map<Integer,Double> defActionWeightMap = toActionWeightMap(config.defaultAlg.actionWeights);
                 SimpleClientStrategy defStategy = new SimpleClientStrategy(defaultAlgStrategies, defCombiner,
-                        config.defaultAlg.diversityLevel,"-",defActionWeightMap);
+                        config.defaultAlg.diversityLevel,ClientStrategy.DEFAULT_NAME,defActionWeightMap);
                 Map<String, ClientStrategy> recTagStrats = new HashMap<>();
                 for (Map.Entry<String, AlgorithmConfig> entry : config.recTagToAlg.entrySet() ){
                     List<AlgorithmStrategy> strategies = new ArrayList<>();
