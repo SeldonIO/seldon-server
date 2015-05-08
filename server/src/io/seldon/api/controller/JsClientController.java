@@ -62,6 +62,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 
+import static java.lang.Boolean.TRUE;
+
 /**
  * Created by: marc on 05/07/2012 at 11:17
  */
@@ -137,15 +139,16 @@ public class JsClientController {
                                     @RequestParam(value = "limit", defaultValue = "10") Integer recommendationsLimit,
                                     @RequestParam(value = "algorithms", required = false) String algorithms,
                                     @RequestParam(value = "source", required = false) String referrer,                                    
-                                    @RequestParam(value = "rectag", required = false) String recTag,                                    
+                                    @RequestParam(value = "rectag", required = false) String recTag,
+                                    @RequestParam(value = "cohort", required = false, defaultValue = "false") Boolean includeCohort,
                                     @RequestParam("user") String userId,
                                     @RequestParam("jsonpCallback") String callback) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
         MDCKeys.addKeys(consumerBean, userId, itemId,recTag);
         //added zehtg parameter as additional option for rlabs
     	if(StringUtils.isNotBlank(lastRecommendationListUuid2)) { lastRecommendationListUuid=lastRecommendationListUuid2;}
-        logger.info("Retrieving recommendations for user " + userId + ", consumer: " + consumerBean.getShort_name()+" with tag "+recTag);
-        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag);
+        logger.info("Retrieving recommendations for user " + userId + ", consumer: " + consumerBean.getShort_name() + " with tag " + recTag);
+        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort);
         //tracking recommendations impression
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);
@@ -153,7 +156,9 @@ public class JsClientController {
     }
 
 
-    private ResourceBean getRecommendations(ConsumerBean consumerBean, String userId, String itemId, Integer dimensionId, String lastRecommendationListUuid, Integer recommendationsLimit, String attributes,String algorithms,String referrer,String recTag) {
+    private ResourceBean getRecommendations(ConsumerBean consumerBean, String userId, String itemId, Integer dimensionId,
+                                            String lastRecommendationListUuid, Integer recommendationsLimit, String attributes,
+                                            String algorithms,String referrer,String recTag, boolean includeCohort) {
         Long internalItemId = null;
         if (itemId != null) {
             try {
@@ -170,7 +175,7 @@ public class JsClientController {
         }
         logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
         logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
-        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag);
+        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort);
     }
 
     // TODO category, tags

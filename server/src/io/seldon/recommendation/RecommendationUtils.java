@@ -106,7 +106,7 @@ public class RecommendationUtils {
 		{
 			userRecCounter++;
 			String recsList = CollectionTools.join(recs, ":");
-			String abTestingKey = strat.getName(userId);
+			String abTestingKey = strat.getName(userId, recTag);
 			// TODO ab testing and recTag
 //			if (algorithm != null)
 //				abTestingKey = algorithm.getAbTestingKey();

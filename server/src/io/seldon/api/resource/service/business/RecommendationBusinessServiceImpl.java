@@ -42,17 +42,19 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
 
     @Override
     public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int dimension, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimension, null, limit, null,null,null,null);
+        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimension, null, limit, null,null,null,null,false);
     }
 
     @Override
     public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, String uuid, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, 0, uuid, limit, null,null,null,null);
+        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, 0, uuid, limit, null,null,null,null,false);
     }
 
     @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, int dimensionId, String uuid, int limit, String attributes,List<String> algorithms,String referrer,String recTag) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensionId, uuid, limit, attributes,algorithms,referrer,recTag);
+    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,
+                                                int dimensionId, String uuid, int limit, String attributes,List<String> algorithms,
+                                                String referrer,String recTag, boolean includeCohort) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensionId, uuid, limit, attributes,algorithms,referrer,recTag, includeCohort);
     }
 
   

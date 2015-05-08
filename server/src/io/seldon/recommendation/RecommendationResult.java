@@ -35,10 +35,12 @@ public class RecommendationResult implements Serializable {
 	
 	List<Recommendation> recs;
 	String uuid;
-	public RecommendationResult(List<Recommendation> recs, String uuid) {
+	String cohort;
+	public RecommendationResult(List<Recommendation> recs, String uuid, String cohort) {
 		super();
 		this.recs = recs;
 		this.uuid = uuid;
+		this.cohort = cohort;
 	}
 	public List<Recommendation> getRecs() {
 		return recs;
@@ -52,7 +54,12 @@ public class RecommendationResult implements Serializable {
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
 	}
-	
-	
 
+	public String getCohort() {
+		return cohort;
+	}
+
+	public void setCohort(String cohort) {
+		this.cohort = cohort;
+	}
 }

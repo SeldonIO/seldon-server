@@ -67,8 +67,8 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName(String userId) {
-        return sample(userId).getName(userId);
+    public String getName(String userId, String recTag) {
+        return sample(userId).getName(userId, recTag);
     }
     
     @Override

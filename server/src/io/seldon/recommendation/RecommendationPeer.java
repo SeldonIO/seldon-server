@@ -208,7 +208,7 @@ public class RecommendationPeer {
     	List<Recommendation> recBeans = new ArrayList<>();
     	for(Long itemId : recsFinal)
     		recBeans.add(new Recommendation(itemId, 0, 0.0));
-    	return new RecommendationResult(recBeans, uuid);
+    	return new RecommendationResult(recBeans, uuid, strat.getName(clientUserId,recTag));
     }
 
 	public SortResult sort(Long userId,List<Long> items, CFAlgorithm options, List<Long> recentActions) {

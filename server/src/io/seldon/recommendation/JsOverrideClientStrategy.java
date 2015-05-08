@@ -108,8 +108,8 @@ public class JsOverrideClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName(String userId) {
-        return baseStrategy.getName(userId);
+    public String getName(String userId, String recTag) {
+        return baseStrategy.getName(userId, recTag);
     }
 
 	@Override

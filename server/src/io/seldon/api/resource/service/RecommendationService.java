@@ -27,13 +27,7 @@ import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.resource.ActionBean;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ItemBean;
-import io.seldon.api.resource.ListBean;
-import io.seldon.api.resource.RecommendationBean;
-import io.seldon.api.resource.RecommendationsBean;
-import io.seldon.api.resource.ResourceBean;
+import io.seldon.api.resource.*;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.recommendation.CFAlgorithm;
@@ -217,7 +211,7 @@ public class RecommendationService {
 
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
                                             int dimensionId, String lastRecommendationListUuid, int limit,
-                                            String attributes,List<String> algorithms,String referrer,String recTag) {
+                                            String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort) {
         List<String> actualAlgorithms = new ArrayList<>();
         if(algorithms!=null) {
             for (String alg : algorithms) {
@@ -261,7 +255,8 @@ public class RecommendationService {
                     internalUserId, consumerBean.getShort_name(), userId, typeId, dimensionId, limit,
                     lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms
                     );
-            List<Recommendation> recommendations = recResult.getRecs(); 
+            List<Recommendation> recommendations = recResult.getRecs();
+            List<ItemBean> itemRecs = new ArrayList<>();
             for (Recommendation recommendation : recommendations) {
                 String recommendedItemId = null;
                 long internalId = recommendation.getContent();
@@ -275,13 +270,18 @@ public class RecommendationService {
                     //filter the item
                     ItemBean resItem = ItemService.filter(itemBean, attributeList);
                     addUuidAttribute(resItem, recResult);
-                    listBean.addBean(resItem);
+                    itemRecs.add(resItem);
                 }
             }
-            listBean.setRequested(limit);
-            listBean.setSize(recommendations.size());
+            if (includeCohort) {
+                return new ItemRecommendationsBean(itemRecs,recResult.getCohort());
+            } else {
+                listBean.addAll(itemRecs);
+                listBean.setRequested(limit);
+                listBean.setSize(recommendations.size());
 
-        return listBean;
+                return listBean;
+            }
     }
 
     private static void addUuidAttribute(ItemBean itemBean, RecommendationResult recResult) {

@@ -37,6 +37,8 @@ public interface RecommendationBusinessService {
 
     ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, String uuid, int limit);
 
-    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, int dimensionId, String uuid, int limit, String attributes,List<String> algorithms, String referrer,String recTag);
+    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,
+                                         int dimensionId, String uuid, int limit, String attributes,
+                                         List<String> algorithms, String referrer,String recTag, boolean includeCohort);
 
 }
