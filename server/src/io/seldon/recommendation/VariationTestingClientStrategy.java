@@ -96,7 +96,7 @@ public class VariationTestingClientStrategy implements ClientStrategy {
         }
         BigDecimal currentMax = BigDecimal.ZERO;
         for(Variation var : variations){
-            NumberRange range = new NumberRange(currentMax, currentMax.add(var.ratio.divide(ratioTotal)));
+            NumberRange range = new NumberRange(currentMax, currentMax.add(var.ratio.divide(ratioTotal, 5, BigDecimal.ROUND_UP)));
             strategyMap.put(range,var.variationStrategy);
             currentMax = currentMax.add(var.ratio);
         }
