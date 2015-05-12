@@ -36,6 +36,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
+import io.seldon.api.resource.service.business.EventBusinessService;
 import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
@@ -55,7 +56,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -82,6 +82,8 @@ public class JsClientController {
     @Autowired
     private RecommendationBusinessService recommendationBusinessService;
     
+    @Autowired
+    private EventBusinessService eventBusinessService;
     
     @Autowired
     private MessageSource messageSource;
@@ -166,6 +168,20 @@ public class JsClientController {
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);
         return asCallback(callback, recommendations);
+    }
+    
+    
+    @RequestMapping("/event/new")
+    public
+    @ResponseBody
+    JSONPObject registerEvent(HttpSession session,
+							  HttpServletRequest request, 
+                             @RequestParam("jsonpCallback") String callback) {
+        final ConsumerBean consumerBean = retrieveConsumer(session);
+        @SuppressWarnings("unchecked")
+		Map<String,String[]> parameters = request.getParameterMap();
+        
+		return asCallback(callback, eventBusinessService.addEvent(consumerBean, parameters));
     }
 
 
