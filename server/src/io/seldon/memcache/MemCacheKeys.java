@@ -41,7 +41,7 @@ public class MemCacheKeys {
 			ActionsBean,ItemActionsBean,UserInternalId,ItemInternalId,UserClientId,ItemClientId,DimensionsBean,ItemsBeanByNameNew,ItemAttrType,ItemType,ActionType,ItemDimensions,InternalActionsBean,
 			FacebookFriends,FacebookLikes,DBPediaSearch,RecommendedUsers,
 			DimensionByItemType,DemographicBean,DBPediaHits, ItemSemanticAttribute, CooccurenceNetwork,
-			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,
+			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,TopClusterCountsForTag,
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
 			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
@@ -370,6 +370,17 @@ public class MemCacheKeys {
 	{
 		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg+":"+clusterId+":"+dimension+":"+limit;
 	}
+	
+	public static String getTopClusterCountsForTagAndDimension(String client,String tag,int tagAttrId,int dimension,int limit)
+	{
+		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+dimension+":"+limit;
+	}
+	
+	public static String getTopClusterCountsForTag(String client,String tag,int tagAttrId,int limit)
+	{
+		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+limit;
+	}
+	
 
 	
 	public static String getTopClusterCountsForDimension(String client,int dimension,int limit)
