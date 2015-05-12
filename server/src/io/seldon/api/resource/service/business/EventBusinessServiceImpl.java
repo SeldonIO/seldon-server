@@ -38,23 +38,26 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EventBusinessServiceImpl implements EventBusinessService {
 
-	public static final String JSON_KEY = "json";
+	private static final String JSON_KEY = "json";
+	private static final String CLIENT_KEY = "client";
 	
 	private boolean allowedKey(String key)
 	{
 		return (!(Constants.CONSUMER_KEY.equals(key) || 
 					Constants.CONSUMER_SECRET.equals(key) ||
 					Constants.OAUTH_TOKEN.equals(key) ||
+					CLIENT_KEY.equals(key) ||
 					"jsonpCallback".equals(key)));
 		
 	}
 	
-	private ResourceBean getValidatedJsonResource(String jsonRaw)
+	private ResourceBean getValidatedJsonResource(ConsumerBean consumer,String jsonRaw)
 	{
 		ResourceBean responseBean;
 		ObjectMapper mapper = new ObjectMapper();
@@ -63,12 +66,13 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 	    {
 	    	JsonParser parser = factory.createJsonParser(jsonRaw);
 	    	JsonNode actualObj = mapper.readTree(parser);
+	    	((ObjectNode) actualObj).put(CLIENT_KEY,consumer.getShort_name());
 	    	String json = actualObj.toString();
 			EventLogger.log(json);
 			responseBean = new EventBean(json);
 	    } catch (IOException e) {
 	    	ApiLoggerServer.log(this, e);
-			APIException apiEx = new APIException(APIException.INCORRECT_FIELD);
+			APIException apiEx = new APIException(APIException.INVALID_JSON);
 			responseBean = new ErrorBean(apiEx);
 		}
 	    return responseBean;
@@ -81,7 +85,7 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 		if (parameters.containsKey(JSON_KEY))
 		{
 			String jsonRaw = parameters.get(JSON_KEY)[0];
-			responseBean = getValidatedJsonResource(jsonRaw);
+			responseBean = getValidatedJsonResource(consumerBean,jsonRaw);
 		}
 		else
 		{
@@ -92,6 +96,7 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 					keyVals.put(reqMapEntry.getKey(), reqMapEntry.getValue()[0]);
 				}
 			}
+			keyVals.put(CLIENT_KEY, consumerBean.getShort_name());
 			ObjectMapper mapper = new ObjectMapper();
 			try {
 				String json = mapper.writeValueAsString(keyVals);
@@ -99,7 +104,7 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 				responseBean = new EventBean(json);
 			} catch (IOException e) {
 				ApiLoggerServer.log(this, e);
-				APIException apiEx = new APIException(APIException.INCORRECT_FIELD);
+				APIException apiEx = new APIException(APIException.INVALID_JSON);
 				responseBean = new ErrorBean(apiEx);
 			}
 		}
@@ -108,7 +113,7 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 
 	@Override
 	public ResourceBean addEvent(ConsumerBean consumerBean, String event) {
-		return getValidatedJsonResource(event);
+		return getValidatedJsonResource(consumerBean,event);
 	}
 
 }

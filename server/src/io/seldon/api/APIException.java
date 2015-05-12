@@ -69,6 +69,7 @@ public class APIException extends RuntimeException {
     public static final int CONCURRENT_USER_UPDATE = 35;
     public static final int FACEBOOK_RESPONSE = 36;
 	public static final int NOT_VALID_STRATEGY = 37;
+	public static final int INVALID_JSON = 38;
 
     //ATTRIBUTES
     int error_id;
@@ -221,6 +222,10 @@ public class APIException extends RuntimeException {
 			case NOT_VALID_STRATEGY:
 				error_msg = "Invalid or Null Strategy. The default strategy or a per client strategy needs to be set correctly.";
 				httpResponse = 500;
+				break;
+			case INVALID_JSON:
+				error_msg = "Invalid JSON";
+				httpResponse = 400;
 				break;
 		}
 	}
