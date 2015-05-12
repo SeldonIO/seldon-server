@@ -50,7 +50,7 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
 	private final ConcurrentMap<String,UserTagStore> clientStores = new ConcurrentHashMap<>();
 	private Set<NewResourceNotifier> notifiers = new HashSet<>();
 	private final ExternalResourceStreamer featuresFileHandler;
-	public static final String TAG_NEW_LOC_PATTERN = "tags";
+	public static final String TAG_NEW_LOC_PATTERN = "tagaffinity";
 
 	private final Executor executor = Executors.newFixedThreadPool(5);
 
