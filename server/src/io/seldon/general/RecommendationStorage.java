@@ -53,9 +53,9 @@ public class RecommendationStorage {
         this.dogpileHandler = dogpileHandler;
     }
 
-    public LastRecommendationBean retrieveLastRecommendations(String client, String user, String recsCounter){
+    public LastRecommendationBean retrieveLastRecommendations(String client, String user, String recsCounter, String recTag){
         int userRecCounter = Integer.parseInt(recsCounter.trim());
-        LastRecommendationBean lastRecommendations = (LastRecommendationBean) memcachedClient.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter));
+        LastRecommendationBean lastRecommendations = (LastRecommendationBean) memcachedClient.get(MemCacheKeys.getRecommendationListUUID(client, user, userRecCounter,recTag));
         return lastRecommendations;
     }
 }

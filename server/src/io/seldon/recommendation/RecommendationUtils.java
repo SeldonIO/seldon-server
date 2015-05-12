@@ -111,7 +111,7 @@ public class RecommendationUtils {
 //			if (algorithm != null)
 //				abTestingKey = algorithm.getAbTestingKey();
 			CtrLogger.log(false,client, algKey, -1, userId,""+userRecCounter,currentItemId,numRecentActions,recsList,abTestingKey,recTag);
-			MemCachePeer.put(MemCacheKeys.getRecommendationListUUID(client,userId,userRecCounter),new LastRecommendationBean(algKey, recs),MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
+			MemCachePeer.put(MemCacheKeys.getRecommendationListUUID(client,userId,userRecCounter, recTag),new LastRecommendationBean(algKey, recs),MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
 			MemCachePeer.put(counterKey, userRecCounter,MEMCACHE_EXCLUSIONS_EXPIRE_SECS);
 		}
 		catch(NumberFormatException e)

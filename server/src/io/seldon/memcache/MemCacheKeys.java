@@ -387,9 +387,9 @@ public class MemCacheKeys {
 		return ""+keys.ExcludedItemsForRecommendations.name()+":"+client+":"+userId;
 	}
 	
-	public static String getRecommendationListUUID(String client,String userId,int counter)
+	public static String getRecommendationListUUID(String client,String userId,int counter, String recTag)
 	{
-		return ""+keys.RecommendationUUIDNew.name()+":"+client+":"+userId+":"+counter;
+		return ""+keys.RecommendationUUIDNew.name()+":"+client+":"+userId+":"+counter + ":" + recTag;
 	}
 	
 	public static String getRecommendationListUUIDWithDimension(String client,int dimension, String userId,int counter)

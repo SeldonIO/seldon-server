@@ -297,9 +297,9 @@ public class RecommendationService {
         return MemCacheKeys.getRecommendedItemsKey(shortName, cfAlgorithm, userId, typeId, dimensionId, full);
     }
 
-    public LastRecommendationBean retrieveLastRecs(ConsumerBean consumerBean, ActionBean actionBean,String recsCounter){
+    public LastRecommendationBean retrieveLastRecs(ConsumerBean consumerBean, ActionBean actionBean,String recsCounter, String recTag){
         return recommendationStorage.retrieveLastRecommendations(consumerBean.getShort_name(),
-                actionBean.getUser(), recsCounter);
+                actionBean.getUser(), recsCounter, recTag);
 
 
     }
