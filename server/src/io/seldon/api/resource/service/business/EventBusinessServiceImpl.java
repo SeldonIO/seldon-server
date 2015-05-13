@@ -46,6 +46,7 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 
 	private static final String JSON_KEY = "json";
 	private static final String CLIENT_KEY = "client";
+	private static final String TIMESTAMP_KEY = "timestamp";
 	
 	private boolean allowedKey(String key)
 	{
@@ -55,6 +56,11 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 					CLIENT_KEY.equals(key) ||
 					"jsonpCallback".equals(key)));
 		
+	}
+	
+	private Long getTimeStamp()
+	{
+		return System.currentTimeMillis()/1000;
 	}
 	
 	private ResourceBean getValidatedJsonResource(ConsumerBean consumer,String jsonRaw)
@@ -67,6 +73,20 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 	    	JsonParser parser = factory.createJsonParser(jsonRaw);
 	    	JsonNode actualObj = mapper.readTree(parser);
 	    	((ObjectNode) actualObj).put(CLIENT_KEY,consumer.getShort_name());
+	    	if (actualObj.get(TIMESTAMP_KEY) == null)
+	    	{
+	    		((ObjectNode) actualObj).put(TIMESTAMP_KEY,getTimeStamp());
+	    	}
+	    	else
+			{
+	    		JsonNode timeNode = actualObj.get(TIMESTAMP_KEY);
+	    		if (!(timeNode.isInt() || timeNode.isLong()))
+	    		{
+					APIException apiEx = new APIException(APIException.INVALID_JSON);
+					responseBean = new ErrorBean(apiEx);
+					return responseBean;
+				}
+			}
 	    	String json = actualObj.toString();
 			EventLogger.log(json);
 			responseBean = new EventBean(json);
@@ -81,7 +101,7 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 	@Override
 	public ResourceBean addEvent(ConsumerBean consumerBean,Map<String, String[]> parameters) {
 		ResourceBean responseBean;
-		Map<String,String> keyVals = new HashMap<String,String>();
+		Map<String,Object> keyVals = new HashMap<String,Object>();
 		if (parameters.containsKey(JSON_KEY))
 		{
 			String jsonRaw = parameters.get(JSON_KEY)[0];
@@ -97,6 +117,22 @@ public class EventBusinessServiceImpl implements EventBusinessService {
 				}
 			}
 			keyVals.put(CLIENT_KEY, consumerBean.getShort_name());
+			if (!keyVals.containsKey(TIMESTAMP_KEY))
+				keyVals.put(TIMESTAMP_KEY, getTimeStamp());
+			else
+			{
+				try
+				{
+					Long.parseLong(((String)keyVals.get(TIMESTAMP_KEY)));
+				}
+				catch (NumberFormatException e)
+				{
+					ApiLoggerServer.log(this, e);
+					APIException apiEx = new APIException(APIException.INVALID_JSON);
+					responseBean = new ErrorBean(apiEx);
+					return responseBean;
+				}
+			}
 			ObjectMapper mapper = new ObjectMapper();
 			try {
 				String json = mapper.writeValueAsString(keyVals);
