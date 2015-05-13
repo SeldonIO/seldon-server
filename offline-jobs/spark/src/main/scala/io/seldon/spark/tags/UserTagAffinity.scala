@@ -13,23 +13,26 @@ import java.sql.ResultSet
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.mllib.feature.IDF
 
-case class Config(
-    local : Boolean = false,
+case class TagAffinityConfig(
     client : String = "",
-    jdbc : String = "",
     inputPath : String = "/seldon-models",
     outputPath : String = "/seldon-models",
-    tagFilterPath : String = "",
-    awsKey : String = "",
-    awsSecret : String = "",
     startDay : Int = 1,
     days : Int = 1,
+    awsKey : String = "",
+    awsSecret : String = "",
+    local : Boolean = false,
+    zkHosts : String = "",
+    activate : Boolean = false,
+    
+    tagFilterPath : String = "",
+    jdbc : String = "",
     tagAttr : String = "",
     minActionsPerUser : Int = 10,
     minTagCount : Int = 4,
-    minPcIncrease : Double = 0.1)
+    minPcIncrease : Double = 0.2)
 
-class UserTagAffinity(private val sc : SparkContext,config : Config) {
+class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) {
 
   def parseJsonActions(path : String) = {
     
@@ -87,6 +90,22 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     userJson
   }
   
+   def activate(location : String) 
+  {
+    import io.seldon.spark.zookeeper.ZkCuratorHandler
+    import org.apache.curator.utils.EnsurePath
+    val curator = new ZkCuratorHandler(config.zkHosts)
+    if(curator.getCurator.getZookeeperClient.blockUntilConnectedOrTimedOut())
+    {
+        val zkPath = "/all_clients/"+config.client+"/tagaffinity"
+        val ensurePath = new EnsurePath(zkPath)
+        ensurePath.ensure(curator.getCurator.getZookeeperClient)
+        curator.getCurator.setData().forPath(zkPath,location.getBytes())
+    }
+    else
+      println("Failed to get zookeeper! Can't activate model")
+  }
+  
   def run()
   {
     val actionsGlob = config.inputPath + "/" + config.client+"/actions/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
@@ -140,25 +159,7 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
         }
         (allTags.mkString(","),v.size)
       }
-    
-    /*
-    val featuresIter = rddFeatures.map(_._2._1.split(",").toSeq)
-    val hashingTF = new HashingTF()
-    val tf = hashingTF.transform(featuresIter)
-    val idfModel = new IDF(1).fit(tf)
-    val idf = idfModel.idf
-    val tfidf = idfModel.transform(tf)
-    val fCount = rddFeatures.count()
-    val tfidfCount = tfidf.count()
-    val tfCount = tf.count()
-    println("featuresAg "+fCount+ " tfidf count "+tfidfCount+" tf count "+tfCount)
-    val featuresAg = rddFeatures.zip(tf)
-    * 
-    */
-
-    //val tfidfSummary: MultivariateStatisticalSummary = Statistics.colStats(tfidf)
-    //val avg_tfidf = tfidfSummary.mean
-    //val bc_avg_tfidf = sc.broadcast(avg_tfidf)
+   
     val bc_tagPercent = sc.broadcast(tagPercent)
     
     val minTagCount = config.minTagCount
@@ -190,68 +191,116 @@ class UserTagAffinity(private val sc : SparkContext,config : Config) {
     val outPath = config.outputPath + "/" + config.client + "/tagaffinity/"+config.startDay
     
     jsonRdd.coalesce(1, false).saveAsTextFile(outPath)
+
+     if (config.activate)
+       activate(outPath)
   }
 }
 
  object UserTagAffinity
 {
-  def main(args: Array[String]) 
+    def updateConf(config : TagAffinityConfig) =
+  {
+    import io.seldon.spark.zookeeper.ZkCuratorHandler
+    var c = config.copy()
+    if (config.zkHosts.nonEmpty) 
+     {
+       val curator = new ZkCuratorHandler(config.zkHosts)
+       val path = "/all_clients/"+config.client+"/offline/tagaffinity"
+       if (curator.getCurator.checkExists().forPath(path) != null)
+       {
+         val bytes = curator.getCurator.getData().forPath(path)
+         val j = new String(bytes,"UTF-8")
+         println("Confguration from zookeeper -> "+j)
+         import org.json4s._
+         import org.json4s.jackson.JsonMethods._
+         implicit val formats = DefaultFormats
+         val json = parse(j)
+         import org.json4s.JsonDSL._
+         import org.json4s.jackson.Serialization.write
+         type DslConversion = TagAffinityConfig => JValue
+         val existingConf = write(c) // turn existing conf into json
+         val existingParsed = parse(existingConf) // parse it back into json4s internal format
+         val combined = existingParsed merge json // merge with zookeeper value
+         c = combined.extract[TagAffinityConfig] // extract case class from merged json
+         c
+       }
+       else 
+       {
+           println("Warning: using default configuaration - path["+path+"] not found!");
+           c
+       }
+     }
+     else 
+     {
+       println("Warning: using default configuration - no zkHost!");
+       c
+     }
+  }
+  
+   def main(args: Array[String]) 
   {
 
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    val parser = new scopt.OptionParser[Config]("ClusterUsersByDimension") {
-    head("CrateVWTopicTraining", "1.x")
-    opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
-    opt[String]('c', "client") required() valueName("<client>") action { (x, c) => c.copy(client = x) } text("client name (will be used as db and folder suffix)")
-    opt[String]('i', "input-path") valueName("path url") action { (x, c) => c.copy(inputPath = x) } text("path prefix for input")
-    opt[String]("tagFilterPath") valueName("path url") action { (x, c) => c.copy(tagFilterPath = x) } text("path prefix for input")
-    opt[String]('o', "output-path") valueName("path url") action { (x, c) => c.copy(outputPath = x) } text("path prefix for output")
-    opt[String]('j', "jdbc") required() valueName("<JDBC URL>") action { (x, c) => c.copy(jdbc = x) } text("jdbc url (to get dimension for all items)")
-    opt[Int]('r', "numdays") action { (x, c) =>c.copy(days = x) } text("number of days in past to get actions for")
-    opt[String]('t', "tagAttr") required() valueName("tag attr") action { (x, c) => c.copy(tagAttr = x) } text("attr name in db containing tags")    
-    opt[Int]("start-day") action { (x, c) =>c.copy(startDay = x) } text("start day in unix time")
-    opt[String]('a', "awskey") valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
-    opt[String]('s', "awssecret") valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
-    opt[Int]('m', "minActionsPerUser") action { (x, c) =>c.copy(minActionsPerUser = x) } text("min number of actions per user")
-    opt[Int]("minTagCount") action { (x, c) =>c.copy(minTagCount = x) } text("min count for tags in user actions")    
-    opt[Double]("minPcIncrease") action { (x, c) =>c.copy(minPcIncrease = x) } text("min percentage increase for affinity to be included")        
+    var c = new TagAffinityConfig()
+    val parser = new scopt.OptionParser[Unit]("UserTagAffinity") {
+    head("UserTagAffinity", "1.0")
+       opt[Unit]('l', "local") foreach { x => c = c.copy(local = true) } text("local mode - use local Master")
+        opt[String]('c', "client") required() valueName("<client>") foreach { x => c = c.copy(client = x) } text("client name (will be used as db and folder suffix)")
+        opt[String]('i', "inputPath") valueName("path url") foreach { x => c = c.copy(inputPath = x) } text("path prefix for input")
+        opt[String]('o', "outputPath") valueName("path url") foreach { x => c = c.copy(outputPath = x) } text("path prefix for output")
+        opt[Int]('r', "days") foreach { x =>c = c.copy(days = x) } text("number of days in past to get foreachs for")
+        opt[Int]("startDay") foreach { x =>c = c.copy(startDay = x) } text("start day in unix time")
+        opt[String]('a', "awskey") valueName("aws access key") foreach { x => c = c.copy(awsKey = x) } text("aws key")
+        opt[String]('s', "awssecret") valueName("aws secret") foreach { x => c = c.copy(awsSecret = x) } text("aws secret")
+        opt[String]('z', "zookeeper") valueName("zookeeper hosts") foreach { x => c = c.copy(zkHosts = x) } text("zookeeper hosts (comma separated)")        
+        opt[Unit]("activate") foreach { x => c = c.copy(activate = true) } text("activate the model in the Seldon Server")
+
+        opt[String]('j', "jdbc") valueName("<JDBC URL>") foreach { x => c = c.copy(jdbc = x) } text("jdbc url (to get dimension for all items)")
+        opt[Int]('m', "minActionsPerUser") foreach { x => c = c.copy(minActionsPerUser = x) } text("min number of actions per user")
+        opt[String]("tagFilterPath") valueName("path url") foreach { x => c = c.copy(tagFilterPath = x) } text("tag filter path")        
+        opt[String]("tagAttr") valueName("tag attr") foreach { x => c = c.copy(tagAttr = x) } text("db attribute name containing tags")                
+        opt[Int]("minTagCount") foreach { x => c = c.copy(minTagCount = x) } text("min count for tags in user actions")    
+        opt[Double]("minPcIncrease") foreach { x => c = c.copy(minPcIncrease = x) } text("min percentage increase for affinity to be included")        
+
     }
     
-    parser.parse(args, Config()) map { config =>
-    val conf = new SparkConf()
-      .setAppName("CreateVWTopicTraining")
-      
-    if (config.local)
-      conf.setMaster("local")
-    .set("spark.executor.memory", "8g")
-    
-    val sc = new SparkContext(conf)
-    try
+      if (parser.parse(args)) // Parse to check and get zookeeper if there
     {
-      sc.hadoopConfiguration.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
-      if (config.awsKey.nonEmpty && config.awsSecret.nonEmpty)
+      c = updateConf(c) // update from zookeeper args
+      parser.parse(args) // overrride with args that were on command line
+
+       val conf = new SparkConf().setAppName("UserTagAffinity")
+
+      if (c.local)
+        conf.setMaster("local")
+ //       .set("spark.akka.frameSize", "300")
+
+      val sc = new SparkContext(conf)
+      try
       {
-        sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", config.awsKey)
-        sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", config.awsSecret)
+        sc.hadoopConfiguration.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+        if (c.awsKey.nonEmpty && c.awsSecret.nonEmpty)
+        {
+         sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", c.awsKey)
+         sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", c.awsSecret)
+        }
+        println(c)
+        val cu = new UserTagAffinity(sc,c)
+        cu.run()
       }
-      println(config)
-      val cByd = new UserTagAffinity(sc,config)
-      cByd.run()
-    }
-    finally
-    {
-      println("Shutting down job")
-      sc.stop()
-    }
-    } getOrElse 
-    {
+      finally
+      {
+        println("Shutting down job")
+        sc.stop()
+      }
+   } 
+   else 
+   {
       
-    }
-
-    // set up environment
-
-    
+   }
   }
 }
+   
