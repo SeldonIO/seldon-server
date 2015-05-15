@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+if [[ $# < 1 ]]; then
+	echo "Need cmd"
+	exit 1
+fi
+
+CMD=$1
+
+DOCKER_CMD=docker
+CONTAINER_NAME=seldonio_memcached
+
+do_start() {
+    echo "-- starting ${CONTAINER_NAME} --"
+    docker run \
+        -d \
+        --name "${CONTAINER_NAME}" \
+        -p 11211:11211 \
+        seldonio/memcached:0.1
+}
+
+do_stop() {
+    echo "-- stopping ${CONTAINER_NAME} --"
+
+    local IS_RUNNING=$(${DOCKER_CMD} inspect -f {{.State.Running}} ${CONTAINER_NAME} 2> /dev/null)
+
+    if [ "${IS_RUNNING}" == "true" ]; then
+        ${DOCKER_CMD} rm -f ${CONTAINER_NAME}
+    fi
+
+    EXITED_CONTAINER_NAME=$(docker ps -a|grep ' Exited '|grep "${CONTAINER_NAME}"|awk '{print $1}')
+    if [ ! -z "$EXITED_CONTAINER_NAME" ]; then
+        docker ps -a|grep ' Exited '|grep "${CONTAINER_NAME}"|awk '{print $1}'|xargs docker rm
+    fi
+}
+
+case $CMD in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    *)
+        echo "ignoring unkown cmd[$CMD]"
+        ;;
+esac
+
