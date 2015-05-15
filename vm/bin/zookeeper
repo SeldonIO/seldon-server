@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+COMMON_DIR="${STARTUP_DIR}/../common"
+LOCAL_DATA_DIR=${STARTUP_DIR}/../local_data
+
+if [[ $# < 1 ]]; then
+	echo "Need cmd"
+	exit 1
+fi
+
+source "${COMMON_DIR}/images.sh"
+
+CMD=$1
+
+DOCKER_CMD=docker
+CONTAINER_NAME=seldonio_zookeeper
+
+do_start() {
+    echo "-- starting ${CONTAINER_NAME} --"
+    docker run \
+        -d \
+        --name "${CONTAINER_NAME}" \
+        -p 11211:11211 \
+        -v ${LOCAL_DATA_DIR}/zookeeper_data:/tmp/zookeeper \
+        ${SELDONIO_ZOOKEEPER_IMAGE_NAME}:${SELDONIO_ZOOKEEPER_IMAGE_VERSION}
+}
+
+do_stop() {
+    echo "-- stopping ${CONTAINER_NAME} --"
+
+    local IS_RUNNING=$(${DOCKER_CMD} inspect -f {{.State.Running}} ${CONTAINER_NAME} 2> /dev/null)
+
+    if [ "${IS_RUNNING}" == "true" ]; then
+        ${DOCKER_CMD} rm -f ${CONTAINER_NAME}
+    fi
+
+    EXITED_CONTAINER_NAME=$(docker ps -a|grep ' Exited '|grep "${CONTAINER_NAME}"|awk '{print $1}')
+    if [ ! -z "$EXITED_CONTAINER_NAME" ]; then
+        docker ps -a|grep ' Exited '|grep "${CONTAINER_NAME}"|awk '{print $1}'|xargs docker rm
+    fi
+}
+
+case $CMD in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    *)
+        echo "ignoring unkown cmd[$CMD]"
+        ;;
+esac
+
