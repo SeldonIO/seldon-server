@@ -4,11 +4,14 @@ set -o nounset
 set -o errexit
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+COMMON_DIR="${STARTUP_DIR}/../common"
 
 if [[ $# < 1 ]]; then
 	echo "Need cmd"
 	exit 1
 fi
+
+source "${COMMON_DIR}/images.sh"
 
 CMD=$1
 
@@ -21,7 +24,7 @@ do_start() {
         -d \
         --name "${CONTAINER_NAME}" \
         -p 11211:11211 \
-        seldonio/memcached:0.1
+        ${SELDONIO_MEMCACHED_IMAGE_NAME}:${SELDONIO_MEMCACHED_IMAGE_VERSION}
 }
 
 do_stop() {
