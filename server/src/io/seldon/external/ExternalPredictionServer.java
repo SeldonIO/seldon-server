@@ -22,7 +22,9 @@
 package io.seldon.external;
 
 import io.seldon.api.APIException;
-import io.seldon.prediction.PredictionResult;
+import io.seldon.api.state.GlobalConfigHandler;
+import io.seldon.api.state.GlobalConfigUpdateListener;
+import io.seldon.prediction.PredictionsResult;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,33 +39,61 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 @Component
-public class ExternalPredictionServer {
+public class ExternalPredictionServer implements GlobalConfigUpdateListener {
 	private static Logger logger = Logger.getLogger(ExternalPredictionServer.class.getName());
     private static final String URL_PROPERTY_NAME="io.seldon.algorithm.external.url";
     private static final String ALG_NAME_PROPERTY_NAME ="io.seldon.algorithm.external.name";
+    private static final String ZK_CONFIG_TEMP = "prediction_server"; //TEMPORARY FOT TESTING
     private final PoolingHttpClientConnectionManager cm;
     private final CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
-
-    public ExternalPredictionServer(){
-        cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(100);
-        cm.setDefaultMaxPerRoute(20);
-        httpClient = HttpClients.custom()
-                .setConnectionManager(cm)
-                .build();
+    
+    String URL;
+    
+    public static class PredictionServerConfig {
+    	public String url;
     }
     
-    public PredictionResult predict(String client, String json) 
+    @Autowired
+    public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler){
+        cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(100);
+        cm.setDefaultMaxPerRoute(100);
+        httpClient = HttpClients.custom()
+                .setConnectionManager(cm)
+          
+                .build();
+        globalConfigHandler.addSubscriber(ZK_CONFIG_TEMP, this);
+    }
+    
+
+	@Override
+	public void configUpdated(String configKey, String configValue) {
+		if (configValue != null && configValue.length() > 0)
+		{
+			ObjectMapper mapper = new ObjectMapper();
+            try {
+            	PredictionServerConfig config = mapper.readValue(configValue, PredictionServerConfig.class);
+            	URL = config.url;
+            } catch (Exception e) {
+                throw new RuntimeException(String.format("* Error * parsing statsd configValue[%s]", configValue),e);
+            }
+		}
+		
+	}
+
+    
+    public PredictionsResult predict(String client, String json) 
     {
     		long timeNow = System.currentTimeMillis();
-    		URI uri = URI.create("http://localhost:1234");
+    		URI uri = URI.create(URL);
     		try {
     			URIBuilder builder = new URIBuilder().setScheme("http")
     					.setHost(uri.getHost())
@@ -85,8 +115,8 @@ public class ExternalPredictionServer {
     			CloseableHttpResponse resp = httpClient.execute(httpGet, context);
     			if(resp.getStatusLine().getStatusCode() == 200) 
     			{
-    				ObjectReader reader = mapper.reader(PredictionResult.class);
-    				PredictionResult res = reader.readValue(resp.getEntity().getContent());
+    				ObjectReader reader = mapper.reader(PredictionsResult.class);
+    				PredictionsResult res = reader.readValue(resp.getEntity().getContent());
     				logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
     				return res;
     			} 

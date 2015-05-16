@@ -36,8 +36,8 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
-import io.seldon.api.resource.service.business.EventBusinessService;
 import io.seldon.api.resource.service.business.ItemBusinessService;
+import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.statsd.StatsdPeer;
@@ -83,7 +83,7 @@ public class JsClientController {
     private RecommendationBusinessService recommendationBusinessService;
     
     @Autowired
-    private EventBusinessService eventBusinessService;
+    private PredictionBusinessService predictionBusinessService;
     
     @Autowired
     private MessageSource messageSource;
@@ -181,7 +181,20 @@ public class JsClientController {
         @SuppressWarnings("unchecked")
 		Map<String,String[]> parameters = request.getParameterMap();
         
-		return asCallback(callback, eventBusinessService.addEvent(consumerBean, parameters));
+		return asCallback(callback, predictionBusinessService.addEvent(consumerBean, parameters));
+    }
+    
+    
+    @RequestMapping("/predict")
+    public
+    @ResponseBody
+    JSONPObject predict(HttpSession session,
+							  HttpServletRequest request, 
+                              @RequestParam(value = "json", required = true) String json,
+                             @RequestParam("jsonpCallback") String callback) {
+        final ConsumerBean consumerBean = retrieveConsumer(session);
+        
+		return asCallback(callback, predictionBusinessService.predict(consumerBean, json));
     }
 
 

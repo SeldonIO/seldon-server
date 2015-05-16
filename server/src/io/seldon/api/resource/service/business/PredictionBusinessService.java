@@ -27,8 +27,9 @@ import io.seldon.api.resource.ResourceBean;
 import java.util.Map;
 
 
-public interface EventBusinessService {
+public interface PredictionBusinessService {
 
 	ResourceBean addEvent(ConsumerBean consumerBean,Map<String,String[]> parameters);
-	ResourceBean addEvent(ConsumerBean consumerBean,String event);
+	ResourceBean addEvent(ConsumerBean consumerBean,String json);
+	ResourceBean predict(ConsumerBean consumerBean,String json);
 }

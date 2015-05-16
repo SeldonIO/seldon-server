@@ -24,7 +24,7 @@ package io.seldon.api.controller;
 import io.seldon.api.logging.ApiLogger;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.resource.service.business.EventBusinessService;
+import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.service.ResourceServer;
 
 import java.util.Date;
@@ -39,10 +39,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-public class EventsController {
+public class PredictionController {
 
 	@Autowired
-	private EventBusinessService eventBusinessService;
+	private PredictionBusinessService predictionBusinessService;
 
 	@Autowired
 	private ResourceServer resourceServer;
@@ -55,7 +55,24 @@ public class EventsController {
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) 
 		{
-            responseBean = eventBusinessService.addEvent((ConsumerBean)con, event);
+            responseBean = predictionBusinessService.addEvent((ConsumerBean)con, event);
+        }
+		else {
+			responseBean = con;
+		}
+		ApiLogger.log("events",start,new Date(),con,responseBean,req);
+        return responseBean;
+	}
+	
+	@RequestMapping(value="/predict", method = RequestMethod.POST)
+	public @ResponseBody
+    ResourceBean prediction(@RequestBody String json, HttpServletRequest req) {
+		Date start = new Date();
+		ResourceBean con = resourceServer.validateResourceRequest(req);
+		ResourceBean responseBean;
+		if(con instanceof ConsumerBean) 
+		{
+            responseBean = predictionBusinessService.predict((ConsumerBean)con, json);
         }
 		else {
 			responseBean = con;
