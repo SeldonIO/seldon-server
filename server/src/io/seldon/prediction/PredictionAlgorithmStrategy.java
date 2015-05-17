@@ -21,17 +21,25 @@
 */
 package io.seldon.prediction;
 
-import java.util.List;
+import java.util.Map;
 
-public class PredictionsResult {
-	public List<PredictionResult> predictions;
-	
-	public PredictionsResult() {
-	}
+public class PredictionAlgorithmStrategy {
 
-	public PredictionsResult(List<PredictionResult> predictions) {
+	public final PredictionAlgorithm algorithm;
+	public final Map<String, String> config;
+
+	/**
+	 * Textual name for this strategy.
+	 */
+	public final String name;
+
+	public PredictionAlgorithmStrategy(PredictionAlgorithm algorithm,
+			Map<String, String> config, String name) {
 		super();
-		this.predictions = predictions;
+		this.algorithm = algorithm;
+		this.config = config;
+		this.name = name;
 	}
+	
 	
 }

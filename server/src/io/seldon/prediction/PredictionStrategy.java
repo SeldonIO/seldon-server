@@ -23,15 +23,8 @@ package io.seldon.prediction;
 
 import java.util.List;
 
-public class PredictionsResult {
-	public List<PredictionResult> predictions;
-	
-	public PredictionsResult() {
-	}
+public interface PredictionStrategy {
 
-	public PredictionsResult(List<PredictionResult> predictions) {
-		super();
-		this.predictions = predictions;
-	}
+	  List<PredictionAlgorithmStrategy> getAlgorithms();
 	
 }

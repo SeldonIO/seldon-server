@@ -23,15 +23,22 @@ package io.seldon.prediction;
 
 import java.util.List;
 
-public class PredictionsResult {
-	public List<PredictionResult> predictions;
+public class SimplePredictionStrategy implements PredictionStrategy {
+
+	public final List<PredictionAlgorithmStrategy> strategies;
 	
-	public PredictionsResult() {
+	
+	
+	public SimplePredictionStrategy(List<PredictionAlgorithmStrategy> strategies) {
+		super();
+		this.strategies = strategies;
 	}
 
-	public PredictionsResult(List<PredictionResult> predictions) {
-		super();
-		this.predictions = predictions;
+
+
+	@Override
+	public List<PredictionAlgorithmStrategy> getAlgorithms() {
+		return strategies;
 	}
-	
+
 }

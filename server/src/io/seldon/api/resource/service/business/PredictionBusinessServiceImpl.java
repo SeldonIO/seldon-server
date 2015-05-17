@@ -31,8 +31,8 @@ import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.PredictionBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.service.ApiLoggerServer;
-import io.seldon.external.ExternalPredictionServer;
 import io.seldon.prediction.PredictionResult;
+import io.seldon.prediction.PredictionService;
 import io.seldon.prediction.PredictionsResult;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	private static final String TIMESTAMP_KEY = "timestamp";
 	
 	@Autowired
-	ExternalPredictionServer predictionServer;
+	PredictionService predictionService;
 	
 	private boolean allowedKey(String key)
 	{
@@ -177,8 +177,8 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		ResourceBean responseBean;
 		try
 		{
-			String json = getValidatedJson(consumer, jsonRaw);
-			PredictionsResult res = predictionServer.predict(consumer.getShort_name(), json);
+			getValidatedJson(consumer, jsonRaw); // used to check valid json but we don't use result
+			PredictionsResult res = predictionService.predict(consumer.getShort_name(), jsonRaw);
 			ListBean listBean = new ListBean();
 			for(PredictionResult r : res.predictions)
 			{

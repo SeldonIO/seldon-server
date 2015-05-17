@@ -21,17 +21,11 @@
 */
 package io.seldon.prediction;
 
-import java.util.List;
+import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 
-public class PredictionsResult {
-	public List<PredictionResult> predictions;
-	
-	public PredictionsResult() {
-	}
+public interface PredictionAlgorithm {
 
-	public PredictionsResult(List<PredictionResult> predictions) {
-		super();
-		this.predictions = predictions;
-	}
-	
+	 public PredictionsResult predict(String client, String json, OptionsHolder options);
+	 
+	 
 }

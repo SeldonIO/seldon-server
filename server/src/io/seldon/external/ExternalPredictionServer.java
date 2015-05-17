@@ -24,6 +24,8 @@ package io.seldon.external;
 import io.seldon.api.APIException;
 import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
+import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
+import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionsResult;
 
 import java.io.IOException;
@@ -46,7 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 @Component
-public class ExternalPredictionServer implements GlobalConfigUpdateListener {
+public class ExternalPredictionServer implements GlobalConfigUpdateListener, PredictionAlgorithm  {
 	private static Logger logger = Logger.getLogger(ExternalPredictionServer.class.getName());
     private static final String URL_PROPERTY_NAME="io.seldon.algorithm.external.url";
     private static final String ALG_NAME_PROPERTY_NAME ="io.seldon.algorithm.external.name";
@@ -55,17 +57,16 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener {
     private final CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
     
-    String URL;
     
     public static class PredictionServerConfig {
-    	public String url;
+    	public int maxConnections;
     }
     
     @Autowired
     public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler){
         cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(100);
-        cm.setDefaultMaxPerRoute(100);
+        cm.setMaxTotal(200);
+        cm.setDefaultMaxPerRoute(200);
         httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
           
@@ -81,7 +82,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener {
 			ObjectMapper mapper = new ObjectMapper();
             try {
             	PredictionServerConfig config = mapper.readValue(configValue, PredictionServerConfig.class);
-            	URL = config.url;
+
             } catch (Exception e) {
                 throw new RuntimeException(String.format("* Error * parsing statsd configValue[%s]", configValue),e);
             }
@@ -90,10 +91,10 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener {
 	}
 
     
-    public PredictionsResult predict(String client, String json) 
+    public PredictionsResult predict(String client, String json, OptionsHolder options) 
     {
     		long timeNow = System.currentTimeMillis();
-    		URI uri = URI.create(URL);
+    		URI uri = URI.create(options.getStringOption(URL_PROPERTY_NAME));
     		try {
     			URIBuilder builder = new URIBuilder().setScheme("http")
     					.setHost(uri.getHost())
