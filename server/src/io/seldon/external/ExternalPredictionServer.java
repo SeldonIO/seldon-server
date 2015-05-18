@@ -53,8 +53,8 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     private static final String URL_PROPERTY_NAME="io.seldon.algorithm.external.url";
     private static final String ALG_NAME_PROPERTY_NAME ="io.seldon.algorithm.external.name";
     private static final String ZK_CONFIG_TEMP = "prediction_server"; //TEMPORARY FOT TESTING
-    private final PoolingHttpClientConnectionManager cm;
-    private final CloseableHttpClient httpClient;
+    private PoolingHttpClientConnectionManager cm;
+    private CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
     
     
@@ -65,11 +65,10 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     @Autowired
     public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler){
         cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(200);
-        cm.setDefaultMaxPerRoute(200);
+        cm.setMaxTotal(150);
+        cm.setDefaultMaxPerRoute(150);
         httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
-          
                 .build();
         globalConfigHandler.addSubscriber(ZK_CONFIG_TEMP, this);
     }
@@ -82,7 +81,13 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
 			ObjectMapper mapper = new ObjectMapper();
             try {
             	PredictionServerConfig config = mapper.readValue(configValue, PredictionServerConfig.class);
-
+            	cm = new PoolingHttpClientConnectionManager();
+                cm.setMaxTotal(config.maxConnections);
+                cm.setDefaultMaxPerRoute(config.maxConnections);
+                httpClient = HttpClients.custom()
+                        .setConnectionManager(cm)
+                        .build();
+                logger.info("Updated httpclient to use "+config.maxConnections+" max connections");
             } catch (Exception e) {
                 throw new RuntimeException(String.format("* Error * parsing statsd configValue[%s]", configValue),e);
             }
