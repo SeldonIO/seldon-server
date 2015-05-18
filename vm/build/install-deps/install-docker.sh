@@ -17,6 +17,6 @@ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/source
 sudo apt-get update
 sudo apt-get install -y lxc-docker.1.6.0
 
-echo "Enabling user[${BOOTSTRAP_DOCKER_USER}] for docker"
-sudo usermod -aG docker $BOOTSTRAP_DOCKER_USER
+echo "Enabling user[${INSTALL_DEPS_DOCKER_USER}] for docker"
+sudo usermod -aG docker $INSTALL_DEPS_DOCKER_USER
 

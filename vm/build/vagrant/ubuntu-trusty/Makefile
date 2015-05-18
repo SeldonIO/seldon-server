@@ -23,9 +23,13 @@ reload_provision:
 	vagrant reload --provision
 
 build:
-	@rm -rfv bootstrap_scripts/
-	cp -Rv ../../install-deps bootstrap_scripts
+	@rm -rfv install-deps
+	cp -Rv ../../install-deps install-deps
 	vagrant destroy -f
-	@make start_env
-	vagrant ssh -c '/vagrant/install-deps'
+	make start_env
+	vagrant ssh -c '/vagrant/install-deps.sh'
+
+clean:
+	vagrant destroy -f
+	@rm -rfv install-deps
 
