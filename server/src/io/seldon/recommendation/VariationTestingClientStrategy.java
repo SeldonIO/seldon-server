@@ -88,7 +88,7 @@ public class VariationTestingClientStrategy implements ClientStrategy {
         return null;
     }
 
-    public static VariationTestingClientStrategy build(Set<Variation> variations){
+    public static VariationTestingClientStrategy build(List<Variation> variations){
         Map<Range, ClientStrategy> strategyMap = new HashMap<>();
         BigDecimal ratioTotal = BigDecimal.ZERO;
         for (Variation var : variations){
