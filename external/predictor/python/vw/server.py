@@ -9,7 +9,13 @@ app.config.from_object('server_config')
 _recs_mod = importlib.import_module(app.config['PREDICTION_ALG'])
 
 def extract_input():
-    return json.loads(request.args.get('json'))
+    client = request.args.get('client')
+    j = json.loads(request.args.get('json'))
+    input = {
+        "client" : client,
+        "json" : j
+    }
+    return input
 
 def format_predictions(predictions):
     formatted_recs_list=[]
@@ -24,7 +30,9 @@ def format_predictions(predictions):
 @app.route('/predict', methods=['GET'])
 def predict():
     input = extract_input()
-    recs = _recs_mod.get_predictions(input)
+    recs = _recs_mod.get_predictions(
+            input['client'],
+            input['json'])
     f=format_predictions(recs)
     json = jsonify(f)
     return json

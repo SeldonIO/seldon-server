@@ -27,8 +27,12 @@ def init(config):
     global tailq
     tailq = Queue.Queue(maxsize=1000) 
     vw_config = config['VW']
+    # we tail the raw prediction file to get the full scores from daemon sevrer
     threading.Thread(target=tail_forever, args=(vw_config['raw_predictions'],)).start()
 
+# simple vw precition string create
+# ASSUMES ALL FEATURES HAVE NUMERIC VALUES
+# this function could be extended in many ways to allow arbitrary json->vw translation to handle non numeric features and namespaces
 def getVWFeatures(data,tag):
     line = "1 "+tag+"|f "
     for k in data.keys():
@@ -36,6 +40,7 @@ def getVWFeatures(data,tag):
     line = line + "\n"
     return line
 
+# Search for tag in raw_predictions file to match with out request to the vw daemon
 def get_full_scores(tag):
     found = False
     l = 1
@@ -76,8 +81,8 @@ def score(json):
     return get_full_scores(tag)
     
 
-
-def get_predictions(json):
+# ignores client in this example. One could direct to multiple daemons holding different models 1 for each client.
+def get_predictions(client,json):
     return score(json)
 
 
