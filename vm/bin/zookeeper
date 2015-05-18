@@ -24,7 +24,7 @@ do_start() {
     docker run \
         -d \
         --name "${CONTAINER_NAME}" \
-        -p 11211:11211 \
+        -p 2181:2181 -p 2888:2888 -p 3888:3888 \
         -v ${LOCAL_DATA_DIR}/zookeeper_data:/tmp/zookeeper \
         ${SELDONIO_ZOOKEEPER_IMAGE_NAME}:${SELDONIO_ZOOKEEPER_IMAGE_VERSION}
 }
