@@ -182,7 +182,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 			ListBean listBean = new ListBean();
 			for(PredictionResult r : res.predictions)
 			{
-				listBean.addBean(new PredictionBean(r.score, r.predictedClass,r.confidence));
+				listBean.addBean(new PredictionBean(r.prediction, r.predictedClass,r.confidence));
 			}
 			listBean.setSize(res.predictions.size());
 			responseBean = listBean;

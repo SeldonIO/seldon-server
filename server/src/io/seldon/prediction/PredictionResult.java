@@ -25,7 +25,7 @@ import java.io.Serializable;
 
 public class PredictionResult implements Serializable {
 
-	public Double score;
+	public Double prediction;
 	public int predictedClass;
 	public Double confidence;
 	

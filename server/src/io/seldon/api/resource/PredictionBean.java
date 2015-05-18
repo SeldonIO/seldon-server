@@ -24,23 +24,23 @@ package io.seldon.api.resource;
 
 public class PredictionBean extends ResourceBean {
 
-	double score;
+	double prediction;
 	int predictedClass;
 	double confidence;
 	
 	
 	
-	public PredictionBean(double score, int predictedClass, double confidence) {
+	public PredictionBean(double prediction, int predictedClass, double confidence) {
 		super();
-		this.score = score;
+		this.prediction = prediction;
 		this.predictedClass = predictedClass;
 		this.confidence = confidence;
 	}
 
 
 
-	public double getScore() {
-		return score;
+	public double getPrediction() {
+		return prediction;
 	}
 
 

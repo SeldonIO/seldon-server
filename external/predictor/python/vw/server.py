@@ -21,7 +21,7 @@ def format_predictions(predictions):
     formatted_recs_list=[]
     for (score,classId,confidence) in predictions:
         formatted_recs_list.append({
-            "score": score,
+            "prediction": score,
             "predictedClass": classId,
             "confidence" : confidence
         })
