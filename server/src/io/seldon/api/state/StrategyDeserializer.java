@@ -62,13 +62,11 @@ private static Logger logger = Logger.getLogger(StrategyDeserializer.class.getNa
             throws IOException, JsonProcessingException {
         ObjectMapper mapper = (ObjectMapper) jp.getCodec();
         ObjectNode root = mapper.readTree(jp);
-        logger.info(root.toString());
         Class<? extends Strategy> theClass = null;
         Iterator<Map.Entry<String, JsonNode>> elementsIterator =
                 root.fields();
         while (elementsIterator.hasNext()) {
             Map.Entry<String, JsonNode> element = elementsIterator.next();
-            logger.info(element.getKey());
             String name = element.getKey();
             Class<? extends Strategy> possibility = registry.get(name);
             if(possibility!=null){

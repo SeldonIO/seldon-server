@@ -21,7 +21,8 @@ var rlClient = (function () {
             // possible track pars (to remove??)
             track_par_list: ["rlabs", "zehtg"],
             //  not sure
-            query_delimiter: "?"
+            query_delimiter: "?",
+            rectag_name: "rectag"
         };
 
     function extractQuery(paramString) {
@@ -33,7 +34,7 @@ var rlClient = (function () {
         return q_params;
     }
 
-    function rlabsId() {
+    function retrieveSeldonParamsFromURL() {
         var normalised = document.location.href, rlabs, query_params,
             query = normalised.replace(new RegExp(".*\\" + params.rlabs_delim), "");
         if (params.rlabs_delim === "?") {
@@ -49,7 +50,7 @@ var rlClient = (function () {
                 }
             });
         }
-        return rlabs;
+        return rlabs ? rlabs.split("%20") : [];
     }
 
     function parameterString(params, keep) {
@@ -110,12 +111,13 @@ var rlClient = (function () {
         return params.endpoint + path + "?consumer_key=" + params.consumer;
     }
 
-    function actionUrl(type, user_id, item_id, rlabs, source) {
+    function actionUrl(type, user_id, item_id, rlabs, source, rectag) {
         return fullEndpoint("/js/action/new") +
             "&type=" + type +
             "&user=" + user_id +
             "&item=" + item_id +
             (rlabs ? ("&" + params.track_par + "=" + rlabs) : "") +
+            (rectag ? ("&rectag=" + rectag) : "") +
             (source ? ("&source=" + encodeURIComponent(normalise(source))) : "");
 
     }
@@ -145,7 +147,7 @@ var rlClient = (function () {
         return attributeNames.join(",");
     }
 
-    function recommendationsUrl(user_id, item_id, rlabs, options) {
+    function recommendationsUrl(user_id, item_id, rlabs, rectag, options) {
         return fullEndpoint("/js/recommendations") +
             "&user=" + user_id +
             "&item=" + item_id +
@@ -153,7 +155,9 @@ var rlClient = (function () {
             "&limit=" + (options.limit || 10) +
             (options.attributes ? ("&attributes=" + attributeString(options.attributes)) : "") +
             (options.algorithms ? "&algorithms=" + options.algorithms : "") +
-            (rlabs ? ("&" + params.track_par + "=" + rlabs) : "");
+            (rectag ? ("&rectag=" + rectag) : "") +
+            (rlabs ? ("&" + params.track_par + "=" + rlabs) : "") +
+            (options.cohort ? ("&cohort=" + options.cohort) : "");
     }
 
     function jsonpCall(url, callback) {
@@ -176,15 +180,15 @@ var rlClient = (function () {
         return { fired: true };
     }
 
-    function addAction(type, callback, user_id, item_id, rlabs, source) {
+    function addAction(type, callback, user_id, item_id, rlabs, source, rectag) {
         return withMandatory("user_id", user_id, function () {
-            var id = item_id || currentPageId(params.retain),
-                recId = rlabs,
+            var urlparams = retrieveSeldonParamsFromURL(),
+                id = item_id || currentPageId(params.retain),
+                recId = rlabs || urlparams[0],
+                tag = rectag || urlparams[1],
                 url;
-            if (recId === undefined || recId) {
-                recId = rlabsId();
-            }
-            url = actionUrl(type, user_id, id, recId, source);
+
+            url = actionUrl(type, user_id, id, recId, source, tag);
             jsonpCall(url, callback);
         });
     }
@@ -216,21 +220,26 @@ var rlClient = (function () {
     function recommendationsFor(user_id, callback, options) {
         return withMandatory("user_id", user_id, function () {
             var itemId = options.item || currentPageId(params.retain),
-                rlabs = options[params.track_par] || rlabsId(),
-                url = recommendationsUrl(user_id, itemId, rlabs, options);
+                paramsFromURL = retrieveSeldonParamsFromURL(),
+                rlabs = options[params.track_par] || paramsFromURL[0],
+                rectag = options[params.rectag_name] || paramsFromURL[1],
+                url = recommendationsUrl(user_id, itemId, rlabs, rectag, options);
             jsonpCall(url, callback);
         });
     }
 
-    function appendClickTo(items) {
-        var delim = params.rlabs_delim;
+    function appendClickTo(items, options) {
+        var delim = params.rlabs_delim,
+            rectag = options[params.rectag_name];
         underscore.each(items, function (item) {
             var id = item.id,
                 uuid = item.attributesName.recommendationUuid;
             if (uuid) {
                 id += id.match(new RegExp("\\" + params.query_delimiter)) ? "&" : delim;
                 id += params.track_par + "=" + uuid;
-
+                if (rectag) {
+                    id += "%20" + rectag;
+                }
             }
             item.id = id;
         });
@@ -251,7 +260,7 @@ var rlClient = (function () {
                 if (response.error_id === undefined) {
                     recommendations = response.list;
                     if (o.appendClick) {
-                        appendClickTo(recommendations);
+                        appendClickTo(recommendations, options);
                     }
                 }
                 callback(recommendations);
@@ -263,14 +272,21 @@ var rlClient = (function () {
     function recommendations(user_id, callback, options) {
         var o = options || {};
         return recommendationsFor(user_id, function (response) {
-            var recommendations_list = [];
+            var recommendations_list = [],
+                cohort = "-";
             if ((response !== null) && (response !== undefined) && (response.error_id === undefined)) {
-                recommendations_list = response.list;
+                if (response.list) {
+                    recommendations_list = response.list;
+                } else {
+                    recommendations_list = response.recommendedItems;
+                    cohort = response.cohort;
+                }
+
                 if (o.appendClick) {
-                    appendClickTo(recommendations_list);
+                    appendClickTo(recommendations_list, options);
                 }
             }
-            callback(recommendations_list);
+            callback({recs: recommendations_list, cohort: cohort});
         }, o);
     }
 
@@ -288,7 +304,6 @@ var rlClient = (function () {
         addItem: addItem,
         recommendedUsers: recommendedUsers,
         addAction: addAction,
-        //recommendationsFor: recommendationsFor
         recommendations: recommendations,
         recommendationsStatic: recommendationsStatic
     };

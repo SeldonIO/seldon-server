@@ -196,7 +196,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 logger.info("Received new testing config for " + client + ":" + configValue);
                 try {
                     TestConfig config = mapper.readValue(configValue, TestConfig.class);
-                    Set<VariationTestingClientStrategy.Variation> variations = new HashSet<>();
+                    List<VariationTestingClientStrategy.Variation> variations = new ArrayList<>();
                     for (TestVariation var : config.variations){
                         List<AlgorithmStrategy> strategies = new ArrayList<>();
                         for (Algorithm alg : var.config.algorithms){
@@ -243,7 +243,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     private ClientStrategy toStrategy(Strategy jsonStrategy) {
         if (jsonStrategy instanceof TestConfig){
             TestConfig jsonStrategyTest = (TestConfig) jsonStrategy;
-            Set<VariationTestingClientStrategy.Variation> variations = new HashSet<>();
+            List<VariationTestingClientStrategy.Variation> variations = new ArrayList<>();
             for (TestVariation var : jsonStrategyTest.variations){
                 List<AlgorithmStrategy> strategies = new ArrayList<>();
                 for (Algorithm alg : var.config.algorithms){
@@ -392,7 +392,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
 
     // classes for json translation
     public static class TestConfig extends Strategy {
-        public Set<TestVariation> variations;
+        public List<TestVariation> variations;
     }
 
 
