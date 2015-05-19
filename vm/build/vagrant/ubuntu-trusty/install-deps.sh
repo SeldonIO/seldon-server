@@ -18,4 +18,5 @@ export INSTALL_DEPS_SPARK_HOME=/home/vagrant/apps/spark
 #${INSTALL_DEPS_DIR}/install-tomcat.sh
 #${INSTALL_DEPS_DIR}/install-spark.sh
 #${INSTALL_DEPS_DIR}/install-bash-profile.sh
+#${INSTALL_DEPS_DIR}/install-python-deps.sh
 
