@@ -5,7 +5,7 @@ set -o errexit
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-data=$(sed -e '0,/^__DATA__$/d' -e "s|%INSTALL_DEPS_TOMCAT_HOME%|${INSTALL_DEPS_TOMCAT_HOME}|g" "$0")
+data=$(sed -e '0,/^__DATA__$/d' -e "s|%INSTALL_DEPS_TOMCAT_HOME%|${INSTALL_DEPS_TOMCAT_HOME}|g"  -e "s|%INSTALL_DEPS_SPARK_HOME%|${INSTALL_DEPS_SPARK_HOME}|g" "$0")
 printf '%s\n' "$data" > ~/.bash_profile
 
 exit
@@ -20,4 +20,5 @@ fi
 # User specific environment and startup programs
 
 export TOMCAT_HOME=%INSTALL_DEPS_TOMCAT_HOME%
+export SPARK_HOME=%INSTALL_DEPS_SPARK_HOME%
 
