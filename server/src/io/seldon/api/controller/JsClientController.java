@@ -190,11 +190,13 @@ public class JsClientController {
     @ResponseBody
     JSONPObject predict(HttpSession session,
 							  HttpServletRequest request, 
-                              @RequestParam(value = "json", required = true) String json,
+                              @RequestParam(value = "json", required = false) String json,
                              @RequestParam("jsonpCallback") String callback) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
-        
-		return asCallback(callback, predictionBusinessService.predict(consumerBean, json));
+        @SuppressWarnings("unchecked")
+		Map<String,String[]> parameters = request.getParameterMap();
+
+		return asCallback(callback, predictionBusinessService.predict(consumerBean, parameters));
     }
 
 

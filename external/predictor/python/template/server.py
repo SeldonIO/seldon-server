@@ -22,7 +22,7 @@ def format_predictions(predictions):
     for (score,classId,confidence) in predictions:
         formatted_recs_list.append({
             "prediction": score,
-            "predictedClass": classId,
+            "predictedClass": str(classId),
             "confidence" : confidence
         })
     return { "predictions": formatted_recs_list }

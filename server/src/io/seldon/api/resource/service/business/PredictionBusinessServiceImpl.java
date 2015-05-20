@@ -121,7 +121,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	@Override
 	public ResourceBean addEvent(ConsumerBean consumerBean,Map<String, String[]> parameters) {
 		ResourceBean responseBean;
-		Map<String,Object> keyVals = new HashMap<String,Object>();
+
 		if (parameters.containsKey(JSON_KEY))
 		{
 			String jsonRaw = parameters.get(JSON_KEY)[0];
@@ -129,6 +129,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		}
 		else
 		{
+			Map<String,Object> keyVals = new HashMap<String,Object>();
 			for(Map.Entry<String, String[]> reqMapEntry : parameters.entrySet())
 			{
 				if (reqMapEntry.getValue().length == 1 && allowedKey(reqMapEntry.getKey()))
@@ -199,6 +200,35 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 			responseBean = new ErrorBean(e);
 		}
 	    return responseBean;
+	}
+
+	@Override
+	public ResourceBean predict(ConsumerBean consumerBean, Map<String, String[]> parameters) {
+		if (parameters.containsKey(JSON_KEY))
+		{
+			String jsonRaw = parameters.get(JSON_KEY)[0];
+			return predict(consumerBean, jsonRaw);
+		}
+		else
+		{
+			Map<String,Object> keyVals = new HashMap<String,Object>();
+			for(Map.Entry<String, String[]> reqMapEntry : parameters.entrySet())
+			{
+				if (reqMapEntry.getValue().length == 1 && allowedKey(reqMapEntry.getKey()))
+				{
+					keyVals.put(reqMapEntry.getKey(), reqMapEntry.getValue()[0]);
+				}
+			}
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				String jsonRaw = mapper.writeValueAsString(keyVals);
+				return predict(consumerBean, jsonRaw);
+			} catch (IOException e) {
+				ApiLoggerServer.log(this, e);
+				APIException apiEx = new APIException(APIException.INVALID_JSON);
+				return new ErrorBean(apiEx);
+			}
+		}
 	}
 
 }

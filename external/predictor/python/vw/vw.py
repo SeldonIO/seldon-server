@@ -29,6 +29,9 @@ def init(config):
     vw_config = config['VW']
     # we tail the raw prediction file to get the full scores from daemon sevrer
     threading.Thread(target=tail_forever, args=(vw_config['raw_predictions'],)).start()
+    global idMap
+    idMap = vw_config['classIds']
+        
 
 # simple vw precition string create
 # ASSUMES ALL FEATURES HAVE NUMERIC VALUES
@@ -61,7 +64,7 @@ def get_full_scores(tag):
                     fscores = []
                     c = 1
                     for nscore in nscores:
-                        fscores.append((nscore,c,1.0))
+                        fscores.append((nscore,idMap[str(c)],1.0))
                         c = c + 1
                     return fscores
                 else:

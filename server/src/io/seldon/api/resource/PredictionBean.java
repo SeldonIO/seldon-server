@@ -25,12 +25,12 @@ package io.seldon.api.resource;
 public class PredictionBean extends ResourceBean {
 
 	double prediction;
-	int predictedClass;
+	String predictedClass;
 	double confidence;
 	
 	
 	
-	public PredictionBean(double prediction, int predictedClass, double confidence) {
+	public PredictionBean(double prediction, String predictedClass, double confidence) {
 		super();
 		this.prediction = prediction;
 		this.predictedClass = predictedClass;
@@ -45,7 +45,7 @@ public class PredictionBean extends ResourceBean {
 
 
 
-	public int getPredictedClass() {
+	public String getPredictedClass() {
 		return predictedClass;
 	}
 

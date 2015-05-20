@@ -31,5 +31,6 @@ public interface PredictionBusinessService {
 
 	ResourceBean addEvent(ConsumerBean consumerBean,Map<String,String[]> parameters);
 	ResourceBean addEvent(ConsumerBean consumerBean,String json);
+	ResourceBean predict(ConsumerBean consumerBean,Map<String,String[]> parameters);
 	ResourceBean predict(ConsumerBean consumerBean,String json);
 }
