@@ -57,10 +57,6 @@ public class JdoCountRecommenderUtils {
 		userClusters = UserClusterManager.get().getStore(client); // Hack until we always use this class
 		if (userClusters == null)
 		{
-			logger.warn("UserClusterManager not found trying old methods for client "+client);
-			JdoMemoryUserClusterFactory memUserFac = JdoMemoryUserClusterFactory.get();
-			if (memUserFac != null)
-				userClusters = memUserFac.get(client);
 			if (userClusters == null)
 			{
 				logger.warn("Using slow DB access to user clusers for client "+client);
