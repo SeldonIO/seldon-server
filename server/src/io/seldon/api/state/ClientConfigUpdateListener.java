@@ -37,6 +37,7 @@ public interface ClientConfigUpdateListener {
      * @param configKey
      * @param configValue
      */
-    void configUpdated(String client, String configKey, String configValue);
+	void configUpdated(String client, String configKey, String configValue);
+	void configRemoved(String client, String configKey);
 
 }

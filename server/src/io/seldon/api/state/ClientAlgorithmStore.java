@@ -23,8 +23,6 @@
 
 package io.seldon.api.state;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.ClientStrategy;
@@ -64,6 +62,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Sets;
 
 /**
@@ -154,7 +153,29 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         }
     }
 
-
+    @Override
+	public void configRemoved(String client, String configKey) {
+		logger.info("Received config remove for "+client+" with key "+configKey);
+		if (configKey.equals(ALG_KEY)){
+			store.remove(client);
+			logger.info("Successfully removed "+client+" from "+ALG_KEY);
+		}
+		else if (configKey.equals(TESTING_SWITCH_KEY)){
+			testingOnOff.remove(client);
+			logger.info("Successfully removed "+client+" from "+TESTING_SWITCH_KEY);
+		}
+		else if (configKey.equals(TEST)) 
+		{
+			tests.remove(client);
+			logger.info("Successfully removed "+client+" from "+TEST);
+		}
+		else if(configKey.equals(RECTAG)){
+			recTagStrategies.remove(client);
+			logger.info("Successfully removed "+client+" from "+RECTAG);
+		}
+		else
+			logger.warn("Ignored unknow config remove for "+client+" with key "+configKey);
+	}
 
     @Override
     public void configUpdated(String client, String configKey, String configValue) {
@@ -434,5 +455,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         public List<String> filters;
         public List<ConfigItem> config;
     }
+
+	
 
 }

@@ -27,13 +27,16 @@ import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.ClientConfigUpdateListener;
 import io.seldon.api.state.NewClientListener;
 import io.seldon.api.state.ZkSubscriptionHandler;
-import io.seldon.db.jdo.JDOFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -165,6 +168,12 @@ public class ZkClientConfigHandler implements TreeCacheListener, ClientConfigHan
                 break;
             case NODE_REMOVED:
                 path = event.getData().getPath();
+                String[] clientAndNode2 = path.replace("/" + CLIENT_LIST_LOCATION + "/", "").split("/");
+                if(clientAndNode2 !=null && clientAndNode2.length==2){
+                    for(ClientConfigUpdateListener listener: listeners){
+                    	listener.configRemoved(clientAndNode2[0], clientAndNode2[1]);
+                    }
+                }
                 if(isClientPath(path)){
                     String clientName = retrieveClientName(path);
                     clientsWithInitialConfig.keySet().remove(clientName);
