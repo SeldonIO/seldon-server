@@ -295,6 +295,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 			Double count = (Double) r[1];
 			map.put(itemId, count);
 		}
+		logger.info("getTopCountsByTagAndTwoDimension "+tag+" tagATtrId "+tagAttrId+" dimension "+dimension+" decay "+decay+ " limit "+limit+ " results "+map.size());
 		return map;
 	}
 
@@ -325,7 +326,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 			double decay) throws ClusterCountNoImplementationException {
 		final PersistenceManager pm = getPM();
 		Map<Long,Double> map = new HashMap<>();
-		Query query = pm.newQuery( "javax.jdo.query.SQL", "select c.item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedCount from cluster_counts c natural join item_map_enum ime1 join dimension d1 on (d1.attr_id=ime1.attr_id and ime1.value_id=d1.value_id) join item_map_enum ime2 on (c.item_id=ime2.item_id) join dimension d2 on (d2.attr_id=ime2.attr_id and ime2.value_id=d2.value_id) join item_map_varchar on (c.item_id=item_map_varchar.item_id and item_map_varchar.attr_id=2) where d1.dim_id = ? and d2.dim_id = ? and value regexp \"(^|,)[ ]*"+tag+"[ ]*(,|$)\" group by item_id order by decayedcount desc limit "+limit );
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select c.item_id,sum(exp(-(greatest(unix_timestamp()-t,0)/?))*count) as decayedCount from cluster_counts c natural join item_map_enum ime1 join dimension d1 on (d1.attr_id=ime1.attr_id and ime1.value_id=d1.value_id) join item_map_enum ime2 on (c.item_id=ime2.item_id) join dimension d2 on (d2.attr_id=ime2.attr_id and ime2.value_id=d2.value_id) join item_map_varchar on (c.item_id=item_map_varchar.item_id and item_map_varchar.attr_id=?) where d1.dim_id = ? and d2.dim_id = ? and value regexp \"(^|,)[ ]*"+tag+"[ ]*(,|$)\" group by item_id order by decayedcount desc limit "+limit );
 		ArrayList<Object> args = new ArrayList<>();
 		args.add(decay);
 		args.add(tagAttrId);
@@ -338,6 +339,7 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 			Double count = (Double) r[1];
 			map.put(itemId, count);
 		}
+		logger.info("getTopCountsByTagAndTwoDimensions "+tag+" tagATtrId "+tagAttrId+" dimension "+dimension+" dimension2 "+dimension2+" decay "+decay+ " limit "+limit+ " results "+map.size());
 		return map;
 	}
 

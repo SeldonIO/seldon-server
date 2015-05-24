@@ -155,9 +155,11 @@ public class CountRecommender {
 
 		if (counts.keySet().size() < minAllowed)
 		{
-			logger.debug("Number of items found "+counts.keySet().size()+" is less than "+minAllowed+" so returning empty recommendation for cluster tag item recommender");
+			logger.debug("Number of tag items found "+counts.keySet().size()+" is less than "+minAllowed+" so returning empty recommendation for cluster tag item recommender");
 			return new HashMap<>();
 		}
+		else
+			logger.debug("Number of tag items found "+counts.keySet().size());
 		
 		return RecommendationUtils.rescaleScoresToOne(counts, numRecommendations);
 	}
@@ -637,11 +639,11 @@ public class CountRecommender {
 		
 		if (dimension2 != null)
 		{
-			return getClusterCounts(MemCacheKeys.getTopClusterCountsForTagAndDimension(client, tag, tagAttrId, dimension, limit),
+			return getClusterCounts(MemCacheKeys.getTopClusterCountsForTagAndTwoDimensions(client, tag, tagAttrId, dimension, dimension2, limit),
 					new UpdateRetriever<ClustersCounts>() {
 						@Override
 						public ClustersCounts retrieve() throws Exception {
-							logger.debug("Trying to get top counts for tag and dimension from db : testMode is for client " + client + " dimension:" + dimension);
+							logger.info("Trying to get top counts for tag and two dimensions from db : testMode is for client " + client + " dimension1:" + dimension+ " dimension2:"+dimension2);
 							Map<Long, Double> itemMap = clusterCounts.getTopCountsByTagAndTwoDimensions(tag, tagAttrId, dimension, dimension2, limit, decay);
 
 							return new ClustersCounts(itemMap, 0);
@@ -655,7 +657,7 @@ public class CountRecommender {
 					new UpdateRetriever<ClustersCounts>() {
 						@Override
 						public ClustersCounts retrieve() throws Exception {
-							logger.debug("Trying to get top counts for tag and dimension from db : testMode is for client " + client + " dimension:" + dimension);
+							logger.info("Trying to get top counts for tag and dimension from db : testMode is for client " + client + " dimension:" + dimension);
 							Map<Long, Double> itemMap = clusterCounts.getTopCountsByTagAndDimension(tag, tagAttrId, dimension, limit, decay);
 
 							return new ClustersCounts(itemMap, 0);

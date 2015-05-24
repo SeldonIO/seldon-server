@@ -375,6 +375,11 @@ public class MemCacheKeys {
 	{
 		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+dimension+":"+limit;
 	}
+
+	public static String getTopClusterCountsForTagAndTwoDimensions(String client,String tag,int tagAttrId,int dimension,int dimension2,int limit)
+	{
+		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+dimension+":"+dimension2+":"+limit;
+	}
 	
 	public static String getTopClusterCountsForTag(String client,String tag,int tagAttrId,int limit)
 	{

@@ -94,7 +94,7 @@ public class UserTagAffinityRecommender extends BaseItemCategoryRecommender impl
         	}
         	Map<Long, Double> recommendations = r.recommendUsingTag(tagMap, tagAttrId, dimensionId, dimension2, maxRecsCount, exclusions, decayRate, minClusterItems);
                 long t2 = System.currentTimeMillis();
-                logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1));
+                logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1)+ " with "+recommendations.size()+" results");
                 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
                 for (Map.Entry<Long, Double> entry : recommendations.entrySet()) {
                     results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
