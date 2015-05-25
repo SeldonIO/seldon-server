@@ -50,6 +50,21 @@ public class VwClassifier implements PredictionAlgorithm {
 		this.featureExtractor = featureExtractor;
     }
 	
+	private double sigmoid(double val)
+	{
+		return 1.0/(1.0 + Math.exp(-val));
+	}
+	
+	private List<PredictionResult> normalise(List<PredictionResult> scores)
+	{
+		double sum = 0.0;
+		for(PredictionResult p : scores)
+			sum = sum + p.confidence;
+		for(PredictionResult p : scores)
+			p.confidence = p.confidence / sum;
+		return scores;
+	}
+	
 	@Override
 	public PredictionsResult predict(String client, JsonNode jsonNode,OptionsHolder options) {
 
@@ -80,9 +95,12 @@ public class VwClassifier implements PredictionAlgorithm {
 				Float weight = model.weights.get(constantIndex);
 				if (weight != null)
 					score = score + weight;
-				predictions.add(new PredictionResult((double)score, ""+(i+1), 1.0));
+				predictions.add(new PredictionResult((double)score, ""+(i+1), sigmoid(score)));
 			}
-			return new PredictionsResult(predictions);
+			//aribrary decision point at 0.0 for binary classification
+			if (model.oaa == 1 && predictions.get(0).prediction < 0)
+				predictions.get(0).predictedClass = "-1";
+			return new PredictionsResult(normalise(predictions));
 		}
 	}
 

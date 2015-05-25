@@ -115,12 +115,16 @@ public class VwModelManager implements PerClientExternalLocationListener {
             	}
             	else if (line.startsWith("options:"))
             	{
-            		String[] options = line.split(":")[1].split("\\s+");
-            		for(int i=0;i<options.length;i++)
+            		String[] parts = line.split(":");
+            		if (parts.length > 1)
             		{
-            			if ("--oaa".equals(options[i]))
+            			String[] options = parts[1].split("\\s+");
+            			for(int i=0;i<options.length;i++)
             			{
-            				oaa = Integer.parseInt(options[i+1]);
+            				if ("--oaa".equals(options[i]))
+            				{
+            					oaa = Integer.parseInt(options[i+1]);
+            				}
             			}
             		}
             	}
