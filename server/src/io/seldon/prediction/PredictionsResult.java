@@ -21,12 +21,14 @@
 */
 package io.seldon.prediction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PredictionsResult {
 	public List<PredictionResult> predictions;
 	
 	public PredictionsResult() {
+		predictions = new ArrayList<>();
 	}
 
 	public PredictionsResult(List<PredictionResult> predictions) {

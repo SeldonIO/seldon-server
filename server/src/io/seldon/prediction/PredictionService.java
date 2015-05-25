@@ -29,6 +29,7 @@ import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,7 @@ public class PredictionService {
     }
 
 	
-	public PredictionsResult predict(String client,String json)
+	public PredictionsResult predict(String client,JsonNode json)
 	{
 		PredictionStrategy strategy = algStore.retrieveStrategy(client);
 		if (strategy == null) {

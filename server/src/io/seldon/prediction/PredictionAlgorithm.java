@@ -23,9 +23,11 @@ package io.seldon.prediction;
 
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 
+import org.codehaus.jackson.JsonNode;
+
 public interface PredictionAlgorithm {
 
-	 public PredictionsResult predict(String client, String json, OptionsHolder options);
+	 public PredictionsResult predict(String client, JsonNode json, OptionsHolder options);
 	 
 	 
 }

@@ -41,6 +41,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -96,7 +97,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
 	}
 
     
-    public PredictionsResult predict(String client, String json, OptionsHolder options) 
+    public PredictionsResult predict(String client, JsonNode jsonNode, OptionsHolder options) 
     {
     		long timeNow = System.currentTimeMillis();
     		URI uri = URI.create(options.getStringOption(URL_PROPERTY_NAME));
@@ -106,7 +107,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     					.setPort(uri.getPort())
     					.setPath(uri.getPath())
     					.setParameter("client", client)
-    					.setParameter("json", json);
+    					.setParameter("json", jsonNode.toString());
 
     			uri = builder.build();
     		} catch (URISyntaxException e) 

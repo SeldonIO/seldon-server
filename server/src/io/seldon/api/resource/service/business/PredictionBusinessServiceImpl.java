@@ -73,26 +73,29 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		return System.currentTimeMillis()/1000;
 	}
 	
-	private String getValidatedJson(ConsumerBean consumer,String jsonRaw) throws JsonParseException, IOException
+	private JsonNode getValidatedJson(ConsumerBean consumer,String jsonRaw,boolean addExtraFeatures) throws JsonParseException, IOException
 	{
 		ObjectMapper mapper = new ObjectMapper();
 	    JsonFactory factory = mapper.getJsonFactory();
 	    JsonParser parser = factory.createJsonParser(jsonRaw);
 	    JsonNode actualObj = mapper.readTree(parser);
-	    ((ObjectNode) actualObj).put(CLIENT_KEY,consumer.getShort_name());
-	    if (actualObj.get(TIMESTAMP_KEY) == null)
+	    if (addExtraFeatures)
 	    {
-	    	((ObjectNode) actualObj).put(TIMESTAMP_KEY,getTimeStamp());
-	    }
-	    else
-	    {
-	    	JsonNode timeNode = actualObj.get(TIMESTAMP_KEY);
-	    	if (!(timeNode.isInt() || timeNode.isLong()))
+	    	((ObjectNode) actualObj).put(CLIENT_KEY,consumer.getShort_name());
+	    	if (actualObj.get(TIMESTAMP_KEY) == null)
 	    	{
-	    		throw new APIException(APIException.INVALID_JSON);
-			}
-		}
-	    return actualObj.toString();
+	    		((ObjectNode) actualObj).put(TIMESTAMP_KEY,getTimeStamp());
+	    	}
+	    	else
+	    	{
+	    		JsonNode timeNode = actualObj.get(TIMESTAMP_KEY);
+	    		if (!(timeNode.isInt() || timeNode.isLong()))
+	    		{
+	    			throw new APIException(APIException.INVALID_JSON);
+	    		}
+	    	}
+	    }
+	    return actualObj;
 	}
 	
 	private ResourceBean getValidatedJsonResource(ConsumerBean consumer,String jsonRaw)
@@ -100,7 +103,8 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		ResourceBean responseBean;
 		try
 		{
-			String json = getValidatedJson(consumer, jsonRaw);
+			JsonNode jsonNode = getValidatedJson(consumer, jsonRaw,true);
+			String json = jsonNode.toString();
 			EventLogger.log(json);
 			responseBean = new EventBean(json);
 	    } 
@@ -178,8 +182,8 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		ResourceBean responseBean;
 		try
 		{
-			getValidatedJson(consumer, jsonRaw); // used to check valid json but we don't use result
-			PredictionsResult res = predictionService.predict(consumer.getShort_name(), jsonRaw);
+			JsonNode jsonNode = getValidatedJson(consumer, jsonRaw, false); // used to check valid json but we don't use result
+			PredictionsResult res = predictionService.predict(consumer.getShort_name(), jsonNode);
 			ListBean listBean = new ListBean();
 			for(PredictionResult r : res.predictions)
 			{

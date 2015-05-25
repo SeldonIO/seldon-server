@@ -29,6 +29,19 @@ public class PredictionResult implements Serializable {
 	public String predictedClass;
 	public Double confidence;
 	
+	public PredictionResult()
+	{
+		
+	}
+	
+	public PredictionResult(Double prediction, String predictedClass,
+			Double confidence) {
+		super();
+		this.prediction = prediction;
+		this.predictedClass = predictedClass;
+		this.confidence = confidence;
+	}
+	
 	
 	
 }
