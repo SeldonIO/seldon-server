@@ -33,7 +33,7 @@ install_yo_bower_grunt() {
     cd movie-demo-frontend
     echo "Installing yo, bower, grunt-cli"
     sudo npm install -g yo bower grunt-cli
-    sudo chown -R ubuntu:ubuntu ~/.npm
+    sudo chown -R ${INSTALL_DEPS_VM_USER}:${INSTALL_DEPS_VM_USER} ~/.npm
     rm -rf ~/tmp/movie-demo-frontend/
     ###############################################################################
 }

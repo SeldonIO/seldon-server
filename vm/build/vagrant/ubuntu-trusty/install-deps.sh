@@ -20,6 +20,7 @@ export INSTALL_DEPS_DOCKER_USER=vagrant
 export INSTALL_DEPS_TOMCAT_HOME=/home/vagrant/apps/tomcat
 export INSTALL_DEPS_SPARK_HOME=/home/vagrant/apps/spark
 export INSTALL_DEPS_SELDON_SERVER_HOME=/home/vagrant/seldon-server
+export INSTALL_DEPS_VM_USER=vagrant
 
 ##${INSTALL_DEPS_DIR}/install-locale.sh
 ##${INSTALL_DEPS_DIR}/install-linux-image-extra.sh
@@ -32,6 +33,9 @@ export INSTALL_DEPS_SELDON_SERVER_HOME=/home/vagrant/seldon-server
 #${INSTALL_DEPS_DIR}/install-python-deps.sh
 #${INSTALL_DEPS_DIR}/install-misc.sh
 
-use_pre_built_projects
+#use_pre_built_projects
 #${INSTALL_DEPS_DIR}/install-seldon-api-webapps.sh
+
+#${INSTALL_DEPS_DIR}/install-bower-interaction-fix.sh
+#${INSTALL_DEPS_DIR}/install-movie-demo-build-deps.sh
 
