@@ -30,13 +30,13 @@ extract_war_file() {
 
 create_setenv() {
     local DATA=$(sed -e '0,/^__DATA__$/d' -e "s|%SELDON_ZKSERVERS%|${SELDON_ZKSERVERS}|g"  "$0")
-    printf '%s\n' "$DATA" > ~/apps/tomcat/bin/setenv.sh
+    printf '%s\n' "$DATA" > ${INSTALL_DEPS_TOMCAT_HOME}/bin/setenv.sh
 }
 
 echo "-- setting up webapps for seldon api --"
 
-SELDON_SERVER_HOME=${STARTUP_DIR}/../../..
-WEBAPPS_DIR=~/apps/tomcat/webapps
+SELDON_SERVER_HOME=${INSTALL_DEPS_SELDON_SERVER_HOME}
+WEBAPPS_DIR=${INSTALL_DEPS_TOMCAT_HOME}/webapps
 SELDON_ZKSERVERS=localhost
 
 setup_war_file
