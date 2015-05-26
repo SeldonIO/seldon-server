@@ -75,12 +75,30 @@ public class VwModelManager implements PerClientExternalLocationListener {
                 logger.info("Reloading VW model for client: "+ client);
 
                 try {
+                	Map<Integer,String> classIdMap;
+                	try
+                	{
+                		BufferedReader modelReader = new BufferedReader(new InputStreamReader(
+                            featuresFileHandler.getResourceStream(location + "/classes.txt")
+                				));
+                		classIdMap = loadClassIdMap(modelReader);
+                		
+                		modelReader.close();
+                	}
+                	catch (IOException e)
+                	{
+                		logger.warn("Found no classes.txt for "+location);
+                		classIdMap = new HashMap<Integer,String>();
+                	}
+                	
                     BufferedReader modelReader = new BufferedReader(new InputStreamReader(
                             featuresFileHandler.getResourceStream(location + "/model")
                     ));
-                    VwModel model = loadModel(modelReader);
+                    VwModel model = loadModel(modelReader,classIdMap);
                     
                     clientStores.put(client, model);
+                    
+                    logger.info("Loaded VW model from "+location+" for "+client+" with "+model.weights.size()+" weights and "+model.classIdMap.size()+" classes" );
                     
                     modelReader.close();
 
@@ -93,13 +111,30 @@ public class VwModelManager implements PerClientExternalLocationListener {
         });
 
     }
+    
+    private Map<Integer,String> loadClassIdMap(BufferedReader reader) throws IOException
+    {
+    	Map<Integer,String> classIdMap = new HashMap<Integer,String>();
+    	String line;
+    	while((line = reader.readLine()) !=null)
+        {
+    		int firstComma = line.indexOf(",");
+    		if (firstComma > 0)
+    		{
+    			int id = Integer.parseInt(line.substring(0, firstComma));
+    			String className = line.substring(firstComma+1);
+    			classIdMap.put(id,className);
+    		}
+        }
+    	return classIdMap;
+    }
 
     public VwModel getModel(String client){
         return clientStores.get(client);
     }
 
 
-    private VwModel loadModel(BufferedReader reader) throws IOException {
+    private VwModel loadModel(BufferedReader reader,Map<Integer,String> classIdMap) throws IOException {
         Map<Integer,Float> weights = new HashMap<Integer,Float>();
         int oaa = 1;
         int bits = 18;
@@ -124,7 +159,10 @@ public class VwModelManager implements PerClientExternalLocationListener {
             				if ("--oaa".equals(options[i]))
             				{
             					oaa = Integer.parseInt(options[i+1]);
+            					i++;
             				}
+            				else
+            					logger.warn("Unhandled VW option - this model may not behave correctly at prediction time "+options[i]);
             			}
             		}
             	}
@@ -141,7 +179,7 @@ public class VwModelManager implements PerClientExternalLocationListener {
             	weights.put(feature, weight);
             }
         }
-        return new VwModel(bits, oaa, weights);
+        return new VwModel(bits, oaa, weights,classIdMap);
     }
 
     @Override
@@ -158,15 +196,17 @@ public class VwModelManager implements PerClientExternalLocationListener {
     {
     	public final int bits;
     	public final int oaa;
+    	public final Map<Integer,String> classIdMap;
     	public final Map<Integer,Float> weights;
     	public final VwFeatureHash hasher;
     	
-		public VwModel(int bits, int oaa, Map<Integer, Float> weights) {
+		public VwModel(int bits, int oaa, Map<Integer, Float> weights,Map<Integer,String> classIdMap) {
 			super();
 			this.bits = bits;
 			this.oaa = oaa;
 			this.weights = weights;
 			this.hasher = new VwFeatureHash(bits, oaa);
+			this.classIdMap = classIdMap;
 		}
 
 		@Override
@@ -182,7 +222,7 @@ public class VwModelManager implements PerClientExternalLocationListener {
     {
     	BufferedReader br = new BufferedReader(new FileReader("/home/clive/work/seldon/external_prediction_server/vw/iris/model.txt"));
     	VwModelManager m = new VwModelManager(null, null);
-    	VwModel vwModel = m.loadModel(br);
+    	VwModel vwModel = m.loadModel(br,new HashMap<Integer,String>());
     	System.out.println(vwModel);
     }
 }

@@ -95,11 +95,19 @@ public class VwClassifier implements PredictionAlgorithm {
 				Float weight = model.weights.get(constantIndex);
 				if (weight != null)
 					score = score + weight;
-				predictions.add(new PredictionResult((double)score, ""+(i+1), sigmoid(score)));
+				String classId = ""+(i+1);
+				if (model.classIdMap.containsKey(i+1))
+					classId = model.classIdMap.get(i+1);
+				predictions.add(new PredictionResult((double)score, classId, sigmoid(score)));
 			}
 			//aribrary decision point at 0.0 for binary classification
 			if (model.oaa == 1 && predictions.get(0).prediction < 0)
-				predictions.get(0).predictedClass = "-1";
+				if (model.classIdMap.containsKey(-1))
+					predictions.get(0).predictedClass = model.classIdMap.get(-1);
+				else
+					predictions.get(0).predictedClass = "-1";
+					
+			
 			return new PredictionsResult(normalise(predictions));
 		}
 	}
