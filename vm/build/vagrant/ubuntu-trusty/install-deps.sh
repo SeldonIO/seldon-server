@@ -9,6 +9,7 @@ export INSTALL_DEPS_DIR=/vagrant/install-deps
 export INSTALL_DEPS_DOCKER_USER=vagrant
 export INSTALL_DEPS_TOMCAT_HOME=/home/vagrant/apps/tomcat
 export INSTALL_DEPS_SPARK_HOME=/home/vagrant/apps/spark
+export INSTALL_DEPS_SELDON_SERVER_HOME=/home/vagrant/seldon-server
 
 ##${INSTALL_DEPS_DIR}/install-locale.sh
 ##${INSTALL_DEPS_DIR}/install-linux-image-extra.sh
