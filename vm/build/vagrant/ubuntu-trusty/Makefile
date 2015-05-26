@@ -23,6 +23,7 @@ reload_provision:
 	vagrant reload --provision
 
 build:
+	./pre-build/build-seldon-projects
 	@rm -rfv install-deps
 	cp -Rv ../../install-deps install-deps
 	vagrant destroy -f
