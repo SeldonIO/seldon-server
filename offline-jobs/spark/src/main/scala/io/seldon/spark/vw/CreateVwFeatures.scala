@@ -208,6 +208,10 @@ object CreateVwFeatures
         opt[String]('a', "awskey") valueName("aws access key") foreach { x => c = c.copy(awsKey = x) } text("aws key")
         opt[String]('s', "awssecret") valueName("aws secret") foreach { x => c = c.copy(awsSecret = x) } text("aws secret")
         opt[String]('z', "zookeeper") valueName("zookeeper hosts") foreach { x => c = c.copy(zkHosts = x) } text("zookeeper hosts (comma separated)")        
+        
+        opt[String]("excludedFeatures") valueName("excluded features") foreach { x => c = c.copy(excludedFeatures = x) } text("features to exclude from json to vw translation")        
+        opt[String]("targetFeature") valueName("target") foreach { x => c = c.copy(targetFeature = x) } text("the target feature")                
+        opt[Boolean]("oaa") valueName("oaa") foreach { x => c = c.copy(oaa = x) } text("whether this is a one-against-all classification")                        
 
     }
     
