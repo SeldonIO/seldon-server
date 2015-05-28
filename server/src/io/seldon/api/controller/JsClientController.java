@@ -37,6 +37,7 @@ import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
 import io.seldon.api.resource.service.business.ItemBusinessService;
+import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.statsd.StatsdPeer;
@@ -55,7 +56,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,6 +84,8 @@ public class JsClientController {
     @Autowired
     private RecommendationBusinessService recommendationBusinessService;
     
+    @Autowired
+    private PredictionBusinessService predictionBusinessService;
     
     @Autowired
     private MessageSource messageSource;
@@ -169,6 +171,35 @@ public class JsClientController {
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);
         return asCallback(callback, recommendations);
+    }
+    
+    
+    @RequestMapping("/event/new")
+    public
+    @ResponseBody
+    JSONPObject registerEvent(HttpSession session,
+							  HttpServletRequest request, 
+                             @RequestParam("jsonpCallback") String callback) {
+        final ConsumerBean consumerBean = retrieveConsumer(session);
+        @SuppressWarnings("unchecked")
+		Map<String,String[]> parameters = request.getParameterMap();
+        
+		return asCallback(callback, predictionBusinessService.addEvent(consumerBean, parameters));
+    }
+    
+    
+    @RequestMapping("/predict")
+    public
+    @ResponseBody
+    JSONPObject predict(HttpSession session,
+							  HttpServletRequest request, 
+                              @RequestParam(value = "json", required = false) String json,
+                             @RequestParam("jsonpCallback") String callback) {
+        final ConsumerBean consumerBean = retrieveConsumer(session);
+        @SuppressWarnings("unchecked")
+		Map<String,String[]> parameters = request.getParameterMap();
+
+		return asCallback(callback, predictionBusinessService.predict(consumerBean, parameters));
     }
 
 
