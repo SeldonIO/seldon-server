@@ -38,7 +38,11 @@ def memcachedSetup(zk, data, zkNode):
 	zk.ensure_path(zkNode)
 	zk.set(zkNode,str(",".join(servers)))
 
-def addClientDb(clientName, dbSettings):
+def addClientDb(clientName, dbSettings, consumer_details=None):
+
+	js_consumer_key     = consumer_details['js_consumer_key']       if consumer_details != None and consumer_details.has_key('js_consumer_key')     else None
+	all_consumer_key    = consumer_details['all_consumer_key']      if consumer_details != None and consumer_details.has_key('all_consumer_key')    else None
+	all_consumer_secret = consumer_details['all_consumer_secret']   if consumer_details != None and consumer_details.has_key('all_consumer_secret') else None
 
 	db = MySQLdb.connect(host=dbSettings["host"],
                      	user=dbSettings["user"],
@@ -61,17 +65,17 @@ def addClientDb(clientName, dbSettings):
 	cur.execute("USE API")
 	numrows = cur.execute("SELECT * FROM CONSUMER WHERE SHORT_NAME=\'"+clientName+"\' and SCOPE=\'js\'")
 	if numrows < 1:
-		consumer_key = generateRandomString()
+		consumer_key = js_consumer_key if js_consumer_key != None else generateRandomString()
 		print "Adding JS consumer key for client \'"+clientName +"\' : \'"+consumer_key+"\'"
 		cur.execute("INSERT INTO `CONSUMER` (`consumer_key`, `consumer_secret`, `name`, `short_name`, `time`, `active`, `secure`, `scope`) VALUES (\'"+consumer_key+"\', '',\'"+clientName+"\',\'"+ clientName+"\',CURRENT_TIMESTAMP(), 1, 0, 'js')")
 	else:
 		print "JS Consumer key already added for client \'"+clientName+"\'"
 	numrows = cur.execute("SELECT * FROM CONSUMER WHERE SHORT_NAME=\'"+clientName+"\' and SCOPE=\'all\'")
 	if numrows < 1:
-		consumer_key = generateRandomString()
-		consumer_secret = generateRandomString()
+		consumer_key    = all_consumer_key      if all_consumer_key != None     else generateRandomString()
+		consumer_secret = all_consumer_secret   if all_consumer_secret != None  else generateRandomString()
 		print "Adding REST API key for client \'"+clientName +"\' : consumer_key=\'"+consumer_key+"\' consumer_secret=\'"+consumer_secret+"\'"
-		cur.execute("INSERT INTO `CONSUMER` (`consumer_key`, `consumer_secret`, `name`, `short_name`, `time`, `active`, `secure`, `scope`) VALUES (\'"+consumer_key+"\', '',\'"+clientName+"\',\'"+ clientName+"\',CURRENT_TIMESTAMP(), 1, 0, 'all')")
+		cur.execute("INSERT INTO `CONSUMER` (`consumer_key`, `consumer_secret`, `name`, `short_name`, `time`, `active`, `secure`, `scope`) VALUES (\'"+consumer_key+"\',\'"+consumer_secret+"\',\'"+clientName+"\',\'"+ clientName+"\',CURRENT_TIMESTAMP(), 1, 0, 'all')")
 	else:
 		print "REST API key already added for client \'"+clientName+"\'"
 
@@ -92,7 +96,7 @@ def addApiDb(dbName, dbSettings):
 	else:
 		print "API DB has already been added to the MySQL DB \'"+dbName+"\'"
 
-def clientSetup(zk, client_data, db_data, zkNode):
+def clientSetup(zk, client_data, db_data, zkNode, consumer_details=None):
 	dbs= retrieveDbSettings(db_data)
 	for client in client_data:
 
@@ -100,7 +104,7 @@ def clientSetup(zk, client_data, db_data, zkNode):
 		dbname = client['db']
 		if client['db'] is None:
 			dbname = dbs.keys()[0]
-		addClientDb(client['name'],dbs[dbname])
+		addClientDb(client['name'],dbs[dbname], consumer_details)
 		clientNode = zkNode + "/" + client['name']
 		zk.ensure_path(clientNode)
 		clientNodeValue = {"DB_JNDI_NAME":dbname}

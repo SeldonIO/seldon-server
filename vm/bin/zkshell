@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+DOCKER_CMD=docker
+CONTAINER_ID=seldonio_zookeeper
+
+ZOOKEEPER_HOME=/opt/zookeeper
+
+${DOCKER_CMD} exec -i -t \
+    ${CONTAINER_ID} \
+    /opt/zookeeper/bin/zkCli.sh
+

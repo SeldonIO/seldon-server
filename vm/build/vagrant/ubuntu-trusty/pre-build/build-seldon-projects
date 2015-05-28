@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+export INSTALL_DEPS_DIR=${STARTUP_DIR}/../../../install-deps
+export INSTALL_DEPS_SELDON_SERVER_HOME=${STARTUP_DIR}/../../../../..
+
+${INSTALL_DEPS_DIR}/build-seldon-api.sh
+API_WARFILE_PATH=$(ls ${INSTALL_DEPS_SELDON_SERVER_HOME}/server/target/seldon-server-*.war)
+cp -v $API_WARFILE_PATH ${STARTUP_DIR}/
+
+
+${INSTALL_DEPS_DIR}/build-seldon-spark.sh
+SELDON_SPARK_JARFILE_PATH=$(ls ${INSTALL_DEPS_SELDON_SERVER_HOME}/offline-jobs/spark/target/seldon-spark-*-with-dependencies.jar)
+cp -v $SELDON_SPARK_JARFILE_PATH ${STARTUP_DIR}/
+
