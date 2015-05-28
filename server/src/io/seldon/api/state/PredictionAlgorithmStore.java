@@ -128,6 +128,12 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	            }
 		}
 	}
+	
+	@Override
+	public void configRemoved(String client, String configKey) {
+		store.remove(client);
+		logger.info("Removed client "+client);
+	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
@@ -173,6 +179,8 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	        public String name;
 	        public List<ConfigItem> config;
 	    }
+
+	
 
 		
 }
