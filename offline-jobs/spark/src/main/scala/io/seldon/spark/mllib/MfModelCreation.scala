@@ -166,11 +166,10 @@ class MfModelCreation(private val sc : SparkContext,config : MfConfig) {
     actionsByScore.take(10).foreach(println)
     val itemsByCount: RDD[(Int, Int)] = actionsByScore.map(x => (x._1._1, 1)).reduceByKey(_ + _)
     val itemsCount = itemsByCount.count()
-    val topQuarter = (itemsCount * 1).toInt
     println("total actions " + actions.count())
-    println("total stories " + itemsByCount.count())
+    println("total items " + itemsByCount.count())
 
-    val usersByCount = actionsByScore.map(x=>(x._2,1)).reduceByKey(_+_)
+    val usersByCount = actionsByScore.map(x=>(x._1._2,1)).reduceByKey(_+_)
     val usersCount = usersByCount.count()
     println("total users " + usersCount)
 
