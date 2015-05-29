@@ -62,9 +62,9 @@ case class MfConfig(
     activate : Boolean = false,
     
     rank : Int = 30,
-    lambda : Double = 0.1,
+    lambda : Double = 0.01,
     alpha : Double = 1,
-    iterations : Int = 2,
+    iterations : Int = 5,
     actionWeightings: Option[List[ActionWeighting]] = None
  )
  
