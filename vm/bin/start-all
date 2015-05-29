@@ -8,4 +8,5 @@ STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 ${STARTUP_DIR}/memcached start
 ${STARTUP_DIR}/zookeeper start
 ${STARTUP_DIR}/mysql start
+${STARTUP_DIR}/td-agent start
 

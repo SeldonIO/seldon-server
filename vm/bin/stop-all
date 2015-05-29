@@ -5,6 +5,7 @@ set -o errexit
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+${STARTUP_DIR}/td-agent stop
 ${STARTUP_DIR}/mysql stop
 ${STARTUP_DIR}/zookeeper stop
 ${STARTUP_DIR}/memcached stop
