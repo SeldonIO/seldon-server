@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+source ${STARTUP_DIR}/settings
+
+echo "--- generating build-details.txt ---"
+
+build_details() {
+    TIMESTAMP=`date +"%Y%m%d_%H%M%S"`
+    echo "name[$VMBOX_NAME]"
+    echo "version[$VMBOX_VERSION]"
+    echo "revision[`git rev-parse HEAD`]"
+    echo "build[$TIMESTAMP]"
+}
+
+build_details > ${STARTUP_DIR}/build-details.txt
+

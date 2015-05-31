@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+echo "--- Updating VM ---"
+
+vagrant ssh -c 'cp /vagrant/build-details.txt ~/'
+vagrant ssh -c '/vagrant/install-deps.sh'
+
