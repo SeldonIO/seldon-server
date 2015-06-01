@@ -13,7 +13,7 @@ import java.sql.ResultSet
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.mllib.feature.IDF
 
-case class TagAffinityConfig(
+case class TagAffinityAnalysisConfig(
     client : String = "",
     inputPath : String = "/seldon-models",
     outputPath : String = "/seldon-models",
@@ -32,7 +32,7 @@ case class TagAffinityConfig(
     minTagCount : Int = 4,
     minPcIncrease : Double = 0.2)
 
-class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) {
+class UserTagAffinityAnalysis(private val sc : SparkContext,config : TagAffinityAnalysisConfig) {
 
   def parseJsonActions(path : String) = {
     
@@ -43,8 +43,9 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     
       val json = parse(line)
       val user = (json \ "userid").extract[Int]
+      val clientuser = (json \ "client_userid").extract[String]
       val item = (json \ "itemid").extract[Int]
-      (user,item)
+      (user,item,clientuser)
       }
     
     rdd
@@ -69,20 +70,22 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     rdd
   }
   
-  def getFilteredActions(minActions : Int,actions : org.apache.spark.rdd.RDD[(Int,Int)]) = {
+  def getFilteredActions(minActions : Int,actions : org.apache.spark.rdd.RDD[(Int,Int,String)]) = {
 
-    actions.groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => (v._2,v._1)) // filter users with no enough actions and transpose to item first
+    actions.groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => (v._2,(v._1,v._3))) // filter users with no enough actions and transpose to item first
   }
   
-  def convertJson(affinity : org.apache.spark.rdd.RDD[(Int,String,Double)]) = {
+  def convertJson(affinity : org.apache.spark.rdd.RDD[(Int,String,Double,String,Int)]) = {
     import org.json4s._
     import org.json4s.JsonDSL._
     import org.json4s.jackson.JsonMethods._
 
-    val userJson = affinity.map{case (user,tag,pcIncrease) =>
+    val userJson = affinity.map{case (user,tag,pcIncrease,clientuser,numActions) =>
       val json = (("user" -> user ) ~
             ("tag" -> tag ) ~
-            ("weight" -> pcIncrease )           
+            ("weight" -> pcIncrease ) ~           
+            ("cuid" -> clientuser ) ~                       
+            ("numactions" -> numActions )
             )
        val jsonText = compact(render(json))    
        jsonText
@@ -90,21 +93,6 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     userJson
   }
   
-   def activate(location : String) 
-  {
-    import io.seldon.spark.zookeeper.ZkCuratorHandler
-    import org.apache.curator.utils.EnsurePath
-    val curator = new ZkCuratorHandler(config.zkHosts)
-    if(curator.getCurator.getZookeeperClient.blockUntilConnectedOrTimedOut())
-    {
-        val zkPath = "/all_clients/"+config.client+"/tagaffinity"
-        val ensurePath = new EnsurePath(zkPath)
-        ensurePath.ensure(curator.getCurator.getZookeeperClient)
-        curator.getCurator.setData().forPath(zkPath,location.getBytes())
-    }
-    else
-      println("Failed to get zookeeper! Can't activate model")
-  }
   
   def run()
   {
@@ -132,10 +120,9 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     val tagCounts = rddCombined.flatMap(_._2._2.split(",")).map { x => (x.trim().toLowerCase(),1) }.reduceByKey(_ + _).collectAsMap
     val tagPercent = scala.collection.mutable.Map[String,Float]()
     for((t,c) <- tagCounts) tagPercent(t) = c/numActions.toFloat
-    println("tagCounts size is "+tagCounts.size)
-    
+    println("All tagCounts size is "+tagCounts.size)
 
-    val rddFeatures = rddCombined.map{ case (item,(user,tags)) => (user,(item,tags))}.groupByKey()
+    val rddFeatures = rddCombined.map{ case (item,((user,clientuser),tags)) => ((user,clientuser),(item,tags))}.groupByKey()
           .mapValues{v =>
         var doc = new StringBuilder()
         var allTags = ListBuffer[String]()
@@ -160,13 +147,14 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
         (allTags.mkString(","),v.size)
       }
    
+    
     val bc_tagPercent = sc.broadcast(tagPercent)
     
     val minTagCount = config.minTagCount
     val minPcIncrease = config.minPcIncrease
     val minUserActions = config.minActionsPerUser
-    val tagAffinity = rddFeatures.flatMap{case (user,(tags,numDocs)) =>
-      var allTags = ListBuffer[(Int,String,Double)]()
+    val tagAffinity = rddFeatures.flatMap{case ((user,clientuser),(tags,numDocs)) =>
+      var allTags = ListBuffer[(Int,String,Double,String,Int)]()
       if (numDocs >= minUserActions)
       {
       val tagPercent = bc_tagPercent.value
@@ -182,7 +170,7 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
           if (pc_increase > minPcIncrease)
           {
             val affinity = pc_increase
-            allTags.append((user,tag,pc_increase))
+            allTags.append((user,tag,pc_increase,clientuser,numDocs))
           }
         }
       }
@@ -196,21 +184,19 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     
     jsonRdd.coalesce(1, false).saveAsTextFile(outPath)
 
-     if (config.activate)
-       activate(outPath)
   }
 }
 
- object UserTagAffinity
+ object UserTagAffinityAnalysis
 {
-    def updateConf(config : TagAffinityConfig) =
+    def updateConf(config : TagAffinityAnalysisConfig) =
   {
     import io.seldon.spark.zookeeper.ZkCuratorHandler
     var c = config.copy()
     if (config.zkHosts.nonEmpty) 
      {
        val curator = new ZkCuratorHandler(config.zkHosts)
-       val path = "/all_clients/"+config.client+"/offline/tagaffinity"
+       val path = "/all_clients/"+config.client+"/offline/tagaffinity_analysis"
        if (curator.getCurator.checkExists().forPath(path) != null)
        {
          val bytes = curator.getCurator.getData().forPath(path)
@@ -222,11 +208,11 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
          val json = parse(j)
          import org.json4s.JsonDSL._
          import org.json4s.jackson.Serialization.write
-         type DslConversion = TagAffinityConfig => JValue
+         type DslConversion = TagAffinityAnalysisConfig => JValue
          val existingConf = write(c) // turn existing conf into json
          val existingParsed = parse(existingConf) // parse it back into json4s internal format
          val combined = existingParsed merge json // merge with zookeeper value
-         c = combined.extract[TagAffinityConfig] // extract case class from merged json
+         c = combined.extract[TagAffinityAnalysisConfig] // extract case class from merged json
          c
        }
        else 
@@ -248,7 +234,7 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    var c = new TagAffinityConfig()
+    var c = new TagAffinityAnalysisConfig()
     val parser = new scopt.OptionParser[Unit]("UserTagAffinity") {
     head("UserTagAffinity", "1.0")
        opt[Unit]('l', "local") foreach { x => c = c.copy(local = true) } text("local mode - use local Master")
@@ -292,7 +278,7 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
          sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", c.awsSecret)
         }
         println(c)
-        val cu = new UserTagAffinity(sc,c)
+        val cu = new UserTagAffinityAnalysis(sc,c)
         cu.run()
       }
       finally
