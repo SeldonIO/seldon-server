@@ -144,6 +144,10 @@ public class ItemService {
 		return bean;
 	}
 	
+	public String[] getDimensionName(ConsumerBean c,int dimension)
+	{
+		return Util.getItemPeer(c).getAttributesNames(dimension);
+	}
 	
 	public static DimensionBean getDimension(ConsumerBean c,int dimension) throws APIException {
 		if(dimension == Constants.DEFAULT_DIMENSION) return null;

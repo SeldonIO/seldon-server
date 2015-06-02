@@ -27,6 +27,10 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.ScoreBean;
 import io.seldon.api.resource.UserProfileBean;
 import io.seldon.api.resource.service.UserService;
+import io.seldon.cc.UserClusterManager;
+import io.seldon.cc.UserClusterManager.ClusterDescription;
+import io.seldon.clustering.recommender.MemoryUserClusterStore;
+import io.seldon.clustering.recommender.UserCluster;
 import io.seldon.tags.UserTagAffinityManager;
 import io.seldon.tags.UserTagAffinityManager.UserTagStore;
 
@@ -42,8 +46,9 @@ import org.springframework.stereotype.Service;
 public class UserProfileServiceImpl implements UserProfileService {
 	private static Logger logger = Logger.getLogger(UserProfileServiceImpl.class.getName());
 
-	private static final String ALL_MODELS = "tags";
 	private static final String USER_TAG_MODEL = "tags";
+	private static final String CLUSTER_MODEL = "cluster";
+	private static final String ALL_MODELS = USER_TAG_MODEL+","+CLUSTER_MODEL;
 	
 	@Autowired
     private UserService userService;
@@ -51,6 +56,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 	@Autowired
 	private UserTagAffinityManager tagAffinityManager;
 	
+	@Autowired
+	private UserClusterManager userClusterManager;
 	
 	@Override
 	public ResourceBean getProfile(ConsumerBean consumerBean, String userId,
@@ -73,21 +80,62 @@ public class UserProfileServiceImpl implements UserProfileService {
 		if (models == null)
 			models = ALL_MODELS;
 		
+		int modelsLoaded = 0;
 		for(String model : models.split(","))
 		{
 			switch(model)
 			{
 				case USER_TAG_MODEL:
+				{
 					List<ScoreBean> scores = getUserTagAffinities(consumerBean, intUserId);
 					if (scores != null)
+					{
 						profiles.add(new UserProfileBean(userId, USER_TAG_MODEL, scores));
-					break;
+						modelsLoaded++;
+					}
+				}
+				break;
+				case CLUSTER_MODEL:
+				{
+					List<ScoreBean> scores = getClusterWeights(consumerBean, intUserId);
+					if (scores != null)
+					{
+						profiles.add(new UserProfileBean(userId, CLUSTER_MODEL, scores));
+						modelsLoaded++;
+					}
+				}
+				break;
 			}
 		}
-		
+		res.setSize(modelsLoaded);
 		return res;
 	}
 	
+	private List<ScoreBean> getClusterWeights(ConsumerBean c,long user)
+	{
+		MemoryUserClusterStore clusterStore = userClusterManager.getStore(c.getShort_name());
+		if (clusterStore != null)
+		{
+			List<ScoreBean> clusterWeights = new ArrayList<ScoreBean>();
+			List<UserCluster> clusters = clusterStore.getClusters(user);
+			if (clusters != null)
+			{
+				ClusterDescription clusterDescr = userClusterManager.getClusterDescriptions(c.getShort_name());
+				for(UserCluster cluster : clusters)
+				{
+					String name;
+					if (clusterDescr != null && clusterDescr.clusterNames.containsKey(cluster.getCluster()))
+						name = clusterDescr.clusterNames.get(cluster.getCluster());
+					else
+						name = ""+cluster.getCluster();
+					clusterWeights.add(new ScoreBean(name, cluster.getWeight()));
+				}	
+			}
+			return clusterWeights;
+		}
+		else
+			return null;
+	}
 	
 	private List<ScoreBean> getUserTagAffinities(ConsumerBean c,long user)
 	{
