@@ -21,46 +21,34 @@
 */
 package io.seldon.api.resource;
 
-import java.util.List;
+public class ScoreBean extends ResourceBean {
 
-public class UserProfileBean extends ResourceBean {
-
-	String user;
-	String model;
-	List<ScoreBean> profile;
+	String name;
+	double value;
 	
 	
-	
-	public UserProfileBean(String user, String model, List<ScoreBean> profile) {
+	public ScoreBean(String name, double value) {
 		super();
-		this.user = user;
-		this.model = model;
-		this.profile = profile;
+		this.name = name;
+		this.value = value;
 	}
 
 
-
-	public String getUser() {
-		return user;
+	public String getName() {
+		return name;
 	}
 
 
-
-	public String getModel() {
-		return model;
+	public double getValue() {
+		return value;
 	}
-
-
-
-	public List<ScoreBean> getProfile() {
-		return profile;
-	}
-
 
 
 	@Override
 	public String toKey() {
-		return user+":"+model;
+		return name+":"+value;
 	}
+	
+	
 	
 }

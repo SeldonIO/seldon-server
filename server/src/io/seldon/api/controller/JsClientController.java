@@ -40,6 +40,7 @@ import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
+import io.seldon.api.resource.service.business.UserProfileService;
 import io.seldon.api.statsd.StatsdPeer;
 
 import java.util.Arrays;
@@ -62,8 +63,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
-
-import static java.lang.Boolean.TRUE;
 
 /**
  * Created by: marc on 05/07/2012 at 11:17
@@ -92,6 +91,9 @@ public class JsClientController {
     
     @Autowired
     private ItemService itemService;
+    
+    @Autowired
+    private UserProfileService userProfileService;
 
     private ConsumerBean retrieveConsumer(HttpSession session) {
         return (ConsumerBean) session.getAttribute("consumer");
@@ -142,6 +144,18 @@ public class JsClientController {
         user.setType(1);
         logger.debug("Creating user: " + userId + " for consumer: " + consumerBean.getShort_name());
         ResourceBean responseBean = userBusinessService.updateUser((ConsumerBean) consumerBean, user, null, false, false);
+        return asCallback(callback, responseBean);
+    }
+    
+    @RequestMapping("/user/profile")
+    public @ResponseBody
+    JSONPObject userProfile(HttpSession session,
+    					@RequestParam("user") String userId,
+    					@RequestParam(value = "models", required = false) String models,
+                        @RequestParam("jsonpCallback") String callback) {
+        final ConsumerBean consumerBean = retrieveConsumer(session);
+        logger.debug("get user profile: " + userId + " for consumer: " + consumerBean.getShort_name());
+        ResourceBean responseBean = userProfileService.getProfile(consumerBean, userId, models);
         return asCallback(callback, responseBean);
     }
 
