@@ -24,7 +24,13 @@
 package io.seldon.cc;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.service.ItemService;
+import io.seldon.clustering.recommender.MemoryUserClusterStore;
+import io.seldon.mf.PerClientExternalLocationListener;
+import io.seldon.resources.external.NewResourceNotifier;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -32,24 +38,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import io.seldon.resources.external.NewResourceNotifier;
 import junit.framework.Assert;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.seldon.clustering.recommender.MemoryUserClusterStore;
-import io.seldon.mf.PerClientExternalLocationListener;
-
 public class UserClusterManagerTest {
 
 	private NewResourceNotifier mockNewResourceNotifier;
+	private ItemService mockItemService;
 	
 	@Before
 	public void createMocks()
 	{
 		mockNewResourceNotifier = createMock(NewResourceNotifier.class);
+		mockItemService = createMock(ItemService.class);
 	}
 	
 	@Test
@@ -67,9 +71,15 @@ public class UserClusterManagerTest {
 		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
 		replay(mockNewResourceNotifier);
+		
+		expect(mockItemService.getDimensionName((ConsumerBean) EasyMock.anyObject(), EasyMock.anyInt())).andReturn(null);
+		expect(mockItemService.getDimensionName((ConsumerBean) EasyMock.anyObject(), EasyMock.anyInt())).andReturn(null);
+		expect(mockItemService.getDimensionName((ConsumerBean) EasyMock.anyObject(), EasyMock.anyInt())).andReturn(null);
+		expect(mockItemService.getDimensionName((ConsumerBean) EasyMock.anyObject(), EasyMock.anyInt())).andReturn(null);
+		replay(mockItemService);
 
 		
-		UserClusterManager ucm = new UserClusterManager(null, mockNewResourceNotifier);
+		UserClusterManager ucm = new UserClusterManager(null, mockNewResourceNotifier,mockItemService);
 		
 		MemoryUserClusterStore clusters = ucm.loadUserClusters("test", br);
 		

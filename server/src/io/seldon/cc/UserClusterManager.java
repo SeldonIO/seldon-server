@@ -153,15 +153,22 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	 {
 		 ConsumerBean c = new ConsumerBean(client);
 		 Map<Integer,String> clusterNames = new HashMap<>();
-		 for(Integer dim : dimensions)
+		 try
 		 {
-			 String[] names = itemService.getDimensionName(c, dim);
-			 if (names != null && names.length == 2)
+			 for(Integer dim : dimensions)
 			 {
-				 clusterNames.put(dim, names[0]+":"+names[1]);
+				 String[] names = itemService.getDimensionName(c, dim);
+				 if (names != null && names.length == 2)
+				 {
+					 clusterNames.put(dim, names[0]+":"+names[1]);
+				 }
+				 else
+					 logger.warn("Can't find cluster name in db for dimension "+dim+" for "+client);
 			 }
-			 else
-				 logger.warn("Can't find cluster name in db for dimension "+dim+" for "+client);
+		 }
+		 catch (Exception e)
+		 {
+			 logger.error("Failed to create cluster descriptions for "+client,e);
 		 }
 		 clusterDescriptions.put(client, new ClusterDescription(clusterNames));
 	 }
