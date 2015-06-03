@@ -32,6 +32,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.UserService;
 import io.seldon.api.resource.service.business.UserBusinessService;
+import io.seldon.api.resource.service.business.UserProfileService;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
@@ -65,6 +66,9 @@ public class UserController {
 
 	@Autowired
 	private ResourceServer resourceServer;
+	
+	@Autowired
+	private UserProfileService userProfileService;
 
 	@RequestMapping(value="/users", method = RequestMethod.GET)
 	public @ResponseBody
@@ -99,6 +103,35 @@ public class UserController {
 			}
 		}
 		ApiLogger.log("users", start, new Date(), con, res, req);
+		return res;
+	}
+	
+	@RequestMapping(value="/users/{userId}/profile", method = RequestMethod.GET)
+	public @ResponseBody ResourceBean retrieveUserProfile(@PathVariable String userId,HttpServletRequest req) {
+		Date start = new Date();
+		ResourceBean con = resourceServer.validateResourceRequest(req);
+		ResourceBean res = con;
+		String models = req.getParameter("models");
+		if(con instanceof ConsumerBean) {
+			try {
+				res = userProfileService.getProfile((ConsumerBean)con, userId, models);
+			}
+			catch(APIException e) {
+				ApiLoggerServer.log(this, e);
+				res = new ErrorBean(e);
+			}
+			catch(NullPointerException e) {
+				ApiLoggerServer.log(this, e);
+				APIException apiEx = new APIException(APIException.USER_NOT_FOUND);
+				res = new ErrorBean(apiEx);
+			}
+			catch(Exception e) {
+				ApiLoggerServer.log(this, e);
+				APIException apiEx = new APIException(APIException.GENERIC_ERROR);
+				res = new ErrorBean(apiEx);
+			}
+		}
+		ApiLogger.log("users.user_id",start,new Date(),con,res,req);
 		return res;
 	}
 	
