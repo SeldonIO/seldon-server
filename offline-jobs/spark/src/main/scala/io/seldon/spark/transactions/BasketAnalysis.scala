@@ -1,25 +1,5 @@
-/*
- * Seldon -- open source prediction engine
- * =======================================
- * Copyright 2011-2015 Seldon Technologies Ltd and Rummble Ltd (http://www.seldon.io/)
- *
- **********************************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at       
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ********************************************************************************************** 
-*/
-package io.seldon.spark.topics
+package io.seldon.spark.transactions
+
 
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
@@ -32,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 import org.joda.time.format.DateTimeFormat
 import scala.util.Random
 
-case class SessionItemsConfig(
+case class BasketAnalysisConfig(
     client : String = "",
     inputPath : String = "/seldon-models",
     outputPath : String = "/seldon-models",
@@ -46,11 +26,12 @@ case class SessionItemsConfig(
     maxIntraSessionGapSecs : Int =  -1,
     minActionsPerUser : Int = 0,
     maxActionsPerUser : Int = 100000,
-    allowedTypes : String = "")
+    addToBasketType : Int = 1,
+    removeFromBasketType : Int = 2)
 
-class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
+class BasketAnalysis(private val sc : SparkContext,config : BasketAnalysisConfig) {
 
-  def parseJsonActions(path : String,allowedTypes : Set[Int]) = {
+  def parseJsonActions(path : String,addToBasket : Int, removeFromBasket : Int) = {
     
     val rdd = sc.textFile(path).flatMap{line =>
       import org.json4s._
@@ -63,10 +44,10 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
       val dateUtc = (json \ "timestamp_utc").extract[String]
       val actionType = (json \ "type").extract[Int]
 
-      if (allowedTypes.size == 0 || (allowedTypes.contains(actionType) ))
+      if (actionType == addToBasket || actionType == removeFromBasket)
       {
         val date1 = org.joda.time.format.ISODateTimeFormat.dateTimeParser.withZoneUTC.parseDateTime(dateUtc)
-        Seq((user,(item,date1.getMillis())))
+        Seq((user,(item,actionType,date1.getMillis())))
       }
       else
         None
@@ -81,58 +62,61 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
   {
     val actionsGlob = config.inputPath + "/" + config.client+"/actions/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
     println("loading actions from "+actionsGlob)
-    val allowedTypes = config.allowedTypes.split(",").map(_.toInt).distinct.toSet
-    for(t <- allowedTypes)
-      println("type ",t)
-    val rddActions = parseJsonActions(actionsGlob,allowedTypes)
+    val rddActions = parseJsonActions(actionsGlob,config.addToBasketType,config.removeFromBasketType)
     
     val minNumActions = config.minActionsPerUser
     val maxNumActions = config.maxActionsPerUser
     val maxGapMsecs = config.maxIntraSessionGapSecs * 1000
+    val addToBasketType = config.addToBasketType
+    val removeFromBasketType = config.removeFromBasketType
       // create feature for current item and the user history of items viewed
     val rddFeatures = rddActions.groupByKey().filter(_._2.size >= minNumActions).filter(_._2.size <= maxNumActions).flatMapValues{v =>
         val buf = new ListBuffer[String]()
-        var line = new StringBuilder()
-        val sorted = v.toArray.sortBy(_._2)
+        val basket = scala.collection.mutable.Set[Int]()
+        val sorted = v.toArray.sortBy(_._3)
         var lastTime : Long = 0
         var timeSecs : Long = 0
-        for ((item,t) <- sorted)
+        for ((item,actionType,t) <- sorted)
         {
+          println("looking at ",item,"type=",actionType," time=",t)
           if (lastTime > 0)
           {
             val gap = (t - lastTime)
-            if (maxGapMsecs > -1 && gap > maxGapMsecs)
+            if (maxGapMsecs > -1 && gap > maxGapMsecs && actionType == addToBasketType)
             {
-              val lineStr = line.toString().trim()
+              val lineStr = basket.mkString("", " ", "")
               if (lineStr.length() > 0)
-                buf.append(line.toString().trim())
-              line.clear()
+                buf.append(lineStr)
+              basket.clear()
             }
           }
-          line ++= item.toString() + " "
+          if (actionType == addToBasketType)
+            basket.add(item)
+          else
+            basket.remove(item)
           lastTime = t
          } 
-         val lineStr = line.toString().trim()
+         val lineStr = basket.mkString("", " ", "")
          if (lineStr.length() > 0)
            buf.append(lineStr)
          buf 
       }.values
-      val outPath = config.outputPath + "/" + config.client + "/sessionitems/"+config.startDay
+      val outPath = config.outputPath + "/" + config.client + "/basketanalysis/"+config.startDay
       rddFeatures.saveAsTextFile(outPath)
   }
 }
 
- object SessionItems
+ object BasketAnalysis
 {
    
-  def updateConf(config : SessionItemsConfig) =
+  def updateConf(config : BasketAnalysisConfig) =
   {
     import io.seldon.spark.zookeeper.ZkCuratorHandler
     var c = config.copy()
     if (config.zkHosts.nonEmpty) 
      {
        val curator = new ZkCuratorHandler(config.zkHosts)
-       val path = "/all_clients/"+config.client+"/offline/sessionitems"
+       val path = "/all_clients/"+config.client+"/offline/basketanalysis"
        if (curator.getCurator.checkExists().forPath(path) != null)
        {
          val bytes = curator.getCurator.getData().forPath(path)
@@ -144,11 +128,11 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
          val json = parse(j)
          import org.json4s.JsonDSL._
          import org.json4s.jackson.Serialization.write
-         type DslConversion = SessionItemsConfig => JValue
+         type DslConversion = BasketAnalysisConfig => JValue
          val existingConf = write(c) // turn existing conf into json
          val existingParsed = parse(existingConf) // parse it back into json4s internal format
          val combined = existingParsed merge json // merge with zookeeper value
-         c = combined.extract[SessionItemsConfig] // extract case class from merged json
+         c = combined.extract[BasketAnalysisConfig] // extract case class from merged json
          c
        }
        else 
@@ -172,9 +156,9 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    var c = new SessionItemsConfig()
-    val parser = new scopt.OptionParser[Unit]("SessionItems") {
-    head("SessionItems", "1.0")
+    var c = new BasketAnalysisConfig()
+    val parser = new scopt.OptionParser[Unit]("BasketAnalysis") {
+    head("BasketAnalysis", "1.0")
        opt[Unit]('l', "local") foreach { x => c = c.copy(local = true) } text("local mode - use local Master")
         opt[String]('c', "client") required() valueName("<client>") foreach { x => c = c.copy(client = x) } text("client name (will be used as db and folder suffix)")
         opt[String]('i', "inputPath") valueName("path url") foreach { x => c = c.copy(inputPath = x) } text("path prefix for input")
@@ -188,7 +172,8 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
         opt[Int]("minActionsPerUser") foreach { x => c = c.copy(minActionsPerUser = x) } text("min number of actions per user")
         opt[Int]("maxActionsPerUser") foreach { x => c = c.copy(maxActionsPerUser = x) } text("max number of actions per user")    
         opt[Int]("maxIntraSessionGapSecs") foreach { x => c = c.copy(maxIntraSessionGapSecs = x) } text("max number of secs before assume session over")        
-        opt[String]("allowedTypes") foreach { x => c = c.copy(allowedTypes = x) } text("Allowed action types - ignore actions not of this comma separated list")                
+        opt[Int]("addToBasketType") foreach { x => c = c.copy(addToBasketType = x) } text("add to basket action type")                
+        opt[Int]("removeFromBasketType") foreach { x => c = c.copy(removeFromBasketType = x) } text("remove from basket type")                        
     }
     
      if (parser.parse(args)) // Parse to check and get zookeeper if there
@@ -196,7 +181,7 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
       c = updateConf(c) // update from zookeeper args
       parser.parse(args) // overrride with args that were on command line
 
-       val conf = new SparkConf().setAppName("SessionItems")
+       val conf = new SparkConf().setAppName("BasketAnalysis")
 
       if (c.local)
         conf.setMaster("local")
@@ -211,7 +196,7 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
          sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", c.awsSecret)
         }
         println(c)
-        val si = new SessionItems(sc,c)
+        val si = new BasketAnalysis(sc,c)
         si.run()
       }
       finally
