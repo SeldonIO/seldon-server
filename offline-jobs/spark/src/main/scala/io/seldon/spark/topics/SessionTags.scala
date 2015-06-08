@@ -133,8 +133,8 @@ class SessionTags(private val sc : SparkContext,config : SessionTagsConfig) {
             }
             numTags = 0
           }
-          //val tagList = Random.shuffle(tags.split(",").toList)
-          val tagList = tags.split(",")
+          val tagList = Random.shuffle(tags.split(",").toList)
+          //val tagList = tags.split(",")
           for(tag <- tagList)
           {
             if (tag.trim().length() > 0)

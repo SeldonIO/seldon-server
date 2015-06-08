@@ -13,6 +13,7 @@ import scala.collection.mutable.ListBuffer
 case class FPGrowthConfig(
 	    client : String = "",
 	    inputPath : String = "/seldon-models",
+      inputSubFolder : String = "basketanalysis",
 	    outputPath : String = "/seldon-models",
 	    awsKey : String = "",
 	    awsSecret : String = "",
@@ -22,10 +23,11 @@ case class FPGrowthConfig(
       local : Boolean = false,      
       activate : Boolean = false,
       
-      minSupport :Double = 0.001, // percentage of total transactions for an itemset to be included
+      minSupport :Double = 0.005, // percentage of total transactions for an itemset to be included
       minConfidence : Double = 0.2, // the min percentage for the itemset as compared to its antecedent for the rule itemset,itemset+item -> item
       minInterest : Double = 0.1, // confidence minus support for item to be recommended
-      minItemSetFreq : Int = 100, // min absolute freq of an itemset to be included
+      minLift : Double = 0.0, // min lift for rule to be included
+      minItemSetFreq : Int = 0, // min absolute freq of an itemset to be included
       maxItemSetSize : Int = 5 // max length of an itemset to be included
 	   )
 
@@ -43,16 +45,17 @@ case class FPGrowthConfig(
 	    rdd
 	  }
 
-    def convertJson(assocRules : org.apache.spark.rdd.RDD[(Array[Long],Long,Double,Double)]) = {
+    def convertJson(assocRules : org.apache.spark.rdd.RDD[(Array[Long],Long,Double,Double,Double)]) = {
     import org.json4s._
     import org.json4s.JsonDSL._
     import org.json4s.jackson.JsonMethods._
 
     val json = assocRules.map{v =>
-      val (itemset,item,confidence,interest) = v
+      val (itemset,item,confidence,interest,lift) = v
       val json = (("itemset" -> itemset.mkString("[", ",", "]") ) ~
             ("item" -> item ) ~
             ("confidence" -> confidence) ~
+            ("lift" -> lift) ~
             ("interest" -> interest))
        val jsonText = compact(render(json))    
        jsonText
@@ -63,7 +66,7 @@ case class FPGrowthConfig(
 	  
 	  def run()
 	  {
-	    val actionsGlob = config.inputPath + "/" + config.client+"/sessionitems/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
+	    val actionsGlob = config.inputPath + "/" + config.client+"/"+config.inputSubFolder+"/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
 	    println("loading sessions from "+actionsGlob)
 	      
 	    val transactions = parseSessions(actionsGlob)
@@ -118,7 +121,7 @@ case class FPGrowthConfig(
         if (itemset.items.length > 1)
         {
           val numTransactions = bNumtransactions.value
-          val buf = new ListBuffer[(Array[Long],Long,Double,Double)]()
+          val buf = new ListBuffer[(Array[Long],Long,Double,Double,Double)]()
           val amap = bItemSetMap.value
           scala.util.Sorting.quickSort(itemset.items)
           for(item <- itemset.items)
@@ -134,12 +137,16 @@ case class FPGrowthConfig(
                 val supp = itemset.freq/numTransactions.doubleValue()
                 val suppA = anteSupp
                 val suppItem = amap.getOrElse("["+item.toString()+"]", 0.0)
-                println("support union :"+supp.toString()+" supp antecedent : "+suppA.toString())
-                val confidence = supp/suppA
-                val interest = confidence - suppItem
-                if (confidence > minConfidence && interest > minInterest)
+                if (suppItem > 0.0)
                 {
-                  buf.append((antecedent,item,confidence,interest))
+                  println("support union :"+supp.toString()+" supp antecedent : "+suppA.toString())
+                  val confidence = supp/suppA
+                  val interest = confidence - suppItem
+                  val lift = confidence/suppItem
+                  if (confidence > minConfidence && interest > minInterest)
+                  {
+                    buf.append((antecedent,item,confidence,interest,lift))
+                  }
                 }
               }
             }
@@ -216,6 +223,7 @@ object FPGrowthJob
        opt[Unit]('l', "local") foreach { x => c = c.copy(local = true) } text("local mode - use local Master")
         opt[String]('c', "client") required() valueName("<client>") foreach { x => c = c.copy(client = x) } text("client name (will be used as db and folder suffix)")
         opt[String]('i', "inputPath") valueName("path url") foreach { x => c = c.copy(inputPath = x) } text("path prefix for input")
+        opt[String]("inputSubFolder") valueName("input sub folder") foreach { x => c = c.copy(inputSubFolder = x) } text("input sub folder to use")        
         opt[String]('o', "outputPath") valueName("path url") foreach { x => c = c.copy(outputPath = x) } text("path prefix for output")
         opt[Int]('r', "days") foreach { x =>c = c.copy(days = x) } text("number of days in past to get foreachs for")
         opt[Int]("startDay") foreach { x =>c = c.copy(startDay = x) } text("start day in unix time")
@@ -227,6 +235,9 @@ object FPGrowthJob
         opt[Double]("minSupport") foreach { x =>c = c.copy(minSupport = x) } text("min support")        
         opt[Double]("minConfidence") foreach { x =>c = c.copy(minConfidence = x) } text("min confidence")        
         opt[Double]("minInterest") foreach { x =>c = c.copy(minInterest = x) } text("min interest")                
+        opt[Double]("minLift") foreach { x =>c = c.copy(minLift = x) } text("min lift")                        
+        opt[Int]("minItemSetFreq") foreach { x =>c = c.copy(minItemSetFreq = x) } text("min item set freq")                                
+        opt[Int]("maxItemSetSize") foreach { x =>c = c.copy(maxItemSetSize = x) } text("max item set size")                                        
     }
     
       if (parser.parse(args)) // Parse to check and get zookeeper if there
