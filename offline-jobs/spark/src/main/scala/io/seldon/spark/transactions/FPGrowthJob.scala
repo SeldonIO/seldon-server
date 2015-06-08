@@ -52,7 +52,7 @@ case class FPGrowthConfig(
 
     val json = assocRules.map{v =>
       val (itemset,item,confidence,interest,lift) = v
-      val json = (("itemset" -> itemset.mkString("[", ",", "]") ) ~
+      val json = (("itemset" -> itemset.toSeq ) ~
             ("item" -> item ) ~
             ("confidence" -> confidence) ~
             ("lift" -> lift) ~
