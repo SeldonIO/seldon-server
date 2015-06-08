@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+
 
 public class MemCacheKeys {
 
@@ -423,9 +425,9 @@ public class MemCacheKeys {
 		return ""+keys.RecentRecsForUsers.name()+":"+client+":"+userId+":"+dimension;
 	}
 	
-	public static String getRecentItems(String client,int dimension,int size)
+	public static String getRecentItems(String client,Set<Integer> dimensions,int size)
 	{
-		return ""+keys.RecentItemsJSON.name()+":"+client+":"+dimension+":"+size;
+		return ""+keys.RecentItemsJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+size;
 	}
 
 	public static String getPopularItems(String client, int dimension, int size){

@@ -101,12 +101,12 @@ public class ItemStorage {
         return new FilteredItems(toReturn.size() >= numItems ? new ArrayList<>(toReturn).subList(0,numItems) : toReturn, SecurityHashPeer.md5(key));
     }
     
-    public FilteredItems retrieveRecentlyAddedItems(final String client, final int numItems, final int dimension){
-        String key = MemCacheKeys.getRecentItems(client, dimension, numItems);
+    public FilteredItems retrieveRecentlyAddedItems(final String client, final int numItems, final Set<Integer> dimensions){
+        String key = MemCacheKeys.getRecentItems(client, dimensions, numItems);
         List<Long> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<Long>>() {
             @Override
             public List<Long> retrieve() throws Exception {
-                return provider.getItemPersister(client).getRecentItemIds(dimension, numItems, null);
+                return provider.getItemPersister(client).getRecentItemIds(dimensions, numItems, null);
             }
         }, new TypeReference<List<Long>>() {}, RECENT_ITEMS_EXPIRE_TIME);
         return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,SecurityHashPeer.md5(key));

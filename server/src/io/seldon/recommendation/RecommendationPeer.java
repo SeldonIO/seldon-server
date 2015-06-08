@@ -86,7 +86,7 @@ public class RecommendationPeer {
 
 
 	public RecommendationResult getRecommendations(long user, String client, String clientUserId, Integer type,
-                                                   int dimension, int numRecommendationsAsked,
+                                                   Set<Integer> dimensions, int numRecommendationsAsked,
                                                    String lastRecListUUID,
                                                    Long currentItemId, String referrer, String recTag, List<String> algorithmOverride) {
         ClientStrategy strategy;

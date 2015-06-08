@@ -26,6 +26,8 @@ package io.seldon.recommendation.filters;
 import io.seldon.general.ItemStorage;
 import io.seldon.recommendation.ItemIncluder;
 
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +44,7 @@ public class RecentItemsIncluder implements ItemIncluder {
 
 
     @Override
-    public FilteredItems generateIncludedItems(String client, int dimension, int numItems) {
-        return retriever.retrieveRecentlyAddedItems(client, numItems, dimension);
+    public FilteredItems generateIncludedItems(String client, Set<Integer> dimensions, int numItems) {
+        return retriever.retrieveRecentlyAddedItems(client, numItems, dimensions);
     }
 }

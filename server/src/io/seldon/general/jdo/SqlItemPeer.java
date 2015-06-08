@@ -582,12 +582,13 @@ public class SqlItemPeer extends ItemPeer {
 	}
 
 	@Override
-	public List<Long> getRecentItemIds(int dimension, int limit, ConsumerBean c) {
+	public List<Long> getRecentItemIds(int[] dimensions, int limit, ConsumerBean c) {
 		Query query;
-		if (dimension != Constants.DEFAULT_DIMENSION)
-			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id="+dimension+" and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) order by i.item_id desc limit "+limit);
+		if (dimensions.length == 1 && dimensions[0] == Constants.DEFAULT_DIMENSION)
+			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i order by i.item_id desc limit "+limit);			
 		else
-			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i order by i.item_id desc limit "+limit);
+			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id="+dimension+" and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) order by i.item_id desc limit "+limit);
+
 		query.setResultClass(Long.class);
 		Collection<Long> res = (Collection<Long>) query.execute();
 		List<Long> resf = new ArrayList<>(res);
