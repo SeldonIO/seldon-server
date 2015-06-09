@@ -52,7 +52,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
     private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS = "memcached_servers";
     private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH = "/config/" + ZK_CONFIG_KEY_MEMCACHED_SERVERS;
     private static Logger logger = Logger.getLogger(ExceptionSwallowingMemcachedClient.class.getName());
-    public static final int MEMCACHE_OP_TIMEOUT = 5000;
+    public static final int MEMCACHE_OP_TIMEOUT = 2500;
     private MemcachedClient memcachedClient = null;
 
     @Autowired
