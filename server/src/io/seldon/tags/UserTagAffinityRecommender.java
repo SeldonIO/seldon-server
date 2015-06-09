@@ -60,7 +60,7 @@ public class UserTagAffinityRecommender extends BaseItemCategoryRecommender impl
 	}
 	
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
                                                  RecommendationContext ctxt, List<Long> recentItemInteractions) {
         UserTagStore tagStore = tagAffinityManager.getStore(client);
         if (tagStore == null)
@@ -92,7 +92,7 @@ public class UserTagAffinityRecommender extends BaseItemCategoryRecommender impl
         	{
         		dimension2 = getDimensionForAttrName(ctxt.getCurrentItem(),client,ctxt);
         	}
-        	Map<Long, Double> recommendations = r.recommendUsingTag(tagMap, tagAttrId, dimensionId, dimension2, maxRecsCount, exclusions, decayRate, minClusterItems);
+        	Map<Long, Double> recommendations = r.recommendUsingTag(tagMap, tagAttrId, dimensions, dimension2, maxRecsCount, exclusions, decayRate, minClusterItems);
                 long t2 = System.currentTimeMillis();
                 logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1)+ " with "+recommendations.size()+" results");
                 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

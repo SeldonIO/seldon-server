@@ -148,8 +148,8 @@ public class RecommendationPeer {
 			if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
 				recentItemInteractions.add(currentItemId);
 			RecommendationContext ctxt = RecommendationContext.buildContext(client,
-					algStr,user,clientUserId,currentItemId, dimension, lastRecListUUID, numRecommendations,defaultOptions);
-			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimension,
+					algStr,user,clientUserId,currentItemId, dimensions, lastRecListUUID, numRecommendations,defaultOptions);
+			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimensions,
 					numRecommendations, ctxt, recentItemInteractions);
 
 		    resultSets.add(new RecResultContext(results, results.getRecommenderName()));
@@ -178,7 +178,7 @@ public class RecommendationPeer {
 //			}
 			List<Long> recommendationsFinal = CollectionTools.sortMapAndLimitToList(recommenderScores, numRecommendations, true);
 			logger.debug("recommendationsFinal size was " +recommendationsFinal.size());
-            return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimension,
+            return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimensions,
                     lastRecListUUID, recommendationsFinal, combinedResults.algKey,
                     currentItemId, numRecentActions, diversityLevel,strategy,recTag);
 		}
@@ -186,24 +186,24 @@ public class RecommendationPeer {
 		{
 			logger.warn("Returning no recommendations for user with client id "+clientUserId);
 			return createFinalRecResult(numRecommendationsAsked,client, clientUserId,
-					dimension, lastRecListUUID, new ArrayList<Long>(),"",currentItemId,
+					dimensions, lastRecListUUID, new ArrayList<Long>(),"",currentItemId,
 					numRecentActions, diversityLevel,strategy, recTag);
 		}
 	}
 
 
     private RecommendationResult createFinalRecResult(int numRecommendationsAsked, String client, String clientUserId,
-													  int dimension,String currentRecUUID,List<Long> recs,String algKey,
+													  Set<Integer> dimensions,String currentRecUUID,List<Long> recs,String algKey,
 													  Long currentItemId,int numRecentActions, Double diversityLevel,
                                                       ClientStrategy strat, String recTag)
     {
     	List<Long> recsFinal;
     	if (diversityLevel > 1.0)
-    		recsFinal = RecommendationUtils.getDiverseRecommendations(numRecommendationsAsked, recs,client,clientUserId,dimension);
+    		recsFinal = RecommendationUtils.getDiverseRecommendations(numRecommendationsAsked, recs,client,clientUserId,dimensions);
     	else
     		recsFinal = recs;
         logger.debug("recs final size "+ recsFinal.size());
-    	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, clientUserId, dimension,
+    	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, clientUserId, dimensions,
                 currentRecUUID, recsFinal, algKey,currentItemId,numRecentActions, strat, recTag);
     	List<Recommendation> recBeans = new ArrayList<>();
     	for(Long itemId : recsFinal)

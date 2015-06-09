@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 
 	@Override
 	public ItemRecommendationResultSet recommend(String client,
-			Long user, int dimension,int maxRecsCount, RecommendationContext ctxt,  List<Long> recentItemInteractions) {
+			Long user, Set<Integer> dimensions,int maxRecsCount, RecommendationContext ctxt,  List<Long> recentItemInteractions) {
 		RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
 		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
 		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
