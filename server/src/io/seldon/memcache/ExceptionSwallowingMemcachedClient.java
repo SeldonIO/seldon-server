@@ -32,8 +32,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.annotation.PostConstruct;
-
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.DefaultConnectionFactory;
@@ -54,7 +52,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
     private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS = "memcached_servers";
     private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH = "/config/" + ZK_CONFIG_KEY_MEMCACHED_SERVERS;
     private static Logger logger = Logger.getLogger(ExceptionSwallowingMemcachedClient.class.getName());
-
+    public static final int MEMCACHE_OP_TIMEOUT = 5000;
     private MemcachedClient memcachedClient = null;
 
     @Autowired
@@ -65,7 +63,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
         if (stat != null) {
             byte[] bytes = zkCuratorHandler.getCurator().getData().forPath(ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH);
             String servers = new String(bytes);
-            memcachedClient = new MemcachedClient(new ConnectionFactoryBuilder(new DefaultConnectionFactory()).setOpTimeout(1000).build(),
+            memcachedClient = new MemcachedClient(new ConnectionFactoryBuilder(new DefaultConnectionFactory()).setOpTimeout(MEMCACHE_OP_TIMEOUT).build(),
                     AddrUtil.getAddresses(servers));
             logger.info(String.format("MemcachedClient initialized using %s[%s]", ZK_CONFIG_KEY_MEMCACHED_SERVERS, servers));
             
@@ -94,7 +92,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
         Object myObj = null;
         Future<Object> f = memcachedClient.asyncGet(hashKey(key));
         try {
-            myObj = f.get(500, TimeUnit.MILLISECONDS);
+            myObj = f.get(MEMCACHE_OP_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             logger.warn("Timeout exception in get ", e);
             f.cancel(false);
