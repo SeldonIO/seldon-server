@@ -62,7 +62,7 @@ public class MemCachePeer {
         try
         {
     		ConnectionFactoryBuilder cb = new ConnectionFactoryBuilder(new DefaultConnectionFactory());
-    		cb.setOpTimeout(1000);
+    		cb.setOpTimeout(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT);
         	client=new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList));
         	logger.info(String.format("MemcachedClient initialised using serverList[%s]",serverList));
             return client;
@@ -124,7 +124,7 @@ public class MemCachePeer {
 			Future<Object> f=client.asyncGet(hashKey(key));
 			try 
 			{
-			    myObj=f.get(500, TimeUnit.MILLISECONDS);
+			    myObj=f.get(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT, TimeUnit.MILLISECONDS);
 			} catch(TimeoutException e) {
 				logger.warn("Timeout exception in get ",e);
 			    f.cancel(false);
