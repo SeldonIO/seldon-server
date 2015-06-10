@@ -42,14 +42,10 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
     private RecommendationService recommendationService;
 
     @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int dimension, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimension, null, limit, null,null,null,null,false);
+    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimensions, null, limit, null,null,null,null,false);
     }
 
-    @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, String uuid, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, 0, uuid, limit, null,null,null,null,false);
-    }
 
     @Override
     public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,

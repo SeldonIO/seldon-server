@@ -34,9 +34,7 @@ import java.util.Set;
  */
 public interface RecommendationBusinessService {
 
-    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int dimension, int limit);
-
-    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, String uuid, int limit);
+    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit);
 
     ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,
                                          Set<Integer> dimensions, String uuid, int limit, String attributes,

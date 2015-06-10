@@ -24,9 +24,10 @@
 package io.seldon.similarity.item;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface IItemSimilarityPeer {
 
-	Map<Long,Double> getSimilarItems(long itemId,int dimension,int max);
+	Map<Long,Double> getSimilarItems(long itemId,Set<Integer> dimensions,int max);
 	Map<Long,Double> getRecommendations(long userId,int dimension,int max);
 }

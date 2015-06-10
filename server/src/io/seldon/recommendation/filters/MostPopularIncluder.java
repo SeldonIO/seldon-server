@@ -46,6 +46,6 @@ public class MostPopularIncluder implements ItemIncluder {
     @Override
     public FilteredItems generateIncludedItems(String client, Set<Integer> dimensions, int numItems) {
         // first stab at this: lets return, say, the top 200 items.
-        return  retriever.retrieveMostPopularItems(client,numItems,dimension);
+        return  retriever.retrieveMostPopularItems(client,numItems,dimensions);
     }
 }

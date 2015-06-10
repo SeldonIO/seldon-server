@@ -469,9 +469,9 @@ public class MemCacheKeys {
 		return ""+keys.itemRecommender+":"+client+":"+userId+":"+dimension+":"+max;
 	}
 	
-	public static String getItemSimilarity(String client,long itemId,int dimension,int max)
+	public static String getItemSimilarity(String client,long itemId,Set<Integer> dimensions,int max)
 	{
-		return ""+keys.itemSimilarity+":"+client+":"+itemId+":"+dimension+":"+max;
+		return ""+keys.itemSimilarity+":"+client+":"+itemId+":"+StringUtils.join(dimensions, ",")+":"+max;
 	}
 	
 	public static String getItemTags(String client,long itemId,int attrId)

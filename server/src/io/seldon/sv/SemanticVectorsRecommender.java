@@ -63,13 +63,13 @@ public class SemanticVectorsRecommender implements ItemRecommendationAlgorithm {
 
    
     @Override
-    public ItemRecommendationResultSet recommend(String client,Long user, int dimension, int maxRecsCount, RecommendationContext ctxt,List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client,Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt,List<Long> recentItemInteractions) {
 
         RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
-    	return recommendImpl(client, user, dimension, ctxt, maxRecsCount, recentItemInteractions, options.getStringOption(SV_PREFIX_OPTION_NAME));
+    	return recommendImpl(client, user, dimensions, ctxt, maxRecsCount, recentItemInteractions, options.getStringOption(SV_PREFIX_OPTION_NAME));
     }
     
-   protected ItemRecommendationResultSet recommendImpl(String client,Long user, int dimension, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions,String svPrefix) {
+   protected ItemRecommendationResultSet recommendImpl(String client,Long user, Set<Integer> dimensions, RecommendationContext ctxt, int maxRecsCount,List<Long> recentItemInteractions,String svPrefix) {
        RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
         if (recentItemInteractions.size() == 0)
         {

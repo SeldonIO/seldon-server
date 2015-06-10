@@ -51,7 +51,7 @@ public abstract class BaseItemClusterCountsRecommender {
     @Autowired
     JdoCountRecommenderUtils cUtils;
     
-    ItemRecommendationResultSet recommend(String recommenderName, String recommenderType, String client, Long user, int dimensionId, int maxRecsCount,
+    ItemRecommendationResultSet recommend(String recommenderName, String recommenderType, String client, Long user, Set<Integer> dimensions, int maxRecsCount,
                                           RecommendationContext ctxt) {
         RecommendationContext.OptionsHolder optionsHolder = ctxt.getOptsHolder();
         if (ctxt.getCurrentItem() != null) {
@@ -65,7 +65,7 @@ public abstract class BaseItemClusterCountsRecommender {
                 Integer minClusterItems = optionsHolder.getIntegerOption(MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME);
                 Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
                 String clusterAlgorithm = optionsHolder.getStringOption(CLUSTER_ALG_OPTION_NAME);
-                Map<Long, Double> recommendations = r.recommendUsingItem(recommenderType,ctxt.getCurrentItem(), dimensionId,
+                Map<Long, Double> recommendations = r.recommendUsingItem(recommenderType,ctxt.getCurrentItem(), dimensions,
                         maxRecsCount, exclusions, decayRate, clusterAlgorithm, minClusterItems);
                 long t2 = System.currentTimeMillis();
                 logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1));

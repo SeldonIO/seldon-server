@@ -24,6 +24,7 @@
 package io.seldon.clustering.recommender;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -36,8 +37,8 @@ import org.springframework.stereotype.Component;
 public class ItemSignificantCountsRecommender extends BaseItemClusterCountsRecommender implements ItemRecommendationAlgorithm {
 	private static final String name = ItemSignificantCountsRecommender.class.getSimpleName();
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return recommend(name, "CLUSTER_COUNTS_SIGNIFICANT",client,user,dimensionId,maxRecsCount,ctxt);
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+        return recommend(name, "CLUSTER_COUNTS_SIGNIFICANT",client,user,dimensions,maxRecsCount,ctxt);
     }
 
     @Override

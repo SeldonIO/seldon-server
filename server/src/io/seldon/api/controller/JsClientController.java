@@ -65,7 +65,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.google.common.collect.Sets;
 
 /**
  * Created by: marc on 05/07/2012 at 11:17
@@ -197,7 +196,7 @@ public class JsClientController {
         	dimensions = new HashSet<Integer>(1);
         	dimensions.add(dimensionId);
         }
-        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, Sets.unmodifiableNavigableSet(dimensions), lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort);
+        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort);
         //tracking recommendations impression
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);

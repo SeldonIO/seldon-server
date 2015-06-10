@@ -23,17 +23,19 @@
 
 package io.seldon.similarity.item;
 
+import io.seldon.api.Constants;
+import io.seldon.db.jdo.ClientPersistable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jdo.Query;
 
-import io.seldon.db.jdo.ClientPersistable;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
-import io.seldon.api.Constants;
 
 public class JdoItemSimilarityPeer extends ClientPersistable implements IItemSimilarityPeer {
 	private static Logger logger = Logger.getLogger( JdoItemSimilarityPeer.class.getName() );
@@ -43,10 +45,10 @@ public class JdoItemSimilarityPeer extends ClientPersistable implements IItemSim
 	}
 
 	@Override
-	public Map<Long, Double> getSimilarItems(long itemId,int dimension,int max) {
+	public Map<Long, Double> getSimilarItems(long itemId,Set<Integer> dimensions,int max) {
 		Collection<Object[]> results;
 		Query query;
-		if(dimension == Constants.DEFAULT_DIMENSION)
+		if (dimensions.isEmpty() || (dimensions.size() == 1 && dimensions.iterator().next() == Constants.DEFAULT_DIMENSION))
 		{
 			String sql = "select isim.item_id2 as item_id,score from item_similarity isim where isim.item_id=? union select isim.item_id,score from item_similarity isim where isim.item_id2=? order by score desc";
 			if (max > 0)
@@ -59,14 +61,13 @@ public class JdoItemSimilarityPeer extends ClientPersistable implements IItemSim
 		}
 		else
 		{
-			String sql = "select isim.item_id2 as item_id,score from item_similarity isim join item_map_enum ime on (isim.item_id2=ime.item_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where dim_id=? and isim.item_id=? union select isim.item_id,score from item_similarity isim join item_map_enum ime on (isim.item_id=ime.item_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where dim_id=? and isim.item_id2=? order by score desc";
+			String dimensionsStr = StringUtils.join(dimensions, ",");
+			String sql = "select isim.item_id2 as item_id,score from item_similarity isim join item_map_enum ime on (isim.item_id2=ime.item_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where dim_id in ("+dimensionsStr+") and isim.item_id=? union select isim.item_id,score from item_similarity isim join item_map_enum ime on (isim.item_id=ime.item_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where dim_id in ("+dimensionsStr+") and isim.item_id2=? order by score desc";
 			if (max > 0)
 				sql = sql + " limit "+max;
 			query = getPM().newQuery( "javax.jdo.query.SQL", sql);
 			ArrayList<Object> args = new ArrayList<>();
-			args.add(dimension);
 			args.add(itemId);
-			args.add(dimension);
 			args.add(itemId);
 			results = (Collection<Object[]>) query.executeWithArray(args.toArray());
 		}
