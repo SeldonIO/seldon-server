@@ -1,0 +1,6 @@
+vw_hash.py - allows you to pipe simple vw feature files and get the internal vw hash ids for your features
+	   - caveats - doesn't handle at present quadratic, cubic, ngrams or other more complex feature manipulations in vw
+	   - you need python murmur hash 3
+	     	 pip install mmh3
+	   - examples in run_example.sh
+
