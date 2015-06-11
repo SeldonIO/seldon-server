@@ -30,7 +30,6 @@ import static org.easymock.EasyMock.verify;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.items.RecentItemsWithTagsManager;
-import io.seldon.recommendation.CFAlgorithm;
 import io.seldon.topics.TopicFeaturesManager.TopicFeaturesStore;
 
 import java.util.ArrayList;
@@ -68,6 +67,8 @@ public class TopicModelRecommenderTest {
 	{
 		final String client = "test";
 		final int dimension = 1;
+		Set<Integer> dimensions = new HashSet<Integer>();
+		dimensions.add(dimension);
 		expect(mockFeaturesManager.getClientStore(client)).andReturn(null);
 		replay(mockFeaturesManager);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
@@ -78,7 +79,7 @@ public class TopicModelRecommenderTest {
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(3);
 
 		replay(mockCtxt, mockOptions);
-		ItemRecommendationResultSet res = r.recommend(client, 1L, dimension,50,mockCtxt,null);
+		ItemRecommendationResultSet res = r.recommend(client, 1L, dimensions,50,mockCtxt,null);
 		
 		verify(mockFeaturesManager,mockCtxt, mockOptions);
 		Assert.assertNotNull(res);
@@ -92,6 +93,8 @@ public class TopicModelRecommenderTest {
 	{
 		final String client = "test";
 		final int dimension = 1;
+		Set<Integer> dimensions = new HashSet<Integer>();
+		dimensions.add(dimension);
 		final int attrId = 1;
 		final int limit = 10;
 		final int numRecentItems = 1000;
@@ -114,7 +117,7 @@ public class TopicModelRecommenderTest {
 		replay(mockCtxt);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 
-		ItemRecommendationResultSet res = r.recommend(client, 1L, dimension, 50,mockCtxt,null);
+		ItemRecommendationResultSet res = r.recommend(client, 1L, dimensions, 50,mockCtxt,null);
 
 		verify(mockFeaturesManager);
 		verify(mockCtxt,mockTagsManager,mockOptions);
@@ -130,6 +133,8 @@ public class TopicModelRecommenderTest {
 	{
 		final String client = "test";
 		final int dimension = 1;
+		Set<Integer> dimensions = new HashSet<Integer>();
+		dimensions.add(dimension);
 		final int attrId = 1;
 		final int limit = 10;
 		final int numRecentItems = 1000;
@@ -174,7 +179,7 @@ public class TopicModelRecommenderTest {
 		replay(mockOptions);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		List<Long> recentItemInteractions = new ArrayList<Long>();
-		ItemRecommendationResultSet res = r.recommend(client, 1L, dimension,50, mockCtxt,recentItemInteractions);
+		ItemRecommendationResultSet res = r.recommend(client, 1L, dimensions,50, mockCtxt,recentItemInteractions);
 
 		verify(mockCtxt, mockOptions);
 		verify(mockFeaturesManager);

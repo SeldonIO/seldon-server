@@ -35,7 +35,9 @@ import io.seldon.general.jdo.SqlVersionPeer;
 import io.seldon.recommendation.CFAlgorithm;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.jdo.PersistenceManager;
 import javax.servlet.http.HttpServletRequest;
@@ -169,6 +171,20 @@ public class Util {
 			dimension = Integer.parseInt(sDim);
 		}
 		return dimension;
+	}
+	
+	public static Set<Integer> getDimensions(HttpServletRequest req) throws NumberFormatException {
+		Integer dimension = 0;
+		String sDim = req.getParameter(Constants.URL_ATTR_DIMENSIONS);
+		if(sDim != null) {
+			String[] dParts = sDim.split(",");
+			Set<Integer> dimensions = new HashSet<Integer>();
+			for(int i=0;i<dParts.length;i++)
+				dimensions.add(Integer.parseInt(dParts[i]));
+			return dimensions;
+		}
+		else
+			return new HashSet<Integer>();
 	}
 	
 	public static ListBean getLimitedBean(ListBean bean, int limit) {
