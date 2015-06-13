@@ -24,11 +24,14 @@ package io.seldon.tags;
 import io.seldon.mf.PerClientExternalLocationListener;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +64,23 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
 		notifier.addListener(TAG_NEW_LOC_PATTERN, this);
 	}
 
+	/*
+	private void getMemoryStats()
+	{
+		System.gc();
+
+		final int mb = 1024*1024;
+		 //Getting the runtime reference from system
+        Runtime runtime = Runtime.getRuntime();
+         
+        logger.info("##### Heap utilization statistics [MB] #####");
+         
+        //Print used memory
+        logger.info("Used Memory:"
+            + (runtime.totalMemory() - runtime.freeMemory()) / mb);
+	}
+	*/
+
 	public void reloadFeatures(final String location, final String client){
         executor.execute(new Runnable() {
             @Override
@@ -68,15 +88,19 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
                 logger.info("Reloading user tag affinities for client: "+ client);
 
                 try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/part-00000")
-                    ));
-
-                    UserTagStore userTags = loadTagAffinities(client, reader);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(featuresFileHandler.getResourceStream(location + "/part-00000")));
+                    Map<Long,Integer> userTagCounts = getNumTags(reader);
+                    reader.close();
+                    logger.info("Got tag counts for "+client+" num users: "+userTagCounts.size());
+                    reader = new BufferedReader(new InputStreamReader(featuresFileHandler.getResourceStream(location + "/part-00000")));
+                    UserTagStore userTags = loadTagAffinities(client, userTagCounts,reader);
+                    userTagCounts = null;
                     clientStores.put(client, userTags);
                     reader.close();
                     
+                    
                     logger.info("finished load of user tag affinities for client "+client);
+                    
                 } catch (FileNotFoundException e) {
                     logger.error("Couldn't reloadFeatures for client "+ client, e);
                 } catch (IOException e) {
@@ -86,13 +110,31 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
         });
 
     }
+	
+	private Map<Long,Integer> getNumTags(BufferedReader reader) throws IOException
+	{
+		 String line;
+		 ObjectMapper mapper = new ObjectMapper();
+		 Map<Long,Integer> tagCounts = new HashMap<>();
+		 while((line = reader.readLine()) !=null)
+		 {
+			 UserTagAffinity data = mapper.readValue(line.getBytes(), UserTagAffinity.class);
+			 Integer c = tagCounts.get(data.user);
+			 if (c == null)
+				 tagCounts.put(data.user, 1);
+			 else
+				 tagCounts.put(data.user, c+1);
+		 }
+		 return tagCounts;
+	 }
 
- protected UserTagStore loadTagAffinities(String client,BufferedReader reader) throws IOException
+ protected UserTagStore loadTagAffinities(String client,Map<Long,Integer> tagCounts,BufferedReader reader) throws IOException
  {
 	 String line;
 	 ObjectMapper mapper = new ObjectMapper();
 	 int numTags = 0;
-	 Map<Long,Map<String,Float>> userTagAffinities = new ConcurrentHashMap<Long,Map<String,Float>>();
+	 Map<Long,Map<String,Float>> userTagAffinities = new Long2ObjectOpenHashMap<>(tagCounts.size(),1.0f);
+//			 HashMap<Long,Map<String,Float>>(tagCounts.size(),1.0f);
 	 while((line = reader.readLine()) !=null)
 	 {
 		 UserTagAffinity data = mapper.readValue(line.getBytes(), UserTagAffinity.class);
@@ -100,7 +142,8 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
 		 Map<String,Float> tagMap = userTagAffinities.get(data.user);
 		 if (tagMap == null)
 		 {
-			 tagMap = new ConcurrentHashMap<String,Float>();
+			 tagMap = new Object2FloatOpenHashMap<>(tagCounts.get(data.user),1.0f);
+					 //new HashMap<String,Float>(tagCounts.get(data.user),1.0f);
 			 userTagAffinities.put(data.user, tagMap);
 		 }
 		 tagMap.put(data.tag, data.weight);
