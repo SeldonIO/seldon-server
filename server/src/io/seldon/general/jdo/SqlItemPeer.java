@@ -587,7 +587,7 @@ public class SqlItemPeer extends ItemPeer {
 		if (dimensions.isEmpty() || (dimensions.size() == 1 && dimensions.iterator().next() == Constants.DEFAULT_DIMENSION))
 			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i order by i.item_id desc limit "+limit);			
 		else
-			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id in ("+StringUtils.join(dimensions, ",")+" and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) order by i.item_id desc limit "+limit);
+			query = pm.newQuery("javax.jdo.query.SQL","select i.item_id from items i natural join item_map_enum e join dimension d on (d.dim_id in ("+StringUtils.join(dimensions, ",")+") and e.attr_id=d.attr_id and e.value_id=d.value_id and i.type=d.item_type) order by i.item_id desc limit "+limit);
 
 		query.setResultClass(Long.class);
 		Collection<Long> res = (Collection<Long>) query.execute();
