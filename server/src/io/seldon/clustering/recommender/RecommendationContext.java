@@ -110,7 +110,7 @@ public class RecommendationContext {
         return optsHolder;
     }
     public static RecommendationContext buildContext(String client, AlgorithmStrategy strategy, Long user, String clientUserId,
-                                                     Long currentItem, int dimensionId,
+                                                     Long currentItem, Set<Integer> dimensions,
                                                      String lastRecListUUID, int numRecommendations,
                                                      DefaultOptions defaultOptions){
 
@@ -135,7 +135,7 @@ public class RecommendationContext {
         Integer itemsPerIncluder = optsHolder.getIntegerOption(ITEMS_PER_INCLUDER_OPTION_NAME);
         if(itemFilters == null || itemFilters.size() ==0) {
             for (ItemIncluder producer : inclusionProducers){
-            	FilteredItems filteredItems = producer.generateIncludedItems(client, dimensionId,itemsPerIncluder); 
+            	FilteredItems filteredItems = producer.generateIncludedItems(client, dimensions,itemsPerIncluder); 
                 contextItems.addAll(filteredItems.getItems());
                 inclusionKeys.add(filteredItems.getCachingKey());
             }
@@ -149,7 +149,7 @@ public class RecommendationContext {
                     numRecommendations));
         }
         for (ItemIncluder producer : inclusionProducers){
-        	FilteredItems filteredItems = producer.generateIncludedItems(client, dimensionId,itemsPerIncluder); 
+        	FilteredItems filteredItems = producer.generateIncludedItems(client, dimensions,itemsPerIncluder); 
             included.addAll(filteredItems.getItems());
             inclusionKeys.add(filteredItems.getCachingKey());
         }

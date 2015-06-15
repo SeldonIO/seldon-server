@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         HashMap<Long, Double> recommendations = new HashMap<>();
         Set<Long> exclusions;
 
@@ -68,7 +69,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
         } else {
             exclusions = ctxt.getContextItems();
         }
-        Collection<Long> recList = itemStorage.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensionId).getItems();
+        Collection<Long> recList = itemStorage.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensions).getItems();
         if (recList.size() > 0)
         {
             double scoreIncr = 1.0/(double)recList.size();
@@ -89,7 +90,7 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
         }
         else
         {
-            logger.warn("No items returned for recent items of dimension " + dimensionId + " for " + client);
+            logger.warn("No items returned for recent items of dimension " + StringUtils.join(dimensions, ",") + " for " + client);
         }
         return new ItemRecommendationResultSet(Collections.EMPTY_LIST, name);
     }

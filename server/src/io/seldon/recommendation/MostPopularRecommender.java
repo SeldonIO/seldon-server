@@ -55,7 +55,7 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         Set<Long> exclusions;
         if(ctxt.getMode() != RecommendationContext.MODE.EXCLUSION){
             logger.warn("Trying to use MostPopularRecommender in an invalid inclusion/exclusion mode, returning empty result set.");
@@ -64,7 +64,7 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
              exclusions = ctxt.getContextItems();
         }
 
-        List<SqlItemPeer.ItemAndScore> itemsToConsider = itemStorage.retrieveMostPopularItemsWithScore(client,maxRecsCount + exclusions.size(),dimensionId);
+        List<SqlItemPeer.ItemAndScore> itemsToConsider = itemStorage.retrieveMostPopularItemsWithScore(client,maxRecsCount + exclusions.size(),dimensions);
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         for (SqlItemPeer.ItemAndScore itemAndScore : itemsToConsider){
             if(!exclusions.contains(itemAndScore.item))

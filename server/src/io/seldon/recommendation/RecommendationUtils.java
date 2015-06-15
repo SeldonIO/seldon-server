@@ -23,6 +23,11 @@
 
 package io.seldon.recommendation;
 
+import io.seldon.api.logging.CtrLogger;
+import io.seldon.memcache.MemCacheKeys;
+import io.seldon.memcache.MemCachePeer;
+import io.seldon.util.CollectionTools;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,12 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import io.seldon.api.logging.CtrLogger;
-import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.memcache.MemCacheKeys;
-import io.seldon.memcache.MemCachePeer;
-import io.seldon.util.CollectionTools;
 
 import org.apache.log4j.Logger;
 
@@ -48,17 +47,17 @@ public class RecommendationUtils {
 	private static final int RECENT_RECS_EXPIRE_SECS = 1800;
 	
 	
-	public static List<Long> getDiverseRecommendations(int numRecommendationsAsked,List<Long> recs,String client,String clientUserId,int dimension)
+	public static List<Long> getDiverseRecommendations(int numRecommendationsAsked,List<Long> recs,String client,String clientUserId,Set<Integer> dimensions)
 	{		
 		List<Long> recsFinal = new ArrayList<>(recs.subList(0, Math.min(numRecommendationsAsked,recs.size())));
-		String rrkey = MemCacheKeys.getRecentRecsForUser(client, clientUserId, dimension);
+		String rrkey = MemCacheKeys.getRecentRecsForUser(client, clientUserId, dimensions);
 		Set<Integer> lastRecs = (Set<Integer>) MemCachePeer.get(rrkey);
 		int hashCode = recsFinal.hashCode();
 		if (lastRecs != null) // only diversify recs if we have already shown recs previously recently
 		{
 			if (lastRecs.contains(hashCode))
 			{
-				logger.debug("Trying to diversity recs for user "+clientUserId+" dimension "+dimension+" client"+client+" #recs "+recs.size());
+				logger.debug("Trying to diversity recs for user "+clientUserId+" client"+client+" #recs "+recs.size());
 				List<Long> shuffled = new ArrayList<>(recs);
 				Collections.shuffle(shuffled); //shuffle 
 				shuffled = shuffled.subList(0, Math.min(numRecommendationsAsked,recs.size())); //limit to size of recs asked for
@@ -70,11 +69,11 @@ public class RecommendationUtils {
 				hashCode = recsFinal.hashCode();
 			}
 			else
-				logger.debug("Will not diversity recs for user "+clientUserId+" dimension "+dimension+" as hashcode "+hashCode+" not in "+ CollectionTools.join(lastRecs, ","));
+				logger.debug("Will not diversity recs for user "+clientUserId+" as hashcode "+hashCode+" not in "+ CollectionTools.join(lastRecs, ","));
 		}
 		else
 		{
-			logger.debug("Will not diversity recs for user "+clientUserId+" dimension "+dimension+" as lasRecs is null");
+			logger.debug("Will not diversity recs for user "+clientUserId+" dimension as lasRecs is null");
 		}
 		if (lastRecs == null)
 			lastRecs = new HashSet<>();
@@ -94,11 +93,11 @@ public class RecommendationUtils {
 	 * @param strat
      *@param recTag @return
 	 */
-	public static String cacheRecommendationsAndCreateNewUUID(String client, String userId, int dimension,
+	public static String cacheRecommendationsAndCreateNewUUID(String client, String userId, Set<Integer> dimensions,
                                                               String currentUUID, List<Long> recs,
                                                               String algKey, Long currentItemId, int numRecentActions, ClientStrategy strat, String recTag)
 	{
-		String counterKey = MemCacheKeys.getRecommendationListUserCounter(client, dimension, userId);
+		String counterKey = MemCacheKeys.getRecommendationListUserCounter(client, dimensions, userId);
 		Integer userRecCounter = (Integer) MemCachePeer.get(counterKey);
 		if (userRecCounter == null)
 			userRecCounter = 0;

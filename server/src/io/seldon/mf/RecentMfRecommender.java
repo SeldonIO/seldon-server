@@ -59,7 +59,7 @@ public class RecentMfRecommender implements ItemRecommendationAlgorithm {
 
 
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimension,
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions,
             int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
 
 		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();

@@ -27,16 +27,23 @@ import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
 import io.seldon.api.caching.ActionHistoryCache;
-import io.seldon.api.resource.*;
+import io.seldon.api.resource.ActionBean;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.ItemBean;
+import io.seldon.api.resource.ItemRecommendationsBean;
+import io.seldon.api.resource.ListBean;
+import io.seldon.api.resource.RecommendationBean;
+import io.seldon.api.resource.RecommendationsBean;
+import io.seldon.api.resource.ResourceBean;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.recommendation.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 import io.seldon.recommendation.LastRecommendationBean;
 import io.seldon.recommendation.Recommendation;
 import io.seldon.recommendation.RecommendationPeer;
 import io.seldon.recommendation.RecommendationResult;
 import io.seldon.recommendation.SortResult;
-import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jdo.JDODataStoreException;
 
@@ -210,7 +218,7 @@ public class RecommendationService {
     }
 
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
-                                            int dimensionId, String lastRecommendationListUuid, int limit,
+                                            Set<Integer> dimensions, String lastRecommendationListUuid, int limit,
                                             String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort) {
         List<String> actualAlgorithms = new ArrayList<>();
         if(algorithms!=null) {
@@ -252,7 +260,7 @@ public class RecommendationService {
             }
 
             RecommendationResult recResult = recommender.getRecommendations(
-                    internalUserId, consumerBean.getShort_name(), userId, typeId, dimensionId, limit,
+                    internalUserId, consumerBean.getShort_name(), userId, typeId, dimensions, limit,
                     lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms
                     );
             List<Recommendation> recommendations = recResult.getRecs();

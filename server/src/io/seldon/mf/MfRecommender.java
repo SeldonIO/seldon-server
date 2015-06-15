@@ -57,7 +57,7 @@ public class MfRecommender implements ItemRecommendationAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimension, int maxRecsCount,
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
             RecommendationContext ctxt, List<Long> recentitemInteractions) {
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
 

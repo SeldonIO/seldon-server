@@ -28,6 +28,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.RecommendationService;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,20 +42,16 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
     private RecommendationService recommendationService;
 
     @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, int dimension, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimension, null, limit, null,null,null,null,false);
+    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimensions, null, limit, null,null,null,null,false);
     }
 
-    @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId, String uuid, int limit) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, 0, uuid, limit, null,null,null,null,false);
-    }
 
     @Override
     public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,
-                                                int dimensionId, String uuid, int limit, String attributes,List<String> algorithms,
+                                                Set<Integer> dimensions, String uuid, int limit, String attributes,List<String> algorithms,
                                                 String referrer,String recTag, boolean includeCohort) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensionId, uuid, limit, attributes,algorithms,referrer,recTag, includeCohort);
+        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensions, uuid, limit, attributes,algorithms,referrer,recTag, includeCohort);
     }
 
   

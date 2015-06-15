@@ -24,8 +24,7 @@
 package io.seldon.clustering.recommender;
 
 import java.util.List;
-
-import io.seldon.recommendation.CFAlgorithm;
+import java.util.Set;
 
 /**
  * @author firemanphil
@@ -34,7 +33,7 @@ import io.seldon.recommendation.CFAlgorithm;
  */
 public interface ItemRecommendationAlgorithm {
 
-    ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+    ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
                                           RecommendationContext ctxt, List<Long> recentItemInteractions);
 
     String name();

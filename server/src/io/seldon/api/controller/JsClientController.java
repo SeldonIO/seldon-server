@@ -46,8 +46,10 @@ import io.seldon.api.statsd.StatsdPeer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -168,6 +170,7 @@ public class JsClientController {
                                     @RequestParam(value = "rlabs", required = false) String lastRecommendationListUuid,
                                     @RequestParam(value = "zehtg", required = false) String lastRecommendationListUuid2,
                                     @RequestParam(value = "dimension", defaultValue = "0") Integer dimensionId,
+                                    @RequestParam(value = "dimensions", required = false) String dimensionIds,                                    
                                     @RequestParam(value = "limit", defaultValue = "10") Integer recommendationsLimit,
                                     @RequestParam(value = "algorithms", required = false) String algorithms,
                                     @RequestParam(value = "source", required = false) String referrer,                                    
@@ -180,7 +183,20 @@ public class JsClientController {
         //added zehtg parameter as additional option for rlabs
     	if(StringUtils.isNotBlank(lastRecommendationListUuid2)) { lastRecommendationListUuid=lastRecommendationListUuid2;}
         logger.info("Retrieving recommendations for user " + userId + ", consumer: " + consumerBean.getShort_name() + " with tag " + recTag);
-        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort);
+        Set<Integer> dimensions;
+        if (dimensionIds != null)
+        {
+        	String[] parts = dimensionIds.split(",");
+       	 	dimensions = new HashSet<Integer>(parts.length);
+        	for(int i=0;i<parts.length;i++)
+        		dimensions.add(Integer.parseInt(parts[i]));
+        }
+        else
+        {
+        	dimensions = new HashSet<Integer>(1);
+        	dimensions.add(dimensionId);
+        }
+        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort);
         //tracking recommendations impression
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);
@@ -217,7 +233,7 @@ public class JsClientController {
     }
 
 
-    private ResourceBean getRecommendations(ConsumerBean consumerBean, String userId, String itemId, Integer dimensionId,
+    private ResourceBean getRecommendations(ConsumerBean consumerBean, String userId, String itemId, Set<Integer> dimensions,
                                             String lastRecommendationListUuid, Integer recommendationsLimit, String attributes,
                                             String algorithms,String referrer,String recTag, boolean includeCohort) {
         Long internalItemId = null;
@@ -236,7 +252,7 @@ public class JsClientController {
         }
         logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
         logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
-        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensionId, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort);
+        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort);
     }
 
     // TODO category, tags

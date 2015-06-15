@@ -50,7 +50,7 @@ public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorit
     JdoCountRecommenderUtils cUtils;
     
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
                                                  RecommendationContext ctxt, List<Long> recentItemInteractions) {
         CountRecommender r = cUtils.getCountRecommender(client);
         if (r != null)
@@ -62,7 +62,7 @@ public class GlobalClusterCountsRecommender implements ItemRecommendationAlgorit
                 exclusions = ctxt.getContextItems();
             }
             Double decayRate = ctxt.getOptsHolder().getDoubleOption(DECAY_RATE_OPTION_NAME);
-            Map<Long, Double> recommendations = r.recommendGlobal(dimensionId, maxRecsCount, exclusions, decayRate, null);
+            Map<Long, Double> recommendations = r.recommendGlobal(dimensions, maxRecsCount, exclusions, decayRate, null);
             long t2 = System.currentTimeMillis();
             logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1));
             List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

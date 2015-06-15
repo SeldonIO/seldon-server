@@ -68,32 +68,32 @@ public class ItemStorage {
         this.dogpileHandler = dogpileHandler;
     }
 
-    private String getMostPopularCacheKey(String client,int dimension, int numItems)
+    private String getMostPopularCacheKey(String client,Set<Integer> dimensions, int numItems)
     {
-    	return MemCacheKeys.getPopularItems(client, dimension, numItems);
+    	return MemCacheKeys.getPopularItems(client, dimensions, numItems);
     }
     
-    public List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScore(final String client, final int numItems, final int dimension){
-    	return retrieveMostPopularItemsWithScoreImpl(getMostPopularCacheKey(client, dimension, numItems), client, numItems, dimension);
+    public List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScore(final String client, final int numItems, final Set<Integer> dimensions){
+    	return retrieveMostPopularItemsWithScoreImpl(getMostPopularCacheKey(client, dimensions, numItems), client, numItems, dimensions);
     }
     
-    private List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScoreImpl(final String key,final String client, final int numItems, final int dimension){
+    private List<SqlItemPeer.ItemAndScore> retrieveMostPopularItemsWithScoreImpl(final String key,final String client, final int numItems, final Set<Integer> dimensions){
 
         
         List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveUsingJSON(key, numItems,
                 new UpdateRetriever<List<SqlItemPeer.ItemAndScore>>() {
                     @Override
                     public List<SqlItemPeer.ItemAndScore> retrieve() throws Exception {
-                        return provider.getItemPersister(client).retrieveMostPopularItems(numItems, dimension);
+                        return provider.getItemPersister(client).retrieveMostPopularItems(numItems, dimensions);
                     }
                 }, new TypeReference<List<SqlItemPeer.ItemAndScore>>() {}, MOST_POPULAR_EXPIRE_TIME);
 
         return retrievedItems==null? Collections.EMPTY_LIST: retrievedItems;
     }
 
-    public FilteredItems retrieveMostPopularItems(final String client, final int numItems, final int dimension){
-    	final String key = getMostPopularCacheKey(client, dimension, numItems);
-    	List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveMostPopularItemsWithScoreImpl(key, client, numItems, dimension);
+    public FilteredItems retrieveMostPopularItems(final String client, final int numItems, final Set<Integer> dimensions){
+    	final String key = getMostPopularCacheKey(client, dimensions, numItems);
+    	List<SqlItemPeer.ItemAndScore> retrievedItems = retrieveMostPopularItemsWithScoreImpl(key, client, numItems, dimensions);
     	List<Long> toReturn = new ArrayList<>();
         for (SqlItemPeer.ItemAndScore itemAndScore : retrievedItems){
             toReturn.add(itemAndScore.item);
@@ -101,12 +101,12 @@ public class ItemStorage {
         return new FilteredItems(toReturn.size() >= numItems ? new ArrayList<>(toReturn).subList(0,numItems) : toReturn, SecurityHashPeer.md5(key));
     }
     
-    public FilteredItems retrieveRecentlyAddedItems(final String client, final int numItems, final int dimension){
-        String key = MemCacheKeys.getRecentItems(client, dimension, numItems);
+    public FilteredItems retrieveRecentlyAddedItems(final String client, final int numItems, final Set<Integer> dimensions){
+        String key = MemCacheKeys.getRecentItems(client, dimensions, numItems);
         List<Long> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<Long>>() {
             @Override
             public List<Long> retrieve() throws Exception {
-                return provider.getItemPersister(client).getRecentItemIds(dimension, numItems, null);
+                return provider.getItemPersister(client).getRecentItemIds(dimensions, numItems, null);
             }
         }, new TypeReference<List<Long>>() {}, RECENT_ITEMS_EXPIRE_TIME);
         return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,SecurityHashPeer.md5(key));
