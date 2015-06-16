@@ -21,12 +21,14 @@
 */
 package io.seldon.ar;
 
+import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.ar.AssocRuleManager.AssocRuleRecommendation;
 import io.seldon.ar.AssocRuleManager.AssocRuleStore;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.RecommendationContext;
+import io.seldon.general.Action;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,11 +55,13 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 	private static final String REMOVE_BASKET_ACTION_TYPE_OPTION = "io.seldon.algorithm.assocrules.remove.basket.action.type";
 	
 	AssocRuleManager ruleManager;
+	ActionHistoryCache actionCache;
 	
 	@Autowired
-	public AssocRuleRecommender(AssocRuleManager ruleManager) 
+	public AssocRuleRecommender(AssocRuleManager ruleManager,ActionHistoryCache actionCache) 
 	{
 		this.ruleManager = ruleManager;
+		this.actionCache = actionCache;
 	}
 	
 	public static <T extends Comparable<? super T>> List<List<T>> binPowSet(
@@ -99,7 +103,27 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 		 List<Long> basket = null;
 		 if (useActionTypes)
 		 {
-			 
+			 List<Action> actions = actionCache.getRecentFullActions(client, user, maxBasketSize*2);
+			 Collections.reverse(actions);
+			 basket = new ArrayList<Long>();
+			 int addBasketType = optionsHolder.getIntegerOption(ADD_BASKET_ACTION_TYPE_OPTION);
+			 int removeBaskeyType = optionsHolder.getIntegerOption(REMOVE_BASKET_ACTION_TYPE_OPTION);
+			 // go through actions and create basket by handling add/remove basket actions
+			 for(Action a : actions)
+			 {
+				 if (a.getType() != null)
+				 {
+					 if (a.getType() == addBasketType)
+					 {
+						 if (!basket.contains(a.getItemId()))
+							 basket.add(a.getItemId());
+					 }
+					 else if (a.getType() == removeBaskeyType)
+						 basket.remove(a.getItemId());
+				 }
+			 }
+			 if (basket.size() > maxBasketSize)
+				 basket = basket.subList(0, maxBasketSize);
 		 }
 		 else
 		 {
