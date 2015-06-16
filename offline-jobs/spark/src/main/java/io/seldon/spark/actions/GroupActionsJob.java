@@ -172,7 +172,12 @@ public class GroupActionsJob {
                 return 0;
             }
         });
-        for (String client : clientList) {
+        System.out.println("Client list "+clientList.toString());
+        for (String client : clientList) 
+        {
+        	if (client != null)
+        	{
+        	System.out.println("looking at client "+client);
             final String currentClient = client;
 
             JavaPairRDD<String, ActionData> filtered_by_client = pairs.filter(new Function<Tuple2<String, ActionData>, Boolean>() {
@@ -247,6 +252,9 @@ public class GroupActionsJob {
             long json_only_count = json_only.count();
             clientDetailZeroQueue.add(new ClientDetail(currentClient, json_only_with_zeros.count() - json_only_count));
             clientDetailQueue.add(new ClientDetail(currentClient, json_only_count));
+        	}
+        	else
+        		System.out.println("Found null client!");
         }
 
         System.out.println("- Client Action (Zero Userid) Count -");
