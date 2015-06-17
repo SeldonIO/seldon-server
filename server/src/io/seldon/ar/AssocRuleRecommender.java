@@ -29,6 +29,7 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet.ItemRecommendationResult;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.general.Action;
+import io.seldon.recommendation.RecommendationUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,7 +89,7 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 		 AssocRuleStore store = ruleManager.getStore(client);	
 		 if (store == null)
 		 {
-			 logger.debug("Failed to get tag store for client "+client);
+			 logger.debug("Failed to get assoc rule store for client "+client);
 			 return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		 }
 		 
@@ -147,10 +148,13 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 					 if (ruleLen != null)
 					 {
 						 Set<Integer> rules = ruleLen.get(itemset.size());
-						 if (matchedRules == null)
-							 matchedRules = new HashSet<Integer>(rules);
-						 else
-							 matchedRules.retainAll(rules);
+						 if (rules != null)
+						 {
+							 if (matchedRules == null)
+								 matchedRules = new HashSet<Integer>(rules);
+							 else
+								 matchedRules.retainAll(rules);
+						 }
 					 }
 				 }
 				 // if we have matched rules then add recommended item with score to map
@@ -168,6 +172,9 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 				 }
 			 }
 		 }
+         if (scores.size() > 0)
+        	 logger.info("Got "+scores.size()+" results");
+		 scores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
 		 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
          for (Map.Entry<Long, Double> entry : scores.entrySet()) {
              results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
