@@ -1,5 +1,5 @@
 VMBOX_NAME="seldontestvm"
-VMBOX_VERSION="0.93"
+VMBOX_VERSION="0.94"
 VMBOX_DESCRIPTION="Seldon Test VM"
 VMBOX_S3_BUCKET="static.seldon.io"
 VMBOX_URL_HOST="http://${VMBOX_S3_BUCKET}"
