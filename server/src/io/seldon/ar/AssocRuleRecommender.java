@@ -86,6 +86,7 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 	public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
 	                                                 RecommendationContext ctxt, List<Long> recentItemInteractions) 
 	{
+		long start = System.currentTimeMillis();
 		 AssocRuleStore store = ruleManager.getStore(client);	
 		 if (store == null)
 		 {
@@ -173,13 +174,22 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 			 }
 		 }
          if (scores.size() > 0)
-        	 logger.info("Got "+scores.size()+" results");
-		 scores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
-		 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
-         for (Map.Entry<Long, Double> entry : scores.entrySet()) {
-             results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
+         {
+        	 scores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
+        	 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
+        	 for (Map.Entry<Long, Double> entry : scores.entrySet()) {
+        		 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
+        	 }
+        	 long end = System.currentTimeMillis();
+        	 logger.info("took "+(end-start)+" to get "+scores.size()+" results");
+        	 return new ItemRecommendationResultSet(results, name);
          }
-         return new ItemRecommendationResultSet(results, name);
+         else
+         {
+        	 long end = System.currentTimeMillis();
+        	 logger.info("took "+(end-start)+" to get 0 results");
+        	 return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
+         }
 		 
 	}
 	
