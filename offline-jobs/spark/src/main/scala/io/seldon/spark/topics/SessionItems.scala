@@ -81,7 +81,13 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
   {
     val actionsGlob = config.inputPath + "/" + config.client+"/actions/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
     println("loading actions from "+actionsGlob)
-    val allowedTypes = config.allowedTypes.split(",").map(_.toInt).distinct.toSet
+    var allowedTypes = Set[Int]()
+    if (config.allowedTypes.nonEmpty)
+    {
+       allowedTypes = config.allowedTypes.split(",").map(_.toInt).distinct.toSet 
+    }
+    
+      
     for(t <- allowedTypes)
       println("type ",t)
     val rddActions = parseJsonActions(actionsGlob,allowedTypes)
