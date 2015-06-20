@@ -127,7 +127,8 @@ public class JsClientController {
         MDCKeys.addKeys(consumerBean, userId, itemId,recTag);
         //added zehtg parameter as additional option for rlabs
         if(StringUtils.isNotBlank(req)) { rlabs=req; }
-        logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
+        if (logger.isDebugEnabled())
+        	logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
         ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
 
@@ -246,12 +247,17 @@ public class JsClientController {
         }
         List<String> algList = null;
         if (algorithms != null && !algorithms.isEmpty()) {
-            logger.debug("ALGORITHM STRING: " + algorithms);
+        	if (logger.isDebugEnabled())
+        		logger.debug("ALGORITHM STRING: " + algorithms);
             algList = Arrays.asList(algorithms.split(Util.algOptionSeparator));
-            logger.debug("alglist size: " + algList.size());
+            if (logger.isDebugEnabled())
+            	logger.debug("alglist size: " + algList.size());
         }
-        logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
-        logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
+        if (logger.isDebugEnabled())
+        {
+        	logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
+        	logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
+        }
         return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort);
     }
 

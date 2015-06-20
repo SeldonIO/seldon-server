@@ -90,14 +90,16 @@ public class ActionHistoryCache implements NewClientListener {
 		List<Long> res = (List<Long>) MemCachePeer.get(mkey);
 		if (res == null)
 		{
-			logger.debug("creating empty action history for user "+userId+" for client "+clientName);
+			if (logger.isDebugEnabled())
+				logger.debug("creating empty action history for user "+userId+" for client "+clientName);
 			res = new ArrayList<>();
 		}
 		else 
 		{
 			if (res.size() > numActions)
 				res = res.subList(0, numActions);
-			logger.debug("Got action history for user "+userId+" from memcache");
+			if (logger.isDebugEnabled())
+				logger.debug("Got action history for user "+userId+" from memcache");
 		}
 		return res;
 	}
@@ -108,12 +110,14 @@ public class ActionHistoryCache implements NewClientListener {
 		List<Action> res = (List<Action>) MemCachePeer.get(mkey);
 		if (res == null)
 		{
-			logger.debug("creating empty action full history for user "+userId+" for client "+clientName);
+			if (logger.isDebugEnabled())
+				logger.debug("creating empty action full history for user "+userId+" for client "+clientName);
 			res = new ArrayList<Action>();
 		}
 		else 
 		{
-			logger.info("Got action full history for user "+userId+" from memcache of size" + res.size());
+			if (logger.isDebugEnabled())
+				logger.debug("Got action full history for user "+userId+" from memcache of size " + res.size());
 			if (res.size() > numActions)
 				res = res.subList(0, numActions);
 
@@ -123,7 +127,8 @@ public class ActionHistoryCache implements NewClientListener {
 	
 	public void addFullAction(String clientName,final Action a)
 	{
-		logger.debug("Adding full action to cache for "+a.getUserId()+" item "+a.getItemId());
+		if (logger.isDebugEnabled())
+			logger.debug("Adding full action to cache for "+a.getUserId()+" item "+a.getItemId());
         CASMutation<List<Action>> mutation = new CASMutation<List<Action>>() {
 
             // This is only invoked when a value actually exists.
@@ -141,7 +146,8 @@ public class ActionHistoryCache implements NewClientListener {
 	
 	public void addAction(String clientName,long userId,final long itemId) throws APIException
     {
-		logger.debug("Adding action to cache for "+userId+" item "+itemId);
+		if (logger.isDebugEnabled())
+			logger.debug("Adding action to cache for "+userId+" item "+itemId);
         CASMutation<List<Long>> mutation = new CASMutation<List<Long>>() {
 
             // This is only invoked when a value actually exists.
