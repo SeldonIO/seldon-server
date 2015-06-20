@@ -59,7 +59,8 @@ public class RecommendationUtils {
 		{
 			if (lastRecs.contains(hashCode))
 			{
-				logger.debug("Trying to diversity recs for user "+clientUserId+" client"+client+" #recs "+recs.size());
+				if (logger.isDebugEnabled())
+					logger.debug("Trying to diversity recs for user "+clientUserId+" client"+client+" #recs "+recs.size());
 				List<Long> shuffled = new ArrayList<>(recs);
 				Collections.shuffle(shuffled); //shuffle 
 				shuffled = shuffled.subList(0, Math.min(numRecommendationsAsked,recs.size())); //limit to size of recs asked for
@@ -70,10 +71,10 @@ public class RecommendationUtils {
 						recsFinal.add(r);
 				hashCode = recsFinal.hashCode();
 			}
-			else
+			else if (logger.isDebugEnabled())
 				logger.debug("Will not diversity recs for user "+clientUserId+" as hashcode "+hashCode+" not in "+ CollectionTools.join(lastRecs, ","));
 		}
-		else
+		else if (logger.isDebugEnabled())
 		{
 			logger.debug("Will not diversity recs for user "+clientUserId+" dimension as lasRecs is null");
 		}
