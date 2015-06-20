@@ -157,7 +157,8 @@ public class JsClientController {
     					@RequestParam(value = "models", required = false) String models,
                         @RequestParam("jsonpCallback") String callback) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
-        logger.debug("get user profile: " + userId + " for consumer: " + consumerBean.getShort_name());
+        if (logger.isDebugEnabled())
+        	logger.debug("get user profile: " + userId + " for consumer: " + consumerBean.getShort_name());
         ResourceBean responseBean = userProfileService.getProfile(consumerBean, userId, models);
         return asCallback(callback, responseBean);
     }

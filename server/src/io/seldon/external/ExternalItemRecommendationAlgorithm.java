@@ -108,7 +108,8 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         HttpContext context = HttpClientContext.create();
         HttpGet httpGet = new HttpGet(uri);
         try  {
-            logger.debug("Requesting " + httpGet.getURI().toString());
+        	if (logger.isDebugEnabled())
+        		logger.debug("Requesting " + httpGet.getURI().toString());
             CloseableHttpResponse resp = httpClient.execute(httpGet, context);
             if(resp.getStatusLine().getStatusCode() == 200) {
                 ObjectReader reader = mapper.reader(AlgsResult.class);
@@ -117,7 +118,8 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                 for (AlgResult rec : recs.recommended) {
                     results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
                 }
-                logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
+                if (logger.isDebugEnabled())
+                	logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
                 return new ItemRecommendationResultSet(results,recommenderName);
             } else {
                 logger.error("Couldn't retrieve recommendations from external recommender -- bad http return code: " + resp.getStatusLine().getStatusCode());

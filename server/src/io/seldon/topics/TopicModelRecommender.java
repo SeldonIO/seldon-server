@@ -70,7 +70,8 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 		TopicFeaturesStore store = featuresManager.getClientStore(client);
 		if (store == null)
 		{
-			logger.debug("Failed to find topic features for client "+client);
+			if (logger.isDebugEnabled())
+				logger.debug("Failed to find topic features for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
 		
@@ -83,10 +84,11 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), tagAttrId, tagTable);
 		if (itemTags == null || itemTags.size() == 0)
 		{
-			logger.debug("Failed to find recent tag items for client "+client);
+			if (logger.isDebugEnabled())
+				logger.debug("Failed to find recent tag items for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
-		else
+		else if (logger.isDebugEnabled())
 			logger.debug("Got "+itemTags.size()+" recent item tags");
 		float[] userTopicWeight = store.getUserWeightVector(user);
 		if (userTopicWeight == null)
@@ -101,7 +103,8 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 			{
 				float[] itemTopicWeight = store.getTopicWeights(e.getKey(), e.getValue());
 				Double score = new Double(dot(userTopicWeight,itemTopicWeight));
-				logger.debug("Score for "+e.getKey()+"->"+score);
+				if (logger.isDebugEnabled())
+					logger.debug("Score for "+e.getKey()+"->"+score);
 				scores.put(e.getKey(), score);
 			}
 		}

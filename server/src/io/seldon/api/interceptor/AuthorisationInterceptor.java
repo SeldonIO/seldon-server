@@ -23,10 +23,10 @@
 
 package io.seldon.api.interceptor;
 
+import java.util.Enumeration;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import java.util.Enumeration;
 
 import org.apache.log4j.Logger;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -40,19 +40,24 @@ public class AuthorisationInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         final String requestURI = request.getRequestURI();
-        logger.info("Interceptor for: " + requestURI);
 
-        final Enumeration<String> headerNames = request.getHeaderNames();
-        logger.debug("<Headers>");
-        while ( headerNames.hasMoreElements() ) {
-            final String header = headerNames.nextElement();
-            logger.debug(header + " => " + request.getHeader(header));
+
+
+        if (logger.isDebugEnabled())
+        {
+            final Enumeration<String> headerNames = request.getHeaderNames();
+        	logger.debug("Interceptor for: " + requestURI);
+        	logger.debug("<Headers>");
+        	while ( headerNames.hasMoreElements() ) {
+        		final String header = headerNames.nextElement();
+        		logger.debug(header + " => " + request.getHeader(header));
+        	}
+        	logger.debug("</Headers>");
+
+
+        	final String referrer = request.getHeader("Referer"); // sic.; incorrect spelling due to spec
+        	logger.debug("Referrer: " + referrer);
         }
-        logger.debug("</Headers>");
-
-        final String referrer = request.getHeader("Referer"); // sic.; incorrect spelling due to spec
-        logger.info("Referrer: " + referrer);
-
         // Authorise on the basis of the referrer header...
 
         return super.preHandle(request, response, handler);

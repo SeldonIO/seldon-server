@@ -78,7 +78,8 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 		 AssocRuleStore store = ruleManager.getStore(client);	
 		 if (store == null)
 		 {
-			 logger.debug("Failed to get assoc rule store for client "+client);
+			 if (logger.isDebugEnabled())
+				 logger.debug("Failed to get assoc rule store for client "+client);
 			 return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		 }
 		 
