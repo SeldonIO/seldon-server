@@ -55,6 +55,10 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 	private static final String ADD_BASKET_ACTION_TYPE_OPTION = "io.seldon.algorithm.assocrules.add.basket.action.type";
 	private static final String REMOVE_BASKET_ACTION_TYPE_OPTION = "io.seldon.algorithm.assocrules.remove.basket.action.type";
 	
+	final int[][] indices3 = {{0,1,2},{0,1},{0,2},{1,2},{0},{1},{2}};
+	final int[][] indices2 = {{0,1},{0},{1}};
+	final int[][] indices1 = {{0}};
+	
 	AssocRuleManager ruleManager;
 	ActionHistoryCache actionCache;
 	
@@ -65,22 +69,6 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 		this.actionCache = actionCache;
 	}
 	
-	public static <T extends Comparable<? super T>> List<List<T>> binPowSet(
-			List<T> A){
-		List<List<T>> ans= new ArrayList<List<T>>();
-		int ansSize = (int)Math.pow(2, A.size());
-		for(int i= 0;i< ansSize;++i){
-			String bin= Integer.toBinaryString(i); //convert to binary
-			while(bin.length() < A.size()) bin = "0" + bin; //pad with 0's
-			ArrayList<T> thisComb = new ArrayList<T>(); //place to put one combination
-			for(int j= 0;j< A.size();++j){
-				if(bin.charAt(j) == '1')thisComb.add(A.get(j));
-			}
-			Collections.sort(thisComb); //sort it for easy checking
-			ans.add(thisComb); //put this set in the answer list
-		}
-		return ans;
-	}
 	
 	@Override
 	public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
@@ -134,48 +122,57 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 			 else
 				 basket = recentItemInteractions;
 		 }
-		 
-		 List<List<Long>> itemsets = binPowSet(basket);
-		 Map<Long,Double> scores = new HashMap<Long,Double>();
-		 for(List<Long> itemset : itemsets)
+		 if (basket.size() > 0)
 		 {
-			 if (itemset.size() > 0)
+		 Map<Long,Double> scores = new HashMap<Long,Double>();
+		 int[][] indices;
+		 switch(basket.size())
+		 {
+		 case 3:
+			 indices = indices3;
+			 break;
+		 case 2:
+			 indices = indices2;
+			 break;
+		 default:
+			 indices = indices1;
+		 }
+		 for (int i=0;i<indices.length;i++)
+		 {
+			 Set<Integer> matchedRules = null;
+			 for(int j=0;j<indices[i].length;j++)
 			 {
 				 // find matching rules for subset of items as antecedent
-				 Set<Integer> matchedRules = null;
-				 for(Long item : itemset)
+				 Map<Integer,Set<Integer>> ruleLen = store.itemToRules.get(basket.get(indices[i][j]));
+				 if (ruleLen != null)
 				 {
-					 Map<Integer,Set<Integer>> ruleLen = store.itemToRules.get(item);
-					 if (ruleLen != null)
+					 Set<Integer> rules = ruleLen.get(indices[i].length);
+					 if (rules != null)
 					 {
-						 Set<Integer> rules = ruleLen.get(itemset.size());
-						 if (rules != null)
-						 {
-							 if (matchedRules == null)
-								 matchedRules = new HashSet<Integer>(rules);
-							 else
-								 matchedRules.retainAll(rules);
-						 }
-					 }
-				 }
-				 // if we have matched rules then add recommended item with score to map
-				 if (matchedRules != null)
-				 {
-					 for(Integer rule : matchedRules)
-					 {
-						 AssocRuleRecommendation r = store.assocRules.get(rule);
-						 Double score = scores.get(r.item);
-						 if (score == null)
-							 scores.put(r.item, r.score);
+						 if (matchedRules == null)
+							 matchedRules = new HashSet<Integer>(rules);
 						 else
-							 scores.put(r.item,score+r.score);
+							 matchedRules.retainAll(rules);
 					 }
 				 }
 			 }
+			 // if we have matched rules then add recommended item with score to map
+			 if (matchedRules != null)
+			 {
+				 for(Integer rule : matchedRules)
+				 {
+					 AssocRuleRecommendation r = store.assocRules.get(rule);
+					 Double score = scores.get(r.item);
+					 if (score == null)
+						 scores.put(r.item, r.score);
+					 else
+						 scores.put(r.item,score+r.score);
+				 }
+			 }
 		 }
-         if (scores.size() > 0)
+		 if (scores.size() > 0)
          {
-        	 scores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
+        	 scores = RecommendationUtils.getTopK(scores, maxRecsCount);
         	 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
         	 for (Map.Entry<Long, Double> entry : scores.entrySet()) {
         		 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
@@ -190,17 +187,10 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
         	 logger.info("took "+(end-start)+" to get 0 results");
         	 return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
          }
+		 }
+		 else
+			 return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		 
-	}
-	
-	public static void main(String[] args)
-	{
-		ArrayList<Integer> a = new ArrayList<>();
-		a.add(1); a.add(2); a.add(3);
-		for (List<Integer> l : AssocRuleRecommender.binPowSet(a))
-		{
-			System.out.println(l.toString());
-		}
 	}
 	
 	 @Override

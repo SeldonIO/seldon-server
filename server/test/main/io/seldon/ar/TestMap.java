@@ -21,8 +21,6 @@
 */
 package io.seldon.ar;
 
-import io.seldon.recommendation.RecommendationUtils;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -65,18 +63,20 @@ public class TestMap {
         TreeMap<Long,Double> sorted_map = new TreeMap<Long,Double>(bvc);
         sorted_map.putAll(map);
         int i = 0;
-        /*
-        Map<String,Double> r = new HashMap<>(k);
-        for(Map.Entry<String, Double> e : sorted_map.entrySet())
+        Map<Long,Double> r = new HashMap<>(k);
+        double max =0;
+        for(Map.Entry<Long, Double> e : sorted_map.entrySet())
         {
         	if (++i > k)
         		break;
         	else
-        		r.put(e.getKey(), e.getValue());
+        	{
+        		if (i == 1)
+        			max = e.getValue();
+        		r.put(e.getKey(), e.getValue()/max);
+        	}
         }
         return r;
-        */
-        return sorted_map;
 	}
 	
 	public <T extends Comparable<? super T>> List<List<T>> binPowSet(
@@ -96,13 +96,45 @@ public class TestMap {
 		return ans;
 	}
 	
-	@Test @Ignore
+	@Test
+	public void getPowerSet()
+	{
+		final int[][] indices3 = {{0,1,2},{0,1},{0,2},{1,2},{0},{1},{2}};
+		final int[][] indices2 = {{0,1},{0},{1}};
+		final int[][] indices1 = {{0}};
+		
+		List<Integer> l = new ArrayList<Integer>();
+		l.add(1); l.add(2); l.add(3);
+		
+		int[][] indices;
+		switch(l.size())
+		{
+		case 3:
+			indices = indices3;
+			break;
+		case 2:
+			indices = indices2;
+			break;
+		default:
+			indices = indices1;
+		}
+		for (int i=0;i<indices.length;i++)
+		{
+			for(int j=0;j<indices[i].length;j++)
+				System.out.println(l.get(indices[i][j]));
+			System.out.println("----");
+		}
+		
+		
+	}
+	
+	@Test @Ignore 
 	public void testPowerSet()
 	{
 		System.gc();
 		getStats();
 		long start = System.currentTimeMillis();
-		for(int i=0;i<1000000;i++)
+		for(int i=0;i<100000;i++)
 		{
 			List<Integer> l = new ArrayList<Integer>();
 			l.add(1); l.add(2); l.add(3); l.add(4);
@@ -116,7 +148,7 @@ public class TestMap {
 
 	}
 	
-	@Test
+	@Test @Ignore
 	public void test()
 	{
 		System.gc();
@@ -129,8 +161,9 @@ public class TestMap {
 			map.put(2L,67.4);
 			map.put(3L,100.3);
 			map.put(4L,65.3);
-			//Map<Long,Double> sorted_map = getTopK(map, 2);
-			Map<Long,Double> sorted_map = RecommendationUtils.rescaleScoresToOne(map, 2);
+			Map<Long,Double> sorted_map = getTopK(map, 2);
+			//Map<Long,Double> sorted_map = RecommendationUtils.rescaleScoresToOne(map, 2);
+			//System.out.println(sorted_map.toString());
 		}
 		long end = System.currentTimeMillis();
 		getStats();

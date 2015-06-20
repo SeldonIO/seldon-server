@@ -113,9 +113,10 @@ public class ActionHistoryCache implements NewClientListener {
 		}
 		else 
 		{
+			logger.info("Got action full history for user "+userId+" from memcache of size" + res.size());
 			if (res.size() > numActions)
 				res = res.subList(0, numActions);
-			logger.debug("Got action full history for user "+userId+" from memcache");
+
 		}
 		return res;
 	}

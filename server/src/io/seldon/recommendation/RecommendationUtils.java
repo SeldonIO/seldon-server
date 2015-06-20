@@ -30,11 +30,13 @@ import io.seldon.util.CollectionTools;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
@@ -161,6 +163,46 @@ public class RecommendationUtils {
 			logger.debug("Zero sum in counts - returning empty score map");
 			return new HashMap<>();
 		}
+	}
+	
+	
+	public static class ValueComparator implements Comparator<Long> {
+
+	    Map<Long, Double> base;
+	    public ValueComparator(Map<Long, Double> base) {
+	        this.base = base;
+	    }
+
+	    // Note: this comparator imposes orderings that are inconsistent with equals.    
+	    public int compare(Long a, Long b) {
+	        if (base.get(a) >= base.get(b)) {
+	            return -1;
+	        } else {
+	            return 1;
+	        } // returning 0 would merge keys
+	    }
+	}
+	
+	public static Map<Long,Double> getTopK(Map<Long,Double> map,int k)
+	{
+		ValueComparator bvc =  new ValueComparator(map);
+        TreeMap<Long,Double> sorted_map = new TreeMap<Long,Double>(bvc);
+        sorted_map.putAll(map);
+        int i = 0;
+        Map<Long,Double> r = new HashMap<>(k);
+        double max =0;
+        for(Map.Entry<Long, Double> e : sorted_map.entrySet())
+        {
+        	if (++i > k)
+        		break;
+        	else
+        	{
+        		if (i == 1)
+        			max = e.getValue();
+        		r.put(e.getKey(), e.getValue()/max);
+        	}
+        }
+        return r;
 	}
 
 }
