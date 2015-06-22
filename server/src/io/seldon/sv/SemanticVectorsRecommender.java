@@ -90,7 +90,8 @@ public class SemanticVectorsRecommender implements ItemRecommendationAlgorithm {
 		List<Long> itemsToScore;
 		if(recentItemInteractions.size() > numRecentActionsToUse)
 		{
-			logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			if (logger.isDebugEnabled())
+				logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
 			itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		}
 		else
@@ -109,7 +110,8 @@ public class SemanticVectorsRecommender implements ItemRecommendationAlgorithm {
         {
         	//compare itemsToScore against all items and choose best ignoring exclusions
             Set<Long> itemExclusions = ctxt.getContextItems();
-        	logger.debug("exclusion mode "+" num exclusions : "+itemExclusions.size());
+            if (logger.isDebugEnabled())
+            	logger.debug("exclusion mode "+" num exclusions : "+itemExclusions.size());
             recommendations = svPeer.recommendDocsUsingDocQuery(itemsToScore, new LongIdTransform(), maxRecsCount, itemExclusions, null,isIgnorePerfectSvMatches);
         }
         List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();

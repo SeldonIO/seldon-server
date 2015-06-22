@@ -23,6 +23,15 @@
 
 package io.seldon.api.interceptor;
 
+import io.seldon.api.APIException;
+import io.seldon.api.logging.ApiLogger;
+import io.seldon.api.logging.MDCKeys;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.ErrorBean;
+import io.seldon.api.resource.ScopedConsumerBean;
+import io.seldon.api.service.AuthorizationServer;
+import io.seldon.api.service.TokenScope;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,21 +43,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import io.seldon.api.APIException;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ErrorBean;
-import io.seldon.api.service.TokenScope;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import io.seldon.api.logging.ApiLogger;
-import io.seldon.api.logging.MDCKeys;
-import io.seldon.api.resource.ScopedConsumerBean;
-import io.seldon.api.service.AuthorizationServer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Created by: marc on 13/08/2012 at 15:24
@@ -63,7 +64,8 @@ abstract public class GenericScopedInterceptor extends HandlerInterceptorAdapter
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         final String requestURI = request.getRequestURI();
-        logger.debug("Scoped interceptor for: " + requestURI);
+        if (logger.isDebugEnabled())
+        	logger.debug("Scoped interceptor for: " + requestURI);
         Date start = new Date();
         request.setAttribute("startTime", start);
         try {
@@ -110,7 +112,8 @@ abstract public class GenericScopedInterceptor extends HandlerInterceptorAdapter
         final String requestInfo = requestURI + ", " + queryString;
 
         if (tokenScope == getScope() && validReferrer(request, scopedConsumerBean)) {
-            logger.debug("Scope and referrer valid for request: " + requestInfo);
+        	if (logger.isDebugEnabled())
+        		logger.debug("Scope and referrer valid for request: " + requestInfo);
             return scopedConsumerBean;
         } else {
             logger.warn("Incorrect scope of invalid referrer in request for: " + requestInfo);
@@ -122,17 +125,20 @@ abstract public class GenericScopedInterceptor extends HandlerInterceptorAdapter
         final String referrer = request.getHeader("Referer"); // sic.; incorrect spelling due to spec
 
         String referringDomain = referrerDomain(referrer);
-        logger.debug("Checking " + referringDomain + " (from " + referrer + ") against authorised domains.");
+        if (logger.isDebugEnabled())
+        	logger.debug("Checking " + referringDomain + " (from " + referrer + ") against authorised domains.");
 
         final String commaSeparatedUrls = scopedConsumerBean.getUrl();
         if (commaSeparatedUrls == null) {
-            logger.debug("No URLs specified for consumer: " + scopedConsumerBean.getShort_name() + "; valid referrer.");
+        	if (logger.isDebugEnabled())
+        		logger.debug("No URLs specified for consumer: " + scopedConsumerBean.getShort_name() + "; valid referrer.");
             return true;
         }
 
         final String[] validDomains = StringUtils.split(commaSeparatedUrls, ",");
         for (String validDomain : validDomains) {
-            logger.debug("-> Comparing against domain: " + validDomain);
+        	if (logger.isDebugEnabled())
+        		logger.debug("-> Comparing against domain: " + validDomain);
             if (referringDomain.equals(validDomain)) {
                 return true;
             }

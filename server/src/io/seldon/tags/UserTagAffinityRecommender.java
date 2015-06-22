@@ -65,13 +65,15 @@ public class UserTagAffinityRecommender extends BaseItemCategoryRecommender impl
         UserTagStore tagStore = tagAffinityManager.getStore(client);
         if (tagStore == null)
         {
-        	logger.debug("Failed to get tag store for client "+client);
+        	if (logger.isDebugEnabled())
+        		logger.debug("Failed to get tag store for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
         }
         Map<String,Float> tagMap = tagStore.userTagAffinities.get(user);
         if (tagMap == null)
         {
-        	logger.debug("Failed to get tag map for user "+user);
+        	if (logger.isDebugEnabled())
+        		logger.debug("Failed to get tag map for user "+user);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);        	
         }
         
@@ -94,7 +96,8 @@ public class UserTagAffinityRecommender extends BaseItemCategoryRecommender impl
         	}
         	Map<Long, Double> recommendations = r.recommendUsingTag(tagMap, tagAttrId, dimensions, dimension2, maxRecsCount, exclusions, decayRate, minClusterItems);
                 long t2 = System.currentTimeMillis();
-                logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1)+ " with "+recommendations.size()+" results");
+                if (logger.isDebugEnabled())
+                	logger.debug("Recommendation via cluster counts for item  " + ctxt.getCurrentItem() + " for user " + user + " took " + (t2 - t1)+ " with "+recommendations.size()+" results");
                 List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
                 for (Map.Entry<Long, Double> entry : recommendations.entrySet()) {
                     results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));

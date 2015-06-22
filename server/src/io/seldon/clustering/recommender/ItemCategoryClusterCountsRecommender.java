@@ -68,8 +68,11 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
                     Double decayRate = ctxt.getOptsHolder().getDoubleOption(DECAY_RATE_OPTION_NAME);
                     long t1 = System.currentTimeMillis();
                     Map<Long, Double> recommendations = r.recommendGlobal(dimensions, maxRecsCount, exclusions, decayRate, dimId);
-                    long t2 = System.currentTimeMillis();
-                    logger.debug("Recommendation via cluster counts for dimension "+dimId+" for item  "+ctxt.getCurrentItem()+" for user "+user+" took "+(t2-t1));
+                    if (logger.isDebugEnabled())
+                    {
+                    	long t2 = System.currentTimeMillis();
+                    	logger.debug("Recommendation via cluster counts for dimension "+dimId+" for item  "+ctxt.getCurrentItem()+" for user "+user+" took "+(t2-t1));
+                    }
                     List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
                     for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));

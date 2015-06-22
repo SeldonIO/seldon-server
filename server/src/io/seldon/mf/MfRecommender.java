@@ -90,7 +90,8 @@ public class MfRecommender implements ItemRecommendationAlgorithm {
         }
 
         List<ItemRecommendationResult> recsList = Ordering.natural().greatestOf(recs, maxRecsCount);
-        logger.debug("Created "+recsList.size() + " recs");
+        if (logger.isDebugEnabled())
+        	logger.debug("Created "+recsList.size() + " recs");
         return new ItemRecommendationResultSet(recsList, name);
     }
 

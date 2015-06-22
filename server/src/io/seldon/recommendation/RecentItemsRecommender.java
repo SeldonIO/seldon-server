@@ -85,7 +85,8 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
             for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));
             }
-            logger.debug("Recent items algorithm returned "+recommendations.size()+" items");
+            if (logger.isDebugEnabled())
+            	logger.debug("Recent items algorithm returned "+recommendations.size()+" items");
             return new ItemRecommendationResultSet(results, name);
         }
         else

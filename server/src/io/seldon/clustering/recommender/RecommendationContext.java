@@ -70,7 +70,8 @@ public class RecommendationContext {
 
     public RecommendationContext(MODE mode, Set<Long> contextItems, Set<Long> exclusionItems, List<String> inclusionKeys, Long currentItem,
                                  String lastRecListUUID, OptionsHolder optsHolder) {
-        logger.debug("Built new rec context object in mode " +mode.name());
+    	if (logger.isDebugEnabled())
+    		logger.debug("Built new rec context object in mode " +mode.name());
 
         this.mode = mode;
         this.contextItems = contextItems;

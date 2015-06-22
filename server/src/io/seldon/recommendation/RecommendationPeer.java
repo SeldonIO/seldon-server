@@ -135,7 +135,8 @@ public class RecommendationPeer {
 		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
 		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId, recTag))
 		{
-			logger.debug("Using recommender class " + algStr.name);
+			if (logger.isDebugEnabled())
+				logger.debug("Using recommender class " + algStr.name);
 
 			List<Long> recentItemInteractions;
 			// add items from recent history if there are any and algorithm options says to use them
@@ -157,7 +158,8 @@ public class RecommendationPeer {
 				break;
 		}
         RecResultContext combinedResults = combiner.combine(numRecommendations, resultSets);
-        logger.debug("After combining, we have "+combinedResults.resultSet.getResults().size()+
+        if (logger.isDebugEnabled())
+        	logger.debug("After combining, we have "+combinedResults.resultSet.getResults().size()+
                 " results with alg key "+combinedResults.algKey + " : " + StringUtils.join(combinedResults.resultSet.getResults(),':'));
 		for (ItemRecommendationResultSet.ItemRecommendationResult result : combinedResults.resultSet.getResults()) {
 			recommenderScores.put(result.item, result.score.doubleValue());
@@ -177,7 +179,8 @@ public class RecommendationPeer {
 //					break;
 //			}
 			List<Long> recommendationsFinal = CollectionTools.sortMapAndLimitToList(recommenderScores, numRecommendations, true);
-			logger.debug("recommendationsFinal size was " +recommendationsFinal.size());
+			if (logger.isDebugEnabled())
+				logger.debug("recommendationsFinal size was " +recommendationsFinal.size());
             return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimensions,
                     lastRecListUUID, recommendationsFinal, combinedResults.algKey,
                     currentItemId, numRecentActions, diversityLevel,strategy,recTag);
@@ -202,7 +205,8 @@ public class RecommendationPeer {
     		recsFinal = RecommendationUtils.getDiverseRecommendations(numRecommendationsAsked, recs,client,clientUserId,dimensions);
     	else
     		recsFinal = recs;
-        logger.debug("recs final size "+ recsFinal.size());
+    	if (logger.isDebugEnabled())
+    		logger.debug("recs final size "+ recsFinal.size());
     	String uuid=RecommendationUtils.cacheRecommendationsAndCreateNewUUID(client, clientUserId, dimensions,
                 currentRecUUID, recsFinal, algKey,currentItemId,numRecentActions, strat, recTag);
     	List<Recommendation> recBeans = new ArrayList<>();

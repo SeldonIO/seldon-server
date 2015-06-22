@@ -147,7 +147,8 @@ public class RecommendationService {
         }
 
         //print input list
-        logger.debug("Input list for user " + userId + " num." + items.size() + " => " + StringUtils.join(items,","));
+        if (logger.isDebugEnabled())
+        	logger.debug("Input list for user " + userId + " num." + items.size() + " => " + StringUtils.join(items,","));
         //remove recentActions from recs
         List<Long> itemsToRemove = ListUtils.intersection(items, recentActions);
         //remove duplicate items
@@ -165,7 +166,8 @@ public class RecommendationService {
         SortResult sortResult = recommender.sort(intUserId, filteredItems, cfAlgorithm,recentActions);
         List<Long> itemsSorted = sortResult.getSortedItems();
         sortAlg = sortResult.toLog();
-        logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
+        if (logger.isDebugEnabled())
+        	logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
         //INCLUDE VIEWED ITEMS
         //append recentActions (that were in the input list) only if it was able to sort the items (otherwise return an empty list)
         if(!itemsSorted.isEmpty() && cfAlgorithm.isRankingRemoveHistory()) { //only add back items if not testing
@@ -178,7 +180,8 @@ public class RecommendationService {
         /*MemCachePeer.put(memcacheKey, res,300);
 	    //}
 	    else*/
-        logger.debug("Final list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
+        if (logger.isDebugEnabled())
+        	logger.debug("Final list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
         res[0] = resBean;
         res[1] = sortAlg;
         return res;
