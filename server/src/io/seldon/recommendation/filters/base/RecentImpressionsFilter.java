@@ -57,7 +57,8 @@ public class RecentImpressionsFilter implements ItemFilter {
             // get recent actions for user
             int recentActionsNum = optsHolder.getIntegerOption(RECENT_ACTIONS_NUM);
             List<Long> recentActions = actionCache.getRecentActions(client,user, recentActionsNum >0 ? recentActionsNum : numRecommendations);
-            logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + recentActions.size());
+            if (logger.isDebugEnabled())
+            	logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + recentActions.size());
             return recentActions;
         }
         return Collections.emptyList();

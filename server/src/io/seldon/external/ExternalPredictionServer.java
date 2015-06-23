@@ -118,13 +118,15 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     		HttpGet httpGet = new HttpGet(uri);
     		try  
     		{
-    			logger.debug("Requesting " + httpGet.getURI().toString());
+    			if (logger.isDebugEnabled())
+    				logger.debug("Requesting " + httpGet.getURI().toString());
     			CloseableHttpResponse resp = httpClient.execute(httpGet, context);
     			if(resp.getStatusLine().getStatusCode() == 200) 
     			{
     				ObjectReader reader = mapper.reader(PredictionsResult.class);
     				PredictionsResult res = reader.readValue(resp.getEntity().getContent());
-    				logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
+    				if (logger.isDebugEnabled())
+    					logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
     				return res;
     			} 
     			else 

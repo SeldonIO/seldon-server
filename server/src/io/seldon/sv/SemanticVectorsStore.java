@@ -272,7 +272,8 @@ public class SemanticVectorsStore {
 			}
 			else
 			{
-				logger.debug("Not sorting already seen article "+item);
+				if (logger.isDebugEnabled())
+					logger.debug("Not sorting already seen article "+item);
 				alreadySeen.add(item);
 			}
 		}
@@ -283,7 +284,8 @@ public class SemanticVectorsStore {
 		}
 		for(T recent : recentItems)
 		{
-			logger.debug("Recent item " + recent);
+			if (logger.isDebugEnabled())
+				logger.debug("Recent item " + recent);
 			String recentDoc = docTransform.toSV(recent);
 			Vector vectorRecent = docVecReader.getVector(recentDoc);
 			if (vectorRecent != null && !vectorRecent.isZeroVector())
@@ -310,7 +312,8 @@ public class SemanticVectorsStore {
 						double current = scores.get(e.getKey());
 						if (!Double.isNaN(overlap))
 						{
-							logger.debug("Overlap with "+e.getValue()+" is "+overlap);
+							if (logger.isDebugEnabled())
+								logger.debug("Overlap with "+e.getValue()+" is "+overlap);
 							if (bestScore) // just store best score
 							{
 								if (overlap > current)
@@ -344,17 +347,20 @@ public class SemanticVectorsStore {
 				ordered = CollectionTools.sortMapAndLimitToList(scores, scores.size());
 			for(Vector vOrdered : ordered)
 			{
-				logger.debug("Item " + sortVectors.get(vOrdered) + " has score " +  scores.get(vOrdered));
+				if (logger.isDebugEnabled())
+					logger.debug("Item " + sortVectors.get(vOrdered) + " has score " +  scores.get(vOrdered));
 				result.add(sortVectors.get(vOrdered));
 			}
 			for(T seenItem : alreadySeen)
 			{
-				logger.debug("Adding already seen item "+seenItem+" to end of list");
+				if (logger.isDebugEnabled())
+					logger.debug("Adding already seen item "+seenItem+" to end of list");
 				result.add(seenItem);
 			}
 			for(T notFoundItem : notFound)
 			{
-				logger.debug("Adding not found item "+notFoundItem+" to end of list");
+				if (logger.isDebugEnabled())
+					logger.debug("Adding not found item "+notFoundItem+" to end of list");
 				result.add(notFoundItem);
 			}
 			return result;
@@ -397,7 +403,8 @@ public class SemanticVectorsStore {
 			}
 			else
 			{
-				logger.debug("Not sorting already seen article "+item);
+				if (logger.isDebugEnabled())
+					logger.debug("Not sorting already seen article "+item);
 				alreadySeen.add(item);
 			}
 		}
@@ -408,7 +415,8 @@ public class SemanticVectorsStore {
 		}
 		for(T recent : recentItems)
 		{
-			logger.debug("Recent item " + recent);
+			if (logger.isDebugEnabled())
+				logger.debug("Recent item " + recent);
 			String recentDoc = docTransform.toSV(recent);
 			Vector vectorRecent = docVecReader.getVector(recentDoc);
 			if (vectorRecent != null && !vectorRecent.isZeroVector())

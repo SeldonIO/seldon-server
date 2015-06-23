@@ -70,8 +70,11 @@ public class BaseClusterCountsRecommender {
             Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
             Map<Long, Double> recommendations = r.recommend(recommenderType, user, null, dimensions, maxRecsCount, exclusions, includeShortTermClusters,
                     longTermWeight,shortTermWeight,decayRate,minClusterItems);
-            long t2 = System.currentTimeMillis();
-            logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1)+" and got back "+recommendations.size()+" recommednations");
+            if (logger.isDebugEnabled())
+            {
+            	long t2 = System.currentTimeMillis();
+            	logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1)+" and got back "+recommendations.size()+" recommednations");
+            }
             List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
             for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));

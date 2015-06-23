@@ -57,11 +57,7 @@ public class JdoCountRecommenderUtils {
 		userClusters = UserClusterManager.get().getStore(client); // Hack until we always use this class
 		if (userClusters == null)
 		{
-			if (userClusters == null)
-			{
-				logger.warn("Using slow DB access to user clusers for client "+client);
-				userClusters = new JdoUserClusterStore(client);
-			}
+			return null;
 		}
 		
 		return new CountRecommender(client,userClusters,counter,clusterFromReferrerPeer.get(client));

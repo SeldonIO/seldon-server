@@ -98,7 +98,8 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 		Map<Long,Double> res = new HashMap<>();
 		for(Long itemId : items)
 		{
-			logger.debug("Finding similar items to "+itemId);
+			if (logger.isDebugEnabled())
+				logger.debug("Finding similar items to "+itemId);
 			Map<Long,Double> scores = recommendSimilarItems(client,itemId, dimensions, numRecommendations, exclusions,false);
 			for(Map.Entry<Long,Double> score : scores.entrySet())
 			{
@@ -127,7 +128,8 @@ public class ItemSimilarityRecommender implements ItemRecommendationAlgorithm {
 		List<Long> itemsToScore;
 		if(recentItemInteractions.size() > numRecentActionsToUse)
 		{
-			logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			if (logger.isDebugEnabled())
+				logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
 			itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		}
 		else
