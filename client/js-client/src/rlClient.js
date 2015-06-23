@@ -151,7 +151,7 @@ var rlClient = (function () {
         return fullEndpoint("/js/recommendations") +
             "&user=" + user_id +
             "&item=" + item_id +
-            "&dimension=" + (options.dimension || 0) +
+            "&dimensions=" + ((options.dimensions) || (options.dimension || 0)) +
             "&limit=" + (options.limit || 10) +
             (options.attributes ? ("&attributes=" + attributeString(options.attributes)) : "") +
             (options.algorithms ? "&algorithms=" + options.algorithms : "") +
