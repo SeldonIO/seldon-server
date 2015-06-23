@@ -22,7 +22,8 @@ case class CtrByRectagConfig(
     endDate : String = "",
     influxdb_host : String = "",
     influxdb_user : String = "root",
-    influxdb_pass : String = "")
+    influxdb_pass : String = "",
+    filterUsersFile : String = "")
 
 case class ImpressionRectag(consumer: String, year: Int, month: Int, day: Int, click : String, abkey : String, rectag : String)
     
@@ -32,6 +33,13 @@ class CtrByRectag(private val sc : SparkContext,config : CtrByRectagConfig) {
   
   def parseJson(lines : org.apache.spark.rdd.RDD[String]) = {
 
+    var userFilterSet = Set[String]()
+    if (config.filterUsersFile.nonEmpty)
+    {
+      userFilterSet = sc.textFile(config.filterUsersFile).map { x => x.trim() }.collect().toSet[String]
+    }
+    val bc_userFilterSet = sc.broadcast(userFilterSet)
+    
     val rdd = lines.flatMap{line =>
       
       val formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -51,7 +59,12 @@ class CtrByRectag(private val sc : SparkContext,config : CtrByRectagConfig) {
         val click = (json \ "click").extract[String]
         val abkey = (json \ "abkey").extract[String]
         val rectag = (json \ "rectag").extract[String]
-        Seq(ImpressionRectag(consumer,date.getYear(),date.getMonthOfYear(),date.getDayOfMonth(),click,abkey,rectag))
+        val userid = (json \ "userid").extract[String]
+        val userSet = bc_userFilterSet.value
+        if (userSet.size == 0 || userSet.contains(userid))
+          Seq(ImpressionRectag(consumer,date.getYear(),date.getMonthOfYear(),date.getDayOfMonth(),click,abkey,rectag))
+        else
+          None
       }
       catch
       {
@@ -146,6 +159,7 @@ object CtrByRectag {
     opt[String]("influxdb-host") valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
     opt[String]('u', "influxdb-user") valueName("influxdb username") action { (x, c) => c.copy(influxdb_user = x) } text("influx db username")    
     opt[String]('p', "influxdb-pass") valueName("influxdb password") action { (x, c) => c.copy(influxdb_pass = x) } text("influx db password")
+    opt[String]("filterUsersFile") valueName("filter users file") action { (x, c) => c.copy(filterUsersFile = x) } text("filter users file")    
     }
     
     parser.parse(args, CtrByRectagConfig()) map { config =>

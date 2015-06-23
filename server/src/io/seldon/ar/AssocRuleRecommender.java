@@ -135,8 +135,11 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 		 case 2:
 			 indices = indices2;
 			 break;
-		 default:
+		 case 1:
 			 indices = indices1;
+		 default:
+			 logger.warn("max basket size too big "+basket.size()+" can only handle up to "+DEF_MAX_BASKET_SIZE);
+			 return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		 }
 		 for (int i=0;i<indices.length;i++)
 		 {
