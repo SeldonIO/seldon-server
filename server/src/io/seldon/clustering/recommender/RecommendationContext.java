@@ -113,7 +113,7 @@ public class RecommendationContext {
     public static RecommendationContext buildContext(String client, AlgorithmStrategy strategy, Long user, String clientUserId,
                                                      Long currentItem, Set<Integer> dimensions,
                                                      String lastRecListUUID, int numRecommendations,
-                                                     DefaultOptions defaultOptions){
+                                                     DefaultOptions defaultOptions, Set<Long> includedItems){
 
         OptionsHolder optsHolder = new OptionsHolder(defaultOptions, strategy.config);
         Set<Long> contextItems = new HashSet<>();

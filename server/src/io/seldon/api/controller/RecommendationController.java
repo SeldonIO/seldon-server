@@ -30,7 +30,6 @@ import io.seldon.api.logging.ApiLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
-import io.seldon.api.resource.RecommendationsBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
@@ -48,7 +47,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -123,43 +121,6 @@ public class RecommendationController {
 		return res;
 	}	
 	
-	//Method to sort a list of item using the recommendation algorithm
-	@RequestMapping(value="/users/{userId}/recommendations", method = RequestMethod.POST)
-	public @ResponseBody ResourceBean sort(@RequestBody RecommendationsBean recs,@PathVariable String userId,HttpServletRequest req) {
-		Date start = new Date();
-		ResourceBean con = resourceServer.validateResourceRequest(req);
-		ResourceBean res = con;
-		String usedAlgorithm = null;
-		if(con instanceof ConsumerBean) {
-			MDCKeys.addKeysUser((ConsumerBean)con, userId);
-			if(recs != null) {
-				logger.info("Calling sort method for" + recs.getSize() + " elements");
-			}
-			else {
-				logger.info("Calling sort method with an empty list");
-			}
-			try {
-				List<String> algorithms = Util.getAlgorithms(req);
-				Object[] pair = recommendationService.sort((ConsumerBean) con, userId, recs, algorithms);
-				res = (RecommendationsBean)pair[0];
-				usedAlgorithm = (String)pair[1];
-			}
-			catch(APIException e) {
-				ApiLoggerServer.log(this, e);
-				res = new ErrorBean(e);
-			}
-			catch(Exception e) {
-				ApiLoggerServer.log(this, e);
-				APIException apiEx = new APIException(APIException.GENERIC_ERROR);
-				res = new ErrorBean(apiEx);
-			} 
-		}
-		else {
-			res = con;
-		}
-		
-		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req,usedAlgorithm);
-		return res;
-	}
+	
 
 }
