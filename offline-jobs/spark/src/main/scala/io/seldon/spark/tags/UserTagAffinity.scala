@@ -30,7 +30,8 @@ case class TagAffinityConfig(
     tagAttr : String = "",
     minActionsPerUser : Int = 10,
     minTagCount : Int = 4,
-    minPcIncrease : Double = 0.2)
+    minPcIncrease : Double = 0.2,
+    maxAllowedTags : Int = 5)
 
 class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) {
 
@@ -165,6 +166,7 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
     val minTagCount = config.minTagCount
     val minPcIncrease = config.minPcIncrease
     val minUserActions = config.minActionsPerUser
+    val maxAllowedTags = config.maxAllowedTags
     val tagAffinity = rddFeatures.flatMap{case (user,(tags,numDocs)) =>
       var allTags = ListBuffer[(Int,String,Double)]()
       if (numDocs >= minUserActions)
@@ -187,7 +189,10 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
         }
       }
       }
-      allTags
+      if (allTags.size > maxAllowedTags)
+        None
+      else
+        allTags
     }
    
     val jsonRdd = convertJson(tagAffinity)
@@ -267,6 +272,7 @@ class UserTagAffinity(private val sc : SparkContext,config : TagAffinityConfig) 
         opt[String]("tagFilterPath") valueName("path url") foreach { x => c = c.copy(tagFilterPath = x) } text("tag filter path")        
         opt[String]("tagAttr") valueName("tag attr") foreach { x => c = c.copy(tagAttr = x) } text("db attribute name containing tags")                
         opt[Int]("minTagCount") foreach { x => c = c.copy(minTagCount = x) } text("min count for tags in user actions")    
+        opt[Int]("maxAllowedTags") foreach { x => c = c.copy(maxAllowedTags = x) } text("max tag associations for user to be included in model")            
         opt[Double]("minPcIncrease") foreach { x => c = c.copy(minPcIncrease = x) } text("min percentage increase for affinity to be included")        
 
     }
