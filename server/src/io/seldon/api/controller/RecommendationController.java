@@ -29,11 +29,10 @@ import io.seldon.api.Util;
 import io.seldon.api.logging.ApiLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.ResourceBean;
+import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
-import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
 import java.util.Date;
@@ -61,6 +60,8 @@ public class RecommendationController {
 	@Autowired
     private RecommendationBusinessService recommendationBusinessService;
 
+	@Autowired
+    private ItemService itemService;
 
     @Autowired
     private RecommendationService recommendationService;
@@ -86,41 +87,29 @@ public class RecommendationController {
 				dimensions = Util.getDimensions(req);
 			if (dimensions.isEmpty())
 				dimensions.add(Constants.DEFAULT_DIMENSION);
-			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit);
+			
+			List<String> sort = Util.getSortItems(req);
+			Set<Long> sortItems = null;
+			if (sort != null && sort.size() > 0)
+			{
+				sortItems = new HashSet<Long>();
+				ConsumerBean c = (ConsumerBean) con;
+				for(String item : sort)
+				{
+					try {
+						Long internalSortId = itemService.getInternalItemId(c, item);
+		        			sortItems.add(internalSortId);
+		        		} catch (APIException e) {
+		        			logger.warn("userRecommendations: sort item not found."+item);
+		        		}
+				}
+			}
+			
+			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems);
         }
 		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req);
 		return res;
 	}
 
-    //FIXME
-	@RequestMapping(value="/users/{userId}/recommendations/{itemId}", method = RequestMethod.GET)
-	public @ResponseBody ResourceBean retrieveRecommendation(@PathVariable String userId, @PathVariable String itemId,HttpServletRequest req) {
-		Date start = new Date();
-		ResourceBean con = resourceServer.validateResourceRequest(req);
-		ResourceBean res = con;
-		Integer itemType = Util.getType(req);
-		Integer dimension = Util.getDimension(req);
-		List<String> algorithms = Util.getAlgorithms(req);
-		if(dimension == null) { dimension = Constants.DEFAULT_DIMENSION; }
-		if(con instanceof ConsumerBean) {
-			try {
-				MDCKeys.addKeys((ConsumerBean)con, userId, itemId);
-//				res = recommendationService.getRecommendation((ConsumerBean)con,userId,itemType,dimension,itemId, Constants.POSITION_NOT_DEFINED,algorithms);
-			}
-			catch(APIException e) {
-				ApiLoggerServer.log(this, e);
-				res = new ErrorBean(e);
-			}
-			catch(Exception e) {
-				ApiLoggerServer.log(this, e);
-				APIException apiEx = new APIException(APIException.GENERIC_ERROR);
-				res = new ErrorBean(apiEx);
-			}
-		}
-		ApiLogger.log("users.user_id.recommendations.item_id",start,new Date(),con,res,req);
-		return res;
-	}	
-	
-	
 
 }
