@@ -252,6 +252,7 @@ public class JsClientController {
         if (scoreItems != null && !scoreItems.isEmpty())
         {
         	String[] parts = scoreItems.split(",");
+        	scoreItemsInternal = new HashSet<Long>();
         	for(String externalSortId : parts)
         	{
         		try {

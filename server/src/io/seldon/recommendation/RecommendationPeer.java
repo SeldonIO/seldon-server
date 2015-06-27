@@ -32,6 +32,8 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+import io.seldon.recommendation.filters.ExplicitItemsIncluder;
+import io.seldon.recommendation.filters.FilteredItems;
 import io.seldon.util.CollectionTools;
 
 import java.util.ArrayList;
@@ -72,6 +74,9 @@ public class RecommendationPeer {
 	@Autowired
 	ActionHistoryCache actionCache;
 
+	@Autowired
+	ExplicitItemsIncluder explicitItemsIncluder;
+	
     private boolean debugging = false;
 
 	@Autowired
@@ -144,8 +149,11 @@ public class RecommendationPeer {
 			// add current item id if not in recent actions
 			if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
 				recentItemInteractions.add(currentItemId);
+			FilteredItems explicitItems = null;
+			if (scoreItems != null)
+				explicitItems = explicitItemsIncluder.create(client, scoreItems);
 			RecommendationContext ctxt = RecommendationContext.buildContext(client,
-					algStr,user,clientUserId,currentItemId, dimensions, lastRecListUUID, numRecommendations,defaultOptions,scoreItems);
+					algStr,user,clientUserId,currentItemId, dimensions, lastRecListUUID, numRecommendations,defaultOptions,explicitItems);
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimensions,
 					numRecommendations, ctxt, recentItemInteractions);
 
