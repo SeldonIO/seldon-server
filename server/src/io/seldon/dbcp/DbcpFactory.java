@@ -198,8 +198,9 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		public String toString() {
 			return "DbcpConfig [name=" + name + ", jdbc=" + jdbc
 					+ ", driverClassName=" + driverClassName + ", user=" + user
-					+ ", password=" + password + ", maxActive=" + maxTotal
-					+ ", maxIdle=" + maxIdle + ", maxWait=" + maxWait
+					+ ", password=" + password + ", maxTotal=" + maxTotal
+					+ ", maxIdle=" + maxIdle + ", minIdle=" + minIdle
+					+ ", maxWait=" + maxWait
 					+ ", timeBetweenEvictionRunsMillis="
 					+ timeBetweenEvictionRunsMillis
 					+ ", minEvictableIdleTimeMillis="
@@ -210,6 +211,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 					+ ", removeAbandonedTimeout=" + removeAbandonedTimeout
 					+ ", logAbandonded=" + logAbandonded + "]";
 		}
+		
 		
 		
 		

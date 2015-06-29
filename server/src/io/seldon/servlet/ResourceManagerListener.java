@@ -23,16 +23,12 @@
 
 package io.seldon.servlet;
 
-import io.seldon.api.Constants;
 import io.seldon.api.state.ZkCuratorHandler;
 import io.seldon.api.state.zk.ZkClientConfigHandler;
 import io.seldon.db.jdo.JDOFactory;
-import io.seldon.memcache.MemCachePeer;
 import io.seldon.memcache.SecurityHashPeer;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -87,9 +83,7 @@ public class ResourceManagerListener  implements ServletContextListener {
     
     public void contextDestroyed(ServletContextEvent sce)
     {
-        if(MemCachePeer.getClient()!=null){
-    	    MemCachePeer.getClient().shutdown();
-        }
+        
         ZkCuratorHandler.shutdown();
     }
 

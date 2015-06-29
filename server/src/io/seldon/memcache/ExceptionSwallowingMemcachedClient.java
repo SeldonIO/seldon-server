@@ -43,13 +43,15 @@ import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author firemanphil Date: 18/11/14 Time: 14:06
  */
 @Component
 public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateListener {
 
-    private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS = "memcached_servers";
+    private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS = "memcached";
     private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH = "/config/" + ZK_CONFIG_KEY_MEMCACHED_SERVERS;
     private static Logger logger = Logger.getLogger(ExceptionSwallowingMemcachedClient.class.getName());
     public static final int MEMCACHE_OP_TIMEOUT = 2500;
@@ -58,16 +60,18 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
     @Autowired
     public ExceptionSwallowingMemcachedClient(GlobalConfigHandler globalConfigHandler, ZkCuratorHandler zkCuratorHandler) throws Exception {
         logger.info("Initializing...");
-
         Stat stat = zkCuratorHandler.getCurator().checkExists().forPath(ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH);
-        if (stat != null) {
+        if (stat != null) 
+        {
+            ObjectMapper mapper = new ObjectMapper();
             byte[] bytes = zkCuratorHandler.getCurator().getData().forPath(ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH);
-            String servers = new String(bytes);
+            MemcacheConfig config = mapper.readValue(bytes,MemcacheConfig.class);
+            logger.info(config.toString());
             memcachedClient = new MemcachedClient(new ConnectionFactoryBuilder(new DefaultConnectionFactory()).setOpTimeout(MEMCACHE_OP_TIMEOUT).build(),
-                    AddrUtil.getAddresses(servers));
-            logger.info(String.format("MemcachedClient initialized using %s[%s]", ZK_CONFIG_KEY_MEMCACHED_SERVERS, servers));
+                    AddrUtil.getAddresses(config.servers));
+            logger.info(String.format("MemcachedClient initialized using %s[%s]", ZK_CONFIG_KEY_MEMCACHED_SERVERS, config.servers));
             
-            MemCachePeer.initialise(servers);
+            MemCachePeer.initialise(config.servers,config.numClients);
         }
 
         if (memcachedClient == null) {
@@ -112,6 +116,18 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
 
     @Override
     public void configUpdated(String configKey, String configValue) {
-        // TODO memcached config updated in zookeeper
+       logger.warn("Ignoring updated memcache config "+configValue);
+    }
+    
+    
+    public static class MemcacheConfig {
+    	public String servers;
+    	public int numClients;
+		@Override
+		public String toString() {
+			return "MemcacheConfig [servers=" + servers + ", numClients="
+					+ numClients + "]";
+		}
+    	
     }
 }

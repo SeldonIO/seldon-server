@@ -24,9 +24,11 @@
 package io.seldon.memcache;
 
 import java.io.IOException;
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -48,34 +50,39 @@ public class MemCachePeer {
 	private static final int MAX_CAS_RETRIES = 100;
 //	 create a static client as most installs only need
 	// a single instance
-	protected static MemcachedClient client;
+	protected static List<MemcachedClient> clients;
 
-	// set up connection pool once at class load
-	// set up connection pool once at class load
-	public static MemcachedClient initialise(Properties props)
-	{
-		String serverList = props.getProperty("io.seldon.memcached.servers");
-        return initialise(serverList);
-    }
-
-    public static MemcachedClient initialise(String serverList) {
+    public static void initialise(String serverList,int  numClients) {
         try
         {
-    		ConnectionFactoryBuilder cb = new ConnectionFactoryBuilder(new DefaultConnectionFactory());
-    		cb.setOpTimeout(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT);
-        	client=new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList));
-        	logger.info(String.format("MemcachedClient initialised using serverList[%s]",serverList));
-            return client;
+    		clients = new ArrayList<MemcachedClient>(numClients);
+    		
+    		for(int i=0;i<numClients;i++)
+    		{
+    			ConnectionFactoryBuilder cb = new ConnectionFactoryBuilder(new DefaultConnectionFactory());
+    			cb.setOpTimeout(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT);
+    			clients.add(new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList)));
+    		}
+
+        	logger.info(String.format("MemcachedClient initialised using serverList[%s]",serverList+" with "+numClients+" clients"));
         }
         catch (IOException e)
         {
             logger.error("Can't create memcache connection ",e);
-            return null;
         }
+    }
+    
+    /*
+     * Get random memcache client
+     */
+    private static MemcachedClient getClient()
+    {
+    	return clients.get(ThreadLocalRandom.current().nextInt(clients.size()));
     }
 
 	public static void delete(String key)
 	{
+		MemcachedClient client = getClient();
 		if (client != null)
 		try
 		{
@@ -89,6 +96,7 @@ public class MemCachePeer {
 	
 	public static void put(String key,Object obj)
 	{
+		MemcachedClient client = getClient();
 		if (client != null)
 		try
 		{
@@ -105,6 +113,7 @@ public class MemCachePeer {
 	 */
 	public static void put(String key,Object obj,int expireSeconds)
 	{
+		MemcachedClient client = getClient();
 		if (client != null)
 			try
 			{
@@ -118,6 +127,7 @@ public class MemCachePeer {
 	
 	public static Object get(String key)
 	{
+		MemcachedClient client = getClient();
 		Object myObj=null;
 		if (client != null)
 		{
@@ -141,6 +151,7 @@ public class MemCachePeer {
 	
 	public static CASValue gets(String key)
 	{
+		MemcachedClient client = getClient();
 		if (client != null)
 		{
 		try
@@ -172,6 +183,7 @@ public class MemCachePeer {
 	 */
 	public static <T> T cas(String key,CASMutation<T> mutation,T value,int expireSecs)
 	{
+		MemcachedClient client = getClient();
 		 if (client != null)
 		 {
 			 Transcoder transcoder = new SerializingTranscoder();
@@ -202,9 +214,5 @@ public class MemCachePeer {
 	}
 	
 	
-	public static MemcachedClient getClient()
-	{
-		return client;
-	}
-	
+
 }

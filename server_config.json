@@ -2,11 +2,11 @@
 	"db": {
 		"servers": [
 			{
-				"name":"db1",
+				"name":"ClientDB",
 				"host":"localhost",
 				"port":3306,
-				"user":"root",
-				"password":"root"
+				"user":"user1",
+				"password":"mypass"
 			}
 		]
 	},
@@ -20,9 +20,8 @@
 	},
 	"clients": [
 		{
-			"name":"testcssd",
-			"algfgsf":"sfgfdgf",
-			"db":"db1"
+			"name":"test",
+			"db":"ClientDB"
 		}
 	]
 }
