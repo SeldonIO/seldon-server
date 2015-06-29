@@ -87,6 +87,7 @@ public class Constants {
 	public static final int NO_TRUST_DIMENSION = -1;
 	public static final String URL_ATTR_DIMENSION = "dimension";
 	public static final String URL_ATTR_DIMENSIONS = "dimensions";	
+	public static final String URL_ATTR_SORT = "sort";	
 	public static final String URL_NAME = "name";
 	public static final String URL_SORT = "sort";
 	public static final String URL_TYPE = "type";

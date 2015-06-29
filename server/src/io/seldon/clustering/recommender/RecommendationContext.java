@@ -113,11 +113,19 @@ public class RecommendationContext {
     public static RecommendationContext buildContext(String client, AlgorithmStrategy strategy, Long user, String clientUserId,
                                                      Long currentItem, Set<Integer> dimensions,
                                                      String lastRecListUUID, int numRecommendations,
-                                                     DefaultOptions defaultOptions){
+                                                     DefaultOptions defaultOptions, FilteredItems includedItems){
 
         OptionsHolder optsHolder = new OptionsHolder(defaultOptions, strategy.config);
-        Set<Long> contextItems = new HashSet<>();
         List<String> inclusionKeys = new ArrayList<String>();
+        Set<Long> contextItems = new HashSet<>();
+        
+        if (includedItems != null)
+        {
+        	contextItems.addAll(includedItems.getItems());
+        	inclusionKeys.add(includedItems.getCachingKey());
+        	return new RecommendationContext(MODE.INCLUSION, contextItems, Collections.<Long>emptySet(),  inclusionKeys, currentItem, lastRecListUUID,optsHolder);
+        }
+        
 
         Set<ItemIncluder> inclusionProducers = strategy.includers;
         Set<ItemFilter> itemFilters = strategy.filters;

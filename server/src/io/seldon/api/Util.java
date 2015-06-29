@@ -187,6 +187,15 @@ public class Util {
 			return new HashSet<Integer>();
 	}
 	
+	public static List<String> getSortItems(HttpServletRequest req)
+	{
+		String sortStr = req.getParameter(Constants.URL_ATTR_SORT);
+		if (sortStr != null)
+			return Arrays.asList(sortStr.split(","));
+		else
+			return null;
+	}
+	
 	public static ListBean getLimitedBean(ListBean bean, int limit) {
 		if(bean != null && bean.getSize() == limit) { 
 			bean.setRequested(limit); 

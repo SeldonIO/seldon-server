@@ -178,6 +178,7 @@ public class JsClientController {
                                     @RequestParam(value = "source", required = false) String referrer,                                    
                                     @RequestParam(value = "rectag", required = false) String recTag,
                                     @RequestParam(value = "cohort", required = false, defaultValue = "false") Boolean includeCohort,
+                                    @RequestParam(value = "sort", required = false) String scoreItems,
                                     @RequestParam("user") String userId,
                                     @RequestParam("jsonpCallback") String callback) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
@@ -198,7 +199,7 @@ public class JsClientController {
         	dimensions = new HashSet<Integer>(1);
         	dimensions.add(dimensionId);
         }
-        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort);
+        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort,scoreItems);
         //tracking recommendations impression
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);
@@ -237,7 +238,7 @@ public class JsClientController {
 
     private ResourceBean getRecommendations(ConsumerBean consumerBean, String userId, String itemId, Set<Integer> dimensions,
                                             String lastRecommendationListUuid, Integer recommendationsLimit, String attributes,
-                                            String algorithms,String referrer,String recTag, boolean includeCohort) {
+                                            String algorithms,String referrer,String recTag, boolean includeCohort, String scoreItems) {
         Long internalItemId = null;
         if (itemId != null) {
             try {
@@ -246,6 +247,23 @@ public class JsClientController {
                 logger.warn("userRecommendations: item not found.");
             }
         }
+        
+        Set<Long> scoreItemsInternal = null;
+        if (scoreItems != null && !scoreItems.isEmpty())
+        {
+        	String[] parts = scoreItems.split(",");
+        	scoreItemsInternal = new HashSet<Long>();
+        	for(String externalSortId : parts)
+        	{
+        		try {
+        			Long internalSortId = itemService.getInternalItemId(consumerBean, externalSortId);
+        			scoreItemsInternal.add(internalSortId);
+        		} catch (APIException e) {
+        			logger.warn("userRecommendations: sort item not found."+externalSortId);
+        		}
+        	}
+        }
+        
         List<String> algList = null;
         if (algorithms != null && !algorithms.isEmpty()) {
         	if (logger.isDebugEnabled())
@@ -259,7 +277,7 @@ public class JsClientController {
         	logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
         	logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
         }
-        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort);
+        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort,scoreItemsInternal);
     }
 
     // TODO category, tags

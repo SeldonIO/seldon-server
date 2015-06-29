@@ -49,7 +49,7 @@ public class MemCacheKeys {
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
 			RecentRecsForUsers, RecentItemsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder
 			};
 
 	
@@ -537,5 +537,10 @@ public class MemCacheKeys {
     	return ""+keys.MostPopularItems+":"+client;
     }
 
+    public static String getExplicitItemsIncluderKey(String client,Set<Long> items)
+    {
+    	return ""+keys.ExplicitItemsIncluder+":"+client+":"+items.hashCode();
+    }
+    
 }
 
