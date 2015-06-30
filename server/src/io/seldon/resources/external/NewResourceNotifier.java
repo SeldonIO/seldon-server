@@ -26,14 +26,20 @@ package io.seldon.resources.external;
 import com.google.common.base.Joiner;
 import io.seldon.api.state.*;
 import io.seldon.mf.PerClientExternalLocationListener;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -72,6 +78,7 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
         clientConfigHandler.addListener(this);
     }
 
+    
 
     private GlobalConfigUpdateListener createAllClientListeners(final String nodePattern, final PerClientExternalLocationListener listener) {
         return new GlobalConfigUpdateListener() {
@@ -120,4 +127,15 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
             watchingClients.get(client).newClientLocation(client,configValue,configKey);
         }
     }
+    
+    @Override
+	public void configRemoved(String client, String configKey) {
+    	logger.info("Received new config for client : \"" + client + "\", key : \""+ configKey +  "\"");
+        Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(configKey);
+        if(watchingClients!=null && watchingClients.containsKey(client)){
+            watchingClients.get(client).clientLocationDeleted(client, configKey);
+        }
+    }
+
+	
 }

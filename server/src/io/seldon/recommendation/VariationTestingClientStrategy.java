@@ -67,8 +67,8 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName(String userId) {
-        return sample(userId).getName(userId);
+    public String getName(String userId, String recTag) {
+        return sample(userId).getName(userId, recTag);
     }
     
     @Override
@@ -88,7 +88,7 @@ public class VariationTestingClientStrategy implements ClientStrategy {
         return null;
     }
 
-    public static VariationTestingClientStrategy build(Set<Variation> variations){
+    public static VariationTestingClientStrategy build(List<Variation> variations){
         Map<Range, ClientStrategy> strategyMap = new HashMap<>();
         BigDecimal ratioTotal = BigDecimal.ZERO;
         for (Variation var : variations){
@@ -96,7 +96,7 @@ public class VariationTestingClientStrategy implements ClientStrategy {
         }
         BigDecimal currentMax = BigDecimal.ZERO;
         for(Variation var : variations){
-            NumberRange range = new NumberRange(currentMax, currentMax.add(var.ratio.divide(ratioTotal)));
+            NumberRange range = new NumberRange(currentMax, currentMax.add(var.ratio.divide(ratioTotal, 5, BigDecimal.ROUND_UP)));
             strategyMap.put(range,var.variationStrategy);
             currentMax = currentMax.add(var.ratio);
         }

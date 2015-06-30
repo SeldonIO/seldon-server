@@ -23,8 +23,11 @@
 
 package io.seldon.cc;
 
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.service.ItemService;
 import io.seldon.clustering.recommender.MemoryUserClusterStore;
 import io.seldon.clustering.recommender.UserCluster;
+import io.seldon.db.jdo.JDOFactory;
 import io.seldon.mf.PerClientExternalLocationListener;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
@@ -34,13 +37,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,20 +61,31 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 
 	 private static Logger logger = Logger.getLogger(UserClusterManager.class.getName());
 	 private final ConcurrentMap<String,MemoryUserClusterStore> clientStores = new ConcurrentHashMap<>();
+	 private final ConcurrentMap<String,ClusterDescription> clusterDescriptions = new ConcurrentHashMap<>();
 	 private Set<NewResourceNotifier> notifiers = new HashSet<>();
 	 private final ExternalResourceStreamer featuresFileHandler;
 	 public static final String CLUSTER_NEW_LOC_PATTERN = "userclusters";
 
 	 private static UserClusterManager theManager; // hack until rest of code Springified
 	 
-	 private final Executor executor = Executors.newFixedThreadPool(5);
+	 //private final Executor executor = Executors.newFixedThreadPool(5);
+	 private BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>();
+	 private ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 5, 10, TimeUnit.MINUTES, queue) {
+	        protected void afterExecute(java.lang.Runnable runnable, java.lang.Throwable throwable) 
+	        {
+	        	        	JDOFactory.get().cleanupPM();
+	        }
+	    };
 
+	 private ItemService itemService;
+	 
 	 @Autowired
-	 public UserClusterManager(ExternalResourceStreamer featuresFileHandler,NewResourceNotifier notifier){
+	 public UserClusterManager(ExternalResourceStreamer featuresFileHandler,NewResourceNotifier notifier,ItemService itemService){
 	        this.featuresFileHandler = featuresFileHandler;
 	        notifiers.add(notifier);
 	        notifier.addListener(CLUSTER_NEW_LOC_PATTERN, this);
 	        this.theManager = this;
+	        this.itemService = itemService;
 	 }
 	 
 	 public static UserClusterManager get()
@@ -91,11 +109,14 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	                    reader.close();
 	                    
 	                    logger.info("finished load of user clusters for client "+client);
-	                } catch (FileNotFoundException e) {
+	                }
+	                catch (FileNotFoundException e) {
 	                    logger.error("Couldn't reloadFeatures for client "+ client, e);
 	                } catch (IOException e) {
 	                    logger.error("Couldn't reloadFeatures for client "+ client, e);
 	                }
+	                
+	                
 	            }
 	        });
 
@@ -109,20 +130,47 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 		 int numUsers = 0;
 		 int numClusters = 0;
 		 long lastUser = -1;
+		 Set<Integer> dimensions = new HashSet<Integer>();
 		 while((line = reader.readLine()) !=null)
 		 {
 			 UserDimWeight data = mapper.readValue(line.getBytes(), UserDimWeight.class);
 			 if (lastUser != data.user)
 				 numUsers++;
 			 clusters.add(new UserCluster(data.user, data.dim, data.weight, 0, 0));
+			 dimensions.add(data.dim);
 			 lastUser = data.user;
 			 numClusters++;
 		 }
 		 MemoryUserClusterStore store = new MemoryUserClusterStore(client,numUsers);
 		 storeClusters(store,clusters);
 		 store.setLoaded(true);
+		 setClusterDescription(client, dimensions);
 		 logger.info("Loaded user clusters for client "+client+" with num users "+numUsers+" and number of clusters "+numClusters);
 		 return store;
+	 }
+	 
+	 private void setClusterDescription(String client,Set<Integer> dimensions)
+	 {
+		 ConsumerBean c = new ConsumerBean(client);
+		 Map<Integer,String> clusterNames = new HashMap<>();
+		 try
+		 {
+			 for(Integer dim : dimensions)
+			 {
+				 String[] names = itemService.getDimensionName(c, dim);
+				 if (names != null && names.length == 2)
+				 {
+					 clusterNames.put(dim, names[0]+":"+names[1]);
+				 }
+				 else
+					 logger.warn("Can't find cluster name in db for dimension "+dim+" for "+client);
+			 }
+		 }
+		 catch (Exception e)
+		 {
+			 logger.error("Failed to create cluster descriptions for "+client,e);
+		 }
+		 clusterDescriptions.put(client, new ClusterDescription(clusterNames));
 	 }
 	 
 	 private void storeClusters(MemoryUserClusterStore store,List<UserCluster> clusters)
@@ -148,6 +196,11 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 		return clientStores.get(client);
 	}
 	 
+	public ClusterDescription getClusterDescriptions(String client)
+	{
+		return clusterDescriptions.get(client);
+	}
+	
 	@Override
 	public void newClientLocation(String client, String location,
 			String nodePattern) {
@@ -159,5 +212,17 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 		clientStores.remove(client);
 	}
 	 
+	
+	public static class ClusterDescription {
+		
+		public final Map<Integer,String> clusterNames;
+
+		public ClusterDescription(Map<Integer, String> clusterNames) {
+			super();
+			this.clusterNames = clusterNames;
+		}
+		
+		
+	}
 	
 }

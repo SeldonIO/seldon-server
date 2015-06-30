@@ -31,23 +31,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+
 
 public class MemCacheKeys {
 
 
     private enum keys {
 			UserTrustNetwork, ContentTrustNetwork, RummbleClient, SemanticVector, RecommendationNetwork,
-			ConsumerBean,ItemBean,ItemsBean,ItemSimilarityGraphBean,OpinionBean,OpinionsBean,RecommendationsBean,TokenBean,UserBean,UsersBean,UsterTrustGraphBean,DimensionBean, ActionBean,
-			ActionsBean,ItemActionsBean,UserInternalId,ItemInternalId,UserClientId,ItemClientId,DimensionsBean,ItemsBeanByName,ItemAttrType,ItemType,ActionType,ItemDimensions,InternalActionsBean,
+			ConsumerBean,ItemBean,ItemsBeanNew,ItemSimilarityGraphBean,OpinionBean,OpinionsBean,RecommendationsBean,TokenBean,UserBean,UsersBean,UsterTrustGraphBean,DimensionBean, ActionBean,
+			ActionsBean,ItemActionsBean,UserInternalId,ItemInternalId,UserClientId,ItemClientId,DimensionsBean,ItemsBeanByNameNew,ItemAttrType,ItemType,ActionType,ItemDimensions,InternalActionsBean,
 			FacebookFriends,FacebookLikes,DBPediaSearch,RecommendedUsers,
 			DimensionByItemType,DemographicBean,DBPediaHits, ItemSemanticAttribute, CooccurenceNetwork,
-			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,
+			ClusterCountForItems,ClustersForUser,TopClusterCounts,TopGlobalClusterCounts,TopClusterCountsForDimension,TopClusterCountsForTag,
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
 			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
-			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUID, RecommendationUUIDDim,
-			RecentRecsForUsers, RecentItems, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
+			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
+			RecentRecsForUsers, RecentItemsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItems, ActionFullHistory
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory
 			};
 
 	
@@ -79,15 +81,15 @@ public class MemCacheKeys {
   
     
     public static String getItemsBeanKey(String client, boolean full,String sort, int dimension) {
-    	return "" + keys.ItemsBean + ":" + client + ":" + full + ":" + sort + ":" + dimension;
+    	return "" + keys.ItemsBeanNew + ":" + client + ":" + full + ":" + sort + ":" + dimension;
     }
     
     public static String getItemsBeanKey(String client, String keywords, boolean full) {
-    	return "" + keys.ItemsBean + ":" + client + ":" + keywords + ":" + full;
+    	return "" + keys.ItemsBeanNew + ":" + client + ":" + keywords + ":" + full;
     }
 
     public static String getItemBeanKey(String client, String id, boolean full) {
-    	return "" + keys.ItemsBean + ":" + client + ":" + id + ":" + full;
+    	return "" + keys.ItemsBeanNew + ":" + client + ":" + id + ":" + full;
     }
     
     public static String getItemSimilarityGraphBeanKey(String client, String id) {
@@ -181,7 +183,7 @@ public class MemCacheKeys {
 	}
 	
 	 public static String getItemsBeanKeyByName(String client, boolean full, String name, int dimension) {
-	    	return "" + keys.ItemsBeanByName + ":" + client + ":" + full + ":" + name + ":" + dimension;
+	    	return "" + keys.ItemsBeanByNameNew + ":" + client + ":" + full + ":" + name + ":" + dimension;
 	 }
 	 
 	 public static String getItemAttrType(String client, int itemType, String name) {
@@ -361,25 +363,41 @@ public class MemCacheKeys {
 		return ""+keys.TopGlobalClusterCounts.name()+":"+client+":"+limit;
 	}
 	
-	public static String getTopClusterCountsForDimension(String client,int clusterId,int dimension,int limit)
+	public static String getTopClusterCountsForDimension(String client,int clusterId,Set<Integer> dimensions,int limit)
 	{
-		return ""+keys.TopClusterCounts.name()+":"+client+":"+clusterId+":"+dimension+":"+limit;
+		return ""+keys.TopClusterCounts.name()+":"+client+":"+clusterId+":"+StringUtils.join(dimensions, ",")+":"+limit;
 	}
 	
-	public static String getTopClusterCountsForDimensionAlg(String client,String alg,int clusterId,int dimension,int limit)
+	public static String getTopClusterCountsForDimensionAlg(String client,String alg,int clusterId,Set<Integer> dimensions,int limit)
 	{
-		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg+":"+clusterId+":"+dimension+":"+limit;
+		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg+":"+clusterId+":"+StringUtils.join(dimensions, ",")+":"+limit;
+	}
+	
+	public static String getTopClusterCountsForTagAndDimension(String client,String tag,int tagAttrId,Set<Integer> dimensions,int limit)
+	{
+		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+StringUtils.join(dimensions, ",")+":"+limit;
 	}
 
-	
-	public static String getTopClusterCountsForDimension(String client,int dimension,int limit)
+	public static String getTopClusterCountsForTagAndTwoDimensions(String client,String tag,int tagAttrId,Set<Integer> dimensions,int dimension2,int limit)
 	{
-		return ""+keys.TopGlobalClusterCounts.name()+":"+client+":"+dimension+":"+limit;
+		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+StringUtils.join(dimensions, ",")+":"+dimension2+":"+limit;
 	}
 	
-	public static String getTopClusterCountsForTwoDimensions(String client,int dimension1,int dimension2,int limit)
+	public static String getTopClusterCountsForTag(String client,String tag,int tagAttrId,int limit)
 	{
-		return ""+keys.TopGlobalClusterCounts.name()+":"+client+":"+dimension1+":"+dimension2+":"+limit;
+		return ""+keys.TopClusterCountsForTag.name()+":"+client+":"+tag+":"+tagAttrId+":"+limit;
+	}
+	
+
+	
+	public static String getTopClusterCountsForDimension(String client,Set<Integer> dimensions,int limit)
+	{
+		return ""+keys.TopGlobalClusterCounts.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+limit;
+	}
+	
+	public static String getTopClusterCountsForTwoDimensions(String client,Set<Integer> dimensions,int dimension2,int limit)
+	{
+		return ""+keys.TopGlobalClusterCounts.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+dimension2+":"+limit;
 	}
 	
 	public static String getExcludedItemsForRecommendations(String client,String userId)
@@ -387,9 +405,9 @@ public class MemCacheKeys {
 		return ""+keys.ExcludedItemsForRecommendations.name()+":"+client+":"+userId;
 	}
 	
-	public static String getRecommendationListUUID(String client,String userId,int counter)
+	public static String getRecommendationListUUID(String client,String userId,int counter, String recTag)
 	{
-		return ""+keys.RecommendationUUID.name()+":"+client+":"+userId+":"+counter;
+		return ""+keys.RecommendationUUIDNew.name()+":"+client+":"+userId+":"+counter + ":" + recTag;
 	}
 	
 	public static String getRecommendationListUUIDWithDimension(String client,int dimension, String userId,int counter)
@@ -397,23 +415,23 @@ public class MemCacheKeys {
 		return ""+keys.RecommendationUUIDDim.name()+":"+client+":"+userId+":"+dimension+":"+counter;
 	}
 	
-	public static String getRecommendationListUserCounter(String client,int dimension, String userId)
+	public static String getRecommendationListUserCounter(String client,Set<Integer> dimensions, String userId)
 	{
-		return ""+keys.RecommendationUserMaxCounter.name()+":"+client+":"+userId+":"+dimension;
+		return ""+keys.RecommendationUserMaxCounter.name()+":"+client+":"+userId+":"+StringUtils.join(dimensions, ",");
 	}
 	
-	public static String getRecentRecsForUser(String client,String userId,int dimension)
+	public static String getRecentRecsForUser(String client,String userId,Set<Integer> dimensions)
 	{
-		return ""+keys.RecentRecsForUsers.name()+":"+client+":"+userId+":"+dimension;
+		return ""+keys.RecentRecsForUsers.name()+":"+client+":"+userId+":"+StringUtils.join(dimensions, ",");
 	}
 	
-	public static String getRecentItems(String client,int dimension,int size)
+	public static String getRecentItems(String client,Set<Integer> dimensions,int size)
 	{
-		return ""+keys.RecentItems.name()+":"+client+":"+dimension+":"+size;
+		return ""+keys.RecentItemsJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+size;
 	}
 
-	public static String getPopularItems(String client, int dimension, int size){
-		return ""+keys.PopularItems.name()+":"+client+":"+dimension+":"+size;
+	public static String getPopularItems(String client, Set<Integer> dimensions, int size){
+		return ""+keys.PopularItemsJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+size;
 	}
 	
 	public static String getDbpediaHasBeenSearched(String client,long itemId)
@@ -451,9 +469,9 @@ public class MemCacheKeys {
 		return ""+keys.itemRecommender+":"+client+":"+userId+":"+dimension+":"+max;
 	}
 	
-	public static String getItemSimilarity(String client,long itemId,int dimension,int max)
+	public static String getItemSimilarity(String client,long itemId,Set<Integer> dimensions,int max)
 	{
-		return ""+keys.itemSimilarity+":"+client+":"+itemId+":"+dimension+":"+max;
+		return ""+keys.itemSimilarity+":"+client+":"+itemId+":"+StringUtils.join(dimensions, ",")+":"+max;
 	}
 	
 	public static String getItemTags(String client,long itemId,int attrId)

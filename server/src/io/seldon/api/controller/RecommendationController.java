@@ -38,7 +38,9 @@ import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -75,8 +77,18 @@ public class RecommendationController {
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeysUser((ConsumerBean)con, userId);
 			int limit = Util.getLimit(req);
+			Set<Integer> dimensions;
 			Integer dimension = Util.getDimension(req);
-			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimension, limit);
+			if (dimension != null)
+			{
+				dimensions = new HashSet<Integer>();
+				dimensions.add(dimension);
+			}
+			else
+				dimensions = Util.getDimensions(req);
+			if (dimensions.isEmpty())
+				dimensions.add(Constants.DEFAULT_DIMENSION);
+			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit);
         }
 		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req);
 		return res;

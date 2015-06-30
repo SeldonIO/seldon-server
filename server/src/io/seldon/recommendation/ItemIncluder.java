@@ -25,6 +25,8 @@ package io.seldon.recommendation;
 
 import io.seldon.recommendation.filters.FilteredItems;
 
+import java.util.Set;
+
 /**
  * @author firemanphil
  *         Date: 19/11/14
@@ -41,6 +43,6 @@ public interface ItemIncluder {
      * @param numItems the number of items to generate as a maximum
      * @return a list of item ids to include.
      */
-    FilteredItems generateIncludedItems(String client, int dimension, int numItems);
+    FilteredItems generateIncludedItems(String client, Set<Integer> dimensions, int numItems);
 
 }

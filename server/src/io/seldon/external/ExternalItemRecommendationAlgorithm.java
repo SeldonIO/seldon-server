@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -75,7 +76,7 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
 
 
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount,
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
                                                  RecommendationContext ctxt, List<Long> recentItemInteractions) {
         long timeNow = System.currentTimeMillis();
         String recommenderName = ctxt.getOptsHolder().getStringOption(ALG_NAME_PROPERTY_NAME);
@@ -93,7 +94,7 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                                                     .setParameter("client", client)
                                                     .setParameter("user_id", user.toString())
                                                     .setParameter("recent_interactions",StringUtils.join(recentItemInteractions,","))
-                                                    .setParameter("dimension", new Integer(dimensionId).toString())
+                                                    .setParameter("dimensions", StringUtils.join(dimensions, ","))
                                                     .setParameter("exclusion_items", StringUtils.join(ctxt.getExclusionItems(),","))
                                                     .setParameter("data_key", StringUtils.join(ctxt.getInclusionKeys(),","))
                                                     .setParameter("limit", String.valueOf(maxRecsCount));
@@ -107,7 +108,8 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         HttpContext context = HttpClientContext.create();
         HttpGet httpGet = new HttpGet(uri);
         try  {
-            logger.debug("Requesting " + httpGet.getURI().toString());
+        	if (logger.isDebugEnabled())
+        		logger.debug("Requesting " + httpGet.getURI().toString());
             CloseableHttpResponse resp = httpClient.execute(httpGet, context);
             if(resp.getStatusLine().getStatusCode() == 200) {
                 ObjectReader reader = mapper.reader(AlgsResult.class);
@@ -116,7 +118,8 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                 for (AlgResult rec : recs.recommended) {
                     results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
                 }
-                logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
+                if (logger.isDebugEnabled())
+                	logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
                 return new ItemRecommendationResultSet(results,recommenderName);
             } else {
                 logger.error("Couldn't retrieve recommendations from external recommender -- bad http return code: " + resp.getStatusLine().getStatusCode());

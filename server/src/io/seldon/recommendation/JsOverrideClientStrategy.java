@@ -23,15 +23,8 @@
 
 package io.seldon.recommendation;
 
-import io.seldon.clustering.recommender.DynamicClusterCountsRecommender;
-import io.seldon.clustering.recommender.GlobalClusterCountsRecommender;
-import io.seldon.clustering.recommender.ItemCategoryClusterCountsRecommender;
-import io.seldon.clustering.recommender.ItemClusterCountsRecommender;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
-import io.seldon.clustering.recommender.ItemSignificantCountsRecommender;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
-import io.seldon.similarity.item.ItemSimilarityRecommender;
-import io.seldon.sv.SemanticVectorsRecommender;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,18 +45,25 @@ import org.springframework.context.ApplicationContext;
 @Deprecated
 public class JsOverrideClientStrategy implements ClientStrategy {
     private static Logger logger = Logger.getLogger(JsOverrideClientStrategy.class.getName());
-    private static final Map<String, Class<? extends ItemRecommendationAlgorithm>> oldAlgNamesToNew = new HashMap<>();
+    private static final Map<String, String> oldAlgNamesToNew = new HashMap<>();
     static {
-        oldAlgNamesToNew.put("CLUSTER_COUNTS_ITEM_CATEGORY", ItemCategoryClusterCountsRecommender.class);
-        oldAlgNamesToNew.put("CLUSTER_COUNTS_DYNAMIC", DynamicClusterCountsRecommender.class);
-        oldAlgNamesToNew.put("CLUSTER_COUNTS_GLOBAL", GlobalClusterCountsRecommender.class);
+        oldAlgNamesToNew.put("CLUSTER_COUNTS_ITEM_CATEGORY", "itemCategoryClusterCountsRecommender");
+        oldAlgNamesToNew.put("CLUSTER_COUNTS_DYNAMIC", "dynamicClusterCountsRecommender");
+        oldAlgNamesToNew.put("CLUSTER_COUNTS_GLOBAL", "globalClusterCountsRecommender");
 
-        oldAlgNamesToNew.put("CLUSTER_COUNTS_FOR_ITEM", ItemClusterCountsRecommender.class);
-        oldAlgNamesToNew.put("CLUSTER_COUNTS_SIGNIFICANT", ItemSignificantCountsRecommender.class);
-        oldAlgNamesToNew.put("SEMANTIC_VECTORS", SemanticVectorsRecommender.class);
-        oldAlgNamesToNew.put("SIMILAR_ITEMS", ItemSimilarityRecommender.class);
-        oldAlgNamesToNew.put("RECENT_ITEMS", RecentItemsRecommender.class);
-        oldAlgNamesToNew.put("MOST_POPULAR", MostPopularRecommender.class);
+        oldAlgNamesToNew.put("CLUSTER_COUNTS_FOR_ITEM", "itemClusterCountsRecommender");
+        oldAlgNamesToNew.put("CLUSTER_COUNTS_SIGNIFICANT", "itemSignificantCountsRecommender");
+        oldAlgNamesToNew.put("SEMANTIC_VECTORS", "semanticVectorsRecommender");
+        oldAlgNamesToNew.put("SIMILAR_ITEMS", "itemSimilarityRecommender");
+        oldAlgNamesToNew.put("RECENT_ITEMS", "recentItemsRecommender");
+        oldAlgNamesToNew.put("MOST_POPULAR", "mostPopularRecommender");
+        
+        oldAlgNamesToNew.put("MATRIX_FACTOR", "mfRecommender");
+        oldAlgNamesToNew.put("RECENT_MATRIX_FACTOR", "recentMfRecommender");
+        oldAlgNamesToNew.put("RECENT_SIMILAR_ITEMS", "itemSimilarityRecommender");
+        oldAlgNamesToNew.put("WORD2VEC", "word2vecRecommender");
+        oldAlgNamesToNew.put("TOPIC_MODEL", "topicModelRecommender");
+        oldAlgNamesToNew.put("RECENT_TOPIC_MODEL", "recentTopicModelRecommender");
     }
     private final ClientStrategy baseStrategy;
     private final Collection<String> overrideAlgs;
@@ -86,13 +86,18 @@ public class JsOverrideClientStrategy implements ClientStrategy {
         List<AlgorithmStrategy> alternate = new ArrayList<>();
         AlgorithmStrategy first = baseAlgStrats.get(0);
         for(String override : overrideAlgs){
-            Map<String, ? extends ItemRecommendationAlgorithm> beans = ctxt.getBeansOfType(oldAlgNamesToNew.get(override));
-            if(beans.size()!=1){
+            String name = oldAlgNamesToNew.get(override);
+            if (name == null) {
+                logger.error("Algorithm name " + override + " Not Found!");
+                continue;
+            }
+            Object bean = ctxt.getBean(oldAlgNamesToNew.get(override));
+            if (bean != null) {
+                ItemRecommendationAlgorithm newAlg= (ItemRecommendationAlgorithm) bean;
+                alternate.add(new AlgorithmStrategy(newAlg, first.includers, first.filters, first.config, name));
+            } else {
                 logger.error("Couldn't translate old algorithm name " + override + " into algorithm.");
             }
-            ItemRecommendationAlgorithm newAlg = beans.values().iterator().next();
-            String name = beans.keySet().iterator().next();
-            alternate.add(new AlgorithmStrategy(newAlg, first.includers, first.filters, first.config, name));
         }
         return alternate;
     }
@@ -103,8 +108,8 @@ public class JsOverrideClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName(String userId) {
-        return baseStrategy.getName(userId);
+    public String getName(String userId, String recTag) {
+        return baseStrategy.getName(userId, recTag);
     }
 
 	@Override

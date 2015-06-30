@@ -1,0 +1,18 @@
+{
+    "description": "%VMBOX_DESCRIPTION%",
+    "name": "%VMBOX_NAME%",
+    "versions": [
+        {
+            "providers": [
+                {
+                    "checksum": "%VMBOX_CHECKSUM%",
+                    "checksum_type": "%VMBOX_CHECKSUMTYPE%",
+                    "name": "virtualbox",
+                    "url": "%VMBOX_URL%"
+                }
+            ],
+            "version": "%VMBOX_VERSION%"
+        }
+    ]
+}
+

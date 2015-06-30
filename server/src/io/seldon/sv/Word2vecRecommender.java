@@ -26,6 +26,7 @@ import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,9 +43,9 @@ public class Word2vecRecommender extends SemanticVectorsRecommender {
 	}
 	
 	@Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
 
-		return recommendImpl(client, user, dimensionId, ctxt, maxRecsCount, recentItemInteractions, "word2vec");
+		return recommendImpl(client, user, dimensions, ctxt, maxRecsCount, recentItemInteractions, "word2vec");
 	}
 	
 	 @Override

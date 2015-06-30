@@ -57,7 +57,7 @@ public class MfRecommender implements ItemRecommendationAlgorithm {
     }
 
     @Override
-    public ItemRecommendationResultSet recommend(String client, Long user, int dimension, int maxRecsCount,
+    public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
             RecommendationContext ctxt, List<Long> recentitemInteractions) {
         MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client,ctxt);
 
@@ -90,7 +90,8 @@ public class MfRecommender implements ItemRecommendationAlgorithm {
         }
 
         List<ItemRecommendationResult> recsList = Ordering.natural().greatestOf(recs, maxRecsCount);
-        logger.debug("Created "+recsList.size() + " recs");
+        if (logger.isDebugEnabled())
+        	logger.debug("Created "+recsList.size() + " recs");
         return new ItemRecommendationResultSet(recsList, name);
     }
 

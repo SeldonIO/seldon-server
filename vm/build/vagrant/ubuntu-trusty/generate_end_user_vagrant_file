@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+source ${STARTUP_DIR}/settings
+
+echo "--- generating end-user Vagrantfile ---"
+
+END_USER_FILES_DIR=${STARTUP_DIR}/end-user-files
+
+cat ${END_USER_FILES_DIR}/Vagrantfile.template | sed \
+    -e "s|%VMBOX_NAME%|${VMBOX_NAME}|g" \
+    -e "s|%VMBOX_S3_BUCKET%|${VMBOX_S3_BUCKET}|g" \
+    | tee ${END_USER_FILES_DIR}/Vagrantfile
+

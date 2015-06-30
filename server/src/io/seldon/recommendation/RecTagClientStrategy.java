@@ -61,8 +61,8 @@ public class RecTagClientStrategy implements ClientStrategy {
     }
 
     @Override
-    public String getName(String userId) {
-        return "-";
+    public String getName(String userId, String recTag) {
+        return getStrategy(recTag).getName(userId,recTag);
     }
     
     @Override

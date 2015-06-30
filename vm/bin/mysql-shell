@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+docker exec \
+    -i -t \
+    seldonio_mysql sh -c 'exec mysql -u root -p${MYSQL_ROOT_PASSWORD}'
+

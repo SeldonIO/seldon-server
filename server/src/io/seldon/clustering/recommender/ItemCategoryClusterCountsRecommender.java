@@ -52,7 +52,7 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
     JdoCountRecommenderUtils cUtils;
     
     @Override
-    public ItemRecommendationResultSet recommend( String client, Long user, int dimensionId, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
+    public ItemRecommendationResultSet recommend( String client, Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
         if (ctxt.getCurrentItem() != null)
         {
             Set<Long> exclusions = Collections.emptySet();
@@ -67,9 +67,12 @@ public class ItemCategoryClusterCountsRecommender extends BaseItemCategoryRecomm
                 {
                     Double decayRate = ctxt.getOptsHolder().getDoubleOption(DECAY_RATE_OPTION_NAME);
                     long t1 = System.currentTimeMillis();
-                    Map<Long, Double> recommendations = r.recommendGlobal(dimensionId, maxRecsCount, exclusions, decayRate, dimId);
-                    long t2 = System.currentTimeMillis();
-                    logger.debug("Recommendation via cluster counts for dimension "+dimId+" for item  "+ctxt.getCurrentItem()+" for user "+user+" took "+(t2-t1));
+                    Map<Long, Double> recommendations = r.recommendGlobal(dimensions, maxRecsCount, exclusions, decayRate, dimId);
+                    if (logger.isDebugEnabled())
+                    {
+                    	long t2 = System.currentTimeMillis();
+                    	logger.debug("Recommendation via cluster counts for dimension "+dimId+" for item  "+ctxt.getCurrentItem()+" for user "+user+" took "+(t2-t1));
+                    }
                     List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
                     for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                         results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));

@@ -52,7 +52,7 @@ public class BaseClusterCountsRecommender {
     JdoCountRecommenderUtils cUtils;
     
     public ItemRecommendationResultSet recommend(String recommenderName, String recommenderType, String client,
-                                                 RecommendationContext ctxt, Long user, int dimensionId,
+                                                 RecommendationContext ctxt, Long user, Set<Integer> dimensions,
                                                  int maxRecsCount) {
         CountRecommender r = cUtils.getCountRecommender(client);
         RecommendationContext.OptionsHolder optionsHolder = ctxt.getOptsHolder();
@@ -68,10 +68,13 @@ public class BaseClusterCountsRecommender {
             Double shortTermWeight = optionsHolder.getDoubleOption(SHORT_TERM_WEIGHT_OPTION_NAME);
             Integer minClusterItems = optionsHolder.getIntegerOption(MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME);
             Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
-            Map<Long, Double> recommendations = r.recommend(recommenderType, user, null, dimensionId, maxRecsCount, exclusions, includeShortTermClusters,
+            Map<Long, Double> recommendations = r.recommend(recommenderType, user, null, dimensions, maxRecsCount, exclusions, includeShortTermClusters,
                     longTermWeight,shortTermWeight,decayRate,minClusterItems);
-            long t2 = System.currentTimeMillis();
-            logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1)+" and got back "+recommendations.size()+" recommednations");
+            if (logger.isDebugEnabled())
+            {
+            	long t2 = System.currentTimeMillis();
+            	logger.debug("Recommendation via cluster counts for user "+user+" took "+(t2-t1)+" and got back "+recommendations.size()+" recommednations");
+            }
             List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
             for (Map.Entry<Long, Double> entry : recommendations.entrySet()){
                 results.add(new ItemRecommendationResultSet.ItemRecommendationResult(entry.getKey(), entry.getValue().floatValue()));

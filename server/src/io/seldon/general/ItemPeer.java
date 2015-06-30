@@ -23,14 +23,14 @@
 
 package io.seldon.general;
 
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.general.jdo.SqlItemPeer;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.general.jdo.SqlItemPeer;
 
 public abstract class ItemPeer {
 	
@@ -69,10 +69,10 @@ public abstract class ItemPeer {
 	public abstract Collection<ItemType> getItemTypes();
 	public abstract Collection<String> getItemSemanticAttributes(long itemId);
 	public abstract long getMinItemId(Date after,Integer type,ConsumerBean c);
-	public abstract List<Long> getRecentItemIds(int dimension,int limit,ConsumerBean c);
+	public abstract List<Long> getRecentItemIds(Set<Integer> dimensions,int limit,ConsumerBean c);
 	public abstract Map<Long,List<String>> getRecentItemTags(Set<Long> ids,int attrId,String table);
 	
 	public abstract Integer getDimensionForAttrName(long itemId,String name);
 
-	public abstract List<SqlItemPeer.ItemAndScore> retrieveMostPopularItems(int numItems, int dimension);
+	public abstract List<SqlItemPeer.ItemAndScore> retrieveMostPopularItems(int numItems, Set<Integer> dimensions);
 }

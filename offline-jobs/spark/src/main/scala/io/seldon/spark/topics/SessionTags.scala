@@ -44,6 +44,7 @@ case class SessionTagsConfig(
     days : Int = 1,
     tagAttr : String = "tags",
     maxIntraSessionGapSecs : Int = 600,
+    minTagsInSession : Int = 4,
     minActionsPerUser : Int = 3,
     maxActionsPerUser : Int = 100)
 
@@ -61,10 +62,11 @@ class SessionTags(private val sc : SparkContext,config : SessionTagsConfig) {
       val item = (json \ "itemid").extract[Int]
       val dateUtc = (json \ "timestamp_utc").extract[String]
       
-      val date = formatter.parseDateTime(dateUtc)
+      val date1 = org.joda.time.format.ISODateTimeFormat.dateTimeParser.withZoneUTC.parseDateTime(dateUtc)
+      //val date = formatter.parseDateTime(dateUtc)
       
       
-      (item,(user,date.getMillis()))
+      (item,(user,date1.getMillis()))
       }
     
     rdd
@@ -104,6 +106,7 @@ class SessionTags(private val sc : SparkContext,config : SessionTagsConfig) {
       val minNumActions = config.minActionsPerUser
       val maxNumActions = config.maxActionsPerUser
       val maxGapMsecs = config.maxIntraSessionGapSecs * 1000
+      val minTagsInSession = config.minTagsInSession
       // create feature for current item and the user history of items viewed
       val rddFeatures = rddCombined.map{ case (item,((user,time),tags)) => (user,(item,time,tags))}.groupByKey().filter(_._2.size > minNumActions).filter(_._2.size < maxNumActions).flatMapValues{v =>
         val buf = new ListBuffer[String]()
@@ -120,32 +123,32 @@ class SessionTags(private val sc : SparkContext,config : SessionTagsConfig) {
             if (gap > maxGapMsecs)
             {
               val lineStr = line.toString().trim()
-              if (lineStr.length() > 0)
+              if (lineStr.length() > 0 && line.toString().split(" ").length >= minTagsInSession)
                 buf.append(line.toString().trim())
               line.clear()
             }
             else
             {
-              line ++= " ; "
+              line ++= " "
             }
             numTags = 0
           }
-          //val tagList = Random.shuffle(tags.split(",").toList)
-          val tagList = tags.split(",")
+          val tagList = Random.shuffle(tags.split(",").toList)
+          //val tagList = tags.split(",")
           for(tag <- tagList)
           {
             if (tag.trim().length() > 0)
             {
               if (numTags > 0)
-               line ++= " , "
-              line ++= tag.trim().replaceAll(" ", "_")
+               line ++= " "
+              line ++= tag.trim().toLowerCase().replaceAll(" ", "_")
               numTags += 1
             }
           }
           lastTime = t
          } 
          val lineStr = line.toString().trim()
-         if (lineStr.length() > 0)
+         if (lineStr.length() > 0 && line.toString().split(" ").length >= minTagsInSession)
            buf.append(lineStr)
          buf 
       }.values
@@ -162,8 +165,8 @@ class SessionTags(private val sc : SparkContext,config : SessionTagsConfig) {
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    val parser = new scopt.OptionParser[SessionTagsConfig]("ClusterUsersByDimension") {
-    head("CrateVWTopicTraining", "1.x")
+    val parser = new scopt.OptionParser[SessionTagsConfig]("SesisonTags") {
+    head("SessionTags", "1.x")
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[String]('c', "client") required() valueName("<client>") action { (x, c) => c.copy(client = x) } text("client name (will be used as db and folder suffix)")
     opt[String]('i', "input-path") valueName("path url") action { (x, c) => c.copy(inputPath = x) } text("path prefix for input")
@@ -174,17 +177,19 @@ class SessionTags(private val sc : SparkContext,config : SessionTagsConfig) {
     opt[Int]("start-day") action { (x, c) =>c.copy(startDay = x) } text("start day in unix time")
     opt[String]('a', "awskey")  valueName("aws access key") action { (x, c) => c.copy(awsKey = x) } text("aws key")
     opt[String]('s', "awssecret")  valueName("aws secret") action { (x, c) => c.copy(awsSecret = x) } text("aws secret")
-    opt[Int]('m', "minActionsPerUser") action { (x, c) =>c.copy(minActionsPerUser = x) } text("min number of actions per user")
-    opt[Int]('m', "maxActionsPerUser") action { (x, c) =>c.copy(maxActionsPerUser = x) } text("max number of actions per user")    
+    opt[Int]("minActionsPerUser") action { (x, c) =>c.copy(minActionsPerUser = x) } text("min number of actions per user")
+    opt[Int]("maxActionsPerUser") action { (x, c) =>c.copy(maxActionsPerUser = x) } text("max number of actions per user")    
+    opt[Int]("minTagsInSession") action { (x, c) =>c.copy(minTagsInSession = x) } text("min number of tags in session")
+    opt[Int]("maxIntraSessionGapSecs") action { (x, c) =>c.copy(maxIntraSessionGapSecs = x) } text("max intra session gap secs")
+
     }
     
     parser.parse(args, SessionTagsConfig()) map { config =>
     val conf = new SparkConf()
-      .setAppName("CreateVWTopicTraining")
+      .setAppName("SessionTags")
       
     if (config.local)
       conf.setMaster("local")
-    .set("spark.executor.memory", "8g")
     
     val sc = new SparkContext(conf)
     try

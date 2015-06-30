@@ -23,6 +23,9 @@
 
 package io.seldon.mf;
 
+import io.seldon.resources.external.ExternalResourceStreamer;
+import io.seldon.resources.external.NewResourceNotifier;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -181,7 +184,7 @@ public class MfFeaturesManager extends ModelManager<MfFeaturesManager.ClientMfFe
         	}
         	catch (InvalidMatrixException e)
         	{
-        		logger.warn("Failed to create inverse of products feature matrix");
+        		logger.warn("Failed to create inverse of products feature matrix",e);
         		return null;
         	}
     	  }

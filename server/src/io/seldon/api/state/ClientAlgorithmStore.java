@@ -62,6 +62,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Sets;
 
 /**
@@ -152,14 +153,39 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         }
     }
 
-
+    @Override
+	public void configRemoved(String client, String configKey) {
+		logger.info("Received config remove for "+client+" with key "+configKey);
+		if (configKey.equals(ALG_KEY)){
+			store.remove(client);
+			logger.info("Successfully removed "+client+" from "+ALG_KEY);
+		}
+		else if (configKey.equals(TESTING_SWITCH_KEY)){
+			testingOnOff.remove(client);
+			logger.info("Successfully removed "+client+" from "+TESTING_SWITCH_KEY);
+		}
+		else if (configKey.equals(TEST)) 
+		{
+			tests.remove(client);
+			logger.info("Successfully removed "+client+" from "+TEST);
+		}
+		else if(configKey.equals(RECTAG)){
+			recTagStrategies.remove(client);
+			logger.info("Successfully removed "+client+" from "+RECTAG);
+		}
+		else
+			logger.warn("Ignored unknow config remove for "+client+" with key "+configKey);
+	}
 
     @Override
     public void configUpdated(String client, String configKey, String configValue) {
+        SimpleModule module = new SimpleModule("StrategyDeserializerModule");
+        module.addDeserializer(Strategy.class, new StrategyDeserializer());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(module);
         if (configKey.equals(ALG_KEY)){
             logger.info("Received new algorithm config for "+ client+": "+ configValue);
             try {
-                ObjectMapper mapper = new ObjectMapper();
                 List<AlgorithmStrategy> strategies = new ArrayList<>();
                 Map<String, AlgorithmStrategy> stratMap = new HashMap<>();
                 AlgorithmConfig config = mapper.readValue(configValue, AlgorithmConfig.class);
@@ -191,9 +217,8 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         } else if (configKey.equals(TEST)) {
                 logger.info("Received new testing config for " + client + ":" + configValue);
                 try {
-                    ObjectMapper mapper = new ObjectMapper();
                     TestConfig config = mapper.readValue(configValue, TestConfig.class);
-                    Set<VariationTestingClientStrategy.Variation> variations = new HashSet<>();
+                    List<VariationTestingClientStrategy.Variation> variations = new ArrayList<>();
                     for (TestVariation var : config.variations){
                         List<AlgorithmStrategy> strategies = new ArrayList<>();
                         for (Algorithm alg : var.config.algorithms){
@@ -217,41 +242,59 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         } else if(configKey.equals(RECTAG)){
             logger.info("Received new rectag config for "+ client + ": " +configValue);
             try{
-                ObjectMapper mapper = new ObjectMapper();
                 RecTagConfig config = mapper.readValue(configValue, RecTagConfig.class);
-                if(config.defaultAlg==null){
+                if(config.defaultStrategy==null){
                     logger.error("Couldn't read rectag config as there was no default alg");
                     return;
                 }
-                List<AlgorithmStrategy> defaultAlgStrategies = new ArrayList<>();
-                for (Algorithm alg : config.defaultAlg.algorithms){
-                    AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
-                    defaultAlgStrategies.add(strategy);
-                }
-                AlgorithmResultsCombiner defCombiner = applicationContext.getBean(
-                        config.defaultAlg.combiner,AlgorithmResultsCombiner.class);
-                Map<Integer,Double> defActionWeightMap = toActionWeightMap(config.defaultAlg.actionWeights);
-                SimpleClientStrategy defStategy = new SimpleClientStrategy(defaultAlgStrategies, defCombiner,
-                        config.defaultAlg.diversityLevel,ClientStrategy.DEFAULT_NAME,defActionWeightMap);
+
+                ClientStrategy defStrategy = toStrategy(config.defaultStrategy);
                 Map<String, ClientStrategy> recTagStrats = new HashMap<>();
-                for (Map.Entry<String, AlgorithmConfig> entry : config.recTagToAlg.entrySet() ){
-                    List<AlgorithmStrategy> strategies = new ArrayList<>();
-                    for (Algorithm alg : entry.getValue().algorithms){
-                        AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
-                        strategies.add(strategy);
-                    }
-                    AlgorithmResultsCombiner combiner = applicationContext.getBean(
-                            entry.getValue().combiner,AlgorithmResultsCombiner.class);
-                    Map<Integer,Double> actionWeightMap = toActionWeightMap(entry.getValue().actionWeights);
-                    recTagStrats.put(entry.getKey(), new SimpleClientStrategy(strategies, combiner,
-                            entry.getValue().diversityLevel,"-",actionWeightMap));
+                for (Map.Entry<String, Strategy> entry : config.recTagToStrategy.entrySet() ){
+                    recTagStrats.put(entry.getKey(),toStrategy(entry.getValue()));
                 }
-                recTagStrategies.put(client, new RecTagClientStrategy(defStategy, recTagStrats));
+                recTagStrategies.put(client, new RecTagClientStrategy(defStrategy, recTagStrats));
                 logger.info("Successfully added rec tag strategy for " + client);
             } catch (NumberFormatException | IOException e) {
                 logger.error("Couldn't add rectag strategy for client " +client, e);
             }
 
+        }
+    }
+
+    private ClientStrategy toStrategy(Strategy jsonStrategy) {
+        if (jsonStrategy instanceof TestConfig){
+            TestConfig jsonStrategyTest = (TestConfig) jsonStrategy;
+            List<VariationTestingClientStrategy.Variation> variations = new ArrayList<>();
+            for (TestVariation var : jsonStrategyTest.variations){
+                List<AlgorithmStrategy> strategies = new ArrayList<>();
+                for (Algorithm alg : var.config.algorithms){
+                    AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
+                    strategies.add(strategy);
+                }
+                AlgorithmResultsCombiner combiner = applicationContext.getBean(
+                        var.config.combiner,AlgorithmResultsCombiner.class);
+                Map<Integer,Double> actionWeightMap = toActionWeightMap(var.config.actionWeights);
+                variations.add(new VariationTestingClientStrategy.Variation(
+                        new SimpleClientStrategy(Collections.unmodifiableList(strategies),
+                                combiner, var.config.diversityLevel, var.label,actionWeightMap),
+                        new BigDecimal(var.ratio)));
+
+            }
+            return VariationTestingClientStrategy.build(variations);
+
+        } else {
+            AlgorithmConfig jsonStrategyAlg = (AlgorithmConfig) jsonStrategy;
+            List<AlgorithmStrategy> defaultAlgStrategies = new ArrayList<>();
+            for (Algorithm alg : jsonStrategyAlg.algorithms){
+                AlgorithmStrategy strategy = toAlgorithmStrategy(alg);
+                defaultAlgStrategies.add(strategy);
+            }
+            AlgorithmResultsCombiner defCombiner = applicationContext.getBean(
+                    jsonStrategyAlg.combiner, AlgorithmResultsCombiner.class);
+            Map<Integer,Double> defActionWeightMap = toActionWeightMap(jsonStrategyAlg.actionWeights);
+            return new SimpleClientStrategy(defaultAlgStrategies, defCombiner,
+                    jsonStrategyAlg.diversityLevel,"-",defActionWeightMap);
         }
     }
 
@@ -370,20 +413,26 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
     }
 
     // classes for json translation
-    public static class TestConfig {
-        public Set<TestVariation> variations;
+    public static class TestConfig extends Strategy {
+        public List<TestVariation> variations;
     }
 
+
     public static class RecTagConfig {
-        public Map<String, AlgorithmConfig> recTagToAlg;
-        public AlgorithmConfig defaultAlg;
+        public Map<String, Strategy> recTagToStrategy;
+        public Strategy defaultStrategy;
     }
-    private static class TestVariation {
+    private static class TestVariation{
         public String label;
         public String ratio;
         public AlgorithmConfig config;
     }
-    public static class AlgorithmConfig {
+    public abstract static class Strategy {}
+
+
+
+
+    public static class AlgorithmConfig extends Strategy {
         public List<Algorithm> algorithms;
         public String combiner;
         public Double diversityLevel;
@@ -407,5 +456,7 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
         public List<String> filters;
         public List<ConfigItem> config;
     }
+
+	
 
 }

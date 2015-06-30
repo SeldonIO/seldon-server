@@ -30,6 +30,7 @@ import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.resource.ActionBean;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ItemBean;
+import io.seldon.api.resource.ItemRecommendationsBean;
 import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.RecommendationBean;
 import io.seldon.api.resource.RecommendationsBean;
@@ -37,12 +38,12 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.recommendation.CFAlgorithm;
+import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 import io.seldon.recommendation.LastRecommendationBean;
 import io.seldon.recommendation.Recommendation;
 import io.seldon.recommendation.RecommendationPeer;
 import io.seldon.recommendation.RecommendationResult;
 import io.seldon.recommendation.SortResult;
-import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jdo.JDODataStoreException;
 
@@ -145,7 +147,8 @@ public class RecommendationService {
         }
 
         //print input list
-        logger.debug("Input list for user " + userId + " num." + items.size() + " => " + StringUtils.join(items,","));
+        if (logger.isDebugEnabled())
+        	logger.debug("Input list for user " + userId + " num." + items.size() + " => " + StringUtils.join(items,","));
         //remove recentActions from recs
         List<Long> itemsToRemove = ListUtils.intersection(items, recentActions);
         //remove duplicate items
@@ -163,7 +166,8 @@ public class RecommendationService {
         SortResult sortResult = recommender.sort(intUserId, filteredItems, cfAlgorithm,recentActions);
         List<Long> itemsSorted = sortResult.getSortedItems();
         sortAlg = sortResult.toLog();
-        logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
+        if (logger.isDebugEnabled())
+        	logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
         //INCLUDE VIEWED ITEMS
         //append recentActions (that were in the input list) only if it was able to sort the items (otherwise return an empty list)
         if(!itemsSorted.isEmpty() && cfAlgorithm.isRankingRemoveHistory()) { //only add back items if not testing
@@ -176,7 +180,8 @@ public class RecommendationService {
         /*MemCachePeer.put(memcacheKey, res,300);
 	    //}
 	    else*/
-        logger.debug("Final list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
+        if (logger.isDebugEnabled())
+        	logger.debug("Final list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
         res[0] = resBean;
         res[1] = sortAlg;
         return res;
@@ -216,8 +221,8 @@ public class RecommendationService {
     }
 
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
-                                            int dimensionId, String lastRecommendationListUuid, int limit,
-                                            String attributes,List<String> algorithms,String referrer,String recTag) {
+                                            Set<Integer> dimensions, String lastRecommendationListUuid, int limit,
+                                            String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort) {
         List<String> actualAlgorithms = new ArrayList<>();
         if(algorithms!=null) {
             for (String alg : algorithms) {
@@ -258,10 +263,11 @@ public class RecommendationService {
             }
 
             RecommendationResult recResult = recommender.getRecommendations(
-                    internalUserId, consumerBean.getShort_name(), userId, typeId, dimensionId, limit,
+                    internalUserId, consumerBean.getShort_name(), userId, typeId, dimensions, limit,
                     lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms
                     );
-            List<Recommendation> recommendations = recResult.getRecs(); 
+            List<Recommendation> recommendations = recResult.getRecs();
+            List<ItemBean> itemRecs = new ArrayList<>();
             for (Recommendation recommendation : recommendations) {
                 String recommendedItemId = null;
                 long internalId = recommendation.getContent();
@@ -275,13 +281,18 @@ public class RecommendationService {
                     //filter the item
                     ItemBean resItem = ItemService.filter(itemBean, attributeList);
                     addUuidAttribute(resItem, recResult);
-                    listBean.addBean(resItem);
+                    itemRecs.add(resItem);
                 }
             }
-            listBean.setRequested(limit);
-            listBean.setSize(recommendations.size());
+            if (includeCohort) {
+                return new ItemRecommendationsBean(itemRecs,recResult.getCohort());
+            } else {
+                listBean.addAll(itemRecs);
+                listBean.setRequested(limit);
+                listBean.setSize(recommendations.size());
 
-        return listBean;
+                return listBean;
+            }
     }
 
     private static void addUuidAttribute(ItemBean itemBean, RecommendationResult recResult) {
@@ -297,9 +308,9 @@ public class RecommendationService {
         return MemCacheKeys.getRecommendedItemsKey(shortName, cfAlgorithm, userId, typeId, dimensionId, full);
     }
 
-    public LastRecommendationBean retrieveLastRecs(ConsumerBean consumerBean, ActionBean actionBean,String recsCounter){
+    public LastRecommendationBean retrieveLastRecs(ConsumerBean consumerBean, ActionBean actionBean,String recsCounter, String recTag){
         return recommendationStorage.retrieveLastRecommendations(consumerBean.getShort_name(),
-                actionBean.getUser(), recsCounter);
+                actionBean.getUser(), recsCounter, recTag);
 
 
     }

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+source ${STARTUP_DIR}/settings
+
+echo "--- generating vagrant json ---"
+
+VMBOX_CHECKSUM=CHECKSUM_UNKOWN
+VMBOX_CHECKSUMTYPE=CHECKSUMTYPE_UNKOWN
+CHECKSUM_FILE=${STARTUP_DIR}/${VMBOX_NAME}.box.sha256
+if [ -f "${CHECKSUM_FILE}" ]; then
+    VMBOX_CHECKSUM=$(cat ${CHECKSUM_FILE}|awk '{print $1}')
+    VMBOX_CHECKSUMTYPE=sha256
+fi
+
+VMBOX_DESCRIPTION="${VMBOX_DESCRIPTION}; build[$(date)]"
+
+cat ${STARTUP_DIR}/vm_vagrant.json.template | sed \
+    -e "s|%VMBOX_NAME%|${VMBOX_NAME}|g" \
+    -e "s|%VMBOX_VERSION%|${VMBOX_VERSION}|g" \
+    -e "s|%VMBOX_DESCRIPTION%|${VMBOX_DESCRIPTION}|g" \
+    -e "s|%VMBOX_CHECKSUM%|${VMBOX_CHECKSUM}|g" \
+    -e "s|%VMBOX_CHECKSUMTYPE%|${VMBOX_CHECKSUMTYPE}|g" \
+    -e "s|%VMBOX_URL%|${VMBOX_URL}|g" \
+    | tee ${VMBOX_NAME}_vagrant.json
+

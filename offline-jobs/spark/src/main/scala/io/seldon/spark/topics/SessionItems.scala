@@ -45,13 +45,14 @@ case class SessionItemsConfig(
     
     maxIntraSessionGapSecs : Int =  -1,
     minActionsPerUser : Int = 0,
-    maxActionsPerUser : Int = 100000)
+    maxActionsPerUser : Int = 100000,
+    allowedTypes : String = "")
 
 class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
 
-  def parseJsonActions(path : String) = {
+  def parseJsonActions(path : String,allowedTypes : Set[Int]) = {
     
-    val rdd = sc.textFile(path).map{line =>
+    val rdd = sc.textFile(path).flatMap{line =>
       import org.json4s._
       import org.json4s.jackson.JsonMethods._
       implicit val formats = DefaultFormats
@@ -60,12 +61,16 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
       val user = (json \ "userid").extract[Int]
       val item = (json \ "itemid").extract[Int]
       val dateUtc = (json \ "timestamp_utc").extract[String]
-      
-      val date = formatter.parseDateTime(dateUtc)
-      
-      
-      (user,(item,date.getMillis()))
+      val actionType = (json \ "type").extract[Int]
+
+      if (allowedTypes.size == 0 || (allowedTypes.contains(actionType) ))
+      {
+        val date1 = org.joda.time.format.ISODateTimeFormat.dateTimeParser.withZoneUTC.parseDateTime(dateUtc)
+        Seq((user,(item,date1.getMillis())))
       }
+      else
+        None
+    }
     
     rdd
   }
@@ -76,14 +81,22 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
   {
     val actionsGlob = config.inputPath + "/" + config.client+"/actions/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
     println("loading actions from "+actionsGlob)
+    var allowedTypes = Set[Int]()
+    if (config.allowedTypes.nonEmpty)
+    {
+       allowedTypes = config.allowedTypes.split(",").map(_.toInt).distinct.toSet 
+    }
+    
       
-    val rddActions = parseJsonActions(actionsGlob)
+    for(t <- allowedTypes)
+      println("type ",t)
+    val rddActions = parseJsonActions(actionsGlob,allowedTypes)
     
     val minNumActions = config.minActionsPerUser
     val maxNumActions = config.maxActionsPerUser
     val maxGapMsecs = config.maxIntraSessionGapSecs * 1000
       // create feature for current item and the user history of items viewed
-    val rddFeatures = rddActions.groupByKey().filter(_._2.size > minNumActions).filter(_._2.size < maxNumActions).flatMapValues{v =>
+    val rddFeatures = rddActions.groupByKey().filter(_._2.size >= minNumActions).filter(_._2.size <= maxNumActions).flatMapValues{v =>
         val buf = new ListBuffer[String]()
         var line = new StringBuilder()
         val sorted = v.toArray.sortBy(_._2)
@@ -181,6 +194,7 @@ class SessionItems(private val sc : SparkContext,config : SessionItemsConfig) {
         opt[Int]("minActionsPerUser") foreach { x => c = c.copy(minActionsPerUser = x) } text("min number of actions per user")
         opt[Int]("maxActionsPerUser") foreach { x => c = c.copy(maxActionsPerUser = x) } text("max number of actions per user")    
         opt[Int]("maxIntraSessionGapSecs") foreach { x => c = c.copy(maxIntraSessionGapSecs = x) } text("max number of secs before assume session over")        
+        opt[String]("allowedTypes") foreach { x => c = c.copy(allowedTypes = x) } text("Allowed action types - ignore actions not of this comma separated list")                
     }
     
      if (parser.parse(args)) // Parse to check and get zookeeper if there

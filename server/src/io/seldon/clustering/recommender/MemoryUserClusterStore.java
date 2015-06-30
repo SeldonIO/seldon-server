@@ -125,7 +125,8 @@ public class MemoryUserClusterStore implements UserClusterStore {
 			{
 				int clusterId = ((short)(((b[i+1] & 0xff) << 8) | (b[i] & 0xff))) + SHORT_RANGE;
 				double weight = (b[i+2]+128)*WEIGHT_INCR;
-				logger.debug("ClusterId:"+clusterId+" for user "+userId);
+				if (logger.isDebugEnabled())
+					logger.debug("ClusterId:"+clusterId+" for user "+userId);
 				int group = 0;
 				if (clusterGroups.containsKey(clusterId))
 					group = clusterGroups.get(clusterId);

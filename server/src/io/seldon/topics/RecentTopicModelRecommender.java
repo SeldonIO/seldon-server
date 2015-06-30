@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 
 	@Override
 	public ItemRecommendationResultSet recommend(String client,
-			Long user, int dimension,int maxRecsCount, RecommendationContext ctxt,  List<Long> recentItemInteractions) {
+			Long user, Set<Integer> dimensions,int maxRecsCount, RecommendationContext ctxt,  List<Long> recentItemInteractions) {
 		RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
 		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
 		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
@@ -79,7 +80,8 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 		TopicFeaturesStore store = featuresManager.getClientStore(client,ctxt);
 		if (store == null)
 		{
-			logger.debug("Failed to find topic features for client "+client);
+			if (logger.isDebugEnabled())
+				logger.debug("Failed to find topic features for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		}
 		
@@ -89,20 +91,23 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		}
 		
-		logger.debug("retrive tags for recent items with attr-id "+tagAttrId+" from table "+tagTable);
+		if (logger.isDebugEnabled())
+			logger.debug("retrive tags for recent items with attr-id "+tagAttrId+" from table "+tagTable);
 		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(),tagAttrId,tagTable);
 		if (itemTags == null || itemTags.size() == 0)
 		{
-			logger.debug("Failed to find recent tag items for client "+client);
+			if (logger.isDebugEnabled())
+				logger.debug("Failed to find recent tag items for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResult>emptyList(), name);
 		}
-		else
+		else if (logger.isDebugEnabled())
 			logger.debug("Got "+itemTags.size()+" recent item tags");
 		
 		 List<Long> itemsToScore;
 		 if(recentItemInteractions.size() > numRecentActionsToUse)
 		 {
-			 logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
+			 if (logger.isDebugEnabled())
+				 logger.debug("Limiting recent items for score to size "+numRecentActionsToUse+" from present "+recentItemInteractions.size());
 			 itemsToScore = recentItemInteractions.subList(0, numRecentActionsToUse);
 		 }
 		 else
@@ -123,7 +128,8 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 			{
 				float[] itemTopicWeight = store.getTopicWeights(e.getKey(), e.getValue());
 				Double score = new Double(dot(userTopicWeight,itemTopicWeight));
-				logger.debug("Score for "+e.getKey()+"->"+score);
+				if (logger.isDebugEnabled())
+					logger.debug("Score for "+e.getKey()+"->"+score);
 				scores.put(e.getKey(), score);
 			}
 
@@ -159,7 +165,8 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 				List<String> tags = itemTags.get(item);
 				if (tags != null)
 				{
-					logger.debug("Item "+item+" num tags "+tags.size()+ " limit "+minNumTags);
+					if (logger.isDebugEnabled())
+						logger.debug("Item "+item+" num tags "+tags.size()+ " limit "+minNumTags);
 					if (tags != null && tags.size() >= minNumTags)
 					{
 						found++;

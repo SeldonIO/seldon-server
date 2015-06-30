@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 
 	@Override
 	public ItemRecommendationResultSet recommend(String client,
-			Long user, int dimension, int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
+			Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentitemInteractions) {
 		RecommendationContext.OptionsHolder options = ctxt.getOptsHolder();
 		Integer	tagAttrId = options.getIntegerOption(ATTR_ID_PROPERTY_NAME);
 		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
@@ -69,7 +70,8 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 		TopicFeaturesStore store = featuresManager.getClientStore(client,ctxt);
 		if (store == null)
 		{
-			logger.debug("Failed to find topic features for client "+client);
+			if (logger.isDebugEnabled())
+				logger.debug("Failed to find topic features for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
 		
@@ -82,10 +84,11 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 		Map<Long,List<String>> itemTags = tagsManager.retrieveRecentItems(client, ctxt.getContextItems(), tagAttrId, tagTable);
 		if (itemTags == null || itemTags.size() == 0)
 		{
-			logger.debug("Failed to find recent tag items for client "+client);
+			if (logger.isDebugEnabled())
+				logger.debug("Failed to find recent tag items for client "+client);
 			return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
 		}
-		else
+		else if (logger.isDebugEnabled())
 			logger.debug("Got "+itemTags.size()+" recent item tags");
 		float[] userTopicWeight = store.getUserWeightVector(user);
 		if (userTopicWeight == null)
@@ -100,7 +103,8 @@ public class TopicModelRecommender implements ItemRecommendationAlgorithm {
 			{
 				float[] itemTopicWeight = store.getTopicWeights(e.getKey(), e.getValue());
 				Double score = new Double(dot(userTopicWeight,itemTopicWeight));
-				logger.debug("Score for "+e.getKey()+"->"+score);
+				if (logger.isDebugEnabled())
+					logger.debug("Score for "+e.getKey()+"->"+score);
 				scores.put(e.getKey(), score);
 			}
 		}

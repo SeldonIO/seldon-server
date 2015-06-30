@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+COMMON_DIR="${STARTUP_DIR}/../common"
+
+source "${COMMON_DIR}/images.sh"
+
+docker pull ${SELDONIO_MEMCACHED_IMAGE_NAME}:${SELDONIO_MEMCACHED_IMAGE_VERSION}
+docker pull ${SELDONIO_ZOOKEEPER_IMAGE_NAME}:${SELDONIO_ZOOKEEPER_IMAGE_VERSION}
+docker pull ${SELDONIO_MYSQL_IMAGE_NAME}:${SELDONIO_MYSQL_IMAGE_VERSION}
+docker pull ${SELDONIO_TDAGENT_IMAGE_NAME}:${SELDONIO_TDAGENT_IMAGE_VERSION}
+
+# other
+docker pull seldonio/semantic-vectors-for-seldon
+

@@ -1,5 +1,7 @@
 # Seldon Server
 
+[![Join the chat at https://gitter.im/SeldonIO/seldon-server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/SeldonIO/seldon-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Welcome to the early release of Seldon Server, which provides a real-time REST API interface to a highly-scalable recommendation engine and predictive analytics platform. We are presently modifying this heavily and documenting here: http://docs.seldon.io
 
 ## Getting Started
@@ -19,7 +21,7 @@ Steps involved in setting up Seldon from source to serve recommendations:
 
 ## Keep in touch
 * To be the first to receive product updates and early private releases, please [sign up for our open-source beta list](http://www.seldon.io/open-source/).
-* Join the [seldon-users group](https://groups.google.com/forum/#!forum/seldon-users) - e encourage you to leave feedback and ask questions in this group so that we can share the answers with the community.
+* Join the [seldon-users group](https://groups.google.com/forum/#!forum/seldon-users) - we encourage you to leave feedback and ask questions in this group so that we can share the answers with the community.
 * Star and watch this Github repo and [other open-source projects](https://github.com/SeldonIO/). Watching [our docs repo](https://github.com/SeldonIO/seldonio.github.com) (powered by Github Pages) will be particularly useful as we're currently rolling out documentation - [http://docs.seldon.io](http://docs.seldon.io)
 * Visit our website at http://seldon.io
 

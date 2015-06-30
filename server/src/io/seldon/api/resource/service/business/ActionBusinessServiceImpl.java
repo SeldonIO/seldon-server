@@ -65,7 +65,7 @@ public class ActionBusinessServiceImpl implements ActionBusinessService {
 
             if(isClickThrough) {
                 // register which recs were ignored for algorithm use
-                LastRecommendationBean lastRecs = recService.retrieveLastRecs(consumerBean, actionBean, recsCounter);
+                LastRecommendationBean lastRecs = recService.retrieveLastRecs(consumerBean, actionBean, recsCounter, recTag);
                 List<Long> ignoredItems = recService.findIgnoredItemsFromLastRecs(consumerBean, actionBean, lastRecs);
                 itemService.updateIgnoredItems(consumerBean, actionBean, ignoredItems);
                 // do logging

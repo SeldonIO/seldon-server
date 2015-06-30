@@ -26,8 +26,6 @@ package io.seldon.api.statsd;
 import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -35,6 +33,8 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class StatsdPeer {
    
@@ -94,11 +94,11 @@ public class StatsdPeer {
 
 		String statsdServer = statsdConfig.server;
 		int port = statsdConfig.port;
-		String installId = statsdConfig.id;
-		float sampleRate = statsdConfig.sample_rate;
 		if (statsdServer != null && port != 0)
 		{
 			try {
+				installId = statsdConfig.id;
+				sampleRate = statsdConfig.sample_rate;
 				logger.info("Creating statsd client for host "+statsdServer+" on port "+port+" and using install id of "+installId+" and default sampling of "+sampleRate);
 				client = new StatsdClient(statsdServer, port);
 				return true;
