@@ -23,10 +23,8 @@
 
 package io.seldon.resources.external;
 
-import io.seldon.api.state.ClientConfigHandler;
-import io.seldon.api.state.ClientConfigUpdateListener;
-import io.seldon.api.state.GlobalConfigHandler;
-import io.seldon.api.state.GlobalConfigUpdateListener;
+import com.google.common.base.Joiner;
+import io.seldon.api.state.*;
 import io.seldon.mf.PerClientExternalLocationListener;
 
 import java.util.Arrays;
@@ -122,8 +120,9 @@ public class NewResourceNotifier implements ClientConfigUpdateListener {
     @Override
     public void configUpdated(String client, String configKey, String configValue) {
 
-    	logger.info("Received new config for client : \"" + client + "\", key : \""+ configKey +  "\", value \""  + configValue + "\"");
-        Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(configKey);
+        logger.info("Received new config for client : \"" + client + "\", key : \""+ configKey +  "\", value \""  + configValue + "\"");
+        String firstPartOfKey = configKey.split("/")[0];
+        Map<String, PerClientExternalLocationListener> watchingClients = nodeWatches.get(firstPartOfKey);
         if(watchingClients!=null && watchingClients.containsKey(client)){
             watchingClients.get(client).newClientLocation(client,configValue,configKey);
         }

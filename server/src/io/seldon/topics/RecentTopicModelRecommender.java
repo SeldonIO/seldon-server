@@ -77,7 +77,7 @@ public class RecentTopicModelRecommender implements ItemRecommendationAlgorithm 
 		String tagTable = options.getStringOption(TABLE_PROPERTY_NAME);
 		Integer minNumTagsForWeights = options.getIntegerOption(MIN_NUM_WEIGHTS_PROPERTY_NAME);
 		int numRecentActionsToUse = options.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
-		TopicFeaturesStore store = featuresManager.getClientStore(client);
+		TopicFeaturesStore store = featuresManager.getClientStore(client,ctxt);
 		if (store == null)
 		{
 			if (logger.isDebugEnabled())
