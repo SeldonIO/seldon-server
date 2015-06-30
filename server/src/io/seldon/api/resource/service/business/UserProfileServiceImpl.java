@@ -27,6 +27,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.ScoreBean;
 import io.seldon.api.resource.UserProfileBean;
 import io.seldon.api.resource.service.UserService;
+import io.seldon.api.state.ClientAlgorithmStore;
 import io.seldon.cc.UserClusterManager;
 import io.seldon.cc.UserClusterManager.ClusterDescription;
 import io.seldon.clustering.recommender.MemoryUserClusterStore;
@@ -58,6 +59,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 	
 	@Autowired
 	private UserClusterManager userClusterManager;
+
+	@Autowired
+	private ClientAlgorithmStore clientAlgorithmStore;
 	
 	@Override
 	public ResourceBean getProfile(ConsumerBean consumerBean, String userId,
@@ -139,6 +143,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 	
 	private List<ScoreBean> getUserTagAffinities(ConsumerBean c,long user)
 	{
+
 		UserTagStore userTagStore = tagAffinityManager.getStore(c.getShort_name());
 		if (userTagStore == null)
 			return null;

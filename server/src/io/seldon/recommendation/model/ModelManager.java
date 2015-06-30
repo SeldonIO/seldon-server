@@ -34,10 +34,7 @@ import org.apache.log4j.Logger;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * @author firemanphil
@@ -51,14 +48,18 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
     private final ConcurrentMap<String, ConcurrentMap<String,T>> clientStores
             = new ConcurrentHashMap<>();
 
-    private final Executor executor = Executors.newFixedThreadPool(2);
+    private final Executor executor;
     private final Set<String> nodeBases;
 
     public ModelManager(NewResourceNotifier notifier, Set<String> nodePatterns) {
+        this(notifier, nodePatterns, Executors.newFixedThreadPool(2));
+    }
+    public ModelManager(NewResourceNotifier notifier, Set<String> nodePatterns, Executor executor) {
         this.nodeBases = nodePatterns;
         for (String pattern : nodePatterns) {
             notifier.addListener(pattern, this);
         }
+        this.executor = executor;
     }
 
     @Override
@@ -90,13 +91,13 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
 
     }
 
-    public T getClientStore(String client, RecommendationContext ctxt){
+    public T getClientStore(String client, RecommendationContext.OptionsHolder options){
         String type = nodeBases.iterator().next();
-        return getClientStore(client, type, ctxt);
+        return getClientStore(client, type, options);
     }
 
-    public T getClientStore(String client, String type, RecommendationContext ctxt){
-        String modelName = ctxt.getOptsHolder().getStringOption(MODEL_PROPERTY_NAME);
+    public T getClientStore(String client, String type, RecommendationContext.OptionsHolder options){
+        String modelName = options.getStringOption(MODEL_PROPERTY_NAME);
         String key = getKey(client, type);
         // check whether we are testing or not and get relevant model.
         switch (modelName) {

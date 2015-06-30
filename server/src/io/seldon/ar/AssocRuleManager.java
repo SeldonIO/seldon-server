@@ -22,6 +22,7 @@
 package io.seldon.ar;
 
 import io.seldon.mf.PerClientExternalLocationListener;
+import io.seldon.recommendation.model.ModelManager;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
 import io.seldon.tags.UserTagAffinityManager;
@@ -30,10 +31,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
@@ -46,130 +44,96 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
-public class AssocRuleManager implements PerClientExternalLocationListener {
+public class AssocRuleManager extends ModelManager<AssocRuleManager.AssocRuleStore> {
 
-	private static Logger logger = Logger.getLogger(UserTagAffinityManager.class.getName());
-	private final ConcurrentMap<String,AssocRuleStore> clientStores = new ConcurrentHashMap<>();
-	private Set<NewResourceNotifier> notifiers = new HashSet<>();
-	private final ExternalResourceStreamer featuresFileHandler;
-	public static final String ASSOC_NEW_LOC_PATTERN = "assocrules";
+    private static Logger logger = Logger.getLogger(UserTagAffinityManager.class.getName());
+    private final ExternalResourceStreamer featuresFileHandler;
+    public static final String ASSOC_NEW_LOC_PATTERN = "assocrules";
 
-	private final Executor executor = Executors.newFixedThreadPool(5);
 
-	@Autowired
-	public AssocRuleManager(ExternalResourceStreamer featuresFileHandler,NewResourceNotifier notifier){
-		this.featuresFileHandler = featuresFileHandler;
-		notifiers.add(notifier);
-		notifier.addListener(ASSOC_NEW_LOC_PATTERN, this);
-	}
+    @Autowired
+    public AssocRuleManager(ExternalResourceStreamer featuresFileHandler, NewResourceNotifier notifier) {
+        super(notifier, Collections.singleton(ASSOC_NEW_LOC_PATTERN));
+        this.featuresFileHandler = featuresFileHandler;
+    }
 
-	public void reloadFeatures(final String location, final String client){
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                logger.info("Reloading user assoc rules for client: "+ client);
 
-                try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(featuresFileHandler.getResourceStream(location + "/part-00000")));
-                    reader = new BufferedReader(new InputStreamReader(featuresFileHandler.getResourceStream(location + "/part-00000")));
-                    AssocRuleStore store = loadAssocRules(client, reader);
-                    clientStores.put(client, store);
-                    reader.close();
-                    
-                    
-                    logger.info("finished load of "+store.assocRules.size()+ " user assoc rules for client "+client);
-                    
-                } catch (FileNotFoundException e) {
-                    logger.error("Couldn't reloadFeatures for client "+ client, e);
-                } catch (IOException e) {
-                    logger.error("Couldn't reloadFeatures for client "+ client, e);
+    protected AssocRuleStore loadAssocRules(String client, BufferedReader reader) throws IOException {
+        String line;
+        ObjectMapper mapper = new ObjectMapper();
+        int ruleId = 0;
+
+        Map<Integer, AssocRuleRecommendation> assocRules = new HashMap<Integer, AssocRuleRecommendation>();
+        Map<Long, Map<Integer, Set<Integer>>> itemToRules = new HashMap<>();
+        while ((line = reader.readLine()) != null) {
+            AssocRule data = mapper.readValue(line.getBytes(), AssocRule.class);
+            ruleId++;
+            double score = data.confidence * data.lift * data.itemset.size();
+            assocRules.put(ruleId, new AssocRuleRecommendation(data.item, score));
+            int antecedentLen = data.itemset.size();
+            for (Long item : data.itemset) {
+                Map<Integer, Set<Integer>> lenToRules = itemToRules.get(item);
+                if (lenToRules == null) {
+                    lenToRules = new HashMap<Integer, Set<Integer>>();
+                    itemToRules.put(item, lenToRules);
                 }
+                Set<Integer> rules = lenToRules.get(antecedentLen);
+                if (rules == null) {
+                    rules = new HashSet<Integer>();
+                    lenToRules.put(antecedentLen, rules);
+                }
+                rules.add(ruleId);
             }
-        });
+        }
+
+        return new AssocRuleStore(assocRules, itemToRules);
 
     }
-	
-	
 
- protected AssocRuleStore loadAssocRules(String client,BufferedReader reader) throws IOException
- {
-	 String line;
-	 ObjectMapper mapper = new ObjectMapper();
-	 int ruleId = 0;
 
-	 Map<Integer,AssocRuleRecommendation> assocRules = new HashMap<Integer,AssocRuleRecommendation>();
-	 Map<Long,Map<Integer,Set<Integer>>> itemToRules = new HashMap<>(); 
-	 while((line = reader.readLine()) !=null)
-	 {
-		 AssocRule data = mapper.readValue(line.getBytes(), AssocRule.class);
-		 ruleId++;
-		 double score = data.confidence*data.lift*data.itemset.size();
-		 assocRules.put(ruleId, new AssocRuleRecommendation(data.item, score ));
-		 int antecedentLen = data.itemset.size();
-		 for(Long item : data.itemset)
-		 {
-			 Map<Integer,Set<Integer>> lenToRules = itemToRules.get(item);
-			 if (lenToRules == null)
-			 {
-				 lenToRules = new HashMap<Integer,Set<Integer>>();
-				 itemToRules.put(item, lenToRules);
-			 }
-			 Set<Integer> rules = lenToRules.get(antecedentLen);
-			 if (rules == null)
-			 {
-				 rules = new HashSet<Integer>();
-				 lenToRules.put(antecedentLen, rules);
-			 }
-			 rules.add(ruleId);
-		 }
-	 }
-	 
-	 return new AssocRuleStore(assocRules, itemToRules);
+    @Override
+    protected AssocRuleStore loadModel(String location, String client) {
+        logger.info("Reloading user assoc rules for client: " + client);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(featuresFileHandler.getResourceStream(location + "/part-00000")))) {
+            AssocRuleStore store = loadAssocRules(client, reader);
 
- }
- 
- 
- 	public AssocRuleStore getStore(String client)
- 	{
- 		return clientStores.get(client);
- 	}
-	 
-	@Override
-	public void newClientLocation(String client, String location,
-			String nodePattern) {
-		reloadFeatures(location, client);
-	}
+            logger.info("finished load of " + store.assocRules.size() + " user assoc rules for client " + client);
+            return store;
+        } catch (IOException e) {
+            logger.error("Couldn't reloadFeatures for client " + client, e);
 
-	@Override
-	public void clientLocationDeleted(String client, String nodePattern) {
-		clientStores.remove(client);
-	}
-	
-	
-	public static class AssocRuleRecommendation
-	{
-		public final Long item;
-		public final Double score;
-		public AssocRuleRecommendation(Long item, Double score) {
-			super();
-			this.item = item;
-			this.score = score;
-		}
-	}
-	
-	
-	public static class AssocRuleStore {
-		
-		public final Map<Integer,AssocRuleRecommendation> assocRules; // rule-id to rule recommednation
-		public final Map<Long,Map<Integer,Set<Integer>>> itemToRules; // antecedent item -> (map rule-size -> set of rules-ids)
-		public AssocRuleStore(Map<Integer, AssocRuleRecommendation> assocRules,
-				Map<Long, Map<Integer, Set<Integer>>> itemToRules) {
-			super();
-			this.assocRules = assocRules;
-			this.itemToRules = itemToRules;
-		}
-	}
+            logger.error("Couldn't reloadFeatures for client " + client, e);
+        }
 
-	
+        return null;
+    }
+
+
+    public static class AssocRuleRecommendation {
+        public final Long item;
+        public final Double score;
+
+        public AssocRuleRecommendation(Long item, Double score) {
+            super();
+            this.item = item;
+            this.score = score;
+        }
+    }
+
+
+    public static class AssocRuleStore {
+
+        public final Map<Integer, AssocRuleRecommendation> assocRules; // rule-id to rule recommednation
+        public final Map<Long, Map<Integer, Set<Integer>>> itemToRules; // antecedent item -> (map rule-size -> set of rules-ids)
+
+        public AssocRuleStore(Map<Integer, AssocRuleRecommendation> assocRules,
+                              Map<Long, Map<Integer, Set<Integer>>> itemToRules) {
+            super();
+            this.assocRules = assocRules;
+            this.itemToRules = itemToRules;
+        }
+    }
+
+
 }
 

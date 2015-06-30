@@ -68,7 +68,7 @@ public class VwClassifier implements PredictionAlgorithm {
 	@Override
 	public PredictionsResult predict(String client, JsonNode jsonNode,OptionsHolder options) {
 
-		VwModel model = modelManager.getModel(client);
+		VwModel model = modelManager.getClientStore(client,options);
 		if (model == null)
 		{
 			logger.warn("No model found for client"+client);
