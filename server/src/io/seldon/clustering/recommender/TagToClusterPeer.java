@@ -85,7 +85,8 @@ public class TagToClusterPeer {
 	{
 		List<UserCluster> clusters = new ArrayList<>();
 		//TODO code needs to be Springified so static method below can be removed
-		SemanticVectorsStore sem = SemanticVectorsManager.getManager().getStore(client,SemanticVectorsManager.SV_CLUSTER_NEW_LOC_PATTERN);
+		SemanticVectorsStore sem = null;
+//		sem = SemanticVectorsManager.getManager().getStore(client,SemanticVectorsManager.SV_CLUSTER_NEW_LOC_PATTERN,ctxt);
 		if (sem != null)
 		{
 			Map<Long,Double> scores = new HashMap<>();

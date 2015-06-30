@@ -36,6 +36,8 @@ import java.util.Map;
  */
 public interface ClientStrategy {
 
+    String DEFAULT_NAME = "-";
+
     Double getDiversityLevel(String userId, String recTag);
 
     List<AlgorithmStrategy> getAlgorithms(String userId, String recTag);

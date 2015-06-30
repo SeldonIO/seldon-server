@@ -196,7 +196,8 @@ public class ClientAlgorithmStore implements ApplicationContextAware,ClientConfi
                 AlgorithmResultsCombiner combiner = applicationContext.getBean(
                         config.combiner,AlgorithmResultsCombiner.class);
                 Map<Integer,Double> actionWeightMap = toActionWeightMap(config.actionWeights);
-                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,"-",actionWeightMap));
+                store.put(client, new SimpleClientStrategy(Collections.unmodifiableList(strategies), combiner,config.diversityLevel,
+                        ClientStrategy.DEFAULT_NAME,actionWeightMap));
                 storeMap.put(client, Collections.unmodifiableMap(stratMap));
                 logger.info("Successfully added new algorithm config for "+client);
             } catch (IOException | BeansException e) {
