@@ -72,10 +72,10 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 	
 	@Override
 	public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount,
-	                                                 RecommendationContext ctxt, List<Long> recentItemInteractions) 
+	                                                 RecommendationContext ctxt, List<Long> recentItemInteractions)
 	{
 		long start = System.currentTimeMillis();
-		 AssocRuleStore store = ruleManager.getStore(client);	
+		 AssocRuleStore store = ruleManager.getClientStore(client, ctxt.getOptsHolder());
 		 if (store == null)
 		 {
 			 if (logger.isDebugEnabled())

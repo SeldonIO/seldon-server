@@ -33,30 +33,25 @@ import io.seldon.api.resource.ItemBean;
 import io.seldon.api.resource.ItemRecommendationsBean;
 import io.seldon.api.resource.ListBean;
 import io.seldon.api.resource.RecommendationBean;
-import io.seldon.api.resource.RecommendationsBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.general.RecommendationStorage;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.recommendation.CFAlgorithm;
-import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 import io.seldon.recommendation.LastRecommendationBean;
 import io.seldon.recommendation.Recommendation;
 import io.seldon.recommendation.RecommendationPeer;
 import io.seldon.recommendation.RecommendationResult;
-import io.seldon.recommendation.SortResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.jdo.JDODataStoreException;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,98 +89,7 @@ public class RecommendationService {
         return null;
     }
 
-    //Object[0] = RecommendationsBean (result)
-    //Object[1] = String representing the algorithm used
-    //TODO - needs fixing to run with latest algorihm config
-    public Object[] sort(ConsumerBean c,String userId,RecommendationsBean recs, List<String> algorithms) {
-        //ALGORITHM
-        CFAlgorithm cfAlgorithm = getAlgorithmOptions(c, userId, algorithms,null);
-
-        //RANKING CACHING
-        /*String memcacheKey = MemCacheKeys.getRankedItemsKey(c.getShort_name(), cfAlgorithm.hashCode(), userId, recs.toItems());
-        RecommendationsBean res = (RecommendationsBean)MemCachePeer.get(memcacheKey);
-        if(res == null) {*/
-
-        //INIT
-        Object[] res = new Object[2];
-        RecommendationsBean resBean = new RecommendationsBean();
-        String sortAlg = cfAlgorithm.toLogSorter();
-        //res[0] = recs;
-        res[0] = resBean;
-        res[1] = sortAlg;
-
-        long intUserId;
-        try { 
-            intUserId = userService.getInternalUserId(c, userId);	
-        }
-        // USER NOT EXISTING
-        catch(Exception e) {
-            logger.debug("Not possibile to sort for a user not yet in the system");
-            return res;
-        }
-
-        if(cfAlgorithm != null && cfAlgorithm.getSorters() != null && cfAlgorithm.getSorters().size()==1 && cfAlgorithm.getSorters().iterator().next() == CF_SORTER.NOOP) {
-            res[0] = recs;
-            return res;
-        }
-
-        //RECENT ACTIONS
-        List<Long> recentActions = actionCache.getRecentActions(c.getShort_name(),intUserId, cfAlgorithm.getTxHistorySizeForSV()*2);
-        logger.debug("RecentActions for user with client "+cfAlgorithm.getName()+" userId " + userId + " internal user id "+intUserId+" num." + recentActions.size() + " => " + StringUtils.join(recentActions,","));     
-        //NOT ENOUGH ACTIONS
-        //if(recentActions.size() < cfAlgorithm.getMinNumTxsForSV()) { return res; }
-
-        //INPUT LIST
-        List<Long> items = new ArrayList<>();
-        for (RecommendationBean r : recs.getList()) {
-            try {
-                items.add(itemService.getInternalItemId(c, r.getItem()));
-            }
-            catch(Exception e) {
-                logger.warn("Not possible to rank the item " + r.getItem() + ". The item is not in the system", e);
-            }
-        }
-
-        //print input list
-        if (logger.isDebugEnabled())
-        	logger.debug("Input list for user " + userId + " num." + items.size() + " => " + StringUtils.join(items,","));
-        //remove recentActions from recs
-        List<Long> itemsToRemove = ListUtils.intersection(items, recentActions);
-        //remove duplicate items
-        HashSet hs = new HashSet();
-        hs.addAll(itemsToRemove);
-        itemsToRemove.clear();
-        itemsToRemove.addAll(hs);
-        List<Long> filteredItems = items;
-        if(!itemsToRemove.isEmpty() && cfAlgorithm.isRankingRemoveHistory()) { // don't remove items if testing or alg options  says so
-            logger.info("Removing recent items for user from list to rank");
-            filteredItems = ListUtils.subtract(items, itemsToRemove);
-        }
-
-        //SORT
-        SortResult sortResult = recommender.sort(intUserId, filteredItems, cfAlgorithm,recentActions);
-        List<Long> itemsSorted = sortResult.getSortedItems();
-        sortAlg = sortResult.toLog();
-        if (logger.isDebugEnabled())
-        	logger.debug("Sorted list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
-        //INCLUDE VIEWED ITEMS
-        //append recentActions (that were in the input list) only if it was able to sort the items (otherwise return an empty list)
-        if(!itemsSorted.isEmpty() && cfAlgorithm.isRankingRemoveHistory()) { //only add back items if not testing
-            itemsSorted.addAll(itemsToRemove);
-        }
-        //RESULT LIST
-        int pos = 1;
-        for (Long l : itemsSorted) { resBean.addBean(new RecommendationBean(itemService.getClientItemId(c, l), pos++, null)); }
-
-        /*MemCachePeer.put(memcacheKey, res,300);
-	    //}
-	    else*/
-        if (logger.isDebugEnabled())
-        	logger.debug("Final list for user " + userId + " num." + itemsSorted.size() + " => " + StringUtils.join(itemsSorted,","));
-        res[0] = resBean;
-        res[1] = sortAlg;
-        return res;
-    }
+   
 
     @SuppressWarnings("unchecked")
     public ListBean getRecommendedUsers(ConsumerBean c,String userId, String itemId, String linkType, List<String> algorithms, int limit) {
@@ -222,7 +126,7 @@ public class RecommendationService {
 
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
                                             Set<Integer> dimensions, String lastRecommendationListUuid, int limit,
-                                            String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort) {
+                                            String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort,Set<Long> scoreItems) {
         List<String> actualAlgorithms = new ArrayList<>();
         if(algorithms!=null) {
             for (String alg : algorithms) {
@@ -264,7 +168,7 @@ public class RecommendationService {
 
             RecommendationResult recResult = recommender.getRecommendations(
                     internalUserId, consumerBean.getShort_name(), userId, typeId, dimensions, limit,
-                    lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms
+                    lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms, scoreItems
                     );
             List<Recommendation> recommendations = recResult.getRecs();
             List<ItemBean> itemRecs = new ArrayList<>();

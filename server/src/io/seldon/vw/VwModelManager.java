@@ -21,208 +21,152 @@
 */
 package io.seldon.vw;
 
-import io.seldon.mf.PerClientExternalLocationListener;
+import io.seldon.recommendation.model.ModelManager;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
-public class VwModelManager implements PerClientExternalLocationListener {
+public class VwModelManager extends ModelManager<VwModelManager.VwModel> {
 
 
     private static Logger logger = Logger.getLogger(VwModelManager.class.getName());
-    private final ConcurrentMap<String, VwModel> clientStores = new ConcurrentHashMap<>();
-    private NewResourceNotifier notifier;
     private final ExternalResourceStreamer featuresFileHandler;
     private static final String MF_NEW_LOC_PATTERN = "vw";
 
-    private final Executor executor = Executors.newFixedThreadPool(5);
 
     @Autowired
     public VwModelManager(ExternalResourceStreamer featuresFileHandler,
-                             NewResourceNotifier notifier){
+                          NewResourceNotifier notifier) {
+        super(notifier, Collections.singleton(MF_NEW_LOC_PATTERN));
         this.featuresFileHandler = featuresFileHandler;
-        this.notifier = notifier;
 
     }
 
-    @PostConstruct
-    public void init(){
-        notifier.addListener(MF_NEW_LOC_PATTERN, this);
-    }
-
-    public void reloadFeatures(final String location, final String client){
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                logger.info("Reloading VW model for client: "+ client);
-
-                try {
-                	Map<Integer,String> classIdMap;
-                	try
-                	{
-                		BufferedReader modelReader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/classes.txt")
-                				));
-                		classIdMap = loadClassIdMap(modelReader);
-                		
-                		modelReader.close();
-                	}
-                	catch (IOException e)
-                	{
-                		logger.warn("Found no classes.txt for "+location);
-                		classIdMap = new HashMap<Integer,String>();
-                	}
-                	
-                    BufferedReader modelReader = new BufferedReader(new InputStreamReader(
-                            featuresFileHandler.getResourceStream(location + "/model")
-                    ));
-                    VwModel model = loadModel(modelReader,classIdMap);
-                    
-                    clientStores.put(client, model);
-                    
-                    logger.info("Loaded VW model from "+location+" for "+client+" with "+model.weights.size()+" weights and "+model.classIdMap.size()+" classes" );
-                    
-                    modelReader.close();
-
-                } catch (FileNotFoundException e) {
-                    logger.error("Couldn't reload modelfor client "+ client+" at "+location, e);
-                } catch (IOException e) {
-                    logger.error("Couldn't reload model for client "+ client+" at "+location, e);
-                }
+    private Map<Integer, String> loadClassIdMap(BufferedReader reader) throws IOException {
+        Map<Integer, String> classIdMap = new HashMap<Integer, String>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            int firstComma = line.indexOf(",");
+            if (firstComma > 0) {
+                int id = Integer.parseInt(line.substring(0, firstComma));
+                String className = line.substring(firstComma + 1);
+                classIdMap.put(id, className);
             }
-        });
-
-    }
-    
-    private Map<Integer,String> loadClassIdMap(BufferedReader reader) throws IOException
-    {
-    	Map<Integer,String> classIdMap = new HashMap<Integer,String>();
-    	String line;
-    	while((line = reader.readLine()) !=null)
-        {
-    		int firstComma = line.indexOf(",");
-    		if (firstComma > 0)
-    		{
-    			int id = Integer.parseInt(line.substring(0, firstComma));
-    			String className = line.substring(firstComma+1);
-    			classIdMap.put(id,className);
-    		}
         }
-    	return classIdMap;
-    }
-
-    public VwModel getModel(String client){
-        return clientStores.get(client);
+        return classIdMap;
     }
 
 
-    private VwModel loadModel(BufferedReader reader,Map<Integer,String> classIdMap) throws IOException {
-        Map<Integer,Float> weights = new HashMap<Integer,Float>();
+
+    private VwModel loadModel(BufferedReader reader, Map<Integer, String> classIdMap) throws IOException {
+        Map<Integer, Float> weights = new HashMap<Integer, Float>();
         int oaa = 1;
         int bits = 18;
         String line;
         boolean insideFeatures = false;
-        while((line = reader.readLine()) !=null)
-        {
-            if (!insideFeatures)
-            {
-            	if (line.startsWith("bits:"))
-            	{
-            		bits = Integer.parseInt(line.split(":")[1]);
-            	}
-            	else if (line.startsWith("options:"))
-            	{
-            		String[] parts = line.split(":");
-            		if (parts.length > 1)
-            		{
-            			String[] options = parts[1].split("\\s+");
-            			for(int i=0;i<options.length;i++)
-            			{
-            				if ("--oaa".equals(options[i]))
-            				{
-            					oaa = Integer.parseInt(options[i+1]);
-            					i++;
-            				}
-            				else
-            					logger.warn("Unhandled VW option - this model may not behave correctly at prediction time "+options[i]);
-            			}
-            		}
-            	}
-            	else if (line.startsWith(":0"))
-            	{
-            		insideFeatures = true;
-            	}
-            }
-            else
-            {
-            	String[] featureAndWeight = line.split(":");
-            	int feature = Integer.parseInt(featureAndWeight[0]);
-            	float weight = Float.parseFloat(featureAndWeight[1]);
-            	weights.put(feature, weight);
+        while ((line = reader.readLine()) != null) {
+            if (!insideFeatures) {
+                if (line.startsWith("bits:")) {
+                    bits = Integer.parseInt(line.split(":")[1]);
+                } else if (line.startsWith("options:")) {
+                    String[] parts = line.split(":");
+                    if (parts.length > 1) {
+                        String[] options = parts[1].split("\\s+");
+                        for (int i = 0; i < options.length; i++) {
+                            if ("--oaa".equals(options[i])) {
+                                oaa = Integer.parseInt(options[i + 1]);
+                                i++;
+                            } else
+                                logger.warn("Unhandled VW option - this model may not behave correctly at prediction time " + options[i]);
+                        }
+                    }
+                } else if (line.startsWith(":0")) {
+                    insideFeatures = true;
+                }
+            } else {
+                String[] featureAndWeight = line.split(":");
+                int feature = Integer.parseInt(featureAndWeight[0]);
+                float weight = Float.parseFloat(featureAndWeight[1]);
+                weights.put(feature, weight);
             }
         }
-        return new VwModel(bits, oaa, weights,classIdMap);
+        return new VwModel(bits, oaa, weights, classIdMap);
     }
 
     @Override
-    public void newClientLocation(String client, String location,String nodePattern) {
-        reloadFeatures(location,client);
+    protected VwModel loadModel(String location, String client) {
+        logger.info("Reloading VW model for client: " + client);
+
+        try (
+                BufferedReader modelReader = new BufferedReader(new InputStreamReader(
+                        featuresFileHandler.getResourceStream(location + "/model")
+                ))
+        ) {
+            Map<Integer, String> classIdMap;
+            try (
+                    BufferedReader modelReader2 = new BufferedReader(new InputStreamReader(
+                            featuresFileHandler.getResourceStream(location + "/classes.txt")
+                    ))
+            ) {
+                classIdMap = loadClassIdMap(modelReader2);
+            } catch (IOException e) {
+                logger.warn("Found no classes.txt for " + location);
+                classIdMap = new HashMap<Integer, String>();
+            }
+
+
+            VwModel model = loadModel(modelReader, classIdMap);
+
+
+            logger.info("Loaded VW model from " + location + " for " + client + " with " + model.weights.size() + " weights and " + model.classIdMap.size() + " classes");
+
+            return model;
+        } catch (FileNotFoundException e) {
+            logger.error("Couldn't reload modelfor client " + client + " at " + location, e);
+        } catch (IOException e) {
+            logger.error("Couldn't reload model for client " + client + " at " + location, e);
+        }
+        return null;
+
     }
 
-    @Override
-    public void clientLocationDeleted(String client,String nodePattern) {
-        clientStores.remove(client);
+    public static class VwModel {
+        public final int bits;
+        public final int oaa;
+        public final Map<Integer, String> classIdMap;
+        public final Map<Integer, Float> weights;
+        public final VwFeatureHash hasher;
+
+        public VwModel(int bits, int oaa, Map<Integer, Float> weights, Map<Integer, String> classIdMap) {
+            super();
+            this.bits = bits;
+            this.oaa = oaa;
+            this.weights = weights;
+            this.hasher = new VwFeatureHash(bits, oaa);
+            this.classIdMap = classIdMap;
+        }
+
+        @Override
+        public String toString() {
+            return "VwModel [bits=" + bits + ", oaa=" + oaa + ", weights="
+                    + weights + "]";
+        }
+
+
     }
 
-    public static class VwModel 
-    {
-    	public final int bits;
-    	public final int oaa;
-    	public final Map<Integer,String> classIdMap;
-    	public final Map<Integer,Float> weights;
-    	public final VwFeatureHash hasher;
-    	
-		public VwModel(int bits, int oaa, Map<Integer, Float> weights,Map<Integer,String> classIdMap) {
-			super();
-			this.bits = bits;
-			this.oaa = oaa;
-			this.weights = weights;
-			this.hasher = new VwFeatureHash(bits, oaa);
-			this.classIdMap = classIdMap;
-		}
-
-		@Override
-		public String toString() {
-			return "VwModel [bits=" + bits + ", oaa=" + oaa + ", weights="
-					+ weights + "]";
-		}
-    	
-    	
-    }
-    
-    public static void main(String[] args) throws IOException
-    {
-    	BufferedReader br = new BufferedReader(new FileReader("/home/clive/work/seldon/external_prediction_server/vw/iris/model.txt"));
-    	VwModelManager m = new VwModelManager(null, null);
-    	VwModel vwModel = m.loadModel(br,new HashMap<Integer,String>());
-    	System.out.println(vwModel);
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("/home/clive/work/seldon/external_prediction_server/vw/iris/model.txt"));
+        VwModelManager m = new VwModelManager(null, null);
+        VwModel vwModel = m.loadModel(br, new HashMap<Integer, String>());
+        System.out.println(vwModel);
     }
 }

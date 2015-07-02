@@ -64,7 +64,7 @@ public class RecentMfRecommender implements ItemRecommendationAlgorithm {
 
 		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
 		int numRecentActionsToUse = opts.getIntegerOption(RECENT_ACTIONS_PROPERTY_NAME);
-        MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client);
+        MfFeaturesManager.ClientMfFeaturesStore clientStore = this.store.getClientStore(client, ctxt.getOptsHolder());
 
         if(clientStore==null) {
             logger.debug("Couldn't find a matrix factorization store for this client");

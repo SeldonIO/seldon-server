@@ -72,9 +72,9 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
 		final int mb = 1024*1024;
 		 //Getting the runtime reference from system
         Runtime runtime = Runtime.getRuntime();
-         
+
         logger.info("##### Heap utilization statistics [MB] #####");
-         
+
         //Print used memory
         logger.info("Used Memory:"
             + (runtime.totalMemory() - runtime.freeMemory()) / mb);
@@ -97,10 +97,10 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
                     userTagCounts = null;
                     clientStores.put(client, userTags);
                     reader.close();
-                    
-                    
+
+
                     logger.info("finished load of user tag affinities for client "+client);
-                    
+
                 } catch (FileNotFoundException e) {
                     logger.error("Couldn't reloadFeatures for client "+ client, e);
                 } catch (IOException e) {
@@ -110,7 +110,7 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
         });
 
     }
-	
+
 	private Map<Long,Integer> getNumTags(BufferedReader reader) throws IOException
 	{
 		 String line;
@@ -152,12 +152,12 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
 	 return new UserTagStore(userTagAffinities);
  }
  
- 
+
  	public UserTagStore getStore(String client)
  	{
  		return clientStores.get(client);
  	}
-	 
+
 	@Override
 	public void newClientLocation(String client, String location,
 			String nodePattern) {
@@ -168,9 +168,9 @@ public class UserTagAffinityManager implements PerClientExternalLocationListener
 	public void clientLocationDeleted(String client, String nodePattern) {
 		clientStores.remove(client);
 	}
-	
-	
-	
+
+
+
 	public static class UserTagStore {
 		
 		public final Map<Long,Map<String,Float>> userTagAffinities;

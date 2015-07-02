@@ -28,18 +28,16 @@ import io.seldon.api.Constants;
 import io.seldon.api.caching.ActionHistoryCache;
 import io.seldon.api.state.ClientAlgorithmStore;
 import io.seldon.api.state.options.DefaultOptions;
-import io.seldon.clustering.recommender.CountRecommender;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.clustering.recommender.jdo.JdoCountRecommenderUtils;
-import io.seldon.db.jdo.ClientPersistable;
-import io.seldon.recommendation.CFAlgorithm.CF_SORTER;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
+import io.seldon.recommendation.filters.ExplicitItemsIncluder;
+import io.seldon.recommendation.filters.FilteredItems;
 import io.seldon.util.CollectionTools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,6 +74,9 @@ public class RecommendationPeer {
 	@Autowired
 	ActionHistoryCache actionCache;
 
+	@Autowired
+	ExplicitItemsIncluder explicitItemsIncluder;
+	
     private boolean debugging = false;
 
 	@Autowired
@@ -88,7 +89,7 @@ public class RecommendationPeer {
 	public RecommendationResult getRecommendations(long user, String client, String clientUserId, Integer type,
                                                    Set<Integer> dimensions, int numRecommendationsAsked,
                                                    String lastRecListUUID,
-                                                   Long currentItemId, String referrer, String recTag, List<String> algorithmOverride) {
+                                                   Long currentItemId, String referrer, String recTag, List<String> algorithmOverride,Set<Long> scoreItems) {
         ClientStrategy strategy;
         if (algorithmOverride != null && !algorithmOverride.isEmpty()) {
             logger.debug("Overriding algorithms from JS");
@@ -148,8 +149,11 @@ public class RecommendationPeer {
 			// add current item id if not in recent actions
 			if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
 				recentItemInteractions.add(currentItemId);
+			FilteredItems explicitItems = null;
+			if (scoreItems != null)
+				explicitItems = explicitItemsIncluder.create(client, scoreItems);
 			RecommendationContext ctxt = RecommendationContext.buildContext(client,
-					algStr,user,clientUserId,currentItemId, dimensions, lastRecListUUID, numRecommendations,defaultOptions);
+					algStr,user,clientUserId,currentItemId, dimensions, lastRecListUUID, numRecommendations,defaultOptions,explicitItems);
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimensions,
 					numRecommendations, ctxt, recentItemInteractions);
 
@@ -215,128 +219,7 @@ public class RecommendationPeer {
     	return new RecommendationResult(recBeans, uuid, strat.getName(clientUserId,recTag));
     }
 
-	public SortResult sort(Long userId,List<Long> items, CFAlgorithm options, List<Long> recentActions) {
-        ClientPersistable cp = new ClientPersistable(options.getName());
-
-        if (debugging)
-			logger.debug("Calling sort for user "+userId);
-		if(items !=null && items.size()>0)
-		{
-			if (debugging)
-				logger.debug("Trying sort for user "+userId);
-			Map<Long,Integer> results = new HashMap<>();
-			List<CF_SORTER> successfulMethods = new ArrayList<>();
-			int successfulPrevAlg = 0;
-			for(CF_SORTER sortMethod : options.getSorters())
-			{
-				if (debugging)
-					logger.debug("Trying "+sortMethod.name());
-				List<Long> res = null;
-				switch (sortMethod)
-				{
-				case NOOP:
-					res = items;
-					break;
-
-
-				
-				case CLUSTER_COUNTS:
-				case CLUSTER_COUNTS_DYNAMIC:
-				{
-					CountRecommender r = cUtils.getCountRecommender(options.getName());
-					if (r != null)
-					{
-						boolean includeShortTermClusters = sortMethod == CF_SORTER.CLUSTER_COUNTS_DYNAMIC;
-						long t1 = System.currentTimeMillis();
-						res = r.sort(userId, items, null,includeShortTermClusters,options.getLongTermWeight(),options.getShortTermWeight()); // group hardwired to null
-						long t2 = System.currentTimeMillis();
-						if (debugging)
-							logger.debug("Sorting for user "+userId+" took "+(t2-t1));
-					}
-				}
-					break;
-				case DEMOGRAPHICS:
-					res = null;
-					break;
-				}
-
-				boolean success = res != null && res.size() > 0;
-				if (success)
-				{
-					successfulMethods.add(sortMethod);
-					if (debugging)
-						logger.debug("Successful sort for user "+userId+" for sort "+sortMethod.name());
-					switch(options.getSorterStrategy())
-					{
-					case FIRST_SUCCESSFUL:
-					case RANK_SUM:
-					case WEIGHTED: // presently does same as RANK_SUM
-					{
-						// add results to Map
-						int pos = 0;
-						// update the counts for articles not seen in this algorithm set
-						int currentResultsSize = results.size();
-						Set<Long> missedItems = new HashSet<>(results.keySet());
-						for(Long itemId : res)
-						{
-							missedItems.remove(itemId);
-							pos++;
-							Integer count = results.get(itemId);
-							int countNew;
-							if (count != null)
-								countNew = count + pos;
-							else
-								countNew = pos + (currentResultsSize * successfulPrevAlg);
-							results.put(itemId, countNew);
-						}
-						for(Long item : missedItems)
-							results.put(item, results.get(item)+res.size());
-						successfulPrevAlg++;
-					}
-					break;
-					case ADD_MISSING:
-					{
-						if (debugging)
-							logger.debug("Adding missing items returned "+sortMethod.name()+" to global list: "+CollectionTools.join(res, ","));
-						successfulPrevAlg++;
-						Set<Long> currentItems = new HashSet<>(results.keySet());
-						int pos = currentItems.size();
-						for(Long itemId : res)
-						{
-							if (!currentItems.contains(itemId))
-							{
-								pos++;
-								results.put(itemId, pos);
-							}
-						}
-					}
-					break;
-					}
-				}
-				else if (debugging)
-					logger.debug("unsuccessful sort for user "+userId+" for sort "+sortMethod.name());
-
-				if (success && options.getSorterStrategy() == CFAlgorithm.CF_STRATEGY.FIRST_SUCCESSFUL)
-					break;
-				else
-				{
-					// just continue
-				}
-			}
-			List<Long> res = CollectionTools.sortMapAndLimitToList(results, results.size(), false);
-
-			if (res == null)
-				res = new ArrayList<>();
-			return new SortResult(res,successfulMethods,options.getSorterStrategy());
-		}
-		else
-		{
-			logger.warn("No items to sort for user "+userId);
-			return new SortResult(new ArrayList<Long>(),new ArrayList<CF_SORTER>(),options.getSorterStrategy());
-		}
-	}
-
-
+	
     public static class RecResultContext {
         public static final RecResultContext EMPTY = new RecResultContext(new ItemRecommendationResultSet("UNKNOWN"), "UNKNOWN");
         public final ItemRecommendationResultSet resultSet;

@@ -29,6 +29,7 @@ import io.seldon.clustering.recommender.MemoryUserClusterStore;
 import io.seldon.clustering.recommender.UserCluster;
 import io.seldon.db.jdo.JDOFactory;
 import io.seldon.mf.PerClientExternalLocationListener;
+import io.seldon.recommendation.model.ModelManager;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
 
@@ -71,7 +72,7 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	 //private final Executor executor = Executors.newFixedThreadPool(5);
 	 private BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>();
 	 private ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 5, 10, TimeUnit.MINUTES, queue) {
-	        protected void afterExecute(java.lang.Runnable runnable, java.lang.Throwable throwable) 
+	        protected void afterExecute(java.lang.Runnable runnable, java.lang.Throwable throwable)
 	        {
 	        	        	JDOFactory.get().cleanupPM();
 	        }
@@ -107,7 +108,7 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	                    MemoryUserClusterStore userClusters = loadUserClusters(client, reader);
 	                    clientStores.put(client, userClusters);
 	                    reader.close();
-	                    
+
 	                    logger.info("finished load of user clusters for client "+client);
 	                }
 	                catch (FileNotFoundException e) {
@@ -115,8 +116,8 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	                } catch (IOException e) {
 	                    logger.error("Couldn't reloadFeatures for client "+ client, e);
 	                }
-	                
-	                
+
+
 	            }
 	        });
 
@@ -195,7 +196,7 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	{
 		return clientStores.get(client);
 	}
-	 
+
 	public ClusterDescription getClusterDescriptions(String client)
 	{
 		return clusterDescriptions.get(client);
@@ -211,8 +212,7 @@ public class UserClusterManager implements PerClientExternalLocationListener {
 	public void clientLocationDeleted(String client, String nodePattern) {
 		clientStores.remove(client);
 	}
-	 
-	
+
 	public static class ClusterDescription {
 		
 		public final Map<Integer,String> clusterNames;

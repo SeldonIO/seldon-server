@@ -77,7 +77,7 @@ public class SemanticVectorsRecommender implements ItemRecommendationAlgorithm {
             return new ItemRecommendationResultSet(Collections.<ItemRecommendationResultSet.ItemRecommendationResult>emptyList(), name);
         }
         Boolean isIgnorePerfectSvMatches = options.getBooleanOption(IGNORE_PEFECT_MATCH_OPTION_NAME);
-        SemanticVectorsStore svPeer = svManager.getStore(client, svPrefix);
+        SemanticVectorsStore svPeer = svManager.getClientStore(client, svPrefix, ctxt.getOptsHolder());
 
         if (svPeer == null)
         {

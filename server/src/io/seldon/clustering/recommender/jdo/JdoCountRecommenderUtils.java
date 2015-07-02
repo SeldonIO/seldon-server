@@ -24,10 +24,7 @@
 package io.seldon.clustering.recommender.jdo;
 
 import io.seldon.cc.UserClusterManager;
-import io.seldon.clustering.recommender.ClusterCountStore;
-import io.seldon.clustering.recommender.ClusterFromReferrerPeer;
-import io.seldon.clustering.recommender.CountRecommender;
-import io.seldon.clustering.recommender.UserClusterStore;
+import io.seldon.clustering.recommender.*;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
