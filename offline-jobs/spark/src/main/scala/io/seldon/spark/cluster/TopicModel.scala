@@ -153,13 +153,15 @@ class TopicModel(private val sc : SparkContext,config : TopicConfig) {
     val elapsed = (System.nanoTime() - startTime) / 1e9
     println(s"Finished training LDA model. Summary:")
     println(s"\t Training time: $elapsed sec")
-    val avgLogLikelihood = ldaModel.logLikelihood / actualCorpusSize.toDouble
-    println(s"\t Training data average log likelihood: $avgLogLikelihood")
-    println()
+    //val avgLogLikelihood = ldaModel..logLikelihood / actualCorpusSize.toDouble
+    //println(s"\t Training data average log likelihood: $avgLogLikelihood")
+    //println()
     
     val outPath = config.outputPath + "/" + config.client + "/topics/"+config.startDay
     
-    val topicDistr = ldaModel.topicDistributions.collectAsMap
+    //FIXME - broken
+    /*
+    val topicDistr = ldaModel.?
     val userTopics = new ArrayBuffer[String]
     for( (id,vec) <- topicDistr)
     {
@@ -175,6 +177,8 @@ class TopicModel(private val sc : SparkContext,config : TopicConfig) {
     }
     
     FileUtils.outputModelToFile(userTopics.toArray, outPath, DataSourceMode.fromString(outPath), "user.csv")
+    * 
+    */
 
     val topicIndices = ldaModel.describeTopics(50)
     val topics = topicIndices.map { case (terms, termWeights) =>
