@@ -5,6 +5,11 @@ from kazoo.client import KazooClient
 import json, random
 import seldon_utils as seldon
 
+def lowercase_clients(data):
+    clients = data['clients']
+    for client in clients:
+        client['name'] = client['name'].lower()
+
 requiredSections = ["db","memcached"]
 propertyToZkNode = dict()
 propertyToZkNode["db"] = "/config/dbcp"
@@ -32,6 +37,8 @@ if not os.path.exists(filename):
     exit(1)
 with open(filename) as data_file:
     data = json.load(data_file)
+    lowercase_clients(data)
+
 for section in requiredSections:
     if not section in data:
         print "Must have section",section,"in config JSON"
