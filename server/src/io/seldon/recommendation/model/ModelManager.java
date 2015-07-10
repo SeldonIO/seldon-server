@@ -23,18 +23,20 @@
 
 package io.seldon.recommendation.model;
 
-import io.seldon.api.state.ClientAlgorithmStore;
 import io.seldon.clustering.recommender.RecommendationContext;
-import io.seldon.mf.MfFeaturesManager;
 import io.seldon.mf.PerClientExternalLocationListener;
 import io.seldon.recommendation.ClientStrategy;
 import io.seldon.resources.external.NewResourceNotifier;
-import org.apache.log4j.Logger;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author firemanphil
@@ -64,6 +66,7 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
 
     @Override
     public void newClientLocation(final String client, final String location, final String nodePattern) {
+    	logger.info("New location "+client+" : "+location+ " : "+nodePattern);
         String rightBase = null;
         Iterator<String> iter = nodeBases.iterator();
         while(rightBase==null && iter.hasNext()) {
@@ -99,6 +102,8 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
     public T getClientStore(String client, String type, RecommendationContext.OptionsHolder options){
         String modelName = options.getStringOption(MODEL_PROPERTY_NAME);
         String key = getKey(client, type);
+        if (!clientStores.containsKey(key))
+        	return null;
         // check whether we are testing or not and get relevant model.
         switch (modelName) {
             case ClientStrategy.DEFAULT_NAME:
