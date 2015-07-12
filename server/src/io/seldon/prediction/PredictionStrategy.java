@@ -26,5 +26,6 @@ import java.util.List;
 public interface PredictionStrategy {
 
 	  List<PredictionAlgorithmStrategy> getAlgorithms();
+	  List<FeatureTransformerStrategy> getFeatureTansformers();
 	
 }

@@ -22,36 +22,28 @@
 package io.seldon.prediction;
 
 import java.util.List;
+import java.util.Map;
 
-public class SimplePredictionStrategy implements PredictionStrategy {
+public class FeatureTransformerStrategy {
 
-	public final List<FeatureTransformerStrategy> featureTransformerStrategies;
-	public final List<PredictionAlgorithmStrategy> algorithmsStrategies;
+	public final FeatureTransformer transformer;
 	
+	public final List<String> inputCols;
 	
+	public final List<String> outputCols;
 	
-	
+	public final Map<String,String> config;
 
-
-
-	public SimplePredictionStrategy(
-			List<FeatureTransformerStrategy> featureTransformerStrategies,
-			List<PredictionAlgorithmStrategy> algorithmsStrategies) {
+	public FeatureTransformerStrategy(FeatureTransformer transformer,
+			List<String> inputCols, List<String> outputCols,
+			Map<String, String> config) {
 		super();
-		this.featureTransformerStrategies = featureTransformerStrategies;
-		this.algorithmsStrategies = algorithmsStrategies;
+		this.transformer = transformer;
+		this.inputCols = inputCols;
+		this.outputCols = outputCols;
+		this.config = config;
 	}
-
-
-	@Override
-	public List<PredictionAlgorithmStrategy> getAlgorithms() {
-		return algorithmsStrategies;
-	}
-
-
-	@Override
-	public List<FeatureTransformerStrategy> getFeatureTansformers() {
-		return featureTransformerStrategies;
-	}
-
+	
+	
+	
 }

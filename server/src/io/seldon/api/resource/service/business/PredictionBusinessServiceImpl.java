@@ -220,7 +220,14 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 			{
 				if (reqMapEntry.getValue().length == 1 && allowedKey(reqMapEntry.getKey()))
 				{
-					keyVals.put(reqMapEntry.getKey(), reqMapEntry.getValue()[0]);
+					try 
+					{
+						keyVals.put(reqMapEntry.getKey(), Float.parseFloat(reqMapEntry.getValue()[0]));
+					}
+					catch (Exception e)
+					{
+						keyVals.put(reqMapEntry.getKey(), reqMapEntry.getValue()[0]);
+					}
 				}
 			}
 			ObjectMapper mapper = new ObjectMapper();

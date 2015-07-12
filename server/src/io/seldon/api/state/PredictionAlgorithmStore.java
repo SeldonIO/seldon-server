@@ -21,6 +21,8 @@
 */
 package io.seldon.api.state;
 
+import io.seldon.prediction.FeatureTransformer;
+import io.seldon.prediction.FeatureTransformerStrategy;
 import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionAlgorithmStrategy;
 import io.seldon.prediction.PredictionStrategy;
@@ -52,7 +54,8 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	protected static Logger logger = Logger.getLogger(PredictionAlgorithmStore.class.getName());
 	private static final String ALG_KEY = "predict_algs";
 	
-	 private ConcurrentMap<String, PredictionStrategy> store = new ConcurrentHashMap<>();
+	private ConcurrentMap<String, PredictionStrategy> predictionStore = new ConcurrentHashMap<>();
+	private ConcurrentMap<String, FeatureTransformerStrategy> transformerStore = new ConcurrentHashMap<>();
 	 private PredictionStrategy defaultStrategy;
 	 
 	 private final ClientConfigHandler configHandler;
@@ -76,7 +79,7 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 
 	 public PredictionStrategy retrieveStrategy(String client)
 	 {
-		 PredictionStrategy strategy = store.get(client);
+		 PredictionStrategy strategy = predictionStore.get(client);
 		 if(strategy!=null){
 			 return strategy;
 		 } else {
@@ -101,7 +104,13 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 					 PredictionAlgorithmStrategy strategy = toAlgorithmStrategy(algorithm);
 					 strategies.add(strategy);
 				 }
-				 defaultStrategy =  new SimplePredictionStrategy(Collections.unmodifiableList(strategies));
+				 List<FeatureTransformerStrategy> featureTransformerStrategies = new ArrayList<>();
+				 for (Transformer transformer : config.transformers)
+				 {
+					 FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
+					 featureTransformerStrategies.add(strategy);
+				 }
+				 defaultStrategy =  new SimplePredictionStrategy(Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies));
 				 logger.info("Successfully added new default prediction strategy");
 			 } catch (IOException | BeansException e) {
 				 logger.error("Couldn't update default prediction strategy", e);
@@ -121,8 +130,14 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	                    PredictionAlgorithmStrategy strategy = toAlgorithmStrategy(algorithm);
 	                    strategies.add(strategy);
 	                }
-	                store.put(client, new SimplePredictionStrategy(Collections.unmodifiableList(strategies)));
-	                logger.info("Successfully added new algorithm config for "+client);
+				List<FeatureTransformerStrategy> featureTransformerStrategies = new ArrayList<>();
+				for (Transformer transformer : config.transformers)
+				 {
+					 FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
+					 featureTransformerStrategies.add(strategy);
+				 }
+				predictionStore.put(client, new SimplePredictionStrategy(Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies)));
+				logger.info("Successfully added new algorithm config for "+client);
 	            } catch (IOException | BeansException e) {
 	                logger.error("Couldn't update algorithms for client " +client, e);
 	            }
@@ -131,7 +146,7 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	
 	@Override
 	public void configRemoved(String client, String configKey) {
-		store.remove(client);
+		predictionStore.remove(client);
 		logger.info("Removed client "+client);
 	}
 
@@ -145,6 +160,12 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 			 builder.append(inc.getClass());
 			 builder.append('\n');
 		 }
+		 builder.append("Available feature transformers: \n");
+		 for(FeatureTransformer f : applicationContext.getBeansOfType(FeatureTransformer.class).values()){
+			 builder.append('\t');
+			 builder.append(f.getClass());
+			 builder.append('\n');			 
+		 }
 		 logger.info(builder.toString());
 	        
 	}
@@ -154,6 +175,13 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 		PredictionAlgorithm alg = applicationContext.getBean(algorithm.name, PredictionAlgorithm.class);
 		Map<String, String> config  = toConfigMap(algorithm.config);
 		return new PredictionAlgorithmStrategy(alg,algorithm.config ==null ? new HashMap<String, String>(): config , algorithm.name);
+	}
+	
+	private FeatureTransformerStrategy toFeatureTransformerStrategy(Transformer transformer)
+	{
+		FeatureTransformer t = applicationContext.getBean(transformer.name,FeatureTransformer.class);
+		Map<String, String> config  = toConfigMap(transformer.config);
+		return new FeatureTransformerStrategy(t, transformer.inputCols, transformer.outputCols, config);
 	}
 	   
 	private Map<String, String> toConfigMap(List<ConfigItem> config) {
@@ -167,6 +195,7 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	
 	 public static class AlgorithmConfig {
 	        public List<Algorithm> algorithms;
+	        public List<Transformer> transformers;
 	        public String combiner;
 	    }
 
@@ -180,7 +209,12 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	        public List<ConfigItem> config;
 	    }
 
-	
+	    public static class Transformer {
+	    	public String name;
+	    	public List<String> inputCols;
+	    	public List<String> outputCols;
+	    	public List<ConfigItem> config;
+	    }
 
 		
 }

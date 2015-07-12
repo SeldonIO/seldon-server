@@ -21,37 +21,10 @@
 */
 package io.seldon.prediction;
 
-import java.util.List;
+import org.codehaus.jackson.JsonNode;
 
-public class SimplePredictionStrategy implements PredictionStrategy {
-
-	public final List<FeatureTransformerStrategy> featureTransformerStrategies;
-	public final List<PredictionAlgorithmStrategy> algorithmsStrategies;
+public interface FeatureTransformer {
 	
-	
-	
-	
-
-
-
-	public SimplePredictionStrategy(
-			List<FeatureTransformerStrategy> featureTransformerStrategies,
-			List<PredictionAlgorithmStrategy> algorithmsStrategies) {
-		super();
-		this.featureTransformerStrategies = featureTransformerStrategies;
-		this.algorithmsStrategies = algorithmsStrategies;
-	}
-
-
-	@Override
-	public List<PredictionAlgorithmStrategy> getAlgorithms() {
-		return algorithmsStrategies;
-	}
-
-
-	@Override
-	public List<FeatureTransformerStrategy> getFeatureTansformers() {
-		return featureTransformerStrategies;
-	}
+	JsonNode transform(String client,JsonNode input,FeatureTransformerStrategy strategy);
 
 }

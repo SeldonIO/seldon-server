@@ -52,10 +52,19 @@ public class PredictionService {
 		if (strategy == null) {
 	            throw new APIException(APIException.NOT_VALID_STRATEGY);
 		}
+		
+		// transform features
+		for(FeatureTransformerStrategy transStr : strategy.getFeatureTansformers())
+		{
+			json = transStr.transformer.transform(client, json, transStr);
+		}
+		
+		// apply prediction algorithm(s)
 		for(PredictionAlgorithmStrategy algStr : strategy.getAlgorithms())
 		{
 			OptionsHolder optsHolder = new OptionsHolder(defaultOptions, algStr.config);
 			PredictionsResult res = algStr.algorithm.predict(client, json, optsHolder);
+			//FIXME enforces first successful combiner at present
 			if (res != null && res.predictions.size() > 0)
 				return res;
 		}
