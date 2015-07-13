@@ -86,7 +86,7 @@ class VWSeldon:
         return self.vw2.make_line(response=label,features=fs,namespaces=namespaces)
         
     def create_vw(self,conf):
-        command = "vw --save_resume --predictions /dev/stdout --quiet "+conf['command'] + " --readable_model ./model.readable"
+        command = "vw --save_resume --predictions /dev/stdout --quiet "+conf['vwArgs'] + " --readable_model ./model.readable"
         self.vw2 =  VW(command=command)
         print self.vw2.command
 
@@ -97,23 +97,30 @@ class VWSeldon:
     def train(self,client,conf):
         conf = self.__merge_conf(client,conf)
         self.create_vw(conf)
-        self.features = conf['features']
-        self.fns = conf.get('namespaces')
-        inputPath = conf["inputPath"] + "/" + client + "/features/" + str(conf["startDay"]) + "/*"
+        self.features = conf.get('features',{})
+        self.fns = conf.get('namespaces',{})
+        inputPath = conf["inputPath"] + "/" + client + "/features/"
         if inputPath.startswith("s3n://"):
             isS3 = True
             inputPath = inputPath[6:]
+        elif inputPath.startswith("s3://"):
+            isS3 = True
+            inputPath = inputPath[5:]
         else:
             isS3 = False
         if isS3:
+            fileUtil = S3FileUtil(self.awsKey,self.awsSecret)
+            inputPath += (fileUtil.getGlob(conf["startDay"],conf["numDays"]) + "/*")
+            print inputPath
             parts = inputPath.split('/')
             bucket = parts[0]
             prefix = inputPath[len(bucket)+1:]
-            fileUtil = S3FileUtil(self.awsKey,self.awsSecret)
             fileUtil.stream(bucket,prefix,self)
         else:
             fileUtil = LocalFileUtil() 
-            fileUtil.stream(inputPath,self)
+            folders = fileUtil.getFolders(inputPath,conf["startDay"],conf["numDays"])
+            print folders
+            fileUtil.stream(folders,self)
         self.vw2.save_model("./model")
         self.vw2.close()
         # push model to output path on s3 or local

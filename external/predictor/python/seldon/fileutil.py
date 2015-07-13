@@ -6,6 +6,7 @@ from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 import glob
 from shutil import copyfile
+import os
 
 class FileUtil:
 
@@ -38,15 +39,29 @@ class FileUtil:
 Local File Stream
 '''                   
 class LocalFileUtil(FileUtil):         
-    def stream(self,prefix,cl):
-        for f in glob.glob(prefix):
-            k = open(f,"r")
-            if f.endswith(".gz"):
-                self.stream_gzip(k,cl)
-            else:
-                self.stream_text(k,cl)
+    
+    def getFolders(self,baseFolder,startDay,numDays):
+        folders = []
+        for day in range(startDay-numDays+1,startDay+1):
+            folders.append(baseFolder+str(day)+"/*")
+        return folders
+
+
+    def stream(self,folders,cl):
+        for folder in folders:
+            for f in glob.glob(folder):
+                k = open(f,"r")
+                if f.endswith(".gz"):
+                    self.stream_gzip(k,cl)
+                else:
+                    self.stream_text(k,cl)
+
+
 
     def copy(self,fromPath,toPath):
+        dir = os.path.dirname(toPath)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         copyfile(fromPath,toPath)
 
 '''
@@ -62,6 +77,12 @@ class S3FileUtil(FileUtil):
         else:
             self.conn = boto.connect_s3()
 
+    def getGlob(self,startDay,numDays):
+        g = "{" + str(startDay)
+        for day in range(startDay-numDays+1,startDay):
+            g += ","+str(day)
+        g += "}"
+        return g
 
     def stream(self,bucket,prefix,cl):
         b = self.conn.get_bucket(bucket)
