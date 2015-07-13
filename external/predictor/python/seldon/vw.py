@@ -33,6 +33,7 @@ class VWSeldon:
         self.awsKey = awsKey
         self.awsSecret = awsSecret
         if zk_hosts:
+            print "connecting to zookeeper at ",zk_hosts
             self.zk_client = KazooClient(hosts=zk_hosts)
             self.zk_client.start()
         else:
@@ -41,6 +42,7 @@ class VWSeldon:
     def __merge_conf(self,client,conf):
         thePath = "/all_clients/"+client+"/offline/vw"
         if self.zk_client and self.zk_client.exists(thePath):
+            print "merging conf from zookeeper"
             data, stat = self.zk_client.get(thePath)
             zk_conf = json.loads(data.decode('utf-8'))
             zk_conf.update(conf)
@@ -96,6 +98,7 @@ class VWSeldon:
                   
     def train(self,client,conf):
         conf = self.__merge_conf(client,conf)
+        print conf
         self.create_vw(conf)
         self.features = conf.get('features',{})
         self.fns = conf.get('namespaces',{})
@@ -119,7 +122,7 @@ class VWSeldon:
         else:
             fileUtil = LocalFileUtil() 
             folders = fileUtil.getFolders(inputPath,conf["startDay"],conf["numDays"])
-            print folders
+            print "input folders: ",folders
             fileUtil.stream(folders,self)
         self.vw2.save_model("./model")
         self.vw2.close()

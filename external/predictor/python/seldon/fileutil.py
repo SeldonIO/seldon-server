@@ -7,6 +7,8 @@ from boto.s3.key import Key
 import glob
 from shutil import copyfile
 import os
+import math
+from filechunkio import FileChunkIO
 
 class FileUtil:
 
@@ -59,6 +61,7 @@ class LocalFileUtil(FileUtil):
 
 
     def copy(self,fromPath,toPath):
+        print "copy ",fromPath,"to",toPath
         dir = os.path.dirname(toPath)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -96,5 +99,21 @@ class S3FileUtil(FileUtil):
     def copy(self,fromPath,bucket,path):
         print fromPath, bucket, path
         b = self.conn.get_bucket(bucket)
-        k = b.new_key(path)
-        k.set_contents_from_filename(fromPath)
+        source_size = os.stat(fromPath).st_size
+        # Create a multipart upload request
+        uploadPath = path
+        print "uploading to bucket ",bucket," path ",uploadPath
+        mp = b.initiate_multipart_upload(uploadPath)
+        chunk_size = 10485760
+        chunk_count = int(math.ceil(source_size / float(chunk_size)))
+        for i in range(chunk_count):
+            offset = chunk_size * i
+            bytes = min(chunk_size, source_size - offset)
+            with FileChunkIO(fromPath, 'r', offset=offset,bytes=bytes) as fp:
+                print "uploading to s3 chunk ",(i+1),"/",chunk_count
+                mp.upload_part_from_file(fp, part_num=i + 1)
+        # Finish the upload
+        print "completing transfer to s3"
+        mp.complete_upload()
+#        k = b.new_key(path)
+#        k.set_contents_from_filename(fromPath)
