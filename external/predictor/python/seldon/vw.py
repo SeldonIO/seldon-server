@@ -39,6 +39,15 @@ class VWSeldon:
         else:
             self.zk_client = None
 
+    def activateModel(self,client,folder):
+        node = "/all_clients/"+client+"/vw"
+        print "Activating model in zookeper at node ",node," with data ",folder
+        if self.zk_client.exists(node):
+            self.zk_client.set(node,folder)
+        else:
+            self.zk_client.create(node,folder,makepath=True)
+
+
     def __merge_conf(self,client,conf):
         thePath = "/all_clients/"+client+"/offline/vw"
         if self.zk_client and self.zk_client.exists(thePath):
@@ -136,13 +145,13 @@ class VWSeldon:
         print "outputPath->",outputPath
         if outputPath.startswith("s3n://"):
             isS3 = True
-            outputPath = outputPath[6:]
         else:
             isS3 = False
         if isS3:
-            parts = outputPath.split('/')
+            noSchemePath = outputPath[6:]
+            parts = noSchemePath.split('/')
             bucket = parts[0]
-            path = outputPath[len(bucket)+1:]
+            path = noSchemePath[len(bucket)+1:]
             fileUtil = S3FileUtil(self.awsKey,self.awsSecret)
             fileUtil.copy("./model",bucket,path+"/model")
             fileUtil.copy("./model.readable",bucket,path+"/model.readable")
@@ -150,3 +159,5 @@ class VWSeldon:
             fileUtil = LocalFileUtil() 
             fileUtil.copy("./model",outputPath+"/model")
             fileUtil.copy("./model.readable",outputPath+"/model.readable")
+        if "activate" in conf and conf["activate"]:
+            self.activateModel(client,str(outputPath))
