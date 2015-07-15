@@ -23,6 +23,8 @@ import scala.collection.mutable
 import io.seldon.spark.rdd.FileUtils
 import io.seldon.spark.rdd.DataSourceMode
 import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.mllib.clustering.DistributedLDAModel
+
 
 case class TopicConfig(
     client : String = "",
@@ -149,19 +151,17 @@ class TopicModel(private val sc : SparkContext,config : TopicConfig) {
     .setMaxIterations(config.maxIterations)
 
     val startTime = System.nanoTime()
-    val ldaModel = lda.run(corpus)
+    val ldaModel =  lda.run(corpus).asInstanceOf[DistributedLDAModel]
     val elapsed = (System.nanoTime() - startTime) / 1e9
     println(s"Finished training LDA model. Summary:")
     println(s"\t Training time: $elapsed sec")
-    //val avgLogLikelihood = ldaModel..logLikelihood / actualCorpusSize.toDouble
-    //println(s"\t Training data average log likelihood: $avgLogLikelihood")
-    //println()
+    val avgLogLikelihood = ldaModel.logLikelihood / actualCorpusSize.toDouble
+    println(s"\t Training data average log likelihood: $avgLogLikelihood")
+    println()
     
     val outPath = config.outputPath + "/" + config.client + "/topics/"+config.startDay
     
-    //FIXME - broken
-    /*
-    val topicDistr = ldaModel.?
+    val topicDistr = ldaModel.topicDistributions.collectAsMap()
     val userTopics = new ArrayBuffer[String]
     for( (id,vec) <- topicDistr)
     {
@@ -177,8 +177,6 @@ class TopicModel(private val sc : SparkContext,config : TopicConfig) {
     }
     
     FileUtils.outputModelToFile(userTopics.toArray, outPath, DataSourceMode.fromString(outPath), "user.csv")
-    * 
-    */
 
     val topicIndices = ldaModel.describeTopics(50)
     val topics = topicIndices.map { case (terms, termWeights) =>
