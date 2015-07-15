@@ -51,18 +51,29 @@ public class MemCachePeer {
 //	 create a static client as most installs only need
 	// a single instance
 	protected static List<MemcachedClient> clients;
+	protected static MemcachedClient theClient =  null;
 
     public static void initialise(String serverList,int  numClients) {
         try
         {
-    		clients = new ArrayList<MemcachedClient>(numClients);
-    		
-    		for(int i=0;i<numClients;i++)
-    		{
+        	if (numClients > 1)
+        	{
+        		clients = new ArrayList<MemcachedClient>(numClients);
+        		logger.info("Creating "+numClients+" memcache clients");
+        		for(int i=0;i<numClients;i++)
+        		{
+        			ConnectionFactoryBuilder cb = new ConnectionFactoryBuilder(new DefaultConnectionFactory());
+        			cb.setOpTimeout(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT);
+        			clients.add(new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList)));
+        		}
+        	}
+        	else
+        	{
+        		logger.info("Creating single memcache client");
     			ConnectionFactoryBuilder cb = new ConnectionFactoryBuilder(new DefaultConnectionFactory());
     			cb.setOpTimeout(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT);
-    			clients.add(new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList)));
-    		}
+    			theClient = new MemcachedClient(cb.build(),AddrUtil.getAddresses(serverList));
+        	}
 
         	logger.info(String.format("MemcachedClient initialised using serverList[%s]",serverList+" with "+numClients+" clients"));
         }
@@ -77,7 +88,10 @@ public class MemCachePeer {
      */
     private static MemcachedClient getClient()
     {
-    	return clients.get(ThreadLocalRandom.current().nextInt(clients.size()));
+    	if (theClient != null)
+    		return theClient;
+    	else
+    		return clients.get(ThreadLocalRandom.current().nextInt(clients.size()));
     }
 
 	public static void delete(String key)
@@ -121,7 +135,7 @@ public class MemCachePeer {
 			}
 			catch (Exception ex)
 			{
-				logger.warn("Memcache put expire exeption ",ex);
+				logger.error("Memcache put expire exeption ",ex);
 			}
 	}
 	
@@ -136,7 +150,7 @@ public class MemCachePeer {
 			{
 			    myObj=f.get(ExceptionSwallowingMemcachedClient.MEMCACHE_OP_TIMEOUT, TimeUnit.MILLISECONDS);
 			} catch(TimeoutException e) {
-				logger.warn("Timeout exception in get ",e);
+				logger.error("Timeout exception in get ",e);
 			    f.cancel(false);
 			} catch (InterruptedException e) {
 				logger.error("Interrupted in get ",e);
