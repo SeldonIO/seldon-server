@@ -94,15 +94,20 @@ class VWSeldon:
 
     def process(self,line):
         j = json.loads(line)
-        self.vw2.send_line(self.jsonToVw(j))
+        vwLine = self.jsonToVw(j)
+        self.numLinesProcessed += 1
+        self.vw2.send_line(vwLine)
                   
     def train(self,client,conf):
+        self.numLinesProcessed = 0
+        print "command line conf ",conf
         conf = self.__merge_conf(client,conf)
-        print conf
+        print "conf after zookeeper merge ",conf
         self.create_vw(conf)
         self.features = conf.get('features',{})
         self.fns = conf.get('namespaces',{})
-        inputPath = conf["inputPath"] + "/" + client + "/features/"
+        inputPath = conf["inputPath"] + "/" + client + "/features/" + str(conf['day']) + "/"
+        print "inputPath->",inputPath
         if inputPath.startswith("s3n://"):
             isS3 = True
             inputPath = inputPath[6:]
@@ -113,21 +118,22 @@ class VWSeldon:
             isS3 = False
         if isS3:
             fileUtil = S3FileUtil(self.awsKey,self.awsSecret)
-            inputPath += (fileUtil.getGlob(conf["startDay"],conf["numDays"]) + "/*")
-            print inputPath
+            print "AWS S3 input path ",inputPath
             parts = inputPath.split('/')
             bucket = parts[0]
             prefix = inputPath[len(bucket)+1:]
             fileUtil.stream(bucket,prefix,self)
         else:
             fileUtil = LocalFileUtil() 
-            folders = fileUtil.getFolders(inputPath,conf["startDay"],conf["numDays"])
-            print "input folders: ",folders
+            folders = [inputPath+"*"]
+            print "local input folders: ",folders
             fileUtil.stream(folders,self)
         self.vw2.save_model("./model")
         self.vw2.close()
+        print "lines processed ",self.numLinesProcessed
         # push model to output path on s3 or local
-        outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["startDay"])
+        outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["day"])
+        print "outputPath->",outputPath
         if outputPath.startswith("s3n://"):
             isS3 = True
             outputPath = outputPath[6:]
