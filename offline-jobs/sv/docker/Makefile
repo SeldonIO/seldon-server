@@ -1,6 +1,5 @@
 IMAGE=semantic-vectors-for-seldon
-VERSION=1.2
-SELDON_VERSION=0.2
+VERSION=1.4
 
 IMAGE_NAME=$(IMAGE)
 
@@ -22,8 +21,8 @@ run-shell:
 	docker run --name="testing_semvec" -t -i --rm --volumes-from general_logs --volumes-from seldon_data --link mysql:mysql --link consul:consul --link zookeeper:zookeeper -e "ZOOKEEPER_HOST=zookeeper" ${IMAGE} bash
 
 tag:
-	docker tag $(IMAGE_NAME) seldonio/$(IMAGE_NAME):$(VERSION)
-	docker tag $(IMAGE_NAME) seldonio/$(IMAGE_NAME):latest
+	docker tag -f $(IMAGE_NAME) seldonio/$(IMAGE_NAME):$(VERSION)
+	docker tag -f $(IMAGE_NAME) seldonio/$(IMAGE_NAME):latest
 
 push:
 	docker push $(PRIVATE_REGISTRY_HOST):$(PRIVATE_REGISTRY_PORT)/$(IMAGE_NAME):$(VERSION)
