@@ -185,7 +185,8 @@ public class JsClientController {
         MDCKeys.addKeys(consumerBean, userId, itemId,recTag);
         //added zehtg parameter as additional option for rlabs
     	if(StringUtils.isNotBlank(lastRecommendationListUuid2)) { lastRecommendationListUuid=lastRecommendationListUuid2;}
-        logger.info("Retrieving recommendations for user " + userId + ", consumer: " + consumerBean.getShort_name() + " with tag " + recTag);
+    	if (logger.isDebugEnabled())
+    		logger.debug("Retrieving recommendations for user " + userId + ", consumer: " + consumerBean.getShort_name() + " with tag " + recTag);
         Set<Integer> dimensions;
         if (dimensionIds != null)
         {
