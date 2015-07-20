@@ -87,7 +87,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
         try {
             return memcachedClient.set(hashKey(key), expireSeconds, obj);
         } catch (Exception ex) {
-            logger.warn("Memcache put expire exeption ", ex);
+            logger.error("Memcache put expire exeption ", ex);
             return null;
         }
     }
@@ -98,7 +98,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
         try {
             myObj = f.get(MEMCACHE_OP_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            logger.warn("Timeout exception in get ", e);
+            logger.error("Timeout exception in get ", e);
             f.cancel(false);
         } catch (InterruptedException e) {
             logger.error("Interrupted in get ", e);

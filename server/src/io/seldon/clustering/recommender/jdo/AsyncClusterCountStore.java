@@ -119,10 +119,14 @@ public class AsyncClusterCountStore implements Runnable {
                 if (runSQL)
                     runSQL();
                 if (!keepRunning && count == null)
+                {
+                	logger.warn("Asked to stop as keepRunning is false");
                 	return;
+                }
 
             } 
             catch (InterruptedException e) {
+            	logger.error("Received interrupted exception - will stop",e);
                 return;
             }
             catch (Exception e)
