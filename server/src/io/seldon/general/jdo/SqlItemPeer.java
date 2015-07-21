@@ -597,7 +597,7 @@ public class SqlItemPeer extends ItemPeer {
 	}
 
 	@Override
-	public List<Long> getRecentItemIdsWithTags(int tagAttrId,Set<String> tags, int limit, ConsumerBean c) {
+	public List<Long> getRecentItemIdsWithTags(int tagAttrId,Set<String> tags, int limit) {
 		Query query;
 		query = pm.newQuery("javax.jdo.query.SQL","select item_id,value from item_map_varchar where attr_id=? order by item_id desc limit "+limit);			
 
