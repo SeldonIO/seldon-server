@@ -430,7 +430,7 @@ public class MemCacheKeys {
 		return ""+keys.RecentItemsJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+size;
 	}
 	
-	public static String getRecentItemsWithTags(String client,int tagAttrId,String tagKey,int size)
+	public static String getRecentItemsWithTags(String client,int tagAttrId,int tagKey,int size)
 	{
 		return ""+keys.RecentItemsWithTagsJSON.name()+":"+client+":"+":"+tagAttrId+":"+tagKey+":"+size;
 	}

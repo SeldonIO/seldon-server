@@ -101,7 +101,7 @@ public class ItemStorage {
         return new FilteredItems(toReturn.size() >= numItems ? new ArrayList<>(toReturn).subList(0,numItems) : toReturn, SecurityHashPeer.md5(key));
     }
     
-    public FilteredItems retrieveRecentlyAddedItemsWithTags(final String client, final int numItems, final int tagAttrId, final Set<String> tags, final String tagsKey){
+    public FilteredItems retrieveRecentlyAddedItemsWithTags(final String client, final int numItems, final int tagAttrId, final Set<String> tags, final int tagsKey){
         final String key = MemCacheKeys.getRecentItemsWithTags(client, tagAttrId, tagsKey, numItems);
         List<Long> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<Long>>() {
             @Override

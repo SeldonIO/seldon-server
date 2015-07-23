@@ -76,15 +76,16 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
     actions.groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => (v._2,v._1)) // filter users with no enough actions and transpose to item first
   }
   
-  def convertJson(affinity : org.apache.spark.rdd.RDD[(Int,Int,Int)]) = {
+  def convertJson(affinity : org.apache.spark.rdd.RDD[(Int,Int,Int,String)]) = {
     import org.json4s._
     import org.json4s.JsonDSL._
     import org.json4s.jackson.JsonMethods._
 
-    val userJson = affinity.map{case (user,group,cluster) =>
+    val userJson = affinity.map{case (user,group,cluster,tags) =>
       val json = (("user" -> user ) ~
             ("group" -> group ) ~
-            ("cluster" -> cluster )           
+            ("cluster" -> cluster ) ~
+            ("tags" -> tags)
             )
        val jsonText = compact(render(json))    
        jsonText
@@ -184,8 +185,9 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
     val minPcIncrease = config.minPcIncrease
     val minUserActions = config.minActionsPerUser
     val tagAffinity = rddFeatures.flatMap{case (user,(tags,numDocs)) =>
-      var allTags = ListBuffer[(Int,Int,Int)]()
+      var allTags = ListBuffer[(Int,Int,Int,String)]()
       var clusterToCount = collection.mutable.Map[Int, Int]().withDefaultValue(0)
+      var tagsFound = collection.mutable.Map[Int, String]().withDefaultValue("")
       if (numDocs >= minUserActions)
       {
         val tagPercent = bc_tagPercent.value
@@ -209,13 +211,14 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
               val groupId = groupIdx(group)
               val clusterId = clusterIdx(cluster)
               clusterToCount(clusterId) += 1
+              tagsFound(clusterId) += (tag+ ",")
             }
           }
         }
       }
       for(k <- clusterToCount.keys)
       {
-        allTags.append((user,clusterToGroupIdx(k),k))
+        allTags.append((user,clusterToGroupIdx(k),k,tagsFound(k)))
       }
       allTags
     }
@@ -226,13 +229,20 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
     
     jsonRdd.coalesce(1, false).saveAsTextFile(outPath)
     
+    /* Not Needed?
     val clusterToGroupCSV = clusterToGroupIdx.map{case (cluster,group) => cluster.toString()+","+group.toString()}
     FileUtils.outputModelToFile(clusterToGroupCSV.toArray, outPath, DataSourceMode.fromString(outPath), "clusterToGroup.csv")
     val clusterIdxCSV = clusterIdx.map{case (cluster,idx) => cluster +","+idx.toString()}
     FileUtils.outputModelToFile(clusterIdxCSV.toArray, outPath, DataSourceMode.fromString(outPath), "cluster.csv")
     val groupIdxCSV = groupIdx.map{case (group,idx) => group+","+idx.toString()}
     FileUtils.outputModelToFile(groupIdxCSV.toArray, outPath, DataSourceMode.fromString(outPath), "group.csv")
-
+    */
+    val tagFilterDefnsCSV = tagFilterDefns.map{case (tag,(groupName,clusterName)) =>
+      val groupId = groupIdx(groupName)
+      val clusterId = clusterIdx(clusterName)
+      tag+","+groupId.toString()+","+clusterId.toString()
+    }
+    FileUtils.outputModelToFile(tagFilterDefnsCSV.toArray, outPath, DataSourceMode.fromString(outPath), "tags.csv")
      if (config.activate)
        activate(outPath)
   }
