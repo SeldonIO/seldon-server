@@ -609,7 +609,7 @@ public class SqlItemPeer extends ItemPeer {
 			String itemTags = (String) r[1];
 			String[] parts = itemTags.split(",");
 			for(int i=0;i<parts.length;i++)
-				if (tags.contains(parts[i]))
+				if (tags.contains(parts[i].toLowerCase().trim()))
 				{
 					resf.add(itemId);
 					break;

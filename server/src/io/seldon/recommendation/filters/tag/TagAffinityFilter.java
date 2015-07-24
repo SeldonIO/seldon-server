@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 public class TagAffinityFilter implements ItemFilter {
 	private static Logger logger = Logger.getLogger(TagAffinityFilter.class.getName());
 	private static final String TAG_ATTR_ID_OPTION_NAME = "io.seldon.algorithm.tags.attrid";
+	private static final String TAG_NUM_ITEMS_OPTION_NAME = "io.seldon.filter.tags.numitems";
 	private final ItemStorage itemStorage;
 	private final TagAffinityFilterModelManager modelManager;
 
@@ -75,7 +76,9 @@ public class TagAffinityFilter implements ItemFilter {
 				if (logger.isDebugEnabled())
 					logger.debug("User "+user+" tag clusters  "+userClusters.toString());
 				Integer tagAttrId = optsHolder.getIntegerOption(TAG_ATTR_ID_OPTION_NAME);
-				Set<Long> items = new HashSet<Long>();
+				Integer numItemsToGet = optsHolder.getIntegerOption(TAG_NUM_ITEMS_OPTION_NAME);
+				Set<Long> itemsToExclude = new HashSet<Long>();
+				Set<Long> itemsToInclude = new HashSet<Long>();
 				for(Map.Entry<Integer,Set<Integer>> e : model.groupToClustersMap.entrySet())
 				{
 					Set<Integer> clusters = e.getValue();
@@ -83,17 +86,32 @@ public class TagAffinityFilter implements ItemFilter {
 					{
 						for(Integer cluster : clusters)
 						{
+							
+							if (logger.isDebugEnabled())
+								logger.debug("Getting recent items from cluster "+cluster+" with tags "+model.clusterToTagsMap.get(cluster).toString()+" with tagAttrId "+tagAttrId+" numItemsToGet "+numItemsToGet);
+							FilteredItems fItems = itemStorage.retrieveRecentlyAddedItemsWithTags(client, numItemsToGet, tagAttrId, model.clusterToTagsMap.get(cluster), cluster);
+							if (logger.isDebugEnabled())
+								logger.debug("Found filtered items "+fItems.getItems().size());
 							if (!userClusters.contains(cluster)) // if user is NOT in this cluster get items to exclude for it
 							{
-								if (logger.isDebugEnabled())
-									logger.debug("Getting recent items from cluster "+cluster+" with tags "+model.clusterToTagsMap.get(cluster).toString());
-								FilteredItems fItems = itemStorage.retrieveRecentlyAddedItemsWithTags(client, 100, tagAttrId, model.clusterToTagsMap.get(cluster), cluster);
-								items.addAll(fItems.getItems());
+								itemsToExclude.addAll(fItems.getItems());
+							}
+							else
+							{
+								itemsToInclude.addAll(fItems.getItems());
 							}
 						}
 					}
 				}
-				return new ArrayList<Long>(items);
+				if (itemsToExclude.size()>0)
+				{
+					int exSize = itemsToExclude.size();
+					int inSize = itemsToInclude.size();
+					itemsToExclude.removeAll(itemsToInclude);
+					int exSize2 = itemsToExclude.size();
+					logger.info("Filtering user "+user+" with data before,incl,after :"+exSize+","+inSize+","+exSize2+": "+itemsToExclude.toString());
+					return new ArrayList<Long>(itemsToExclude);
+				}
 			}
 		}	
 			

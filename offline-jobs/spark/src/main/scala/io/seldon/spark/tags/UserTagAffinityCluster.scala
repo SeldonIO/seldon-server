@@ -225,7 +225,7 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
    
     val jsonRdd = convertJson(tagAffinity)
     
-    val outPath = config.outputPath + "/" + config.client + "/tagclusters/"+config.startDay
+    val outPath = config.outputPath + "/" + config.client + "/tagcluster/"+config.startDay
     
     jsonRdd.coalesce(1, false).saveAsTextFile(outPath)
     
@@ -257,7 +257,7 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
     if (config.zkHosts.nonEmpty) 
      {
        val curator = new ZkCuratorHandler(config.zkHosts)
-       val path = "/all_clients/"+config.client+"/offline/tagclusters"
+       val path = "/all_clients/"+config.client+"/offline/tagcluster"
        if (curator.getCurator.checkExists().forPath(path) != null)
        {
          val bytes = curator.getCurator.getData().forPath(path)
