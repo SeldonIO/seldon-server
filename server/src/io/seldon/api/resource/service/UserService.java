@@ -112,7 +112,7 @@ public class UserService {
 		 res = getInternalUserIdInternal(consumerShortName, id);
          if (res == null)
 		 {
-	        logger.warn("getInternalUserId(" + id + "): USER NOT FOUND");
+	        logger.info("getInternalUserId(" + id + "): USER NOT FOUND");
       		throw new APIException(APIException.USER_NOT_FOUND);
 
 		 }
@@ -167,7 +167,7 @@ public class UserService {
                 }
             }
             else {
-                logger.warn("getClientUserId(" + id + "): USER NOT FOUND");
+                logger.info("getClientUserId(" + id + "): USER NOT FOUND");
                 throw new APIException(APIException.USER_NOT_FOUND);
             }
         }

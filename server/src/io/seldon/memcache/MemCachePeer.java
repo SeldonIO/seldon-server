@@ -104,7 +104,7 @@ public class MemCachePeer {
 		}
 		catch (Exception ex)
 		{
-			logger.warn("Memcache delete exeption ",ex);
+			logger.error("Memcache delete exeption ",ex);
 		}
 	}
 	
@@ -118,7 +118,7 @@ public class MemCachePeer {
 		}
 		catch (Exception ex)
 		{
-			logger.warn("Memcache put exeption ",ex);
+			logger.error("Memcache put exeption ",ex);
 		}
 	}
 	
@@ -174,7 +174,7 @@ public class MemCachePeer {
 		}
 		catch (Exception ex)
 		{
-			logger.warn("Memcache get exeption ",ex);
+			logger.error("Memcache get exeption ",ex);
 			return null;
 		}
 		}

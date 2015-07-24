@@ -250,7 +250,7 @@ public class ItemService {
                 cacheInternalItemId(c, id, res);
             }
 			else {
-				logger.warn("getInternalItemId(" + id + "): ITEM NOT FOUND");
+				logger.info("getInternalItemId(" + id + "): ITEM NOT FOUND");
 				throw new APIException(APIException.ITEM_NOT_FOUND);
 			}
 		}
@@ -282,7 +282,7 @@ public class ItemService {
                 cacheClientItemId(c, id, res);
             }
 			else {
-				logger.warn("getClientItemId(" + id + "): ITEM NOT FOUND");
+				logger.info("getClientItemId(" + id + "): ITEM NOT FOUND");
 				throw new APIException(APIException.ITEM_NOT_FOUND);
 			}
 		}
