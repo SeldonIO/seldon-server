@@ -108,7 +108,7 @@ class CtrByRectag(private val sc : SparkContext,config : CtrByRectagConfig) {
     // this is used to implicitly convert an RDD to a DataFrame.
     import sqlContext.implicits._
        
-    val imps = parseJson(lines).coalesce(200, false)
+    val imps = parseJson(lines)
     
     imps.toDF().registerTempTable("imps")
     
