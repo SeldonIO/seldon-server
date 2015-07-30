@@ -197,6 +197,11 @@
 			<artifactId>jcommander</artifactId>
 			<version>1.35</version>
     </dependency>
+    <dependency>
+   		<groupId>com.netaporter</groupId>
+   		<artifactId>scala-uri_2.10</artifactId>
+   		<version>0.4.8</version>
+	</dependency>
   </dependencies>
   
   
