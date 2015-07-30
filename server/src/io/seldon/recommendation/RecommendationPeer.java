@@ -158,7 +158,7 @@ public class RecommendationPeer {
 					numRecommendations, ctxt, recentItemInteractions);
 
 		    resultSets.add(new RecResultContext(results, results.getRecommenderName()));
-			if(combiner.isEnoughResults(numRecommendations, resultSets))
+			if(combiner.isEnoughResults(numRecommendationsAsked, resultSets))
 				break;
 		}
         RecResultContext combinedResults = combiner.combine(numRecommendations, resultSets);
