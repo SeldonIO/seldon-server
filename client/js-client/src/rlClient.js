@@ -268,6 +268,32 @@ var rlClient = (function () {
         });
     }
 
+    function recommendationsStaticCustomUrl(custom_url, callback, options) {
+        var o = options || {};
+        custom_url += "?jsonpCallback=unused";
+        ajax({
+            url: custom_url,
+            type: 'jsonp',
+            jsonpCallback: 'jsonpCallback',
+            success: function (response) {
+                var recommendations_list = [],
+                    cohort = "-";
+                if ((response !== null) && (response !== undefined) && (response.error_id === undefined)) {
+                    if (response.list) {
+                        recommendations_list = response.list;
+                    } else {
+                        recommendations_list = response.recommendedItems;
+                        cohort = response.cohort;
+                    }
+
+                    if (o.appendClick) {
+                        appendClickTo(recommendations_list, options);
+                    }
+                }
+                callback({recs: recommendations_list, cohort: cohort, service_type: "fallback"});
+            }
+        });
+    }
 
     function recommendations(user_id, callback, options) {
         var o = options || {};
@@ -305,6 +331,7 @@ var rlClient = (function () {
         recommendedUsers: recommendedUsers,
         addAction: addAction,
         recommendations: recommendations,
-        recommendationsStatic: recommendationsStatic
+        recommendationsStatic: recommendationsStatic,
+        recommendationsStaticCustomUrl: recommendationsStaticCustomUrl
     };
 }());
