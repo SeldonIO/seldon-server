@@ -269,9 +269,9 @@ var rlClient = (function () {
     }
 
     function recommendationsStaticCustomUrl(custom_url, callback, options) {
-        var o = options || {};
-        var stamp = new Date().getTime(),
-            custom_url = custom_url + (custom_url.match(/\?/) ? "&" : "?") + "timestamp="+stamp+"&jsonpCallback=unused";
+        var o = options || {},
+            stamp = new Date().getTime();
+        custom_url = custom_url + (custom_url.match(/\?/) ? "&" : "?") + "timestamp=" + stamp + "&jsonpCallback=unused";
         ajax({
             url: custom_url,
             type: 'jsonp',
