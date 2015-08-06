@@ -23,23 +23,22 @@
 
 package io.seldon.clustering.recommender.jdo;
 
-import io.seldon.api.state.NewClientListener;
+import io.seldon.api.state.ClientConfigHandler;
+import io.seldon.api.state.ClientConfigUpdateListener;
 import io.seldon.api.state.options.DefaultOptions;
-import io.seldon.api.state.zk.ZkClientConfigHandler;
+import io.seldon.db.jdo.DbConfigHandler;
+import io.seldon.db.jdo.DbConfigListener;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
-import io.seldon.db.jdo.DbConfigHandler;
-import io.seldon.db.jdo.DbConfigListener;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AsyncClusterCountFactory implements DbConfigListener {
+public class AsyncClusterCountFactory implements DbConfigListener, ClientConfigUpdateListener {
 
 	private static Logger logger = Logger.getLogger(AsyncClusterCountFactory.class.getName());
 
@@ -49,20 +48,30 @@ public class AsyncClusterCountFactory implements DbConfigListener {
 	private static int DEF_MAXQSIZE = 100000;
 	private static int DEF_BATCH_SIZE = 4000;
 	private static int DEF_DB_RETRIES = 3;
-	private static int DEF_DECAY = 43200;
+	private static int DEF_DECAY = 10800;
 	private static boolean DEF_USE_DB_TIME = true;
 	
+	private static final String DECAY_RATE_KEY = "cluster_decay_rate";
+	
 	private static final String ASYNC_PROP_PREFIX = "io.seldon.async.counter";
+	private ClientConfigHandler configHandler;
 	
 	DefaultOptions options;
 	
 	@Autowired
-	public AsyncClusterCountFactory(DefaultOptions options, DbConfigHandler dbConfigHandler)
+	public AsyncClusterCountFactory(DefaultOptions options, DbConfigHandler dbConfigHandler,ClientConfigHandler configHandler)
 	{
 		this.options = options;
+		this.configHandler = configHandler;
 		dbConfigHandler.addDbConfigListener(this);
 	}
 
+	 @PostConstruct
+	 private void init(){
+	        logger.info("Initializing...");
+	        configHandler.addListener(this);
+	    }
+	
 	public void clientDeleted(String client) {
 		logger.info("Removing client:"+client);
 		AsyncClusterCountStore q = queues.get(client);
@@ -111,5 +120,33 @@ public class AsyncClusterCountFactory implements DbConfigListener {
 	public void dbConfigInitialised(String client) {
 		logger.info("Adding client:"+client);
 		createAndStore(client);
+	}
+
+	@Override
+	public void configUpdated(String client, String configKey, String configValue) {
+		if (configKey.equals(DECAY_RATE_KEY))
+		{
+			logger.info("Received config updated for "+client+" with key "+configKey+" value "+configValue);
+			if (queues.containsKey(client))
+			{
+				try
+				{
+					Double decayRate = Double.parseDouble(configValue);
+					queues.get(client).setDecay(decayRate);
+					logger.info("Updated decay rate for client "+client+" to "+decayRate);
+				}
+				catch (NumberFormatException e)
+				{
+					logger.error("Failed to parse decay rate for "+client+" value "+configValue);
+				}
+			}
+		}
+
+		
+	}
+
+	@Override
+	public void configRemoved(String client, String configKey) {
+		//DO NOTHING
 	}
 }

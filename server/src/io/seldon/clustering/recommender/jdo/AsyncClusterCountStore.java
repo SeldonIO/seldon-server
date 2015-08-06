@@ -294,7 +294,7 @@ public class AsyncClusterCountStore implements Runnable {
     	this.countsAddedTotal++;
     }
     
-    private int addSQLs() throws SQLException
+    private synchronized int addSQLs() throws SQLException
     {
     	getConnectionIfNeeded();
 		
