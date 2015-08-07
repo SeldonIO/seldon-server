@@ -100,7 +100,7 @@ class UserTagAffinityCluster(private val sc : SparkContext,config : ClusterTagAf
     val curator = new ZkCuratorHandler(config.zkHosts)
     if(curator.getCurator.getZookeeperClient.blockUntilConnectedOrTimedOut())
     {
-        val zkPath = "/all_clients/"+config.client+"/tagaffinity"
+        val zkPath = "/all_clients/"+config.client+"/tagcluster"
         val ensurePath = new EnsurePath(zkPath)
         ensurePath.ensure(curator.getCurator.getZookeeperClient)
         curator.getCurator.setData().forPath(zkPath,location.getBytes())
