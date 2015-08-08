@@ -35,11 +35,11 @@ if __name__ == '__main__':
 
     for line in sys.stdin:
         line = line.rstrip()
-        parts = line.split('\t')
-        if len(parts) == 3 and not line.startswith("#"):
+        parts = line.split()
+        if not line.startswith("#"):
             clients = parts[0].split(',')
             node = parts[1]
-            value = parts[2]
+            value = " ".join(parts[2:])
             print "--------------------------"
             print parts[0],node,"->",value
             for client in clients:

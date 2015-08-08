@@ -115,49 +115,27 @@ class VWSeldon:
         self.create_vw(conf)
         self.features = conf.get('features',{})
         self.fns = conf.get('namespaces',{})
+        #stream data into vw
         inputPath = conf["inputPath"] + "/" + client + "/features/" + str(conf['day']) + "/"
         print "inputPath->",inputPath
         if inputPath.startswith("s3n://"):
             isS3 = True
-            inputPath = inputPath[6:]
         elif inputPath.startswith("s3://"):
             isS3 = True
-            inputPath = inputPath[5:]
         else:
             isS3 = False
-        if isS3:
-            fileUtil = S3FileUtil(self.awsKey,self.awsSecret)
-            print "AWS S3 input path ",inputPath
-            parts = inputPath.split('/')
-            bucket = parts[0]
-            prefix = inputPath[len(bucket)+1:]
-            fileUtil.stream(bucket,prefix,self)
-        else:
-            fileUtil = LocalFileUtil() 
-            folders = [inputPath+"*"]
-            print "local input folders: ",folders
-            fileUtil.stream(folders,self)
+        fileUtil = FileUtil(key=self.awsKey,secret=self.awsSecret)
+        fileUtil.stream(inputPath,self.process)
+        # save vw model
         self.vw2.save_model("./model")
         self.vw2.close()
         print "lines processed ",self.numLinesProcessed
-        # push model to output path on s3 or local
+        # copy models to final location
         outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["day"])
         print "outputPath->",outputPath
-        if outputPath.startswith("s3n://"):
-            isS3 = True
-        else:
-            isS3 = False
-        if isS3:
-            noSchemePath = outputPath[6:]
-            parts = noSchemePath.split('/')
-            bucket = parts[0]
-            path = noSchemePath[len(bucket)+1:]
-            fileUtil = S3FileUtil(self.awsKey,self.awsSecret)
-            fileUtil.copy("./model",bucket,path+"/model")
-            fileUtil.copy("./model.readable",bucket,path+"/model.readable")
-        else:
-            fileUtil = LocalFileUtil() 
-            fileUtil.copy("./model",outputPath+"/model")
-            fileUtil.copy("./model.readable",outputPath+"/model.readable")
+
+        fileUtil.upload("./model",outputPath+"/model")
+        fileUtil.upload("./model.readable",outputPath+"/model.readable")
+
         if "activate" in conf and conf["activate"]:
             self.activateModel(client,str(outputPath))
