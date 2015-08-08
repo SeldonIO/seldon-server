@@ -156,7 +156,7 @@ public class RecommendationService {
             }
             catch (JDODataStoreException e)
             {
-                logger.warn("Got a datastore exception trying to get userid for "+userId+" client "+shortName,e);
+                logger.error("Got a datastore exception trying to get userid for "+userId+" client "+shortName,e);
                 internalUserId = Constants.ANONYMOUS_USER;
             }
 
@@ -178,7 +178,7 @@ public class RecommendationService {
                 try {
                     recommendedItemId = itemService.getClientItemId(consumerBean, internalId);
                 } catch (APIException e) {
-                    logger.warn("Item with internal ID " + internalId + " not found; ignoring..." , e);
+                    logger.info("Item with internal ID " + internalId + " not found; ignoring..." , e);
                 }
                 if (recommendedItemId != null) {
                     final ItemBean itemBean = ItemService.getItem(consumerBean, recommendedItemId, full);

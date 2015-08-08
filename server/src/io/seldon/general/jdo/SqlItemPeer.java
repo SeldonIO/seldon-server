@@ -595,6 +595,31 @@ public class SqlItemPeer extends ItemPeer {
 		query.closeAll();
 		return resf;
 	}
+
+	@Override
+	public List<Long> getRecentItemIdsWithTags(int tagAttrId,Set<String> tags, int limit) {
+		Query query;
+		query = pm.newQuery("javax.jdo.query.SQL","select item_id,value from item_map_varchar where attr_id=? order by item_id desc limit "+limit);			
+
+		Collection<Object[]> results = (Collection<Object[]>) query.execute(tagAttrId);
+		List<Long> resf = new ArrayList<>();
+		for(Object[] r : results)
+		{
+			Long itemId = (Long) r[0];
+			String itemTags = (String) r[1];
+			String[] parts = itemTags.split(",");
+			for(int i=0;i<parts.length;i++)
+				if (tags.contains(parts[i].toLowerCase().trim()))
+				{
+					resf.add(itemId);
+					break;
+				}
+		}
+		query.closeAll();
+		return resf;
+	}
+
+	
 	
 	@Override
 	public Map<Long, List<String>> getRecentItemTags(Set<Long> ids, int attrId,String table) {

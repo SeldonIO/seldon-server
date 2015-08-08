@@ -13,7 +13,7 @@ def lowercase_clients(data):
 requiredSections = ["db","memcached"]
 propertyToZkNode = dict()
 propertyToZkNode["db"] = "/config/dbcp"
-propertyToZkNode["memcached"] = "/config/memcached_servers"
+propertyToZkNode["memcached"] = "/config/memcached"
 propertyToZkNode["statsd"] = "/config/statsd"
 propertyToZkNode["clients"] = "/all_clients"
 

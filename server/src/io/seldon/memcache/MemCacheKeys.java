@@ -47,7 +47,7 @@ public class MemCacheKeys {
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
 			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
-			RecentRecsForUsers, RecentItemsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
+			RecentRecsForUsers, RecentItemsJSON, RecentItemsWithTagsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
             FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder
 			};
@@ -428,6 +428,11 @@ public class MemCacheKeys {
 	public static String getRecentItems(String client,Set<Integer> dimensions,int size)
 	{
 		return ""+keys.RecentItemsJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+size;
+	}
+	
+	public static String getRecentItemsWithTags(String client,int tagAttrId,int tagKey,int size)
+	{
+		return ""+keys.RecentItemsWithTagsJSON.name()+":"+client+":"+":"+tagAttrId+":"+tagKey+":"+size;
 	}
 
 	public static String getPopularItems(String client, Set<Integer> dimensions, int size){

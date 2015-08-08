@@ -31,14 +31,14 @@ object FileUtils {
   def outputModelToFile(model: RDD[String],outputFilesLocation:String, outputType:DataSourceMode,filename:String) {
     outputType match {
       case LOCAL => outputModelToLocalFile(model.collect(),outputFilesLocation,filename)
-      case S3 => outputModelToS3File(model.collect(), outputFilesLocation, filename)
+      case S3 => outputModelToS3File(model.collect(), toOutputResource(outputFilesLocation,outputType), filename)
     }
  }
   
   def outputModelToFile(lines: Array[String],outputFilesLocation:String, outputType:DataSourceMode,filename:String) {
     outputType match {
       case LOCAL => outputModelToLocalFile(lines,outputFilesLocation,filename)
-      case S3 => outputModelToS3File(lines, outputFilesLocation, filename)
+      case S3 => outputModelToS3File(lines, toOutputResource(outputFilesLocation,outputType), filename)
     }
  }
   
@@ -76,6 +76,7 @@ object FileUtils {
       outBuf.append("\n")
     })
      val obj = new S3Object(s3Folder+"/"+filename, outBuf.toString())
+     service.putObject(bucket, obj)
   }
 
   def gzip(path: String):File = {

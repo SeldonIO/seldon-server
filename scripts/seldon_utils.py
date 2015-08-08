@@ -1,6 +1,7 @@
 from kazoo.client import KazooClient
 import json, os, random, string
 import MySQLdb
+import sys
 
 def retrieveDbSettings(data):
 	dbs = {}
@@ -35,8 +36,13 @@ def memcachedSetup(zk, data, zkNode):
 		port = server['port']
 		serverStr = host+":"+str(port)
 		servers.append(serverStr)
+        server_list=str(",".join(servers))
+        zkNodeValueBuilder = {}
+        zkNodeValueBuilder["servers"] = server_list
+        zkNodeValueBuilder["numClients"] = 1
+        zkNodeValue = json.dumps(zkNodeValueBuilder)
 	zk.ensure_path(zkNode)
-	zk.set(zkNode,str(",".join(servers)))
+	zk.set(zkNode,zkNodeValue)
 
 def addClientDb(clientName, dbSettings, consumer_details=None):
 

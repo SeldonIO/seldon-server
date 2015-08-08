@@ -21,21 +21,18 @@
 */
 package io.seldon.ar;
 
-import io.seldon.mf.PerClientExternalLocationListener;
 import io.seldon.recommendation.model.ModelManager;
 import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
-import io.seldon.tags.UserTagAffinityManager;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class AssocRuleManager extends ModelManager<AssocRuleManager.AssocRuleStore> {
 
-    private static Logger logger = Logger.getLogger(UserTagAffinityManager.class.getName());
+    private static Logger logger = Logger.getLogger(AssocRuleManager.class.getName());
     private final ExternalResourceStreamer featuresFileHandler;
     public static final String ASSOC_NEW_LOC_PATTERN = "assocrules";
 
@@ -100,8 +97,6 @@ public class AssocRuleManager extends ModelManager<AssocRuleManager.AssocRuleSto
             logger.info("finished load of " + store.assocRules.size() + " user assoc rules for client " + client);
             return store;
         } catch (IOException e) {
-            logger.error("Couldn't reloadFeatures for client " + client, e);
-
             logger.error("Couldn't reloadFeatures for client " + client, e);
         }
 

@@ -23,6 +23,10 @@
 
 package io.seldon.api.service.async;
 
+import io.seldon.api.Constants;
+import io.seldon.db.jdbc.JDBCConnectionFactory;
+import io.seldon.general.Action;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -30,10 +34,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-
-import io.seldon.api.Constants;
-import io.seldon.db.jdbc.JDBCConnectionFactory;
-import io.seldon.general.Action;
 
 /**
  * Provide an batched insert of Actions (including creating new users and items).
@@ -127,10 +127,14 @@ public class JdoAsyncActionQueue implements Runnable, AsyncActionQueue {
                 if (runSQL)
                     runSQL();
                 if (!keepRunning && action == null)
+                {
+                	logger.warn("Asked to stop as keepRunning is false");
                 	return;
+                }
 
             } 
             catch (InterruptedException e) {
+            	logger.error("Received interrupted exception - will stop",e);
                 return;
             }
             catch (Exception e)

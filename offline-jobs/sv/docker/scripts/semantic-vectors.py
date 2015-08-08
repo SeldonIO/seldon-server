@@ -64,7 +64,6 @@ def copyToS3(args,folder):
     # Create a multipart upload request
     uploadPath = path + "/" + os.path.basename(source_path)
     print "uploading to bucket ",bucketName," path ",uploadPath
-    sys.exit(-1)
     mp = b.initiate_multipart_upload(uploadPath)
     # Use a chunk size of 50 MiB (feel free to change this)
     chunk_size = 10485760
