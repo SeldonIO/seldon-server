@@ -15,6 +15,11 @@ class Feature_transform(object):
     def set_models(models):
         self.models = models
 
+    def set_input_feature(self,feature):
+        self.input_feature = feature
+
+    def set_output_feature(self,feature):
+        self.output_feature = feature
 
 
 class Pipeline(object):
@@ -61,7 +66,6 @@ class Pipeline(object):
 
     def process(self,line):
         j = json.loads(line)
-        print j
         self.objs.append(j)
 
     def getFeatures(self,location):
