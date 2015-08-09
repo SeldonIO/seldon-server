@@ -134,8 +134,8 @@ class VWSeldon:
         outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["day"])
         print "outputPath->",outputPath
 
-        fileUtil.upload("./model",outputPath+"/model")
-        fileUtil.upload("./model.readable",outputPath+"/model.readable")
+        fileUtil.copy("./model",outputPath+"/model")
+        fileUtil.copy("./model.readable",outputPath+"/model.readable")
 
         if "activate" in conf and conf["activate"]:
             self.activateModel(client,str(outputPath))

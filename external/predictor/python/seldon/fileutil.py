@@ -59,10 +59,20 @@ class FileUtil:
 
     def copy_local(self,fromPath,toPath):
         print "copy ",fromPath,"to",toPath
-        dir = os.path.dirname(toPath)
-        if len(dir) > 0 and not os.path.exists(dir):
-            os.makedirs(dir)
-        copyfile(fromPath,toPath)
+        if os.path.isfile(fromPath):
+            dir = os.path.dirname(toPath)
+            if len(dir) > 0 and not os.path.exists(dir):
+                os.makedirs(dir)
+            copyfile(fromPath,toPath)
+        elif os.path.isdir(fromPath):
+            if not os.path.exists(toPath):
+                os.makedirs(toPath)
+            for f in glob.glob(fromPath+"/*"):
+                basename = os.path.basename(f)
+                fnew = toPath+"/"+basename
+                print "copying ",f,"to",fnew
+                copyfile(f,fnew)
+
 
 
     def getGlob(self,startDay,numDays):
@@ -85,7 +95,8 @@ class FileUtil:
             else:
                 self.stream_text(k,fn)
 
-    def copy_s3(self,fromPath,bucket,path):
+
+    def copy_s3_file(self,fromPath,bucket,path):
         if self.key:
             self.conn = boto.connect_s3(self.key,self.secret)
         else:
@@ -109,15 +120,6 @@ class FileUtil:
         print "completing transfer to s3"
         mp.complete_upload()
 
-    def download_s3(self,bucket,s3path,localPath):
-        if self.key:
-            self.conn = boto.connect_s3(self.key,self.secret)
-        else:
-            self.conn = boto.connect_s3()
-        print bucket, s3path, localPath
-        b = self.conn.get_bucket(bucket)
-        key = b.get_key(s3path)
-        key.get_contents_to_filename(localPath)
 
     def stream(self,inputPath,fn):
         if inputPath.startswith("s3n://"):
@@ -135,42 +137,68 @@ class FileUtil:
             prefix = inputPath[len(bucket)+1:]
             self.stream_s3(bucket,prefix,fn)
         else:
-            folders = [inputPath+"*"]
+            folders = [inputPath+"/*"]
             print "local input folders: ",folders
             self.stream_local(folders,fn)
 
-    def upload(self,path,outputPath):
-        if outputPath.startswith("s3n://"):
-            noSchemePath = outputPath[6:]
-            isS3 = True
-        elif outputPath.startswith("s3://"):
-            noSchemePath = outputPath[5:]
-            isS3 = True
-        else:
-            isS3 = False
-        if isS3:
-            parts = noSchemePath.split('/')
-            bucket = parts[0]
-            opath = noSchemePath[len(bucket)+1:]
-            self.copy_s3(path,bucket,opath)
-        else:
-            self.copy_local(path,outputPath)
+    def upload_s3(self,fromPath,toPath):
+        if toPath.startswith("s3n://"):
+            noSchemePath = toPath[6:]
+        elif toPath.startswith("s3://"):
+            noSchemePath = toPath[5:]
+        parts = noSchemePath.split('/')
+        bucket = parts[0]
+        opath = noSchemePath[len(bucket)+1:]
+        if os.path.isfile(fromPath):
+            self.copy_s3_file(fromPath,bucket,opath)
+        elif os.path.isdir(fromPath):
+            for f in glob.glob(fromPath+"/*"):
+                basename = os.path.basename(f)
+                fnew = opath+"/"+basename
+                print "copying ",f,"to",fnew
+                self.copy_s3_file(f,bucket,fnew)
 
-    def download(self,fromPath,toPath):
+    def download_s3(self,fromPath,toPath):
         if fromPath.startswith("s3n://"):
-            isS3 = True
-            fromPath = fromPath[6:]
+            noSchemePath = fromPath[6:]
         elif fromPath.startswith("s3://"):
-            isS3 = True
-            fromPath = inputPath[5:]
+            noSchemePath = fromPath[5:]
+        parts = noSchemePath.split('/')
+        bucket = parts[0]
+        s3path = noSchemePath[len(bucket)+1:]
+        if self.key:
+            self.conn = boto.connect_s3(self.key,self.secret)
         else:
-            isS3 = False
-        if isS3:
-            print "AWS S3 input path ",fromPath
-            parts = fromPath.split('/')
-            bucket = parts[0]
-            prefix = fromPath[len(bucket)+1:]
-            self.download_s3(bucket,prefix,toPath)
+            self.conn = boto.connect_s3()
+        print bucket, s3path, toPath
+        b = self.conn.get_bucket(bucket)
+        for k in b.list(prefix=s3path):
+            basename = os.path.basename(k.name)
+            fnew = toPath+"/"+basename
+            print "copying ",k.name,"to",fnew
+            k.get_contents_to_filename(fnew)
+
+
+    def copy(self,fromPath,toPath):
+        if fromPath.startswith("s3n://") or fromPath.startswith("s3://"):
+            fromS3 = True
         else:
+            fromS3 = False
+        if toPath.startswith("s3n://") or toPath.startswith("s3://"):
+            toS3 = True
+        else:
+            toS3 = False
+        if not fromS3 and not toS3:
             self.copy_local(fromPath,toPath)
+        elif not fromS3 and toS3:
+            self.upload_s3(fromPath,toPath)
+        elif fromS3 and not toS3:
+            if os.path.isdir(toPath):
+                self.download_s3(fromPath,toPath)
+            else:
+                print "Local destination folder must exist :",toPath
+        else:
+            print "can't copy from s3 to s3"
+            
+
         
