@@ -70,6 +70,7 @@ public abstract class ItemPeer {
 	public abstract Collection<String> getItemSemanticAttributes(long itemId);
 	public abstract long getMinItemId(Date after,Integer type,ConsumerBean c);
 	public abstract List<Long> getRecentItemIds(Set<Integer> dimensions,int limit,ConsumerBean c);
+	public abstract List<Long> getRecentItemIdsTwoDimensions(Set<Integer> dimensions,int dimension2,int limit,ConsumerBean c);
 	public abstract Map<Long,List<String>> getRecentItemTags(Set<Long> ids,int attrId,String table);
 	public abstract List<Long> getRecentItemIdsWithTags(int tagAttrId,Set<String> tags, int limit);
 	

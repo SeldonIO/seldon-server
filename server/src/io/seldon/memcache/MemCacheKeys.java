@@ -47,7 +47,7 @@ public class MemCacheKeys {
 			WebHitsForUser,ClusterCount,ClusterCountDecay,SharingRecommendation,ActionHistory,
 			RankedItems,ABTesting,DynamicParameters,ShortTermClusters,
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
-			RecentRecsForUsers, RecentItemsJSON, RecentItemsWithTagsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
+			RecentRecsForUsers, RecentItemsJSON, RecentItemsDimJSON, RecentItemsWithTagsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
             FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder
 			};
@@ -428,6 +428,11 @@ public class MemCacheKeys {
 	public static String getRecentItems(String client,Set<Integer> dimensions,int size)
 	{
 		return ""+keys.RecentItemsJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+size;
+	}
+	
+	public static String getRecentItemsInDimension(String client,Set<Integer> dimensions,int dimId,int size)
+	{
+		return ""+keys.RecentItemsDimJSON.name()+":"+client+":"+StringUtils.join(dimensions, ",")+":"+dimId+":"+size;
 	}
 	
 	public static String getRecentItemsWithTags(String client,int tagAttrId,int tagKey,int size)

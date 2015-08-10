@@ -123,6 +123,17 @@ public class ItemStorage {
         return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,SecurityHashPeer.md5(key));
     }
     
+    public FilteredItems retrieveRecentlyAddedItemsTwoDimensions(final String client, final int numItems, final Set<Integer> dimensions,final int dimension2){
+        final String key = MemCacheKeys.getRecentItemsInDimension(client, dimensions, dimension2, numItems);
+        List<Long> retrievedItems = retrieveUsingJSON(key, numItems, new UpdateRetriever<List<Long>>() {
+            @Override
+            public List<Long> retrieve() throws Exception {
+                return provider.getItemPersister(client).getRecentItemIdsTwoDimensions(dimensions, dimension2, numItems, null);
+            }
+        }, new TypeReference<List<Long>>() {}, RECENT_ITEMS_EXPIRE_TIME);
+        return new FilteredItems(retrievedItems==null? Collections.EMPTY_LIST : retrievedItems,SecurityHashPeer.md5(key));
+    }
+    
     public FilteredItems retrieveExplicitItems(final String client,final Set<Long> items)
     
     {
