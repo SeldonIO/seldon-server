@@ -21,12 +21,13 @@ class Tfidf_transform(pl.Feature_transform):
             return ""
 
     def get_models(self):
-        return [(self.min_df,self.max_df,self.select_features,self.topn_features,self.stop_words,self.target_feature),self.vectorizer,self.tfidf_transformer,self.ch2,self.fnames,self.feature_names_support]
+        return super(Tfidf_transform, self).get_models() + [(self.min_df,self.max_df,self.select_features,self.topn_features,self.stop_words,self.target_feature),self.vectorizer,self.tfidf_transformer,self.ch2,self.fnames,self.feature_names_support]
     
     def get_model_names(self):
-        return [self.__class__.__name__+"_params",self.__class__.__name__+"_vectorizer",self.__class__.__name__+"_tfidf",self.__class__.__name__+"_ch2",self.__class__.__name__+"_fnames",self.__class__.__name__+"_fname_support"]
+        return super(Tfidf_transform, self).get_model_names() + [self.__class__.__name__+"_params",self.__class__.__name__+"_vectorizer",self.__class__.__name__+"_tfidf",self.__class__.__name__+"_ch2",self.__class__.__name__+"_fnames",self.__class__.__name__+"_fname_support"]
 
     def set_models(self,models):
+        models = super(Tfidf_transform, self).set_models(models)
         (self.min_df,self.max_df,self.select_features,self.topn_features,self.stop_words,self.target_feature) = models[0]
         self.vectorizer = models[1]
         self.tfidf_transformer = models[2]

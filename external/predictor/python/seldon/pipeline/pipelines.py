@@ -6,14 +6,16 @@ class Feature_transform(object):
 
     # return models
     def get_models(self):
-        return []
+        return [self.input_feature,self.output_feature]
     
     # return model string names
     def get_model_names(self):
-        return []
+        return [self.__class__.__name__+"_input_feature",self.__class__.__name__+"_output_feature"]
 
-    def set_models(models):
-        self.models = models
+    def set_models(self,models):
+        self.input_feature = models[0]
+        self.output_feature = models[1]
+        return models[2:]
 
     def set_input_feature(self,feature):
         self.input_feature = feature
