@@ -368,6 +368,11 @@ public class MemCacheKeys {
 		return ""+keys.TopClusterCounts.name()+":"+client+":"+clusterId+":"+StringUtils.join(dimensions, ",")+":"+limit;
 	}
 	
+	public static String getTopClusterCountsForTwoDimensions(String client,int clusterId,Set<Integer> dimensions,int dim2,int limit)
+	{
+		return ""+keys.TopClusterCounts.name()+":"+client+":"+clusterId+":"+StringUtils.join(dimensions, ",")+":"+dim2+":"+limit;
+	}
+	
 	public static String getTopClusterCountsForDimensionAlg(String client,String alg,int clusterId,Set<Integer> dimensions,int limit)
 	{
 		return ""+keys.TopClusterCounts.name()+":"+client+":"+alg+":"+clusterId+":"+StringUtils.join(dimensions, ",")+":"+limit;

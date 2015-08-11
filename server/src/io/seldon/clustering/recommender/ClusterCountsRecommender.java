@@ -40,7 +40,7 @@ public class ClusterCountsRecommender extends BaseClusterCountsRecommender imple
 	
     @Override
     public ItemRecommendationResultSet recommend(String client, Long user, Set<Integer> dimensions, int maxRecsCount, RecommendationContext ctxt, List<Long> recentItemInteractions) {
-        return this.recommend(name,"CLUSTER_COUNTS",client,ctxt,user,dimensions,maxRecsCount);
+        return this.recommend(name,"CLUSTER_COUNTS",client,ctxt,user,dimensions,maxRecsCount,null);
     }
 
     @Override

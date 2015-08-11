@@ -53,7 +53,7 @@ public class BaseClusterCountsRecommender {
     
     public ItemRecommendationResultSet recommend(String recommenderName, String recommenderType, String client,
                                                  RecommendationContext ctxt, Long user, Set<Integer> dimensions,
-                                                 int maxRecsCount) {
+                                                 int maxRecsCount,Integer dim2) {
         CountRecommender r = cUtils.getCountRecommender(client);
         RecommendationContext.OptionsHolder optionsHolder = ctxt.getOptsHolder();
         if (r != null)
@@ -63,13 +63,13 @@ public class BaseClusterCountsRecommender {
             if(ctxt.getMode()== RecommendationContext.MODE.EXCLUSION){
                 exclusions = ctxt.getContextItems();
             }
-            boolean includeShortTermClusters = recommenderType.equals("CLUSTER_COUNTS_DYNAMIC");
+            boolean includeShortTermClusters = (recommenderType.equals("CLUSTER_COUNTS_DYNAMIC") || recommenderType.equals("CLUSTER_COUNTS_CATEGORY_DYNAMIC")) ;
             Double longTermWeight = optionsHolder.getDoubleOption(LONG_TERM_WEIGHT_OPTION_NAME);
             Double shortTermWeight = optionsHolder.getDoubleOption(SHORT_TERM_WEIGHT_OPTION_NAME);
             Integer minClusterItems = optionsHolder.getIntegerOption(MIN_ITEMS_FOR_VALID_CLUSTER_OPTION_NAME);
             Double decayRate = optionsHolder.getDoubleOption(DECAY_RATE_OPTION_NAME);
             Map<Long, Double> recommendations = r.recommend(recommenderType, user, null, dimensions, maxRecsCount, exclusions, includeShortTermClusters,
-                    longTermWeight,shortTermWeight,decayRate,minClusterItems);
+                    longTermWeight,shortTermWeight,decayRate,minClusterItems,dim2);
             if (logger.isDebugEnabled())
             {
             	long t2 = System.currentTimeMillis();

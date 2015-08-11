@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
  *         Date: 10/12/14
  *         Time: 17:06
  */
-public abstract class BaseItemCategoryRecommender {
+public abstract class BaseItemCategoryRecommender extends BaseClusterCountsRecommender {
     private static final String CATEGORY_DIM_OPT_NAME = "io.seldon.algorithm.clusters.categorydimensionname";
     private static Logger logger = Logger.getLogger(BaseItemCategoryRecommender.class.getName());
 
