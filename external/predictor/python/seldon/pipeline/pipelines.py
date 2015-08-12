@@ -4,13 +4,27 @@ from sklearn.externals import joblib
 
 class Feature_transform(object):
 
+    def __init__(self):
+        self.pos = 0
+        self.input_feature = ""
+        self.output_feature = ""
+
+    def set_pipeline_pos(self,pos):
+        self.pos = pos
+
     # return models
     def get_models(self):
         return [self.input_feature,self.output_feature]
+
+    def add_model_prefix(self,names):
+        names2 = []
+        for name in names:
+            names2.append(str(self.pos)+self.__class__.__name__+"_"+name)
+        return names2
     
     # return model string names
     def get_model_names(self):
-        return [self.__class__.__name__+"_input_feature",self.__class__.__name__+"_output_feature"]
+        return ["input_feature","output_feature"]
 
     def set_models(self,models):
         self.input_feature = models[0]
@@ -22,6 +36,12 @@ class Feature_transform(object):
 
     def set_output_feature(self,feature):
         self.output_feature = feature
+
+    def fit(self,objs):
+        pass
+
+    def transform(self,objs):
+        return objs
 
 
 class Pipeline(object):
@@ -65,6 +85,7 @@ class Pipeline(object):
 
     def add(self,feature_transform):
         self.pipeline.append(feature_transform)
+        feature_transform.set_pipeline_pos(len(self.pipeline))
 
     def process(self,line):
         j = json.loads(line)
@@ -78,7 +99,7 @@ class Pipeline(object):
         self.download_models()
         self.getFeatures(self.input_folder)
         for ft in self.pipeline:
-            ft.set_models(self.load_models(ft.get_model_names()))
+            ft.set_models(self.load_models(ft.add_model_prefix(ft.get_model_names())))
             self.objs = ft.transform(self.objs)
         return self.objs
 
@@ -87,7 +108,7 @@ class Pipeline(object):
         for ft in self.pipeline:
             ft.fit(self.objs)
             self.objs = ft.transform(self.objs)
-            for (model,name) in zip(ft.get_models(),ft.get_model_names()):
+            for (model,name) in zip(ft.get_models(),ft.add_model_prefix(ft.get_model_names())):
                 self.store_model(model,name)
         self.upload_models()
         self.store_features()

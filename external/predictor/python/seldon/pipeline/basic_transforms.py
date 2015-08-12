@@ -9,13 +9,12 @@ class Include_features_transform(pl.Feature_transform):
         self.included = included
 
     def get_models(self):
-        return return super(Include_features_transform, self).get_models() + [self.included]
+        return [self.included]
     
     def get_model_names(self):
-        return super(Include_features_transform, self).get_model_names() + [self.__class__.__name__+"_included"]
+        return ["included"]
 
     def set_models(self,models):
-        models = super(Include_features_transform, self).set_models(models) 
         self.included = models[0]
         print "set feature names to ",self.included
 
@@ -27,8 +26,43 @@ class Include_features_transform(pl.Feature_transform):
         for j in objs:
             jNew = {}
             for feat in self.included:
-                jNew[feat] = j[feat]
+                if feat in j:
+                    jNew[feat] = j[feat]
             objs_new.append(jNew)
+        return objs_new
+
+class Exist_features_transform(pl.Feature_transform):
+
+    def __init__(self,included=None):
+        self.included = included
+        self.logger = logging.getLogger('seldon')
+
+    def get_models(self):
+        return [self.included]
+    
+    def get_model_names(self):
+        return ["included"]
+
+    def set_models(self,models):
+        self.included = models[0]
+        print "set feature names to ",self.included
+
+    def fit(self,objs):
+        pass
+
+    def transform(self,objs):
+        objs_new = []
+        excluded = 0
+        for j in objs:
+            ok = True
+            for feat in self.included:
+                if not feat in j:
+                    ok = False
+            if ok:
+                objs_new.append(j)
+            else:
+                excluded += 1
+        print "excluded ",excluded
         return objs_new
 
 # split a feature into a list of tokens
@@ -41,7 +75,7 @@ class Split_feature_transform(pl.Feature_transform):
         return super(Split_feature_transform, self).get_models() + [self.separator]
     
     def get_model_names(self):
-        return super(Split_feature_transform, self).get_model_names() + [self.__class__.__name__+"_separator"]
+        return super(Split_feature_transform, self).get_model_names() + ["separator"]
 
     def set_models(self,models):
         models = super(Split_feature_transform, self).set_models(models)
@@ -64,21 +98,23 @@ class Split_feature_transform(pl.Feature_transform):
 # optionally filter by class size
 class Feature_id_transform(pl.Feature_transform):
 
-    def __init__(self,min_size=0):
-        self.min_size = 0
+    def __init__(self,min_size=0,exclude_missing=False):
+        self.min_size = min_size
+        self.exclude_missing = exclude_missing
         self.idMap = {}
         self.logger = logging.getLogger('seldon')
 
     def get_models(self):
-        return super(Feature_id_transform, self).get_models() + [self.min_size,self.idMap]
+        return super(Feature_id_transform, self).get_models() + [(self.min_size,self.exclude_missing),self.idMap]
     
     def get_model_names(self):
-        return super(Feature_id_transform, self).get_model_names() + [self.__class__.__name__+"_"+self.output_feature+"_min_size",self.__class__.__name__+"_"+self.output_feature+"_idMap"]
+        return super(Feature_id_transform, self).get_model_names() + ["params","idMap"]
 
     def set_models(self,models):
         models = super(Feature_id_transform, self).set_models(models)
-        self.min_size = models[0]
+        (self.min_size,self.exclude_missing) = models[0]
         self.logger.info("set min feature size to %d ",self.min_size)
+        self.logger.info("exclude missing to %s ",self.exclude_missing)
         self.idMap = models[1]
 
 
@@ -103,6 +139,7 @@ class Feature_id_transform(pl.Feature_transform):
     def transform(self,objs):
         objs_new = []
         for j in objs:
+            exclude = False
             if self.input_feature in j:
                 cl = j[self.input_feature]
                 if isinstance(cl, list):
@@ -114,7 +151,12 @@ class Feature_id_transform(pl.Feature_transform):
                 else:
                     if cl in self.idMap:
                         j[self.output_feature] = self.idMap[cl]
-            objs_new.append(j)
+                    elif self.exclude_missing:
+                        exclude = True
+            elif self.exclude_missing:
+                exclude = True
+            if not exclude:
+                objs_new.append(j)
         return objs_new
 
 
