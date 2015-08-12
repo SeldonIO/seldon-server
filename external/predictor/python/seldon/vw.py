@@ -3,6 +3,7 @@ from fileutil import *
 from kazoo.client import KazooClient
 import json
 from wabbit_wappa import *
+from subprocess import call
 
 '''
 get below from zookeeper
@@ -59,45 +60,68 @@ class VWSeldon:
         else:
             return conf
 
+
+    def convertJsonFeature(self,conversion,ns,name,val):
+        if conversion == "split":
+            f = val.split()
+            ns = ns + f
+        elif isinstance(val, basestring):
+            ns.append(val)
+        else:
+            ns.append((name,float(val)))
+
     def jsonToVw(self,j):
         ns = {}
-        if self.fns:
-            for k in set(self.fns.values()):
-                if not k == "label":
-                    ns[k] = []
-            fs = None
-        else:
-            fs = []
+        for k in set(self.fns.values()):
+            if not k == "label":
+                ns[k] = []
+        ns['def'] = []
         label = None
+        importance = 1.0
         for k in j:
+            if self.exclude and k in self.exclude:
+                continue
+            if self.include and not k in self.include and not k in self.features:
+                continue
+            if not k in self.fns:
+                self.fns[k] = 'def'
+            ns_f = ns[self.fns[k]]
             if k in self.features:
                 conversion = self.features[k] 
                 if conversion == "split":
-                    f = j[k].split()
-                    if k in self.fns:
-                        ns[self.fns[k]] = ns[self.fns[k]] + f
-                    else:
-                        fs = fs + f
+                    self.convertJsonFeature(conversion,ns_f,k,j[k])                    
                 elif conversion == "label":
-                    label = float(j[k])
+                    label = int(j[k])
+                    if self.weights and j[k] in self.weights:
+                        importance = self.weights[j[k]]
             else:
-                if isinstance(j[k], basestring):
-                    if k in self.fns:
-                        ns[self.fns[k]].append(k+"_"+j[k])
-                    else:
-                        fs.append(k+"_"+j[k])
+                if isinstance(j[k], list):
+                    for v in j[k]:
+                        if isinstance(v,basestring):
+                            self.convertJsonFeature(None,ns_f,k,v)
+                        else:
+                            self.convertJsonFeature(None,ns_f,k,k+str(v))
+                elif isinstance(j[k], dict):
+                    for k2 in j[k]:
+                        self.convertJsonFeature(None,ns_f,k2,j[k][k2])
                 else:
-                    if k in self.fns:
-                        ns[self.fns[k]].append((k,float(j[k])))
-                    else:
-                        fs.append((k,float(j[k])))
+                    self.convertJsonFeature(None,ns_f,k,j[k])
         namespaces = []
         for k in ns:
-            namespaces.append(Namespace(name=k,features=ns[k]))
-        return self.vw2.make_line(response=label,features=fs,namespaces=namespaces)
+            if not k == 'def':
+                namespaces.append(Namespace(name=k,features=ns[k]))
+        if len(ns['def']) == 0 and len(ns) == 1:
+            return None
+        if len(ns['def']) == 0:
+            ns['def'] = None
+        if self.weights:
+            return self.vw2.make_line(response=label,importance=importance,features=ns['def'],namespaces=namespaces)
+        else:
+            return self.vw2.make_line(response=label,features=ns['def'],namespaces=namespaces)
         
     def create_vw(self,conf):
         command = "vw --save_resume --predictions /dev/stdout --quiet "+conf['vwArgs'] + " --readable_model ./model.readable"
+        print command
         self.vw2 =  VW(command=command)
         print self.vw2.command
 
@@ -105,9 +129,13 @@ class VWSeldon:
         j = json.loads(line)
         vwLine = self.jsonToVw(j)
         self.numLinesProcessed += 1
-        self.vw2.send_line(vwLine)
-                  
-    def train(self,client,conf):
+        if vwLine:
+            if self.train_file:
+                self.train_file.write(vwLine+"\n")
+            else:
+                self.vw2.send_line(vwLine)
+        
+    def train(self,client,conf,train_filename=None,vw_command=None):
         self.numLinesProcessed = 0
         print "command line conf ",conf
         conf = self.__merge_conf(client,conf)
@@ -115,27 +143,38 @@ class VWSeldon:
         self.create_vw(conf)
         self.features = conf.get('features',{})
         self.fns = conf.get('namespaces',{})
+        self.include = conf.get('include',[])
+#        self.include.append(conf['target'])
+        self.features[conf['target']] = "label"
+        self.exclude = conf.get('exclude',None)
+        self.weights = conf.get('weights',None)
+        if train_filename:
+            self.train_file = open(train_filename,"w")
+        else:
+            self.train_file = None
         #stream data into vw
         inputPath = conf["inputPath"] + "/" + client + "/features/" + str(conf['day']) + "/"
         print "inputPath->",inputPath
-        if inputPath.startswith("s3n://"):
-            isS3 = True
-        elif inputPath.startswith("s3://"):
-            isS3 = True
-        else:
-            isS3 = False
         fileUtil = FileUtil(key=self.awsKey,secret=self.awsSecret)
         fileUtil.stream(inputPath,self.process)
+
         # save vw model
-        self.vw2.save_model("./model")
-        self.vw2.close()
-        print "lines processed ",self.numLinesProcessed
+        if train_filename:
+            self.vw2.close()
+            self.train_file.close()
+            r = call(["vw","--data",train_filename,"-f","model","--cache_file","./cache_file","--readable_model","./model.readable"]+conf['vwArgs'].split())
+            print "called and got ",r
+        else:
+            self.vw2.save_model("./model")
+            self.vw2.close()
+            print "lines processed ",self.numLinesProcessed
+
         # copy models to final location
         outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["day"])
         print "outputPath->",outputPath
-
         fileUtil.copy("./model",outputPath+"/model")
         fileUtil.copy("./model.readable",outputPath+"/model.readable")
 
+        #activate model in zookeeper
         if "activate" in conf and conf["activate"]:
             self.activateModel(client,str(outputPath))
