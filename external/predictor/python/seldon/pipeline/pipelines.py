@@ -1,6 +1,7 @@
 import seldon.fileutil as fu
 import json
 from sklearn.externals import joblib
+import os.path
 
 class Feature_transform(object):
 
@@ -55,6 +56,33 @@ class Pipeline(object):
         self.objs = []
         self.fu = fu.FileUtil(key=aws_key,secret=aws_secret)
 
+    def full_class_name(self,o):
+        return o.__class__.__module__ + "." + o.__class__.__name__
+
+    def get_class(self, kls ):
+        parts = kls.split('.')
+        module = ".".join(parts[:-1])
+        m = __import__( module )
+        for comp in parts[1:]:
+            m = getattr(m, comp)            
+        return m
+
+    def save_pipeline(self):
+        f = open(self.local_models_folder+"/pipeline.txt","w")
+        for t in self.pipeline:
+            name = self.full_class_name(t)
+            f.write(name+"\n")
+        f.close()
+
+    def load_pipeline(self):
+        f =open(self.local_models_folder+"/pipeline.txt")
+        for line in f:
+            line = line.rstrip()
+            cl = self.get_class(line)
+            t = cl()
+            self.add(t)
+        f.close()
+
     #upload all files to models folder
     def upload_models(self):
         if self.models_folder:
@@ -97,6 +125,7 @@ class Pipeline(object):
 
     def transform(self):
         self.download_models()
+        self.load_pipeline()
         self.getFeatures(self.input_folder)
         for ft in self.pipeline:
             ft.set_models(self.load_models(ft.add_model_prefix(ft.get_model_names())))
@@ -110,6 +139,7 @@ class Pipeline(object):
             self.objs = ft.transform(self.objs)
             for (model,name) in zip(ft.get_models(),ft.add_model_prefix(ft.get_model_names())):
                 self.store_model(model,name)
+        self.save_pipeline()
         self.upload_models()
         self.store_features()
         return self.objs
