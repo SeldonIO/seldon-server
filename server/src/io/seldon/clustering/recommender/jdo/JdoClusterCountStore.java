@@ -219,6 +219,27 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 		}
 		return map;
 	}
+	
+	
+	@Override
+	public Map<Long, Double> getTopCountsByTwoDimensions(int clusterId,
+			Set<Integer> dimensions, int dimension2, long timestamp, int limit,
+			double decay) throws ClusterCountNoImplementationException {
+		final PersistenceManager pm = getPM();
+		Map<Long,Double> map = new HashMap<>();
+		String dimensionsStr = StringUtils.join(dimensions, ",");
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select c.item_id,exp(-(greatest(unix_timestamp()-t,0)/?))*count as decayedCount from cluster_counts c natural join item_map_enum natural join dimension d1 join item_map_enum ime2 on (c.item_id=ime2.item_id) join dimension d2 on (d2.attr_id=ime2.attr_id and ime2.value_id=d2.value_id) where id = ? and d1.dim_id in ("+dimensionsStr+") and d2.dim_id=? order by decayedCount desc limit "+limit);
+		Collection<Object[]> res = (Collection<Object[]>)  query.execute(decay,clusterId,dimension2);
+		for(Object[] r : res)
+		{
+			Long itemId = (Long) r[0];
+			Double count = (Double) r[1];
+			map.put(itemId, count);
+		}
+		return map;
+	}
+
+
 
 	@Override
 	public Map<Long, Double> getTopSignificantCountsByDimension(int clusterId,
@@ -349,6 +370,8 @@ public class JdoClusterCountStore extends ClientPersistable implements ClusterCo
 	}
 
 
+
+	
 
 	
 

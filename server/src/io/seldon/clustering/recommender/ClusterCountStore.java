@@ -57,6 +57,7 @@ public interface ClusterCountStore {
 	public Map<Long,Double> getTopCounts(int clusterId,long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;
 	//top counts within a cluster restricted to a dimension
 	public Map<Long,Double> getTopCountsByDimension(int clusterId,Set<Integer> dimensions,long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;
+	public Map<Long,Double> getTopCountsByTwoDimensions(int clusterId,Set<Integer> dimensions,int dimension2, long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;
 	//top significant items within a cluster restricted to a dimension
 	public Map<Long,Double> getTopSignificantCountsByDimension(int clusterId,Set<Integer> dimensions,long timestamp,int limit, double decay) throws ClusterCountNoImplementationException;	
 

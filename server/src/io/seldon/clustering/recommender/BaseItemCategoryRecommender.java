@@ -29,7 +29,6 @@ import io.seldon.db.jdo.ClientPersistable;
 import io.seldon.general.ItemPeer;
 import io.seldon.memcache.MemCacheKeys;
 import io.seldon.memcache.MemCachePeer;
-import io.seldon.recommendation.CFAlgorithm;
 
 import org.apache.log4j.Logger;
 
@@ -38,29 +37,34 @@ import org.apache.log4j.Logger;
  *         Date: 10/12/14
  *         Time: 17:06
  */
-public abstract class BaseItemCategoryRecommender {
+public abstract class BaseItemCategoryRecommender extends BaseClusterCountsRecommender {
     private static final String CATEGORY_DIM_OPT_NAME = "io.seldon.algorithm.clusters.categorydimensionname";
     private static Logger logger = Logger.getLogger(BaseItemCategoryRecommender.class.getName());
 
-    protected Integer getDimensionForAttrName(long itemId, String client, RecommendationContext ctxt)
+    protected Integer getDimensionForAttrName(Long itemId, String client, RecommendationContext ctxt)
     {
-        RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
-        ClientPersistable cp = new ClientPersistable(client);
-        String attrName = opts.getStringOption(CATEGORY_DIM_OPT_NAME);
-        String key = MemCacheKeys.getDimensionForAttrName(client, itemId, attrName);
-        Integer dimId = (Integer) MemCachePeer.get(key);
-        if (dimId == null)
-        {
-            ItemPeer iPeer = Util.getItemPeer(cp.getPM());
-            dimId = iPeer.getDimensionForAttrName(itemId, attrName);
-            if (dimId != null)
-            {
-                MemCachePeer.put(key, dimId, Constants.CACHING_TIME);
-                logger.info("Get dim for item "+itemId+" for attrName "+attrName+" and got "+dimId);
-            }
-            else
-                logger.info("Got null for dim for item "+itemId+" for attrName "+attrName);
-        }
-        return dimId;
+    	if (itemId != null)
+    	{
+    		RecommendationContext.OptionsHolder opts = ctxt.getOptsHolder();
+    		ClientPersistable cp = new ClientPersistable(client);
+    		String attrName = opts.getStringOption(CATEGORY_DIM_OPT_NAME);
+    		String key = MemCacheKeys.getDimensionForAttrName(client, itemId, attrName);
+    		Integer dimId = (Integer) MemCachePeer.get(key);
+    		if (dimId == null)
+    		{
+    			ItemPeer iPeer = Util.getItemPeer(cp.getPM());
+    			dimId = iPeer.getDimensionForAttrName(itemId, attrName);
+    			if (dimId != null)
+    			{
+    				MemCachePeer.put(key, dimId, Constants.CACHING_TIME);
+    				logger.info("Get dim for item "+itemId+" for attrName "+attrName+" and got "+dimId);
+    			}
+    			else
+    				logger.info("Got null for dim for item "+itemId+" for attrName "+attrName);
+    		}
+    		return dimId;
+    	}
+    	else
+    		return null;
     }
 }

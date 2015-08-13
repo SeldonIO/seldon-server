@@ -42,7 +42,11 @@ case class EngagementConfig(
     endDate : String = "",
     maxIntraSessionGapSecs : Int = 600,
     maxSessionTimeSecs : Int = 1800,
-    maxSessionPageView : Int = 50)
+    maxSessionPageView : Int = 50,
+    influxdb_host : String = "",
+    influxdb_user : String = "root",
+    influxdb_pass : String = "",
+    filterUsersFile : String = "")
 
 case class EngImpression(consumer: String, time: Long, user : String,abkey : String)
     
@@ -82,6 +86,25 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
     }
     
     rdd
+  }
+  
+  
+  def sendStatsToInfluxDb(startDate : String,data : org.apache.spark.rdd.RDD[(String,(String,String,Double,Double,Double,Long,Long,Int,Int,Int))],iHost : String, iUser : String, iPass : String) = {
+    import org.influxdb.InfluxDBFactory
+    import java.util.concurrent.TimeUnit
+    
+    val influxDB = InfluxDBFactory.connect("http://"+iHost+":8086", iUser, iPass);
+    val formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    val date = formatter.parseDateTime(startDate)
+    val vals = data.collect()
+    val serie = new org.influxdb.dto.Serie.Builder("engagement")
+            .columns("time", "client", "abkey", "avg_sessionsecs", "avg_sessionpages", "multipage_percent")
+
+    for ((key,(client,abkey,avg_sessionsecs,avg_sessionpages,multipage_percent,_,_,_,_,_)) <- vals)
+    {
+      serie.values(date.getMillis() : java.lang.Long,client,abkey,avg_sessionsecs : java.lang.Double,avg_sessionpages : java.lang.Double,multipage_percent : java.lang.Double)
+    }
+    influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
   }
   
   def run()
@@ -151,13 +174,18 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
       }
     
     // create new per client key
-    val stats = perUserStats.map{case (key,(time,pv,abkey,client,userCount,sessionCount,pv1plusCount)) => (client+"_"+abkey,(time,pv,userCount,sessionCount,pv1plusCount))}
+    val stats = perUserStats.map{case (key,(time,pv,abkey,client,userCount,sessionCount,pv1plusCount)) => (client+"_"+abkey,(client,abkey,time,pv,userCount,sessionCount,pv1plusCount))}
       
     // get sums and counts
-    val stats2 = stats.reduceByKey{case ((time1,pv1,userCount1,sessionCount1,pv1p1),(time2,pv2,userCount2,sessionCount2,pv1p2)) => (time1+time2,pv1+pv2,userCount1+userCount2,sessionCount1+sessionCount2,pv1p1+pv1p2)}
+    val stats2 = stats.reduceByKey{case ((client,abkey,time1,pv1,userCount1,sessionCount1,pv1p1),(_,_,time2,pv2,userCount2,sessionCount2,pv1p2)) => (client,abkey,time1+time2,pv1+pv2,userCount1+userCount2,sessionCount1+sessionCount2,pv1p1+pv1p2)}
     
     // calculate averages
-    val stats3 = stats2.mapValues{case (timeSum,pvSum,userCount,sessionCount,pv1plusCount) => (1.0*timeSum/sessionCount,1.0*pvSum/sessionCount,1.0*pv1plusCount/sessionCount,timeSum,pvSum,userCount,sessionCount,pv1plusCount)}
+    val stats3 = stats2.mapValues{case (client,abkey,timeSum,pvSum,userCount,sessionCount,pv1plusCount) => (client,abkey,1.0*timeSum/sessionCount,1.0*pvSum/sessionCount,1.0*pv1plusCount/sessionCount,timeSum,pvSum,userCount,sessionCount,pv1plusCount)}
+    
+    if (config.influxdb_host.nonEmpty)
+    {
+        sendStatsToInfluxDb(config.startDate,stats3,config.influxdb_host,config.influxdb_user,config.influxdb_pass)
+    }
     
     val outPath = config.outputPath + "/" + config.startDate+"_"+config.endDate
     stats3.coalesce(1, true).saveAsTextFile(outPath)
@@ -182,7 +210,11 @@ object Engagement {
     opt[String]('e', "end-date") required() valueName("end date") action { (x, c) => c.copy(endDate = x) } text("end date yyyy-mm-dd")
     opt[Int]('m', "max-session-pv") valueName("max session page views") action { (x, c) => c.copy(maxSessionPageView = x) } text("max session page views")
     opt[Int]('g', "max-intra-session-gap-secs") valueName("max intra session gap secs") action { (x, c) => c.copy(maxIntraSessionGapSecs = x) } text("max intra session gap secs")
-        }
+    opt[String]("influxdb-host") valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
+    opt[String]('u', "influxdb-user") valueName("influxdb username") action { (x, c) => c.copy(influxdb_user = x) } text("influx db username")    
+    opt[String]('p', "influxdb-pass") valueName("influxdb password") action { (x, c) => c.copy(influxdb_pass = x) } text("influx db password")
+    
+    }
     
     parser.parse(args, EngagementConfig()) map { config =>
     val conf = new SparkConf()
