@@ -17,16 +17,6 @@ class Feature_transform(object):
     def get_models(self):
         return [self.input_feature,self.output_feature]
 
-    def add_model_prefix(self,names):
-        names2 = []
-        for name in names:
-            names2.append(str(self.pos)+self.__class__.__name__+"_"+name)
-        return names2
-    
-    # return model string names
-    def get_model_names(self):
-        return ["input_feature","output_feature"]
-
     def set_models(self,models):
         self.input_feature = models[0]
         self.output_feature = models[1]
@@ -94,22 +84,30 @@ class Pipeline(object):
             self.fu.copy(self.models_folder,self.local_models_folder)
 
     def store_features(self):
-        local_file = "features.json"
-        with open(local_file,"w") as f:
-            for j in self.objs:
-                jStr =  json.dumps(j,sort_keys=True)
-                f.write(jStr+"\n")
-        f.close()
-        self.fu.copy(local_file,self.output_folder+"/features.json")
+        if self.output_folder:
+            local_file = "features.json"
+            with open(local_file,"w") as f:
+                for j in self.objs:
+                    jStr =  json.dumps(j,sort_keys=True)
+                    f.write(jStr+"\n")
+            f.close()
+            self.fu.copy(local_file,self.output_folder+"/features.json")
 
-    def store_model(self,model,name):
-        joblib.dump(model,self.local_models_folder+"/"+name)
+    def store_models(self):
+        if not os.path.exists(self.local_models_folder):
+            os.makedirs(self.local_models_folder)
+        pos = 1
+        for t in self.pipeline:
+            models = t.get_models()
+            joblib.dump(models,self.local_models_folder+"/"+str(pos))
+            pos += 1
 
-    def load_models(self,names):
-        models = []
-        for name in names:
-            models.append(joblib.load(self.local_models_folder+"/"+name))
-        return models
+    def load_models(self):
+        pos = 1
+        for t in self.pipeline:
+            models = joblib.load(self.local_models_folder+"/"+str(pos))
+            t.set_models(models)
+            pos += 1
 
     def add(self,feature_transform):
         self.pipeline.append(feature_transform)
@@ -126,9 +124,9 @@ class Pipeline(object):
     def transform(self):
         self.download_models()
         self.load_pipeline()
+        self.load_models()
         self.getFeatures(self.input_folder)
         for ft in self.pipeline:
-            ft.set_models(self.load_models(ft.add_model_prefix(ft.get_model_names())))
             self.objs = ft.transform(self.objs)
         return self.objs
 
@@ -137,8 +135,7 @@ class Pipeline(object):
         for ft in self.pipeline:
             ft.fit(self.objs)
             self.objs = ft.transform(self.objs)
-            for (model,name) in zip(ft.get_models(),ft.add_model_prefix(ft.get_model_names())):
-                self.store_model(model,name)
+        self.store_models()
         self.save_pipeline()
         self.upload_models()
         self.store_features()

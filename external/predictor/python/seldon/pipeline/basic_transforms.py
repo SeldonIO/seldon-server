@@ -2,6 +2,7 @@ import seldon.pipeline.pipelines as pl
 from collections import defaultdict
 import logging
 import operator
+import re
 
 class Include_features_transform(pl.Feature_transform):
 
@@ -11,9 +12,6 @@ class Include_features_transform(pl.Feature_transform):
     def get_models(self):
         return [self.included]
     
-    def get_model_names(self):
-        return ["included"]
-
     def set_models(self,models):
         self.included = models[0]
         print "set feature names to ",self.included
@@ -31,6 +29,47 @@ class Include_features_transform(pl.Feature_transform):
             objs_new.append(jNew)
         return objs_new
 
+
+class Split_transform(pl.Feature_transform):
+
+    def __init__(self,split_expression=" ",ignore_numbers=False,input_features=[]):
+        self.split_expression=split_expression
+        self.ignore_numbers=ignore_numbers
+        self.input_features=input_features
+        self.input_feature = ""
+
+    def get_models(self):
+        return super(Split_transform, self).get_models() + [self.split_expression,self.ignore_numbers,self.input_features]
+
+    def set_models(self,models):
+        models = super(Split_transform, self).set_models(models)
+        self.split_expression = models[0]
+        self.ignore_features= models[1]
+        self.input_features = models[2]
+
+    def is_number(self,s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+    def fit(self,objs):
+        pass
+
+    def transform(self,objs):
+        for j in objs:
+            ftokens = []
+            for feat in self.input_features:
+                if feat in j:
+                    tokens = re.split(self.split_expression,j[feat])
+                    for token in tokens:
+                        token = token.rstrip().lower()
+                        if not self.ignore_numbers or (self.ignore_numbers and not self.is_number(token)):
+                            ftokens.append(token)
+            j[self.output_feature] = ftokens
+        return objs
+
 class Exist_features_transform(pl.Feature_transform):
 
     def __init__(self,included=None):
@@ -39,9 +78,6 @@ class Exist_features_transform(pl.Feature_transform):
 
     def get_models(self):
         return [self.included]
-    
-    def get_model_names(self):
-        return ["included"]
 
     def set_models(self,models):
         self.included = models[0]
@@ -74,9 +110,6 @@ class Split_feature_transform(pl.Feature_transform):
     def get_models(self):
         return super(Split_feature_transform, self).get_models() + [self.separator]
     
-    def get_model_names(self):
-        return super(Split_feature_transform, self).get_model_names() + ["separator"]
-
     def set_models(self,models):
         models = super(Split_feature_transform, self).set_models(models)
         self.separator = models[0]
@@ -107,9 +140,6 @@ class Feature_id_transform(pl.Feature_transform):
     def get_models(self):
         return super(Feature_id_transform, self).get_models() + [(self.min_size,self.exclude_missing),self.idMap]
     
-    def get_model_names(self):
-        return super(Feature_id_transform, self).get_model_names() + ["params","idMap"]
-
     def set_models(self,models):
         models = super(Feature_id_transform, self).set_models(models)
         (self.min_size,self.exclude_missing) = models[0]
