@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 
 iris.data:
-	wget --quiet https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
+	wget --quiet http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
 
 train:iris.data
 	cat iris.data | python create-vw.py | shuf > train

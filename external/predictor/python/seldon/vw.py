@@ -130,11 +130,19 @@ class VWSeldon:
         vwLine = self.jsonToVw(j)
         self.numLinesProcessed += 1
         if vwLine:
+            if self.target_readable:
+                self.target_map[j[self.target]] = j[self.target_readable]
             if self.train_file:
                 self.train_file.write(vwLine+"\n")
             else:
                 self.vw2.send_line(vwLine)
         
+    def save_target_map(self):
+        v = json.dumps(self.target_map,sort_keys=True)
+        f = open('./target_map.json',"w")
+        f.write(v)
+        f.close()
+
     def train(self,client,conf,train_filename=None,vw_command=None):
         self.numLinesProcessed = 0
         print "command line conf ",conf
@@ -148,6 +156,9 @@ class VWSeldon:
         self.features[conf['target']] = "label"
         self.exclude = conf.get('exclude',None)
         self.weights = conf.get('weights',None)
+        self.target_readable = conf.get('target_readable',None)
+        self.target= conf['target']
+        self.target_map = {}
         if train_filename:
             self.train_file = open(train_filename,"w")
         else:
@@ -169,11 +180,13 @@ class VWSeldon:
             self.vw2.close()
             print "lines processed ",self.numLinesProcessed
 
+        self.save_target_map()
         # copy models to final location
         outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["day"])
         print "outputPath->",outputPath
         fileUtil.copy("./model",outputPath+"/model")
         fileUtil.copy("./model.readable",outputPath+"/model.readable")
+        fileUtil.copy("./target_map.json",outputPath+"/target_map.json")
 
         #activate model in zookeeper
         if "activate" in conf and conf["activate"]:

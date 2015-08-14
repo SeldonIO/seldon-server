@@ -17,7 +17,8 @@ if __name__ == '__main__':
     parser.add_argument('--namespaces', help='JSON providing per feature namespace mapping - default is no namespaces')
     parser.add_argument('--include', help='include these features', nargs='*')
     parser.add_argument('--exclude', help='exclude these features' , nargs='*')
-    parser.add_argument('--target', help='target feature')
+    parser.add_argument('--target', help='target feature (should contain integer ids in range 1..Num Classes)')
+    parser.add_argument('--target_readable', help='the feature containing the human readable version of target')
     parser.add_argument('--train_filename', help='target feature')
 
 

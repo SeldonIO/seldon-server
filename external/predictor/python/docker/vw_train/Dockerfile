@@ -25,7 +25,7 @@ ADD ./python-modules /python-modules/seldon
 
 ENV PYTHONPATH $PYTHONPATH:/python-modules
 
-ADD ./scripts /scripts
+ADD ./scripts /vw/vw_train
 
 # Define default command.
 CMD ["bash"]
