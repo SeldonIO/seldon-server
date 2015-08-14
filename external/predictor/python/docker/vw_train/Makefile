@@ -12,3 +12,4 @@ clean:
 
 run_interactive:
 	docker run --name="vw_train" -it --net=host --rm vw_train bash
+

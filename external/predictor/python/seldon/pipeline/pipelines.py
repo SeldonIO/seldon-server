@@ -2,6 +2,7 @@ import seldon.fileutil as fu
 import json
 from sklearn.externals import joblib
 import os.path
+import logging
 
 class Feature_transform(object):
 
@@ -34,17 +35,28 @@ class Feature_transform(object):
     def transform(self,objs):
         return objs
 
+    def set_logging(self,logger):
+        self.logger = logger
+
+    def get_log_prefix(self):
+        return self.__class__.__module__ + "." + self.__class__.__name__+" "+self.input_feature+"->"+self.output_feature
 
 class Pipeline(object):
 
-    def __init__(self,input_folder=None,output_folder=None,models_folder=None,local_models_folder="./models",aws_key=None,aws_secret=None):
+    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",aws_key=None,aws_secret=None):
         self.pipeline = []
         self.models_folder = models_folder
-        self.input_folder = input_folder
+        self.input_folders = input_folders
         self.output_folder = output_folder
         self.local_models_folder = local_models_folder
         self.objs = []
         self.fu = fu.FileUtil(key=aws_key,secret=aws_secret)
+        self.logger = logging.getLogger('seldon')
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
 
     def full_class_name(self,o):
         return o.__class__.__module__ + "." + o.__class__.__name__
@@ -112,26 +124,27 @@ class Pipeline(object):
     def add(self,feature_transform):
         self.pipeline.append(feature_transform)
         feature_transform.set_pipeline_pos(len(self.pipeline))
+        feature_transform.set_logging(self.logger)
 
     def process(self,line):
         j = json.loads(line)
         self.objs.append(j)
 
-    def getFeatures(self,location):
-        print "streaming features from",location
-        self.fu.stream(location,self.process)
+    def getFeatures(self,locations):
+        print "streaming features from",locations
+        self.fu.stream_multi(locations,self.process)
 
     def transform(self):
         self.download_models()
         self.load_pipeline()
         self.load_models()
-        self.getFeatures(self.input_folder)
+        self.getFeatures(self.input_folders)
         for ft in self.pipeline:
             self.objs = ft.transform(self.objs)
         return self.objs
 
     def fit_transform(self):
-        self.getFeatures(self.input_folder)
+        self.getFeatures(self.input_folders)
         for ft in self.pipeline:
             ft.fit(self.objs)
             self.objs = ft.transform(self.objs)

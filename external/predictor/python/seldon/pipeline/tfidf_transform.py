@@ -2,10 +2,12 @@ import seldon.pipeline.pipelines as pl
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import SelectKBest, chi2
+import logging 
 
 class Tfidf_transform(pl.Feature_transform):
 
     def __init__(self,min_df=10,max_df=0.7,select_features=False,topn_features=50000,stop_words=None,target_feature=None):
+        super(Tfidf_transform, self).__init__()
         self.min_df=min_df
         self.max_df=max_df
         self.select_features = select_features
@@ -44,12 +46,12 @@ class Tfidf_transform(pl.Feature_transform):
         counts = self.vectorizer.fit_transform(docs)
         self.tfidf = self.tfidf_transformer.fit_transform(counts)
         self.fnames = self.vectorizer.get_feature_names()
-        print "base tfidf features ",len(self.fnames)
+        self.logger.info("%s base tfidf features %d",self.get_log_prefix(),len(self.fnames))
         if self.select_features:
             self.ch2 = SelectKBest(chi2, k=self.topn_features)
             self.ch2.fit_transform(self.tfidf, target)
             self.feature_names_support = set([self.fnames[i] for i in self.ch2.get_support(indices=True)])
-            print "selected tfidf features ",len(self.feature_names_support)
+            self.logger.info("%s selected tfidf features %d",self.get_log_prefix(),len(self.feature_names_support))
 
     def transform(self,objs):
         docs = []

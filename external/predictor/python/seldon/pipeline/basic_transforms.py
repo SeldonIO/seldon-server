@@ -7,14 +7,16 @@ import re
 class Include_features_transform(pl.Feature_transform):
 
     def __init__(self,included=None):
+        super(Include_features_transform, self).__init__()
         self.included = included
+
 
     def get_models(self):
         return [self.included]
     
     def set_models(self,models):
         self.included = models[0]
-        print "set feature names to ",self.included
+        self.logger.logging("set feature names to ",self.included)
 
     def fit(self,objs):
         pass
@@ -33,6 +35,7 @@ class Include_features_transform(pl.Feature_transform):
 class Split_transform(pl.Feature_transform):
 
     def __init__(self,split_expression=" ",ignore_numbers=False,input_features=[]):
+        super(Split_transform, self).__init__()
         self.split_expression=split_expression
         self.ignore_numbers=ignore_numbers
         self.input_features=input_features
@@ -73,15 +76,15 @@ class Split_transform(pl.Feature_transform):
 class Exist_features_transform(pl.Feature_transform):
 
     def __init__(self,included=None):
+        super(Exist_features_transform, self).__init__()
         self.included = included
-        self.logger = logging.getLogger('seldon')
 
     def get_models(self):
         return [self.included]
 
     def set_models(self,models):
         self.included = models[0]
-        print "set feature names to ",self.included
+        self.logger.info("%s set feature names to %s",self.get_log_prefix(),self.included)
 
     def fit(self,objs):
         pass
@@ -98,31 +101,7 @@ class Exist_features_transform(pl.Feature_transform):
                 objs_new.append(j)
             else:
                 excluded += 1
-        print "excluded ",excluded
-        return objs_new
-
-# split a feature into a list of tokens
-class Split_feature_transform(pl.Feature_transform):
-
-    def __init__(self,separator=" "):
-        self.separator = separator
-
-    def get_models(self):
-        return super(Split_feature_transform, self).get_models() + [self.separator]
-    
-    def set_models(self,models):
-        models = super(Split_feature_transform, self).set_models(models)
-        self.separator = models[0]
-
-    def fit(self,objs):
-        pass
-
-    def transform(self,objs):
-        objs_new = []
-        for j in objs:
-            if self.input_feature in j:
-                j[self.output_feature] = j[self.input_feature].split(self.separator)
-            objs_new.append(j)
+        self.logger.info("%s excluded %s",self.get_log_prefix(),excluded)
         return objs_new
 
 
@@ -132,10 +111,10 @@ class Split_feature_transform(pl.Feature_transform):
 class Feature_id_transform(pl.Feature_transform):
 
     def __init__(self,min_size=0,exclude_missing=False):
+        super(Feature_id_transform, self).__init__()
         self.min_size = min_size
         self.exclude_missing = exclude_missing
         self.idMap = {}
-        self.logger = logging.getLogger('seldon')
 
     def get_models(self):
         return super(Feature_id_transform, self).get_models() + [(self.min_size,self.exclude_missing),self.idMap]
@@ -143,8 +122,8 @@ class Feature_id_transform(pl.Feature_transform):
     def set_models(self,models):
         models = super(Feature_id_transform, self).set_models(models)
         (self.min_size,self.exclude_missing) = models[0]
-        self.logger.info("set min feature size to %d ",self.min_size)
-        self.logger.info("exclude missing to %s ",self.exclude_missing)
+        self.logger.info("%s set min feature size to %d ",self.get_log_prefix(),self.min_size)
+        self.logger.info("%s exclude missing to %s ",self.get_log_prefix(),self.exclude_missing)
         self.idMap = models[1]
 
 
@@ -164,7 +143,7 @@ class Feature_id_transform(pl.Feature_transform):
             if size > self.min_size:
                 self.idMap[feature] = nxtId
                 nxtId += 1
-        self.logger.info("Final id map has size %d",len(self.idMap))
+        self.logger.info("%s Final id map has size %d",self.get_log_prefix(),len(self.idMap))
 
     def transform(self,objs):
         objs_new = []

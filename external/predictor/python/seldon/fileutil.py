@@ -121,6 +121,10 @@ class FileUtil:
         mp.complete_upload()
 
 
+    def stream_multi(self,inputPaths,fn):
+        for path in inputPaths:
+            self.stream(path,fn)
+
     def stream(self,inputPath,fn):
         if inputPath.startswith("s3n://"):
             isS3 = True
