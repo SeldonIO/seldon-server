@@ -31,6 +31,8 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import io.seldon.spark.SparkUtils
 import scala.collection.mutable.ListBuffer
+import io.seldon.spark.rdd.FileUtils
+import io.seldon.spark.rdd.DataSourceMode
 
 case class EngagementConfig(
     local : Boolean = false,
@@ -43,6 +45,7 @@ case class EngagementConfig(
     maxIntraSessionGapSecs : Int = 600,
     maxSessionTimeSecs : Int = 1800,
     maxSessionPageView : Int = 50,
+    recTag : String = "sitewide",
     influxdb_host : String = "",
     influxdb_user : String = "root",
     influxdb_pass : String = "",
@@ -54,7 +57,7 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
 
   
   
-  def parseJson(path : String) = {
+  def parseJson(path : String,recTagRequired : String) = {
     
     val rdd = sc.textFile(path).flatMap{line =>
       
@@ -74,7 +77,8 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
       val click = (json \ "click").extract[String]
       val user = (json \ "userid").extract[String]
       val abkey = (json \ "abkey").extract[String]
-      if (click == "IMP")
+      val rectag = (json \ "rectag").extract[String]      
+      if (click == "IMP" && rectag == recTagRequired  && (abkey == "baseline" || abkey == "normal"))
       {
         Seq((consumer+"_"+user,EngImpression(consumer,date.getMillis(),user,abkey)))
       }
@@ -89,20 +93,30 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
   }
   
   
-  def sendStatsToInfluxDb(startDate : String,data : org.apache.spark.rdd.RDD[(String,(String,String,Double,Double,Double,Long,Long,Int,Int,Int))],iHost : String, iUser : String, iPass : String) = {
+  def sendStatsToInfluxDb(startDate : String,
+      diffs : scala.collection.mutable.Map[String,(Double,Double,Double)],
+      baseline : scala.collection.mutable.Map[String,(Double,Double,Double)],
+      normal : scala.collection.mutable.Map[String,(Double,Double,Double)],iHost : String, iUser : String, iPass : String) = {
     import org.influxdb.InfluxDBFactory
     import java.util.concurrent.TimeUnit
     
     val influxDB = InfluxDBFactory.connect("http://"+iHost+":8086", iUser, iPass);
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     val date = formatter.parseDateTime(startDate)
-    val vals = data.collect()
+    
     val serie = new org.influxdb.dto.Serie.Builder("engagement")
-            .columns("time", "client", "abkey", "avg_sessionsecs", "avg_sessionpages", "multipage_percent")
+            .columns("time", "client", "abkey", "avg_time", "avg_pages", "multi_percent","diff_time","diff_pages","diff_multi")
 
-    for ((key,(client,abkey,avg_sessionsecs,avg_sessionpages,multipage_percent,_,_,_,_,_)) <- vals)
+    for (client <- baseline.keys)
     {
-      serie.values(date.getMillis() : java.lang.Long,client,abkey,avg_sessionsecs : java.lang.Double,avg_sessionpages : java.lang.Double,multipage_percent : java.lang.Double)
+      if (normal.contains(client))
+      {
+        val (bTime,bPv,bPlus) = baseline(client)
+        val (nTime,nPv,nPlus) = normal(client)
+        val (dTime,dPv,dPlus) = diffs(client)
+        serie.values(date.getMillis() : java.lang.Long,client,"normal",nTime : java.lang.Double,nPv : java.lang.Double,nPlus : java.lang.Double,dTime : java.lang.Double,dPv : java.lang.Double,dPlus : java.lang.Double)
+        serie.values(date.getMillis() : java.lang.Long,client,"baseline",bTime : java.lang.Double,bPv : java.lang.Double,bPlus : java.lang.Double,-1.0 * dTime : java.lang.Double,-1.0 * dPv : java.lang.Double,-1.0 * dPlus : java.lang.Double)
+      }
     }
     influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
   }
@@ -116,8 +130,10 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
     println(glob)
     val maxGapMsecs = config.maxIntraSessionGapSecs * 1000
     val maxSessionPageViews = config.maxSessionPageView
-    val data = parseJson(glob).coalesce(50, false)
+    val data = parseJson(glob,config.recTag).coalesce(50, false)
 
+    val badUsers = sc.accumulator(0, "bad user count")
+    val goodUsers = sc.accumulator(0, "good user count")
     // calulate session time and number of page views per session for each user page view history
     val perUserStats = data.groupByKey().flatMapValues{v => 
       val buf = new ListBuffer[(Long,Long,String,String,Int,Int,Int)]()
@@ -128,6 +144,7 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
       var abkey = sorted(0).abkey
       val client = sorted(0).consumer
       var numSessions = 0
+      var badUser = false
       for(e <- sorted)
       {
         if (lastTime > 0)
@@ -155,7 +172,9 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
         }
         lastTime = e.time
         pv += 1
-        abkey = e.abkey // user can change group they are in after a certain time
+        if (abkey != e.abkey)
+          badUser = true
+        //abkey = e.abkey // user can change group they are in after a certain time
       }
       if (pv > 0)
       {
@@ -170,25 +189,70 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
           buf.append((timeSecs,pv,abkey,client,userCount,1,pv1Plus))
         }
       }
+      if (badUser)
+      {
+        badUsers += 1
+       // buf.clear()
+      }
+      else
+      {
+        goodUsers += 1
+      }
       buf
       }
     
+    
     // create new per client key
-    val stats = perUserStats.map{case (key,(time,pv,abkey,client,userCount,sessionCount,pv1plusCount)) => (client+"_"+abkey,(client,abkey,time,pv,userCount,sessionCount,pv1plusCount))}
+    val stats = perUserStats.map{case (key,(time,pv,abkey,client,userCount,sessionCount,pv1plusCount)) => (client+"_"+abkey,(client,abkey,time,pv,userCount,1,pv1plusCount))}
       
     // get sums and counts
     val stats2 = stats.reduceByKey{case ((client,abkey,time1,pv1,userCount1,sessionCount1,pv1p1),(_,_,time2,pv2,userCount2,sessionCount2,pv1p2)) => (client,abkey,time1+time2,pv1+pv2,userCount1+userCount2,sessionCount1+sessionCount2,pv1p1+pv1p2)}
     
     // calculate averages
-    val stats3 = stats2.mapValues{case (client,abkey,timeSum,pvSum,userCount,sessionCount,pv1plusCount) => (client,abkey,1.0*timeSum/sessionCount,1.0*pvSum/sessionCount,1.0*pv1plusCount/sessionCount,timeSum,pvSum,userCount,sessionCount,pv1plusCount)}
+    val stats3 = stats2.mapValues{case (client,abkey,timeSum,pvSum,userCount,sessionCount,pv1plusCount) => (client,abkey,1.0*timeSum/sessionCount,1.0*pvSum/sessionCount,1.0*pv1plusCount/sessionCount)}
+    
+    val fstats = stats3.collect()
+    val baseline = scala.collection.mutable.Map[String,(Double,Double,Double)]()
+    val normal = scala.collection.mutable.Map[String,(Double,Double,Double)]()
+    for ((key,(client,abkey,avgTime,avgPv,plusPercent)) <- fstats)
+    {
+      if (abkey == "baseline")
+        baseline(client) = (avgTime,avgPv,plusPercent)
+      else
+        normal(client) = (avgTime,avgPv,plusPercent)
+    }
+    val diffs = scala.collection.mutable.Map[String,(Double,Double,Double)]()
+    for (client <- baseline.keys)
+    {
+      if (normal.contains(client))
+      {
+        val (bTime,bPv,bPlus) = baseline(client)
+        val (nTime,nPv,nPlus) = normal(client)
+        diffs(client) = (nTime-bTime,nPv-bPv,nPlus-bPlus)
+      }
+    }
     
     if (config.influxdb_host.nonEmpty)
     {
-        sendStatsToInfluxDb(config.startDate,stats3,config.influxdb_host,config.influxdb_user,config.influxdb_pass)
+        sendStatsToInfluxDb(config.startDate,diffs,baseline,normal,config.influxdb_host,config.influxdb_user,config.influxdb_pass)
     }
     
     val outPath = config.outputPath + "/" + config.startDate+"_"+config.endDate
-    stats3.coalesce(1, true).saveAsTextFile(outPath)
+    
+    val bCsv = baseline.map{case (client,(t,pv,p)) => client+","+t.toString()+","+pv.toString()+","+p.toString()}
+    val nCsv = normal.map{case (client,(t,pv,p)) => client+","+t.toString()+","+pv.toString()+","+p.toString()}
+    val dCsv = diffs.map{case (client,(t,pv,p)) => client+","+t.toString()+","+pv.toString()+","+p.toString()}
+    
+    FileUtils.outputModelToFile(bCsv.toArray, outPath, DataSourceMode.fromString(outPath), "baseline.csv")
+    FileUtils.outputModelToFile(nCsv.toArray, outPath, DataSourceMode.fromString(outPath), "normal.csv")
+    FileUtils.outputModelToFile(dCsv.toArray, outPath, DataSourceMode.fromString(outPath), "diffs.csv")
+    
+    println("Bad users "+badUsers.value.toString())
+    println("Good users "+goodUsers.value.toString())
+    println("percent good users "+goodUsers.value.toFloat/(1.0 * badUsers.value+goodUsers.value))
+
+    
+    
   }
 }
 
@@ -199,8 +263,8 @@ object Engagement {
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    val parser = new scopt.OptionParser[EngagementConfig]("Ctr") {
-    head("Ctr", "1.x")
+    val parser = new scopt.OptionParser[EngagementConfig]("Engagement") {
+    head("Engagement", "1.x")
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[String]('i', "input-path") required() valueName("path url") action { (x, c) => c.copy(inputPath = x) } text("path prefix for input")
     opt[String]('o', "output-path") required() valueName("path url") action { (x, c) => c.copy(outputPath = x) } text("path prefix for output")
@@ -213,12 +277,13 @@ object Engagement {
     opt[String]("influxdb-host") valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
     opt[String]('u', "influxdb-user") valueName("influxdb username") action { (x, c) => c.copy(influxdb_user = x) } text("influx db username")    
     opt[String]('p', "influxdb-pass") valueName("influxdb password") action { (x, c) => c.copy(influxdb_pass = x) } text("influx db password")
+    opt[String]('r', "recTag") valueName("rectag") action { (x, c) => c.copy(recTag = x) } text("restrict to rectag")
     
     }
     
     parser.parse(args, EngagementConfig()) map { config =>
     val conf = new SparkConf()
-      .setAppName("CreateVWTopicTraining")
+      .setAppName("Engagement "+config.startDate+" to "+config.endDate)
       
     if (config.local)
       conf.setMaster("local")
