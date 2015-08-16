@@ -36,7 +36,6 @@ import io.seldon.api.resource.service.business.ActionBusinessServiceImpl;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.api.service.ResourceServer;
 
-
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -213,7 +212,7 @@ public class ActionsController {
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeys((ConsumerBean)con, action.getUser(),action.getItem());
-            responseBean = actionBusinessService.addAction((ConsumerBean) con, action,false,"","");
+            responseBean = actionBusinessService.addAction((ConsumerBean) con, action,false,"","",-1);
         }
 		else {
 			responseBean = con;

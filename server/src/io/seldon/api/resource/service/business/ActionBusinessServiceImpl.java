@@ -24,7 +24,6 @@
 package io.seldon.api.resource.service.business;
 
 import io.seldon.api.APIException;
-import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.resource.ActionBean;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
@@ -38,8 +37,6 @@ import io.seldon.recommendation.LastRecommendationBean;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class ActionBusinessServiceImpl implements ActionBusinessService {
@@ -57,7 +54,7 @@ public class ActionBusinessServiceImpl implements ActionBusinessService {
 
     @Override
     public ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean,
-                                  boolean isClickThrough, String recsCounter, String recTag) {
+                                  boolean isClickThrough, String recsCounter, String recTag,int clickPos) {
         ResourceBean responseBean;
         try {
             // add the action to storage
@@ -66,10 +63,10 @@ public class ActionBusinessServiceImpl implements ActionBusinessService {
             if(isClickThrough) {
                 // register which recs were ignored for algorithm use
                 LastRecommendationBean lastRecs = recService.retrieveLastRecs(consumerBean, actionBean, recsCounter, recTag);
-                List<Long> ignoredItems = recService.findIgnoredItemsFromLastRecs(consumerBean, actionBean, lastRecs);
-                itemService.updateIgnoredItems(consumerBean, actionBean, ignoredItems);
+                //List<Long> ignoredItems = recService.findIgnoredItemsFromLastRecs(consumerBean, actionBean, lastRecs);
+                //itemService.updateIgnoredItems(consumerBean, actionBean, ignoredItems);
                 // do logging
-                actionService.logAction(consumerBean, actionBean, lastRecs, ignoredItems.size()+1, recTag, recsCounter);
+                actionService.logAction(consumerBean, actionBean, lastRecs, clickPos, recTag, recsCounter);
             }
 
             responseBean = actionBean;
