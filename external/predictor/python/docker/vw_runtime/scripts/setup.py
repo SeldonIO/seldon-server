@@ -32,14 +32,16 @@ if __name__ == '__main__':
 
     vwModelPath = args.inputPath + "/" + args.client + "/vw/"+ str(args.day) 
     featuresModelPath = args.inputPath + "/" + args.client + "/models/" + str(args.day)
+    print "model path",vwModelPath
+    print "features path",featuresModelPath
     conf["featuresPath"] = featuresModelPath
     # copy files to local directory
     fileUtil = FileUtil(key=args.awsKey,secret=args.awsSecret)
-    fileUtil.copy(vwModelPath+"/vw/model","./model")
-    fileUtil.copy(vwModelPath+"/vw//target_map.json","./target_map.json")
+    fileUtil.copy(vwModelPath,"vw_model")
+    #fileUtil.copy(vwModelPath+"/target_map.json","./target_map.json")
 
     #create server config
-    f = open("./target_map.json")
+    f = open("./vw_model/target_map.json")
     for line in f:
         line = line.rstrip()
         targetMap = json.loads(line)

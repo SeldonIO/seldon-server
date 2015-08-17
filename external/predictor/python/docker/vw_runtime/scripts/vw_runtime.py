@@ -35,7 +35,7 @@ def init(config):
     global idMap
     idMap = vw_config['classIds']
     global pipeline
-    pipeline = pl.Pipeline(local_models_folder="models",models_folder=vw_config['featuresPath'])
+    pipeline = pl.Pipeline(local_models_folder="models",models_folder=vw_config['featuresPath'],aws_key=vw_config.get("awsKey",None),aws_secret=vw_config.get("awsSecret",None))
     pipeline.transform_init()
     global vwTransformer
     vwTransformer = VWSeldon(vw_config)
@@ -64,6 +64,7 @@ def get_full_scores(tag):
         parts = rawLine.split(' ')
         tagScores = parts[len(parts)-1].rstrip() 
         if  tagScores == tag:
+            print rawLine
             found = True
             scores = []
             for score in parts:
