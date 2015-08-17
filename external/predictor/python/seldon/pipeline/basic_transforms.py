@@ -16,7 +16,7 @@ class Include_features_transform(pl.Feature_transform):
     
     def set_models(self,models):
         self.included = models[0]
-        self.logger.logging("set feature names to ",self.included)
+        self.logger.info("set feature names to %s",self.included)
 
     def fit(self,objs):
         pass
@@ -162,8 +162,6 @@ class Feature_id_transform(pl.Feature_transform):
                         j[self.output_feature] = self.idMap[cl]
                     elif self.exclude_missing:
                         exclude = True
-            elif self.exclude_missing:
-                exclude = True
             if not exclude:
                 objs_new.append(j)
         return objs_new

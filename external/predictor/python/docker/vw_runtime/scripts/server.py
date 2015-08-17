@@ -29,10 +29,13 @@ def format_predictions(predictions):
 
 @app.route('/predict', methods=['GET'])
 def predict():
+    print "predict called"
     input = extract_input()
+    print input
     recs = _recs_mod.get_predictions(
             input['client'],
             input['json'])
+    print "recs returned ",recs
     f=format_predictions(recs)
     json = jsonify(f)
     return json
@@ -41,5 +44,5 @@ _recs_mod.init(app.config)
 app.debug = True
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", debug=True)
 

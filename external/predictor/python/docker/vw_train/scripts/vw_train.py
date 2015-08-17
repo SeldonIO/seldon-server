@@ -25,8 +25,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     opts = vars(args)
 
-    vwArgs = {"zk_hosts" : opts.get('zkHosts'), "awsKey" : opts.get('awsKey'), "awsSecret" : opts.get('awsSecret') }
-    vw = VWSeldon(**vwArgs)
     conf = {}
     for k in opts:
         if opts[k]:
@@ -37,4 +35,6 @@ if __name__ == '__main__':
     print conf
     train_filename = opts.get("train_filename",None)
     print train_filename
-    vw.train(args.client,conf,train_filename)
+
+    vw = VWSeldon(conf)
+    vw.train(train_filename)

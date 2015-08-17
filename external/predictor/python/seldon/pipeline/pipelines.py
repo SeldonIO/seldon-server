@@ -134,10 +134,19 @@ class Pipeline(object):
         print "streaming features from",locations
         self.fu.stream_multi(locations,self.process)
 
-    def transform(self):
+    def transform_init(self):
         self.download_models()
         self.load_pipeline()
         self.load_models()
+
+    def transform_json(self,json):
+        objs = [json]
+        for ft in self.pipeline:
+            objs = ft.transform(objs)
+        return objs
+
+    def transform(self):
+        self.transform_init()
         self.getFeatures(self.input_folders)
         for ft in self.pipeline:
             self.objs = ft.transform(self.objs)

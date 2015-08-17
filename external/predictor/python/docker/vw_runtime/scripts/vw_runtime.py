@@ -3,6 +3,9 @@ import operator
 from collections import defaultdict
 from socket import *
 import threading, Queue, subprocess
+from seldon.vw import *
+import seldon.pipeline.pipelines as pl
+import json
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
@@ -31,6 +34,11 @@ def init(config):
     threading.Thread(target=tail_forever, args=(vw_config['raw_predictions'],)).start()
     global idMap
     idMap = vw_config['classIds']
+    global pipeline
+    pipeline = pl.Pipeline(local_models_folder="models",models_folder=vw_config['featuresPath'])
+    pipeline.transform_init()
+    global vwTransformer
+    vwTransformer = VWSeldon(vw_config)
         
 
 # simple vw precition string create
@@ -74,7 +82,12 @@ def get_full_scores(tag):
 
 def score(json):
     tag = "tag"+str(random.randrange(0,9999999))
-    vwRequest = getVWFeatures(json,tag)
+    print tag
+    print json
+    jsonTransformed = pipeline.transform_json(json)[0]
+    print jsonTransformed
+    vwRequest = vwTransformer.jsonToVw(jsonTransformed,tag=tag) + "\n"
+    print vwRequest
     scores = {}
 
     s = socket(AF_INET, SOCK_STREAM)    # create a TCP socket

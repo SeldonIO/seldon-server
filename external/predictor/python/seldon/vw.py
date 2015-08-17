@@ -30,15 +30,32 @@ class JsonToVW:
 
 class VWSeldon:
 
-    def __init__(self, zk_hosts = None, awsKey = None, awsSecret = None):
-        self.awsKey = awsKey
-        self.awsSecret = awsSecret
-        if zk_hosts:
-            print "connecting to zookeeper at ",zk_hosts
-            self.zk_client = KazooClient(hosts=zk_hosts)
+    def __init__(self, conf):
+        self.client = conf['client']
+        self.awsKey = conf.get('awsKey',None)
+        self.awsSecret = conf.get('awsSecret',None)
+        self.zk_hosts = conf.get('zkHosts',None)
+        if self.zk_hosts:
+            print "connecting to zookeeper at ",self.zk_hosts
+            self.zk_client = KazooClient(hosts=self.zk_hosts)
             self.zk_client.start()
         else:
             self.zk_client = None
+        print "command line conf ",conf
+        self.conf = self.__merge_conf(self.client,conf)
+        print "conf after zookeeper merge ",conf
+        self.create_vw(self.conf)
+        self.features = self.conf.get('features',{})
+        self.fns = self.conf.get('namespaces',{})
+        self.include = self.conf.get('include',[])
+        if 'target' in conf:
+            self.features[self.conf['target']] = "label"
+            self.target= self.conf['target']
+        self.exclude = self.conf.get('exclude',None)
+        self.weights = self.conf.get('weights',None)
+        self.target_readable = self.conf.get('target_readable',None)
+
+
 
     def activateModel(self,client,folder):
         node = "/all_clients/"+client+"/vw"
@@ -70,7 +87,7 @@ class VWSeldon:
         else:
             ns.append((name,float(val)))
 
-    def jsonToVw(self,j):
+    def jsonToVw(self,j,tag=None):
         ns = {}
         for k in set(self.fns.values()):
             if not k == "label":
@@ -115,12 +132,13 @@ class VWSeldon:
         if len(ns['def']) == 0:
             ns['def'] = None
         if self.weights:
-            return self.vw2.make_line(response=label,importance=importance,features=ns['def'],namespaces=namespaces)
+            return self.vw2.make_line(response=label,importance=importance,tag=tag,features=ns['def'],namespaces=namespaces)
         else:
-            return self.vw2.make_line(response=label,features=ns['def'],namespaces=namespaces)
+            return self.vw2.make_line(response=label,tag=tag,features=ns['def'],namespaces=namespaces)
         
     def create_vw(self,conf):
-        command = "vw --save_resume --predictions /dev/stdout --quiet "+conf['vwArgs'] + " --readable_model ./model.readable"
+        vwArgs = conf.get('vwArgs',"")
+        command = "vw --save_resume --predictions /dev/stdout --quiet "+vwArgs + " --readable_model ./model.readable"
         print command
         self.vw2 =  VW(command=command)
         print self.vw2.command
@@ -143,28 +161,16 @@ class VWSeldon:
         f.write(v)
         f.close()
 
-    def train(self,client,conf,train_filename=None,vw_command=None):
+
+    def train(self,train_filename=None,vw_command=None):
         self.numLinesProcessed = 0
-        print "command line conf ",conf
-        conf = self.__merge_conf(client,conf)
-        print "conf after zookeeper merge ",conf
-        self.create_vw(conf)
-        self.features = conf.get('features',{})
-        self.fns = conf.get('namespaces',{})
-        self.include = conf.get('include',[])
-#        self.include.append(conf['target'])
-        self.features[conf['target']] = "label"
-        self.exclude = conf.get('exclude',None)
-        self.weights = conf.get('weights',None)
-        self.target_readable = conf.get('target_readable',None)
-        self.target= conf['target']
         self.target_map = {}
         if train_filename:
             self.train_file = open(train_filename,"w")
         else:
             self.train_file = None
         #stream data into vw
-        inputPath = conf["inputPath"] + "/" + client + "/features/" + str(conf['day']) + "/"
+        inputPath = self.conf["inputPath"] + "/" + self.client + "/features/" + str(self.conf['day']) + "/"
         print "inputPath->",inputPath
         fileUtil = FileUtil(key=self.awsKey,secret=self.awsSecret)
         fileUtil.stream(inputPath,self.process)
@@ -173,7 +179,7 @@ class VWSeldon:
         if train_filename:
             self.vw2.close()
             self.train_file.close()
-            r = call(["vw","--data",train_filename,"-f","model","--cache_file","./cache_file","--readable_model","./model.readable"]+conf['vwArgs'].split())
+            r = call(["vw","--data",train_filename,"-f","model","--cache_file","./cache_file","--readable_model","./model.readable"]+self.conf['vwArgs'].split())
             print "called and got ",r
         else:
             self.vw2.save_model("./model")
@@ -182,12 +188,12 @@ class VWSeldon:
 
         self.save_target_map()
         # copy models to final location
-        outputPath = conf["outputPath"] + "/" + client + "/vw/" + str(conf["day"])
+        outputPath = self.conf["outputPath"] + "/" + self.client + "/vw/" + str(self.conf["day"])
         print "outputPath->",outputPath
         fileUtil.copy("./model",outputPath+"/model")
         fileUtil.copy("./model.readable",outputPath+"/model.readable")
         fileUtil.copy("./target_map.json",outputPath+"/target_map.json")
 
         #activate model in zookeeper
-        if "activate" in conf and conf["activate"]:
-            self.activateModel(client,str(outputPath))
+        if "activate" in self.conf and self.conf["activate"]:
+            self.activateModel(self.client,str(outputPath))
