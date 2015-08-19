@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PredictionBusinessServiceImpl implements PredictionBusinessService {
 
+	private static Logger logger = Logger.getLogger(PredictionBusinessServiceImpl.class.getName());
 	private static final String JSON_KEY = "json";
 	private static final String CLIENT_KEY = "client";
 	private static final String TIMESTAMP_KEY = "timestamp";
@@ -182,6 +184,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		ResourceBean responseBean;
 		try
 		{
+			logger.info("Json raw "+jsonRaw);
 			JsonNode jsonNode = getValidatedJson(consumer, jsonRaw, false); // used to check valid json but we don't use result
 			PredictionsResult res = predictionService.predict(consumer.getShort_name(), jsonNode);
 			ListBean listBean = new ListBean();

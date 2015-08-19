@@ -131,11 +131,12 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	                    strategies.add(strategy);
 	                }
 				List<FeatureTransformerStrategy> featureTransformerStrategies = new ArrayList<>();
-				for (Transformer transformer : config.transformers)
-				 {
-					 FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
-					 featureTransformerStrategies.add(strategy);
-				 }
+				if (config.transformers != null)
+					for (Transformer transformer : config.transformers)
+					{
+						FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
+						featureTransformerStrategies.add(strategy);
+					}
 				predictionStore.put(client, new SimplePredictionStrategy(Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies)));
 				logger.info("Successfully added new algorithm config for "+client);
 	            } catch (IOException | BeansException e) {
