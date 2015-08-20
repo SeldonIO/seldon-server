@@ -23,7 +23,8 @@ case class ProcessEventsConfig(
         aws_access_key_id: String = "",
         aws_secret_access_key: String = "",
         debug_use_local_master: Boolean = false,
-        gzip_output: Boolean = false) {
+        gzip_output: Boolean = false,
+        dry_run: Boolean = false) {
 
     override def toString =
         "input_path_pattern[%s]\n".format(input_path_pattern) +
@@ -33,6 +34,7 @@ case class ProcessEventsConfig(
             "aws_secret_access_key[%s]\n".format(aws_secret_access_key) +
             "debug_use_local_master[%s]\n".format(debug_use_local_master) +
             "gzip_output[%s]\n".format(gzip_output) +
+            "dry_run[%s]\n".format(dry_run) +
             ""
 }
 
@@ -80,7 +82,8 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
         val clientList = jsonRdd.keys.distinct().collect()
         for (client <- clientList) {
             val outputPath = getOutputPath(config.output_path_dir, unixDays, client)
-            println("Processing client[%s] outputPath[%s]".format(client, outputPath))
+            val dryRunString = if (config.dry_run) "(DRY-RUN) " else ""
+            println("%sProcessing client[%s] outputPath[%s]".format(dryRunString, client, outputPath))
             val filtered_by_client: RDD[(String, String)] = jsonRdd.filter((y) => {
                 if (client.equals(y._1)) {
                     true
@@ -90,7 +93,9 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
             })
             val client_rdd: RDD[String] = filtered_by_client.map((z) => z._2)
 
-            saveClientRdd(client, client_rdd, outputPath, config.gzip_output)
+            if (config.dry_run == false) {
+                saveClientRdd(client, client_rdd, outputPath, config.gzip_output)
+            }
         }
 
         println("--- finished ProcessEventsJob date[%s] unixDays[%s] ---".format(config.input_date_string, unixDays))
@@ -128,6 +133,7 @@ object ProcessEventsJob {
             opt[String]("aws-secret-access-key") valueName ("the aws_secret_access_key") foreach { x => c = c.copy(aws_secret_access_key = x) } text ("the aws_secret_access_key")
             opt[Unit]("debug-use-local-master") foreach { x => c = c.copy(debug_use_local_master = true) } text ("use local master")
             opt[Unit]("gzip-output") foreach { x => c = c.copy(gzip_output = true) } text ("gzip output flag")
+            opt[Unit]("dry-run") foreach { x => c = c.copy(dry_run = true) } text ("dry run flag")
         }
 
         if (parser.parse(args)) {
