@@ -63,12 +63,24 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
 
     def run() = {
         import io.seldon.spark.actions.JobUtils
+
+        var unixDays = 0L;
+        try {
+            unixDays = JobUtils.dateToUnixDays(config.input_date_string);
+        } catch {
+            case ex: java.text.ParseException => {
+                unixDays = 0L
+            }
+        }
+        println("--- started ProcessEventsJob date[%s] unixDays[%s] ---".format(config.input_date_string, unixDays));
+
         val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
         val jsonRdd = parseJson(fileGlob)
         val clientList = jsonRdd.keys.distinct().collect()
         for (client <- clientList) {
-            println("Processing client[%s]".format(client))
+            val outputPath = getOutputPath(config.output_path_dir, unixDays, client)
+            println("Processing client[%s] outputPath[%s]".format(client, outputPath))
             val filtered_by_client: RDD[(String, String)] = jsonRdd.filter((y) => {
                 if (client.equals(y._1)) {
                     true
@@ -78,10 +90,11 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
             })
             val client_rdd: RDD[String] = filtered_by_client.map((z) => z._2)
 
-            val outputPath = config.output_path_dir + "/" + client
-
             saveClientRdd(client, client_rdd, outputPath, config.gzip_output)
         }
+
+        println("--- finished ProcessEventsJob date[%s] unixDays[%s] ---".format(config.input_date_string, unixDays))
+
     }
 
     def saveClientRdd(client: String, rdd: RDD[String], outputPath: String, gzip_output: Boolean) = {
@@ -90,6 +103,10 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
         } else {
             rdd.saveAsTextFile(outputPath)
         }
+    }
+
+    def getOutputPath(output_path_dir: String, unixDays: Long, client: String) = {
+        output_path_dir + "/" + client + "/events/" + unixDays;
     }
 
 }
