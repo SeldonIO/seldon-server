@@ -12,6 +12,9 @@ import org.apache.spark.mllib.stat.{ MultivariateStatisticalSummary, Statistics 
 import java.sql.ResultSet
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.mllib.feature.IDF
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.columnar.BOOLEAN
+import org.apache.hadoop.io.compress.GzipCodec
 
 case class ProcessEventsConfig(
         input_path_pattern: String = "",
@@ -63,13 +66,32 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
         val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
         val jsonRdd = parseJson(fileGlob)
+        val clientList = jsonRdd.keys.distinct().collect()
+        for (client <- clientList) {
+            println("Processing client[%s]".format(client))
+            val filtered_by_client: RDD[(String, String)] = jsonRdd.filter((y) => {
+                if (client.equals(y._1)) {
+                    true
+                } else {
+                    false
+                }
+            })
+            val client_rdd: RDD[String] = filtered_by_client.map((z) => z._2)
 
-        // TODO
-        def f(x: (String, String)) = {
-            println(x)
+            val outputPath = config.output_path_dir + "/" + client
+
+            saveClientRdd(client, client_rdd, outputPath, config.gzip_output)
         }
-        jsonRdd.collect().foreach(f)
     }
+
+    def saveClientRdd(client: String, rdd: RDD[String], outputPath: String, gzip_output: Boolean) = {
+        if (gzip_output) {
+            rdd.saveAsTextFile(outputPath, classOf[GzipCodec])
+        } else {
+            rdd.saveAsTextFile(outputPath)
+        }
+    }
+
 }
 
 object ProcessEventsJob {
