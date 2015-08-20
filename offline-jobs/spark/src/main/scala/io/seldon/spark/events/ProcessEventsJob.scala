@@ -42,26 +42,33 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
             import org.json4s.jackson.JsonMethods._
             implicit val formats = DefaultFormats
 
-            val json = parse(line)
+            val parts = line.split("\\s+", 3)
+            val event_json_line = if (parts.length == 3) {
+                parts(2)
+            } else {
+                "{\"client\": UNKOWN}"
+            }
+
+            val json = parse(event_json_line)
             val client = (json \ "client").extract[String]
 
-            (client, line)
-
+            (client, event_json_line)
         }
 
         rdd
     }
 
     def run() = {
-        //val fileGlob = config.inputPath + "/" + "/actions/" + SparkUtils.getS3UnixGlob(config.startDay, config.days) + "/*"
-        val fileGlob = ""
+        import io.seldon.spark.actions.JobUtils
+        val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
         val jsonRdd = parseJson(fileGlob)
 
-        /*
-     * Do stuff
-     */
-
+        // TODO
+        def f(x: (String, String)) = {
+            println(x)
+        }
+        jsonRdd.collect().foreach(f)
     }
 }
 
