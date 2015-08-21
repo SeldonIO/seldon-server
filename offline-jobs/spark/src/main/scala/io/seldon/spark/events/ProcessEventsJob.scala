@@ -78,7 +78,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
 
         val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
-        val jsonRdd = parseJson(fileGlob)
+        val jsonRdd = parseJson(fileGlob).repartition(4)
         val clientList = jsonRdd.keys.distinct().collect()
         for (client <- clientList) {
             val outputPath = getOutputPath(config.output_path_dir, unixDays, client)
