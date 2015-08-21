@@ -15,6 +15,7 @@ import org.apache.spark.mllib.feature.IDF
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.columnar.BOOLEAN
 import org.apache.hadoop.io.compress.GzipCodec
+import org.apache.spark.storage.StorageLevel
 
 case class ProcessEventsConfig(
         input_path_pattern: String = "",
@@ -42,7 +43,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
 
     def parseJson(path: String) = {
 
-        val rdd = sc.textFile(path).map { line =>
+        val rdd = sc.textFile(path).map( (line) => {
             import org.json4s._
             import org.json4s.jackson.JsonMethods._
             implicit val formats = DefaultFormats
@@ -58,7 +59,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
             val client = (json \ "client").extract[String]
 
             (client, event_json_line)
-        }
+        }).persist(StorageLevel.MEMORY_AND_DISK)
 
         rdd
     }
