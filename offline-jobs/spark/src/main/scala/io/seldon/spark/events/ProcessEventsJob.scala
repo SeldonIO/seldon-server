@@ -43,6 +43,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
 
     def parseJson(path: String) = {
 
+        println("Loading data from[%s]".format(path))
         val rdd = sc.textFile(path).map((line) => {
             import org.json4s._
             import org.json4s.jackson.JsonMethods._
