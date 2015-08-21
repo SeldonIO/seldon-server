@@ -43,7 +43,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
 
     def parseJson(path: String) = {
 
-        val rdd = sc.textFile(path).map( (line) => {
+        val rdd = sc.textFile(path).map((line) => {
             import org.json4s._
             import org.json4s.jackson.JsonMethods._
             implicit val formats = DefaultFormats
@@ -80,7 +80,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
         println("Properties: " + System.getProperties())
         ProcessEventsJob.dumpSparkConf(sc)
         ProcessEventsJob.dumpDumpConfig(config)
-        
+
         val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
         val jsonRdd = parseJson(fileGlob).repartition(4)
