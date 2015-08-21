@@ -44,7 +44,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
     def parseJson(path: String) = {
 
         println("Loading data from[%s]".format(path))
-        val rdd = sc.textFile(path).map((line) => {
+        val rdd = sc.textFile(path).repartition(4).map((line) => {
             import org.json4s._
             import org.json4s.jackson.JsonMethods._
             implicit val formats = DefaultFormats
@@ -84,7 +84,7 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
 
         val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
-        val jsonRdd = parseJson(fileGlob).repartition(4)
+        val jsonRdd = parseJson(fileGlob)
         val clientList = jsonRdd.keys.distinct().collect()
         for (client <- clientList) {
             val outputPath = getOutputPath(config.output_path_dir, unixDays, client)
