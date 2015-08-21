@@ -76,7 +76,11 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
             }
         }
         println("--- started ProcessEventsJob date[%s] unixDays[%s] ---".format(config.input_date_string, unixDays));
-
+        println("Env: " + System.getenv())
+        println("Properties: " + System.getProperties())
+        ProcessEventsJob.dumpSparkConf(sc)
+        ProcessEventsJob.dumpDumpConfig(config)
+        
         val fileGlob = JobUtils.getSourceDirFromDate(config.input_path_pattern, config.input_date_string)
 
         val jsonRdd = parseJson(fileGlob).repartition(4)
@@ -152,9 +156,6 @@ object ProcessEventsJob {
                     sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", c.aws_access_key_id)
                     sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", c.aws_secret_access_key)
                 }
-
-                dumpSparkConf(sc)
-                dumpDumpConfig(c)
 
                 val cu = new ProcessEventsJob(sc, c)
                 cu.run()
