@@ -192,7 +192,7 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
       if (badUser)
       {
         badUsers += 1
-       // buf.clear()
+        buf.clear()
       }
       else
       {
