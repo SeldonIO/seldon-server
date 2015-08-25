@@ -18,7 +18,10 @@ class Tfidf_transform(pl.Feature_transform):
 
     def getTokens(self,j):
         if self.input_feature in j:
-            return " ".join(map(str,j[self.input_feature]))
+            if isinstance(j[self.input_feature], list):
+                return " ".join(map(str,j[self.input_feature]))
+            else:
+                return str(j[self.input_feature])
         else:
             return ""
 
