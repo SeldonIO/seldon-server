@@ -1,5 +1,6 @@
 import seldon.pipeline.pipelines as pl
 from collections import defaultdict
+from  collections import OrderedDict
 import logging
 import operator
 import re
@@ -103,6 +104,66 @@ class Exist_features_transform(pl.Feature_transform):
                 excluded += 1
         self.logger.info("%s excluded %s",self.get_log_prefix(),excluded)
         return objs_new
+
+
+# Take a set of features and transform into a sorted dictionary of id:value features
+class Svmlight_transform(pl.Feature_transform):
+
+    def __init__(self,included=None):
+        super(Svmlight_transform, self).__init__()
+        self.included = included
+        self.idMap = {}
+        self.lastId = 1
+    
+    def get_models(self):
+        return super(Svmlight_transform, self).get_models() + [self.included,self.idMap]
+    
+    def set_models(self,models):
+        models = super(Feature_id_transform, self).set_models(models)
+        self.included = models[0]
+        self.idMap = models[1]
+
+    def addId(self,feature):
+        if not feature in self.idMap:
+            self.idMap[feature] = self.lastId
+            self.lastId += 1
+
+    def getId(self,feature):
+        if not feature in self.idMap:
+           return 0
+        else:
+            return self.idMap[feature]
+
+    def fit(self,objs):
+        self.idMap = {}
+        for j in objs:
+            for f in self.included:
+                v = j[f]
+                if isinstance(v, list):
+                    for vList in cl:
+                        self.addId(vList)
+                elif isinstance(v,dict):
+                    for k in v:
+                        self.addId(k)
+                else:
+                    self.addId(f)
+
+    def transform(self,objs):
+        for j in objs:
+            features = {}
+            for f in self.included:
+                v = j[f]
+                if isinstance(v, list):
+                    for vList in cl:
+                        features[self.getId(vList)] = 1
+                elif isinstance(v,dict):
+                    for k in v:
+                        features[self.getId(k)] = float(v[k])
+                else:
+                    features[self.getId(f)] = float(v)
+            od = OrderedDict(sorted(features.items()))
+            j[self.output_feature] = od
+        return objs
 
 
 # Add a feature id feature
