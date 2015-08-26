@@ -28,3 +28,5 @@ datanucleus_enhancer.log*
 # python - pyc files
 *.pyc
 
+*~
+
