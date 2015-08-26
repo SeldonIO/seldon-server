@@ -121,6 +121,7 @@ public class JsClientController {
                              @RequestParam("jsonpCallback") String callback,
                              @RequestParam(value = "source", required = false) String referrer,
                              @RequestParam(value = "rectag", required = false) String recTag,                             
+                             @RequestParam(value = "pos", required = false) Integer pos,                             
                              @RequestParam(value = "rlabs", required = false) String rlabs,
                              @RequestParam(value = "zehtg", required = false) String req) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
@@ -131,8 +132,10 @@ public class JsClientController {
         	logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
         ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
-
-        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag));
+        int clickPos = -1;
+        if (pos != null)
+        	clickPos = pos.intValue();
+        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag,clickPos));
     }
     
     @RequestMapping("/user/new")

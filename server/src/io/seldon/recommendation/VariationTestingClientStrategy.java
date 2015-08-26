@@ -26,10 +26,9 @@ package io.seldon.recommendation;
 import io.seldon.recommendation.combiner.AlgorithmResultsCombiner;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang.math.NumberRange;
 import org.apache.commons.lang.math.Range;
@@ -78,7 +77,7 @@ public class VariationTestingClientStrategy implements ClientStrategy {
 
     public ClientStrategy sample(String userId) {
         Integer hash = MurmurHash.hash(userId.getBytes(), HASH_SEED);
-        int sample = Math.abs(hash % 100);
+        int sample = Math.abs(hash % 100) + 1;
         BigDecimal sampleDec = BigDecimal.valueOf(sample).divide(BigDecimal.valueOf(100));
         for (Range range : strategyMap.keySet()) {
             if (range.containsNumber(sampleDec)) {
@@ -89,14 +88,14 @@ public class VariationTestingClientStrategy implements ClientStrategy {
     }
 
     public static VariationTestingClientStrategy build(List<Variation> variations){
-        Map<Range, ClientStrategy> strategyMap = new HashMap<>();
+        Map<Range, ClientStrategy> strategyMap = new LinkedHashMap<>();
         BigDecimal ratioTotal = BigDecimal.ZERO;
         for (Variation var : variations){
             ratioTotal = ratioTotal.add(var.ratio);
         }
         BigDecimal currentMax = BigDecimal.ZERO;
         for(Variation var : variations){
-            NumberRange range = new NumberRange(currentMax, currentMax.add(var.ratio.divide(ratioTotal, 5, BigDecimal.ROUND_UP)));
+        	NumberRange range = new NumberRange(currentMax, currentMax.add(var.ratio.divide(ratioTotal, 5, BigDecimal.ROUND_UP)));
             strategyMap.put(range,var.variationStrategy);
             currentMax = currentMax.add(var.ratio);
         }
