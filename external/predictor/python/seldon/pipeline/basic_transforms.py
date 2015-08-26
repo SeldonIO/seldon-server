@@ -119,7 +119,7 @@ class Svmlight_transform(pl.Feature_transform):
         return super(Svmlight_transform, self).get_models() + [self.included,self.idMap]
     
     def set_models(self,models):
-        models = super(Feature_id_transform, self).set_models(models)
+        models = super(Svmlight_transform, self).set_models(models)
         self.included = models[0]
         self.idMap = models[1]
 
