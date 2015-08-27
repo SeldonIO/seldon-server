@@ -160,14 +160,23 @@ class XGBoostSeldon:
             
     def predict_line(self,line):
         j = json.loads(line)
-        yprob = self.predict_json(j[self.svm_features])
+        yprob = self.predict(j[self.svm_features])
         correct = int(j[self.target])
         ylabel = np.argmax(yprob, axis=1)[0]
         self.predicted += 1
         if correct == ylabel:
             self.correct += 1
 
-    def predict_json(self,features):
+    def predict_json(self,j):
+        fscores = []
+        yprob = self.predict(j[self.svm_features])
+        if len(yprob) > 0:
+            yprob = yprob[0]
+            for i in range(1,len(yprob)):
+                fscores.append((yprob[i],self.targetMap[str(i)],1.0))
+        return fscores
+
+    def predict(self,features):
         preds = self.bst.predict(self.generate_dmatrix(features))
         return preds
 
