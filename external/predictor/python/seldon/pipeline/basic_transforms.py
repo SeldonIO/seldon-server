@@ -109,11 +109,16 @@ class Exist_features_transform(pl.Feature_transform):
 # Take a set of features and transform into a sorted dictionary of id:value features
 class Svmlight_transform(pl.Feature_transform):
 
-    def __init__(self,included=None):
+    def __init__(self,included=None,zero_based=False):
         super(Svmlight_transform, self).__init__()
         self.included = included
         self.idMap = {}
-        self.lastId = 1
+        self.zero_based = False
+        if self.zero_based:
+            self.lastId = 0
+        else:
+            self.lastId = 1
+
     
     def get_models(self):
         return super(Svmlight_transform, self).get_models() + [self.included,self.idMap]

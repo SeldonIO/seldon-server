@@ -18,11 +18,11 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
 
 RUN pip install kazoo filechunkio
 
-#ADD ./python-modules /python-modules/seldon
+ADD ./python-modules /python-modules/seldon
 
 ENV PYTHONPATH $PYTHONPATH:/python-modules
 
-#ADD ./scripts /xgboost/xgboost_train
+ADD ./scripts /xgboost/xgboost_train
 
 # Define default command.
 CMD ["bash"]

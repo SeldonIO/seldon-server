@@ -6,6 +6,7 @@ from collections import OrderedDict
 import numpy as np
 import xgboost
 from sklearn.datasets import load_svmlight_file
+import scipy.sparse
 
 
 class XGBoostSeldon:
@@ -28,7 +29,9 @@ class XGBoostSeldon:
         if 'target' in conf:
             self.target= self.conf['target']
         self.target_readable = self.conf.get('target_readable',None)
-        
+        self.correct = 0
+        self.predicted = 0
+        self.zero_based = conf.get("zeroBased",False)
 
 
     def activateModel(self,client,folder):
@@ -81,7 +84,7 @@ class XGBoostSeldon:
         f.close()
 
     def train_model(self):
-        train_X, train_Y = load_svmlight_file("train.svm")
+        train_X, train_Y = load_svmlight_file("train.svm",zero_based=self.zero_based)
         xg_train = xgboost.DMatrix(train_X,label=train_Y)
         # setup parameters for xgboost
         param = {}
@@ -97,6 +100,7 @@ class XGBoostSeldon:
         num_round = 5
         bst = xgboost.train(param, xg_train, num_round, watchlist );
         bst.save_model('model')
+
 
     def train(self):
         self.numLinesProcessed = 0
@@ -122,3 +126,50 @@ class XGBoostSeldon:
         #activate model in zookeeper
         if "activate" in self.conf and self.conf["activate"]:
             self.activateModel(self.client,str(outputPath))
+
+
+    def test(self,test_features_path):
+        fileUtil = FileUtil(key=self.awsKey,secret=self.awsSecret)
+        fileUtil.stream(test_features_path,self.predict_line)
+        return self.get_accuracy()
+        
+    def load_models(self):
+        inputPath = self.conf["inputPath"] + "/" + self.client + "/xgboost/" + str(self.conf["day"])
+        fileUtil = FileUtil(key=self.awsKey,secret=self.awsSecret)
+        fileUtil.copy(inputPath,".")
+        f = open("./target_map.json")
+        for line in f:
+            line = line.rstrip()
+            self.targetMap = json.loads(line)
+            break
+        self.bst = xgboost.Booster(model_file="./model")
+        
+    def generate_dmatrix(self,features):
+        row = []; col = []; dat = []
+        for k in features:
+            colIdx = int(k)
+            if not self.zero_based:
+                colIdx = colIdx - 1
+            row.append(0); col.append(colIdx); dat.append(float(features[k]))
+        if len(row) > 0:
+            csr = scipy.sparse.csr_matrix((dat, (row,col)))
+        else:
+            csr = scipy.sparse.csr_matrix((1, 1), dtype=np.float64)
+        xg_test = xgboost.DMatrix(csr)
+        return xg_test
+            
+    def predict_line(self,line):
+        j = json.loads(line)
+        yprob = self.predict_json(j[self.svm_features])
+        correct = int(j[self.target])
+        ylabel = np.argmax(yprob, axis=1)[0]
+        self.predicted += 1
+        if correct == ylabel:
+            self.correct += 1
+
+    def predict_json(self,features):
+        preds = self.bst.predict(self.generate_dmatrix(features))
+        return preds
+
+    def get_accuracy(self):
+        return self.correct / float(self.predicted)
