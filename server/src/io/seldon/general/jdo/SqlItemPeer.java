@@ -55,6 +55,8 @@ import javax.jdo.Query;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import java.util.HashSet;
+
 public class SqlItemPeer extends ItemPeer {
 
 	private PersistenceManager pm;
@@ -355,6 +357,15 @@ public class SqlItemPeer extends ItemPeer {
                     logger.info("Truncated value attribute " + name + ", item " + itemId);
                 }
                 // ~~ END kludge to deal with truncation ~~
+                // *** Start of fix for JSONP issues ***
+                valueLength = value.length();
+                if (type.equals(Constants.TYPE_VARCHAR) || type.equals(Constants.TYPE_TEXT)) {
+                    value = filterString(value, unicodeRemovalSet);
+                }
+                if ( value.length() < valueLength ) {
+                    logger.info("Removed invalid JSONP characters from value attribute " + name + ", item " + itemId);
+                }
+                // *** End of fix for JSONP issues ***
                 sql = "insert into " + table + " (item_id,attr_id,value) select item_id,attr_id,value1 from (select " + itemId + " as item_id,attr_id, case when type = 'VARCHAR' then val when type = 'TEXT' then val when type = 'INT' then CAST(val as SIGNED) when type = 'BIGINT' then CAST(val as SIGNED) when type = 'ENUM' then CAST(val as SIGNED) when type = 'DOUBLE' then CAST(val as DECIMAL) when type = 'BOOLEAN' then CAST(val as BINARY) when type = 'DATETIME' then CAST(val as BINARY) else null end value1, type from (select ? as val) a, item_attr where name = '" + name + "') a where value1 is not null on duplicate key update value=value1";
             } else {
             	//check if the enumeration exists, if not it's created
@@ -714,8 +725,27 @@ public class SqlItemPeer extends ItemPeer {
 		}
 	}
 
+	// A set set of unicode characters that should be removed from text data
+	// Used to solve the bad JSONP handling of these characters
+    static Set<Character> unicodeRemovalSet = new HashSet<Character>() {
+        private static final long serialVersionUID = 1L;
 
-	
+        {
+            add('\u2028');
+            add('\u2029');
+        }
+    };
+
+    // Remove a given set of characters from a String
+    static String filterString(String s, Set<Character> charRemovalSet) {
+        StringBuilder builder = new StringBuilder();
+        for (char currentChar : s.toCharArray()) {
+            if (!charRemovalSet.contains(currentChar)) {
+                builder.append(currentChar);
+            }
+        }
+        return builder.toString();
+    }
 
 }
 
