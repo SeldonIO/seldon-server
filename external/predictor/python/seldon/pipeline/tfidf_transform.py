@@ -56,26 +56,22 @@ class Tfidf_transform(pl.Feature_transform):
             self.feature_names_support = set([self.fnames[i] for i in self.ch2.get_support(indices=True)])
             self.logger.info("%s selected tfidf features %d",self.get_log_prefix(),len(self.feature_names_support))
 
-    def transform(self,objs):
+    def transform(self,j):
         docs = []
-        for j in objs:
-            docs.append(self.getTokens(j))
+        docs.append(self.getTokens(j))
         counts = self.vectorizer.transform(docs)
         self.tfidf = self.tfidf_transformer.transform(counts)
         if self.select_features:
             self.ch2.transform(self.tfidf)
-        row = 0
-        for j in objs:
-            doc_tfidf = {}
-            for (col,val) in zip(self.tfidf[row].indices,self.tfidf[row].data):
-                fname = self.fnames[col]
-                if self.select_features:
-                    if fname in self.feature_names_support:
-                        doc_tfidf[fname] = val
-                else:
+        doc_tfidf = {}
+        for (col,val) in zip(self.tfidf[0].indices,self.tfidf[0].data):
+            fname = self.fnames[col]
+            if self.select_features:
+                if fname in self.feature_names_support:
                     doc_tfidf[fname] = val
-            j[self.output_feature] = doc_tfidf
-            row += 1
-        return objs
+            else:
+                doc_tfidf[fname] = val
+        j[self.output_feature] = doc_tfidf
+        return j
 
 

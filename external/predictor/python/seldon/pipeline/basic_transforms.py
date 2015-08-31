@@ -22,15 +22,12 @@ class Include_features_transform(pl.Feature_transform):
     def fit(self,objs):
         pass
 
-    def transform(self,objs):
-        objs_new = []
-        for j in objs:
-            jNew = {}
-            for feat in self.included:
-                if feat in j:
-                    jNew[feat] = j[feat]
-            objs_new.append(jNew)
-        return objs_new
+    def transform(self,j):
+        jNew = {}
+        for feat in self.included:
+            if feat in j:
+                jNew[feat] = j[feat]
+        return jNew
 
 
 class Split_transform(pl.Feature_transform):
@@ -61,18 +58,17 @@ class Split_transform(pl.Feature_transform):
     def fit(self,objs):
         pass
 
-    def transform(self,objs):
-        for j in objs:
-            ftokens = []
-            for feat in self.input_features:
-                if feat in j:
-                    tokens = re.split(self.split_expression,j[feat])
-                    for token in tokens:
-                        token = token.rstrip().lower()
-                        if not self.ignore_numbers or (self.ignore_numbers and not self.is_number(token)):
-                            ftokens.append(token)
-            j[self.output_feature] = ftokens
-        return objs
+    def transform(self,j):
+        ftokens = []
+        for feat in self.input_features:
+            if feat in j:
+                tokens = re.split(self.split_expression,j[feat])
+                for token in tokens:
+                    token = token.rstrip().lower()
+                    if not self.ignore_numbers or (self.ignore_numbers and not self.is_number(token)):
+                        ftokens.append(token)
+        j[self.output_feature] = ftokens
+        return j
 
 class Exist_features_transform(pl.Feature_transform):
 
@@ -90,20 +86,15 @@ class Exist_features_transform(pl.Feature_transform):
     def fit(self,objs):
         pass
 
-    def transform(self,objs):
-        objs_new = []
-        excluded = 0
-        for j in objs:
-            ok = True
-            for feat in self.included:
-                if not feat in j:
-                    ok = False
-            if ok:
-                objs_new.append(j)
-            else:
-                excluded += 1
-        self.logger.info("%s excluded %s",self.get_log_prefix(),excluded)
-        return objs_new
+    def transform(self,j):
+        ok = True
+        for feat in self.included:
+            if not feat in j:
+                ok = False
+        if ok:
+            return j
+        else:
+            return None
 
 
 # Take a set of features and transform into a sorted dictionary of id:value features
@@ -153,22 +144,21 @@ class Svmlight_transform(pl.Feature_transform):
                 else:
                     self.addId(f)
 
-    def transform(self,objs):
-        for j in objs:
-            features = {}
-            for f in self.included:
-                v = j[f]
-                if isinstance(v, list):
-                    for vList in cl:
-                        features[self.getId(vList)] = 1
-                elif isinstance(v,dict):
-                    for k in v:
-                        features[self.getId(k)] = float(v[k])
-                else:
-                    features[self.getId(f)] = float(v)
-            od = OrderedDict(sorted(features.items()))
-            j[self.output_feature] = od
-        return objs
+    def transform(self,j):
+        features = {}
+        for f in self.included:
+            v = j[f]
+            if isinstance(v, list):
+                for vList in cl:
+                    features[self.getId(vList)] = 1
+            elif isinstance(v,dict):
+                for k in v:
+                    features[self.getId(k)] = float(v[k])
+            else:
+                features[self.getId(f)] = float(v)
+        od = OrderedDict(sorted(features.items()))
+        j[self.output_feature] = od
+        return j
 
 
 # Add a feature id feature
@@ -211,25 +201,24 @@ class Feature_id_transform(pl.Feature_transform):
                 nxtId += 1
         self.logger.info("%s Final id map has size %d",self.get_log_prefix(),len(self.idMap))
 
-    def transform(self,objs):
-        objs_new = []
-        for j in objs:
-            exclude = False
-            if self.input_feature in j:
-                cl = j[self.input_feature]
-                if isinstance(cl, list):
-                    r = []
-                    for v in cl:
-                        if v in self.idMap:
-                            r.append(self.idMap[v])
-                    j[self.output_feature] = r
-                else:
-                    if cl in self.idMap:
-                        j[self.output_feature] = self.idMap[cl]
-                    elif self.exclude_missing:
-                        exclude = True
-            if not exclude:
-                objs_new.append(j)
-        return objs_new
+    def transform(self,j):
+        exclude = False
+        if self.input_feature in j:
+            cl = j[self.input_feature]
+            if isinstance(cl, list):
+                r = []
+                for v in cl:
+                    if v in self.idMap:
+                        r.append(self.idMap[v])
+                j[self.output_feature] = r
+            else:
+                if cl in self.idMap:
+                    j[self.output_feature] = self.idMap[cl]
+                elif self.exclude_missing:
+                    exclude = True
+        if not exclude:
+            return j
+        else:
+            return None
 
 
