@@ -727,7 +727,7 @@ public class SqlItemPeer extends ItemPeer {
 
 	// A set set of unicode characters that should be removed from text data
 	// Used to solve the bad JSONP handling of these characters
-    static Set<Character> unicodeRemovalSet = new HashSet<Character>() {
+    public static Set<Character> unicodeRemovalSet = new HashSet<Character>() {
         private static final long serialVersionUID = 1L;
 
         {
@@ -737,7 +737,7 @@ public class SqlItemPeer extends ItemPeer {
     };
 
     // Remove a given set of characters from a String
-    static String filterString(String s, Set<Character> charRemovalSet) {
+    public static String filterString(String s, Set<Character> charRemovalSet) {
         StringBuilder builder = new StringBuilder();
         for (char currentChar : s.toCharArray()) {
             if (!charRemovalSet.contains(currentChar)) {
