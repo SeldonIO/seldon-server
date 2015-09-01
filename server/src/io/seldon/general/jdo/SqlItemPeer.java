@@ -738,14 +738,11 @@ public class SqlItemPeer extends ItemPeer {
 
     // Remove a given set of characters from a String
     public static String filterString(String s, Set<Character> charRemovalSet) {
-        StringBuilder builder = new StringBuilder();
-        for (char currentChar : s.toCharArray()) {
-            if (!charRemovalSet.contains(currentChar)) {
-                builder.append(currentChar);
-            }
+        String retVal = s;
+        for (Character c: charRemovalSet) {
+            retVal = org.apache.commons.lang3.StringUtils.remove(retVal, c);
         }
-        return builder.toString();
+        return retVal;
     }
 
 }
-
