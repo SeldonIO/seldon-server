@@ -30,5 +30,5 @@ if __name__ == '__main__':
                 conf[k] = opts[k]
     print conf
 
-    xg = XGBoostSeldon(conf)
+    xg = XGBoostSeldon(**conf)
     xg.train()

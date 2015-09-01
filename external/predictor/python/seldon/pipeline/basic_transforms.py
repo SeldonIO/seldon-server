@@ -100,9 +100,10 @@ class Exist_features_transform(pl.Feature_transform):
 # Take a set of features and transform into a sorted dictionary of id:value features
 class Svmlight_transform(pl.Feature_transform):
 
-    def __init__(self,included=None,zero_based=False):
+    def __init__(self,included=None,zero_based=False,excluded=None):
         super(Svmlight_transform, self).__init__()
         self.included = included
+        self.excluded = None
         self.idMap = {}
         self.zero_based = False
         if self.zero_based:
@@ -112,23 +113,40 @@ class Svmlight_transform(pl.Feature_transform):
 
     
     def get_models(self):
-        return super(Svmlight_transform, self).get_models() + [self.included,self.idMap]
+        return super(Svmlight_transform, self).get_models() + [(self.included,self.excluded),self.idMap]
     
     def set_models(self,models):
         models = super(Svmlight_transform, self).set_models(models)
-        self.included = models[0]
+        (self.included,self.excluded) = models[0]
         self.idMap = models[1]
 
-    def addId(self,feature):
-        if not feature in self.idMap:
-            self.idMap[feature] = self.lastId
+    @staticmethod
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+    def get_feature_val(self,feature,val):
+        if self.is_number(val):
+            return (feature,float(val))
+        else:
+            return (feature+"_"+val,1)
+
+    def addId(self,feature,val):
+        (f,v) = self.get_feature_val(feature,val)
+        if not f in self.idMap:
+            self.idMap[f] = self.lastId
             self.lastId += 1
 
-    def getId(self,feature):
-        if not feature in self.idMap:
-           return 0
+    def getId(self,feature,val):
+        (f,v) = self.get_feature_val(feature,val)
+        if not f in self.idMap:
+            return (None,0)
         else:
-            return self.idMap[feature]
+            return (self.idMap[f],v)
+
 
     def fit(self,objs):
         self.idMap = {}
@@ -137,12 +155,12 @@ class Svmlight_transform(pl.Feature_transform):
                 v = j[f]
                 if isinstance(v, list):
                     for vList in cl:
-                        self.addId(vList)
+                        self.addId(f+"_"+vList,1)
                 elif isinstance(v,dict):
                     for k in v:
-                        self.addId(k)
+                        self.addId(f+"_"+k,v[k])
                 else:
-                    self.addId(f)
+                    self.addId(f,v)
 
     def transform(self,j):
         features = {}
@@ -150,12 +168,18 @@ class Svmlight_transform(pl.Feature_transform):
             v = j[f]
             if isinstance(v, list):
                 for vList in cl:
-                    features[self.getId(vList)] = 1
+                    (fid,fv) = self.getId(f+"_"+vList,1) 
+                    if fid:
+                        features[fid] = fv
             elif isinstance(v,dict):
                 for k in v:
-                    features[self.getId(k)] = float(v[k])
+                    (fid,fv) = self.getId(f+"_"+k,v[k])
+                    if fid:
+                        features[fid] = fv
             else:
-                features[self.getId(f)] = float(v)
+                (fid,fv) = self.getId(f,v)
+                if fid:
+                    features[fid] = fv
         od = OrderedDict(sorted(features.items()))
         j[self.output_feature] = od
         return j

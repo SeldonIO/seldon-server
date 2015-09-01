@@ -4,60 +4,70 @@ from kazoo.client import KazooClient
 import json
 from wabbit_wappa import *
 from subprocess import call
-
-'''
-get below from zookeeper
-
-rules:
-namespace feature type
-
-namespace : default or name
-feature : name of feature
-transform : 
-   split
-   idx_val
-
-{"rules":{"f1":"|split","f2":"ns1|"}}
-
-otherwise will treat as string or float as given
-   
-'''
-class JsonToVW:
-
-    def transform(self,json,rules):
-        for k in json:
-            print k,json[k]
+import seldon.pipeline.pipelines as pl
 
 class VWSeldon:
+    """Wrapper to train a Vowpal Wabbit model for Seldon data
 
-    def __init__(self, conf):
-        self.client = conf['client']
-        self.awsKey = conf.get('awsKey',None)
-        self.awsSecret = conf.get('awsSecret',None)
-        self.zk_hosts = conf.get('zkHosts',None)
+    """
+
+    def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,vwArgs="",features={}, namespaces={},include=[],exclude=None,target=None,weights=None,target_readable=None,dataType="json",explicitPaths=None,inputPath=None,day=1,outputPath=None,activate=False,train_filename=None):
+        """Seldon VW Wrapper
+
+        Args:
+            client (str): Name of client. Used to construct input and output full paths if not explicitPaths
+            awsKey (Optional[str]): AWS key. Needed if using S3 paths and no IAM
+            awsSecret (Optional[str]): AWS secret. Needed if using S3 paths and no IAM
+            zkHosts (Optional[str]): zookeeper hosts. Used to get configuation if supplied.
+            vwArgs (Optional[str]): training args for vowpal wabbit
+            features (Optional[dict]): dictionary of features and how to translate them to VW
+            namespaces (Optional[dict]): dictionary of features to the VW namespace to place them
+            include (Optional[list(str)]: features to include
+            exclude (Optional[list(str)]: features to exclude
+            target (Optional[str]): name of target feature.
+            target_readable (Optional[str]): name of the feature containing human readable target
+            dataTtpe (str): json or csv
+            explicitPaths (Optional[str]): whether to use the input and output paths as given
+            inputPath (Optional[str]): input path for features to train
+            outputPath (Optional[str]): output path for vw model
+            day (int): unix day number. Used to construct location of data
+            activate (boolean): whether to update zookeeper with location of new model
+            train_filename (Optional(str)): name of filename to create with vw training lines rather then use wabbit_wappa directly
+        """
+        self.client = client
+        self.awsKey = awsKey
+        self.awsSecret = awsSecret
+        self.zk_hosts = zkHosts
         if self.zk_hosts:
             print "connecting to zookeeper at ",self.zk_hosts
             self.zk_client = KazooClient(hosts=self.zk_hosts)
             self.zk_client.start()
         else:
             self.zk_client = None
-        print "command line conf ",conf
-        self.conf = self.__merge_conf(self.client,conf)
-        print "conf after zookeeper merge ",conf
-        self.create_vw(self.conf)
-        self.features = self.conf.get('features',{})
-        self.fns = self.conf.get('namespaces',{})
-        self.include = self.conf.get('include',[])
-        if 'target' in conf:
-            self.features[self.conf['target']] = "label"
-            self.target= self.conf['target']
-        self.exclude = self.conf.get('exclude',None)
-        self.weights = self.conf.get('weights',None)
-        self.target_readable = self.conf.get('target_readable',None)
+        self.__merge_conf(self.client)
+        self.vwArgs = vwArgs
+        self.create_vw(vwArgs)
+        self.features = features
+        self.fns = namespaces
+        self.include = include
+        self.target = target
+        if target:
+            self.features[target] = "label"
+        self.exclude = exclude
+        self.weights = weights
+        self.target_readable = target_readable
+        self.data_type = dataType
+        self.explicit_paths = explicitPaths
+        self.inputPath = inputPath
+        self.outputPath = outputPath
+        self.day = day
+        self.activate = activate
+        self.train_filename = train_filename
 
-
-
+        
     def activateModel(self,client,folder):
+        """activate vw model in zookeeper
+        """
         node = "/all_clients/"+client+"/vw"
         print "Activating model in zookeper at node ",node," with data ",folder
         if self.zk_client.exists(node):
@@ -66,28 +76,49 @@ class VWSeldon:
             self.zk_client.create(node,folder,makepath=True)
 
 
-    def __merge_conf(self,client,conf):
+    def __merge_conf(self,client):
+        """merge zookeeper configuration into class
+        """
         thePath = "/all_clients/"+client+"/offline/vw"
         if self.zk_client and self.zk_client.exists(thePath):
             print "merging conf from zookeeper"
             data, stat = self.zk_client.get(thePath)
             zk_conf = json.loads(data.decode('utf-8'))
-            zk_conf.update(conf)
-            return zk_conf
-        else:
-            return conf
+            for k in zk_conf:
+                if not hasattr(self, k):
+                    setattr(self, k, zk_conf[k])
+
+    @staticmethod
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
 
 
     def convertJsonFeature(self,conversion,ns,name,val):
+        """convert feature into vw feature
+           
+           if number create a feature:value vw feature else create a categorical feature from the feature name and value
+        """
         if conversion == "split":
             f = val.split()
             ns = ns + f
         elif isinstance(val, basestring):
-            ns.append(val)
+            if self.is_number(val):
+                ns.append((name,float(val)))
+            else:
+                ns.append(name+"_"+val)
         else:
             ns.append((name,float(val)))
 
     def jsonToVw(self,j,tag=None):
+        """convert a dict of features into vw line
+        
+        Will include and exclude features as defined args. 
+        Add weights and puts features into namespaces as directed.
+        """
         ns = {}
         for k in set(self.fns.values()):
             if not k == "label":
@@ -136,15 +167,17 @@ class VWSeldon:
         else:
             return self.vw2.make_line(response=label,tag=tag,features=ns['def'],namespaces=namespaces)
         
-    def create_vw(self,conf):
-        vwArgs = conf.get('vwArgs',"")
+    def create_vw(self,vwArgs):
+        """Create wabbit_wappa vw instance for creating the training lines and possibly doing the training
+        """
         command = "vw --save_resume --predictions /dev/stdout --quiet "+vwArgs + " --readable_model ./model.readable"
         print command
         self.vw2 =  VW(command=command)
         print self.vw2.command
 
-    def process(self,line):
-        j = json.loads(line)
+    def process(self,j):
+        """process the lines from the input and turn into vw lines
+        """
         vwLine = self.jsonToVw(j)
         self.numLinesProcessed += 1
         if vwLine:
@@ -154,8 +187,17 @@ class VWSeldon:
                 self.train_file.write(vwLine+"\n")
             else:
                 self.vw2.send_line(vwLine)
+
+                
+    def save_data(self,line):
+        """save data to local file
+        """
+        self.local_input.write(line+"\n")
+
         
     def save_target_map(self):
+        """save mapping of target ids to their descriptive meanings
+        """
         v = json.dumps(self.target_map,sort_keys=True)
         f = open('./target_map.json',"w")
         f.write(v)
@@ -163,6 +205,8 @@ class VWSeldon:
 
 
     def train(self,train_filename=None,vw_command=None):
+        """train a vw model from input and save to output
+        """
         self.numLinesProcessed = 0
         self.target_map = {}
         if train_filename:
@@ -170,16 +214,31 @@ class VWSeldon:
         else:
             self.train_file = None
         #stream data into vw
-        inputPath = self.conf["inputPath"] + "/" + self.client + "/features/" + str(self.conf['day']) + "/"
+        if self.explicit_paths:
+            inputPath = self.inputPath
+        else:
+            inputPath = self.inputPath + "/" + self.client + "/features/" + str(self.day) + "/"
         print "inputPath->",inputPath
+        
+        # stream data to local file
         fileUtil = FileUtil(key=self.awsKey,secret=self.awsSecret)
-        fileUtil.stream(inputPath,self.process)
+        self.local_input = open("./data","w")
+        fileUtil.stream(inputPath,self.save_data)
+        self.local_input.close()
+
+        #build vw training 
+        if self.data_type == "csv":
+            features = pl.CsvDataSet("./data")
+        else:
+            features = pl.JsonDataSet("./data")
+        for d in features:
+            self.process(d)
 
         # save vw model
         if train_filename:
             self.vw2.close()
             self.train_file.close()
-            r = call(["vw","--data",train_filename,"-f","model","--cache_file","./cache_file","--readable_model","./model.readable"]+self.conf['vwArgs'].split())
+            r = call(["vw","--data",train_filename,"-f","model","--cache_file","./cache_file","--readable_model","./model.readable"]+self.vwArgs.split())
             print "called and got ",r
         else:
             self.vw2.save_model("./model")
@@ -188,12 +247,15 @@ class VWSeldon:
 
         self.save_target_map()
         # copy models to final location
-        outputPath = self.conf["outputPath"] + "/" + self.client + "/vw/" + str(self.conf["day"])
+        if self.explicit_paths:
+            outputPath = self.outputPath
+        else:
+            outputPath = self.outputPath + "/" + self.client + "/vw/" + str(self.day)
         print "outputPath->",outputPath
         fileUtil.copy("./model",outputPath+"/model")
         fileUtil.copy("./model.readable",outputPath+"/model.readable")
         fileUtil.copy("./target_map.json",outputPath+"/target_map.json")
 
         #activate model in zookeeper
-        if "activate" in self.conf and self.conf["activate"]:
+        if self.activate:
             self.activateModel(self.client,str(outputPath))

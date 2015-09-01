@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--target', help='target feature (should contain integer ids in range 1..Num Classes)')
     parser.add_argument('--target_readable', help='the feature containing the human readable version of target')
     parser.add_argument('--train_filename', help='target feature')
+    parser.add_argument('--dataType', help='json or csv', default="json")
 
 
     args = parser.parse_args()
@@ -34,7 +35,5 @@ if __name__ == '__main__':
                 conf[k] = opts[k]
     print conf
     train_filename = opts.get("train_filename",None)
-    print train_filename
-
-    vw = VWSeldon(conf)
+    vw = VWSeldon(**conf)
     vw.train(train_filename)
