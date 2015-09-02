@@ -29,6 +29,7 @@ class Tfidf_transform(pl.Feature_transform):
         self.stop_words = stop_words
         self.target_feature = target_feature
         self.ch2 = ""
+        self.feature_names_support = []
 
     def getTokens(self,j):
         """basic method to get "document" string from feature

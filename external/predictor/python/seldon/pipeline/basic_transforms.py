@@ -195,20 +195,22 @@ class Svmlight_transform(pl.Feature_transform):
         else:
             return (self.idMap[f],v)
 
-    def fit(self,j):
+    def fit(self,objs):
         """create ids for each feature to be included
         """
-       self.idMap = {}
-        for f in j:
-            if (self.included and f in self.included) or (self.excluded and not f in self.excluded):
-                if isinstance(v, list):
-                    for vList in cl:
-                        self.addId(f+"_"+vList,1)
-                elif isinstance(v,dict):
-                    for k in v:
-                        self.addId(f+"_"+k,v[k])
-                else:
-                    self.addId(f,v)
+        self.idMap = {}
+        for j in objs:
+            for f in j:
+                if (self.included and f in self.included) or (self.excluded and not f in self.excluded):
+                    v = j[f]
+                    if isinstance(v, list):
+                        for vList in v:
+                            self.addId(f+"_"+vList,1)
+                    elif isinstance(v,dict):
+                        for k in v:
+                            self.addId(f+"_"+k,v[k])
+                    else:
+                        self.addId(f,v)
 
     def transform(self,j):
         """transform features by getting id and numeric value
