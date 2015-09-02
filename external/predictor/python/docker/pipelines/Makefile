@@ -1,5 +1,5 @@
 VERSION=1.0
-IMAGE=pipelines
+IMAGE=seldonio/pipelines
 
 build:
 	rm -fr python-modules
@@ -9,4 +9,7 @@ build:
 clean:
 	rm -rf ./python-modules
 
+push_to_dockerhub:
+	@docker login -u seldonio && \
+		docker push $(IMAGE)
 
