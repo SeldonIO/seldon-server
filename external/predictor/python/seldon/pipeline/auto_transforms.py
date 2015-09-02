@@ -4,8 +4,17 @@ from dateutil.parser import parse
 import datetime
 
 class Auto_transform(pl.Feature_transform):
-
+    """Automatically transform a set of features into normalzied numeric or categorical features or dates
+    """
     def __init__(self,exclude=[],max_values_numeric_categorical=20,custom_date_formats=None,ignore_vals=None):
+        """automatically transform a set of features
+
+        Args:
+            exclude (list):list of features to not include
+            max_values_numeric_categorical (int):max number of unique values for numeric feature to treat as categorical
+           custom_date_formats (list(str)): list of custom date formats to try
+           ignore_vals (list(str)): list of feature values to treat as NA/ignored values
+        """
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.max_values_numeric_categorical = max_values_numeric_categorical
@@ -47,6 +56,10 @@ class Auto_transform(pl.Feature_transform):
             return 0
 
     def fit_scalers(self,objs,features):
+        """fit numeric scalers on all numeric features
+
+        requires enough memory to run sklearn standard scaler on all values for a feature
+        """
         print "creating ",len(features),"features scalers"
         Xs = {}
         for f in features:
@@ -69,6 +82,8 @@ class Auto_transform(pl.Feature_transform):
 
     @staticmethod
     def make_categorical_token(f,v):
+        """make a ctaegorical feature from feature and its value
+        """
         v = str(v).lower().replace(" ","_")
         if Auto_transform.is_number(v):
             return "t_"+v
@@ -76,6 +91,8 @@ class Auto_transform(pl.Feature_transform):
             return v
 
     def is_date(self,v):
+        """is this feature a date
+        """
         try:
             parse(v)
             return True
@@ -90,6 +107,8 @@ class Auto_transform(pl.Feature_transform):
             return False
 
     def unix_time(self,dt):
+        """transform a date into a unix day number
+        """
         epoch = datetime.datetime.utcfromtimestamp(0)
         delta = dt - epoch
         return delta.total_seconds()
@@ -107,6 +126,8 @@ class Auto_transform(pl.Feature_transform):
         return "t_"+str(int(self.unix_time(d)/86400))
 
     def fit(self,objs):
+        """try to guess a transform to apply to each feature
+        """
         values = {}
         c = 1
         for j in objs:
@@ -136,6 +157,8 @@ class Auto_transform(pl.Feature_transform):
         self.fit_scalers(objs,featuresToScale)
 
     def transform(self,j):
+        """Apply learnt transforms on each feature
+        """
         jNew = {}
         for f in j:
             if not f in self.transforms:

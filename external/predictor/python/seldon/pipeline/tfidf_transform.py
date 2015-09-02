@@ -5,8 +5,22 @@ from sklearn.feature_selection import SelectKBest, chi2
 import logging 
 
 class Tfidf_transform(pl.Feature_transform):
+    """create TF-IDF (term frequency - inverse document frequency) features. 
 
+    can use chi-squared test to limit features. Assumes string based input feature that can be split.
+    Uses scikit-learn based transformers internally
+    """
     def __init__(self,min_df=10,max_df=0.7,select_features=False,topn_features=50000,stop_words=None,target_feature=None):
+        """create tfidf feature
+
+        Args:
+            min_df (int): min document frequency (for sklearn vectorizer)
+            max_df (float): max document frequency (for sklearn vectorizer)
+            select_features (bool): use chi-squared test to select features
+            topn_features (int): keep top features from chi-squared test
+            stop_words (str): stop words (for sklearn vectorizer)
+            target_feature (str): target feature for chi-squared test
+        """
         super(Tfidf_transform, self).__init__()
         self.min_df=min_df
         self.max_df=max_df
@@ -17,6 +31,8 @@ class Tfidf_transform(pl.Feature_transform):
         self.ch2 = ""
 
     def getTokens(self,j):
+        """basic method to get "document" string from feature
+        """
         if self.input_feature in j:
             if isinstance(j[self.input_feature], list):
                 return " ".join(map(str,j[self.input_feature]))
@@ -38,6 +54,10 @@ class Tfidf_transform(pl.Feature_transform):
         self.feature_names_support = models[5]
 
     def fit(self,objs):
+        """fit using sklean transforms
+
+        vectorizer->tfidf->(optional) chi-squqred test
+        """
         docs = []
         target = []
         self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
@@ -57,6 +77,8 @@ class Tfidf_transform(pl.Feature_transform):
             self.logger.info("%s selected tfidf features %d",self.get_log_prefix(),len(self.feature_names_support))
 
     def transform(self,j):
+        """transform features into final tfidf features
+        """
         docs = []
         docs.append(self.getTokens(j))
         counts = self.vectorizer.transform(docs)
