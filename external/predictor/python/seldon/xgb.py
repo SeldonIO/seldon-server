@@ -15,7 +15,7 @@ class XGBoostSeldon:
        Input from local or S3. Files can be JSON or a single CSV file.
        Output model to local or S3.
     """
-    def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,svmFeatures={},target=None,target_readable=None,zeroBased=False,inputPath=None,day=1,outputPath=None,activate=False):
+    def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,svmFeatures={},target=None,target_readable=None,zeroBased=False,inputPath=None,day=1,outputPath=None,activate=False,**kwds):
         """Seldon XGBoost Wrapper
 
         Args:

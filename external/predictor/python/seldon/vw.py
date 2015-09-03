@@ -11,7 +11,7 @@ class VWSeldon:
 
     """
 
-    def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,vwArgs="",features={}, namespaces={},include=[],exclude=None,target=None,weights=None,target_readable=None,dataType="json",explicitPaths=None,inputPath=None,day=1,outputPath=None,activate=False,train_filename=None):
+    def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,vwArgs="",features={}, namespaces={},include=[],exclude=None,target=None,weights=None,target_readable=None,dataType="json",explicitPaths=None,inputPath=None,day=1,outputPath=None,activate=False,train_filename=None,**kwds):
         """Seldon VW Wrapper
 
         Args:
@@ -162,6 +162,7 @@ class VWSeldon:
             return None
         if len(ns['def']) == 0:
             ns['def'] = None
+        print "label ",label," features ",ns['def']
         if self.weights:
             return self.vw2.make_line(response=label,importance=importance,tag=tag,features=ns['def'],namespaces=namespaces)
         else:

@@ -1,4 +1,4 @@
-FROM vw_train
+FROM seldonio/vw_train
 
 ENV HOME /root
 ENV DEBIAN_FRONTEND noninteractive

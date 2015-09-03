@@ -14,12 +14,12 @@ def init(config):
     pipeline = pl.Pipeline(local_models_folder="models",models_folder=xgboost_config['featuresPath'],aws_key=xgboost_config.get("awsKey",None),aws_secret=xgboost_config.get("awsSecret",None))
     pipeline.transform_init()
     global xgSeldon 
-    xgSeldon = XGBoostSeldon(xgboost_config)
+    xgSeldon = XGBoostSeldon(**xgboost_config)
     xgSeldon.load_models()
 
 def score(json):
     print json
-    jsonTransformed = pipeline.transform_json(json)[0]
+    jsonTransformed = pipeline.transform_json(json)
     print jsonTransformed
     return xgSeldon.predict_json(jsonTransformed)
 

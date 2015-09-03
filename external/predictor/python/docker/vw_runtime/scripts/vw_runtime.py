@@ -30,6 +30,7 @@ def init(config):
     global tailq
     tailq = Queue.Queue(maxsize=1000) 
     vw_config = config['VW']
+    print "initialising with ",vw_config
     # we tail the raw prediction file to get the full scores from daemon sevrer
     threading.Thread(target=tail_forever, args=(vw_config['raw_predictions'],)).start()
     global idMap
@@ -38,7 +39,7 @@ def init(config):
     pipeline = pl.Pipeline(local_models_folder="models",models_folder=vw_config['featuresPath'],aws_key=vw_config.get("awsKey",None),aws_secret=vw_config.get("awsSecret",None))
     pipeline.transform_init()
     global vwTransformer
-    vwTransformer = VWSeldon(vw_config)
+    vwTransformer = VWSeldon(**vw_config)
         
 
 # simple vw precition string create
@@ -85,7 +86,7 @@ def score(json):
     tag = "tag"+str(random.randrange(0,9999999))
     print tag
     print json
-    jsonTransformed = pipeline.transform_json(json)[0]
+    jsonTransformed = pipeline.transform_json(json)
     print jsonTransformed
     vwRequest = vwTransformer.jsonToVw(jsonTransformed,tag=tag) + "\n"
     print vwRequest

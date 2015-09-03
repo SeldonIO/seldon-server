@@ -11,9 +11,6 @@ if __name__ == '__main__':
     parser.add_argument('--awsKey', help='aws key - needed if input or output is on AWS and no IAM', default=None)
     parser.add_argument('--awsSecret', help='aws secret - needed if input or output on AWS  and no IAM', default=None)
     parser.add_argument('--svmFeatures', help='the feature containing the svm style features')
-    parser.add_argument('--target', help='target feature (should contain integer ids in range 1..Num Classes)')
-
-
 
     args = parser.parse_args()
     opts = vars(args)
