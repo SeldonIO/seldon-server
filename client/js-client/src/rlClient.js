@@ -23,7 +23,8 @@ var rlClient = (function () {
             //  not sure
             query_delimiter: "?",
             rectag_name: "rectag",
-            use_pos_name: "use_pos"
+            use_pos_name: "use_pos",
+            current_page_url: location.href
         };
 
     function extractQuery(paramString) {
@@ -36,8 +37,9 @@ var rlClient = (function () {
     }
 
     function retrieveSeldonParamsFromURL() {
-        var normalised = (RL.LOCATION_HREF_OVERRIDE || location.href),
-            rlabs, query_params,
+        var normalised = params.current_page_url,
+            rlabs,
+            query_params,
             query = normalised.replace(new RegExp(".*\\" + params.rlabs_delim), "");
         if (params.rlabs_delim === "?") {
             // removing final # if present in the query parameter
@@ -106,7 +108,7 @@ var rlClient = (function () {
     }
 
     function currentPageId(keep) {
-        return pageId((RL.LOCATION_HREF_OVERRIDE || location.href), keep);
+        return pageId(params.current_page_url, keep);
     }
 
     function fullEndpoint(path) {
