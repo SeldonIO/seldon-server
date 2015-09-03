@@ -1,5 +1,5 @@
 VERSION=1.0
-IMAGE=vw_runtime
+IMAGE=seldonio/vw_runtime
 
 build:
 	rm -rf test_vw
@@ -7,9 +7,11 @@ build:
 	docker build -t ${IMAGE} .
 
 
-run_interactive:
-	docker run --name="vw_runtime" --rm -it --rm vw_runtime bash
+push_to_dockerhub:
+	@docker login -u seldonio && \
+		docker push $(IMAGE)
 
-run_dev:
-	docker run --name="vw_runtime" --rm -it -p 5000:5000 -v /seldon-models:/seldon-models -v ${PWD}/scripts:/vw/vw_runtime --rm vw_runtime bash
+run_interactive:
+	docker run --name="vw_runtime" --rm -it --rm ${IMAGE} bash
+
 

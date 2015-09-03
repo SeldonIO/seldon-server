@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--exclude', help='exclude these features' , nargs='*')
     parser.add_argument('--target', help='target feature (should contain integer ids in range 1..Num Classes)')
     parser.add_argument('--target_readable', help='the feature containing the human readable version of target')
-    parser.add_argument('--train_filename', help='target feature')
+    parser.add_argument('--train_filename', help='convert data to vw training format and save to file rather than directly train using wabbit_wappa')
     parser.add_argument('--dataType', help='json or csv', default="json")
 
 

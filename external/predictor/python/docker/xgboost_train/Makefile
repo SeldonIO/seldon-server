@@ -1,5 +1,5 @@
 VERSION=1.0
-IMAGE=xgboost_train
+IMAGE=seldonio/xgboost_train
 
 build:
 	rm -rf python-modules
@@ -9,9 +9,10 @@ build:
 clean:
 	rm -rf ./python-modules
 
+push_to_dockerhub:
+	@docker login -u seldonio && \
+		docker push $(IMAGE)
 
 run_interactive:
-	docker run --name="xgboost_train" -it --net=host --rm xgboost_train bash
+	docker run --name="xgboost_train" -it --net=host --rm ${IMAGE} bash
 
-run_dev:
-	docker run --name="xgboost_train" -it -v ${PWD}/python-modules:/python-modules/seldon -v ${PWD}/scripts:/xgboost/xgboost_train -v /seldon-models:/seldon-models  --net=host --rm xgboost_train bash

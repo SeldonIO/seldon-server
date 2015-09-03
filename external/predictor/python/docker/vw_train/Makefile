@@ -1,5 +1,5 @@
 VERSION=1.0
-IMAGE=vw_train
+IMAGE=seldonio/vw_train
 
 build:
 	rm -r python-modules
@@ -9,7 +9,10 @@ build:
 clean:
 	rm -rf ./python-modules
 
+push_to_dockerhub:
+	@docker login -u seldonio && \
+		docker push $(IMAGE)
 
 run_interactive:
-	docker run --name="vw_train" -it --net=host --rm vw_train bash
+	docker run --name="vw_train" -it --net=host --rm ${IMAGE} bash
 
