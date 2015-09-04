@@ -38,6 +38,7 @@ var rlClient = (function () {
 
     function retrieveSeldonParamsFromURL() {
         var normalised = params.current_page_url,
+            retVal,
             rlabs,
             query_params,
             query = normalised.replace(new RegExp(".*\\" + params.rlabs_delim), "");
@@ -54,7 +55,20 @@ var rlClient = (function () {
                 }
             });
         }
-        return rlabs ? rlabs.split("%20") : [];
+        retVal = rlabs ? rlabs.split("%20") : [];
+        return retVal;
+    }
+
+    function extractExtraSeldonParams(param_list) {
+        var i, retVal = {};
+
+        if (param_list.length > 1) {
+            for (i = 1; i < param_list.length; i += 1) {
+                retVal[param_list[i].split('$')[0]] = param_list[i].split('$')[1];
+            }
+        }
+
+        return retVal;
     }
 
     function parameterString(params, keep) {
@@ -189,8 +203,8 @@ var rlClient = (function () {
             var urlparams = retrieveSeldonParamsFromURL(),
                 id = item_id || currentPageId(params.retain),
                 recId = rlabs || urlparams[0],
-                tag = rectag || urlparams[1],
-                position = pos || urlparams[2],
+                tag = rectag || extractExtraSeldonParams(urlparams).rt,
+                position = pos || extractExtraSeldonParams(urlparams).p,
                 url;
 
             url = actionUrl(type, user_id, id, recId, source, tag, position);
@@ -227,7 +241,7 @@ var rlClient = (function () {
             var itemId = options.item || currentPageId(params.retain),
                 paramsFromURL = retrieveSeldonParamsFromURL(),
                 rlabs = options[params.track_par] || paramsFromURL[0],
-                rectag = options[params.rectag_name] || paramsFromURL[1],
+                rectag = options[params.rectag_name] || extractExtraSeldonParams(paramsFromURL).rt,
                 url = recommendationsUrl(user_id, itemId, rlabs, rectag, options);
             jsonpCall(url, callback);
         });
@@ -245,11 +259,11 @@ var rlClient = (function () {
                 id += id.match(new RegExp("\\" + params.query_delimiter)) ? "&" : delim;
                 id += params.track_par + "=" + uuid;
                 if (rectag) {
-                    id += "%20" + rectag;
+                    id += "%20rt$" + rectag;
                 }
                 if (use_pos) {
                     pos += 1;
-                    id += "%20" + pos;
+                    id += "%20p$" + pos;
                 }
             }
             item.id = id;
