@@ -14,23 +14,31 @@ class XGBoostSeldon:
 
        Input from local or S3. Files can be JSON or a single CSV file.
        Output model to local or S3.
+
+    Args:
+        client (str): Name of client. Used to construct input and output full paths if not explicitPaths
+
+        awsKey (Optional[str]): AWS key. Needed if using S3 paths and no IAM
+
+        awsSecret (Optional[str]): AWS secret. Needed if using S3 paths and no IAM
+
+        zkHosts (Optional[str]): zookeeper hosts. Used to get configuation if supplied.
+
+        svmFeatures (Optional[dict]): dictionary of svm (numeric key) features to their values
+
+        target (Optional[str]): name of target feature.
+
+        target_readable (Optional[str]): name of the feature containing human readable target
+
+        inputPath (Optional[str]): input path for features to train
+
+        outputPath (Optional[str]): output path for vw model
+
+        day (int): unix day number. Used to construct location of data
+
+        activate (boolean): whether to update zookeeper with location of new model
     """
     def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,svmFeatures={},target=None,target_readable=None,zeroBased=False,inputPath=None,day=1,outputPath=None,activate=False,**kwds):
-        """Seldon XGBoost Wrapper
-
-        Args:
-            client (str): Name of client. Used to construct input and output full paths if not explicitPaths
-            awsKey (Optional[str]): AWS key. Needed if using S3 paths and no IAM
-            awsSecret (Optional[str]): AWS secret. Needed if using S3 paths and no IAM
-            zkHosts (Optional[str]): zookeeper hosts. Used to get configuation if supplied.
-            svmFeatures (Optional[dict]): dictionary of svm (numeric key) features to their values
-            target (Optional[str]): name of target feature.
-            target_readable (Optional[str]): name of the feature containing human readable target
-            inputPath (Optional[str]): input path for features to train
-            outputPath (Optional[str]): output path for vw model
-            day (int): unix day number. Used to construct location of data
-            activate (boolean): whether to update zookeeper with location of new model
-        """
         self.client = client
         self.awsKey = awsKey
         self.awsSecret = awsSecret

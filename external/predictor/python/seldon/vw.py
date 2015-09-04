@@ -9,31 +9,45 @@ import seldon.pipeline.pipelines as pl
 class VWSeldon:
     """Wrapper to train a Vowpal Wabbit model for Seldon data
 
+    Args:
+        client (str): Name of client. Used to construct input and output full paths if not explicitPaths
+
+        awsKey (Optional[str]): AWS key. Needed if using S3 paths and no IAM
+
+        awsSecret (Optional[str]): AWS secret. Needed if using S3 paths and no IAM
+
+        zkHosts (Optional[str]): zookeeper hosts. Used to get configuation if supplied.
+
+        vwArgs (Optional[str]): training args for vowpal wabbit
+
+        features (Optional[dict]): dictionary of features and how to translate them to VW
+
+        namespaces (Optional[dict]): dictionary of features to the VW namespace to place them
+
+        include (Optional[list(str)]: features to include
+
+        exclude (Optional[list(str)]: features to exclude
+
+        target (Optional[str]): name of target feature.
+
+        target_readable (Optional[str]): name of the feature containing human readable target
+
+        dataTtpe (str): json or csv
+
+        explicitPaths (Optional[str]): whether to use the input and output paths as given
+
+        inputPath (Optional[str]): input path for features to train
+
+        outputPath (Optional[str]): output path for vw model
+
+        day (int): unix day number. Used to construct location of data
+
+        activate (boolean): whether to update zookeeper with location of new model
+
+        train_filename (Optional(str)): name of filename to create with vw training lines rather then use wabbit_wappa directly
     """
 
     def __init__(self, client=None,awsKey=None,awsSecret=None,zkHosts=None,vwArgs="",features={}, namespaces={},include=[],exclude=None,target=None,weights=None,target_readable=None,dataType="json",explicitPaths=None,inputPath=None,day=1,outputPath=None,activate=False,train_filename=None,**kwds):
-        """Seldon VW Wrapper
-
-        Args:
-            client (str): Name of client. Used to construct input and output full paths if not explicitPaths
-            awsKey (Optional[str]): AWS key. Needed if using S3 paths and no IAM
-            awsSecret (Optional[str]): AWS secret. Needed if using S3 paths and no IAM
-            zkHosts (Optional[str]): zookeeper hosts. Used to get configuation if supplied.
-            vwArgs (Optional[str]): training args for vowpal wabbit
-            features (Optional[dict]): dictionary of features and how to translate them to VW
-            namespaces (Optional[dict]): dictionary of features to the VW namespace to place them
-            include (Optional[list(str)]: features to include
-            exclude (Optional[list(str)]: features to exclude
-            target (Optional[str]): name of target feature.
-            target_readable (Optional[str]): name of the feature containing human readable target
-            dataTtpe (str): json or csv
-            explicitPaths (Optional[str]): whether to use the input and output paths as given
-            inputPath (Optional[str]): input path for features to train
-            outputPath (Optional[str]): output path for vw model
-            day (int): unix day number. Used to construct location of data
-            activate (boolean): whether to update zookeeper with location of new model
-            train_filename (Optional(str)): name of filename to create with vw training lines rather then use wabbit_wappa directly
-        """
         self.client = client
         self.awsKey = awsKey
         self.awsSecret = awsSecret

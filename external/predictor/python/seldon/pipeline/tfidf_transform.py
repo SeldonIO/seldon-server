@@ -9,18 +9,21 @@ class Tfidf_transform(pl.Feature_transform):
 
     can use chi-squared test to limit features. Assumes string based input feature that can be split.
     Uses scikit-learn based transformers internally
+
+    Args:
+        min_df (int): min document frequency (for sklearn vectorizer)
+
+        max_df (float): max document frequency (for sklearn vectorizer)
+
+        select_features (bool): use chi-squared test to select features
+
+        topn_features (int): keep top features from chi-squared test
+
+        stop_words (str): stop words (for sklearn vectorizer)
+
+        target_feature (str): target feature for chi-squared test
     """
     def __init__(self,min_df=10,max_df=0.7,select_features=False,topn_features=50000,stop_words=None,target_feature=None):
-        """create tfidf feature
-
-        Args:
-            min_df (int): min document frequency (for sklearn vectorizer)
-            max_df (float): max document frequency (for sklearn vectorizer)
-            select_features (bool): use chi-squared test to select features
-            topn_features (int): keep top features from chi-squared test
-            stop_words (str): stop words (for sklearn vectorizer)
-            target_feature (str): target feature for chi-squared test
-        """
         super(Tfidf_transform, self).__init__()
         self.min_df=min_df
         self.max_df=max_df

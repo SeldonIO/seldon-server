@@ -5,16 +5,17 @@ import datetime
 
 class Auto_transform(pl.Feature_transform):
     """Automatically transform a set of features into normalzied numeric or categorical features or dates
+
+    Args:
+        exclude (list):list of features to not include
+
+        max_values_numeric_categorical (int):max number of unique values for numeric feature to treat as categorical
+
+        custom_date_formats (list(str)): list of custom date formats to try
+
+        ignore_vals (list(str)): list of feature values to treat as NA/ignored values
     """
     def __init__(self,exclude=[],max_values_numeric_categorical=20,custom_date_formats=None,ignore_vals=None):
-        """automatically transform a set of features
-
-        Args:
-            exclude (list):list of features to not include
-            max_values_numeric_categorical (int):max number of unique values for numeric feature to treat as categorical
-           custom_date_formats (list(str)): list of custom date formats to try
-           ignore_vals (list(str)): list of feature values to treat as NA/ignored values
-        """
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.max_values_numeric_categorical = max_values_numeric_categorical

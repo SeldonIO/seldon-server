@@ -74,20 +74,26 @@ class Feature_transform(object):
 
 class Pipeline(object):
     """A pipeline of feature transformation
-    """
-    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json'):
-        """Feature transformation pipeline
 
-        Args:
-            input_folders (list): list of folders containing feature files (or single file for CSV)
-            output_folder [Optional(str)]: output folder to store the result of the pipeline
-            models_folder [Optional(str)]: folder to store the feature transformation models needed to rerun the pipeline
-            local_models_folder (str): local tmp folder to store models while processing
-            local_data_folder (str): local tmp data folder to store data while processing
-            aws_key [Optional(str)]: aws key (for S3 access)
-            aws_secret [Optional(str)]: aws secret (for S3 access)
-            data_type (str): json or csv
-        """
+    Args:
+        input_folders (list): list of folders containing feature files (or single file for CSV)
+
+        output_folder [Optional(str)]: output folder to store the result of the pipeline
+
+        models_folder [Optional(str)]: folder to store the feature transformation models needed to rerun the pipeline
+
+        local_models_folder (str): local tmp folder to store models while processing
+
+        local_data_folder (str): local tmp data folder to store data while processing
+
+        aws_key [Optional(str)]: aws key (for S3 access)
+
+        aws_secret [Optional(str)]: aws secret (for S3 access)
+
+        data_type (str): json or csv
+    """
+
+    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json'):
         self.pipeline = []
         self.models_folder = models_folder
         self.input_folders = input_folders
@@ -315,13 +321,12 @@ class Pipeline(object):
 
 class JsonDataSet(object):
     """a JSON dataset
-    """
-    def __init__(self, filename):
-        """JSON dataset
         
-        Args:
-            filename (str): location of JSON file
-        """
+    Args:
+        filename (str): location of JSON file
+    """
+
+    def __init__(self, filename):
         self.filename =filename
  
     def __iter__(self):
@@ -335,13 +340,12 @@ class JsonDataSet(object):
 
 class CsvDataSet(object):
     """a CSV Dataset
-    """
-    def __init__(self, filename):
-        """CSV dataset
         
-        Args:
-            filename (str): location of JSON file
-        """
+    Args:
+        filename (str): location of JSON file
+    """
+
+    def __init__(self, filename):
         self.filename =filename
  
     def __iter__(self):

@@ -12,13 +12,13 @@ from filechunkio import FileChunkIO
 
 class FileUtil:
     """utilities to input and output files. Locally or from AWS S3.
+
+    Args:
+        key [Optional(str)]: aws key
+
+        secret [Optional(str)]: aws secret
     """
     def __init__(self, key = None, secret = None):
-        """
-        Args:
-            key [Optional(str)]: aws key
-            secret [Optional(str)]: aws secret
-        """
         self.key = key
         self.secret = secret
 

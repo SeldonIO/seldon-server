@@ -7,13 +7,11 @@ import re
 
 class Include_features_transform(pl.Feature_transform):
     """Filter a dataset and include only specided set of features
+
+    Args:
+        included (list): list of features to be included
     """
     def __init__(self,included=None):
-        """filter dataset transform
-
-        Args:
-            included (list): list of features to be included
-        """
         super(Include_features_transform, self).__init__()
         self.included = included
 
@@ -46,15 +44,15 @@ class Include_features_transform(pl.Feature_transform):
 
 class Split_transform(pl.Feature_transform):
     """Split a set of string input features on an expression and create a new feature which has a list of values
+
+    Args:
+        split_expression (str): regular expression to split feature on
+
+        ignore_numbers (bool): whether to ignore any resulting strings that represent numbers
+
+        input_features (list): list of feature names to split - should all have text values
     """
     def __init__(self,split_expression=" ",ignore_numbers=False,input_features=[]):
-        """Split features
-
-        Args:
-            split_expression (str): regular expression to split feature on
-            ignore_numbers (bool): whether to ignore any resulting strings that represent numbers
-            input_features (list): list of feature names to split - should all have text values
-        """
         super(Split_transform, self).__init__()
         self.split_expression=split_expression
         self.ignore_numbers=ignore_numbers
@@ -100,13 +98,11 @@ class Split_transform(pl.Feature_transform):
 
 class Exist_features_transform(pl.Feature_transform):
     """Filter rows based on whether a specified set of features exists
+
+    Args:
+        included (list): list of features that need to exist
     """
     def __init__(self,included=None):
-        """Filter feature rows
-
-        Args:
-            included (list): list of features that need to exist
-        """
         super(Exist_features_transform, self).__init__()
         self.included = included
 
@@ -136,15 +132,15 @@ class Exist_features_transform(pl.Feature_transform):
 
 class Svmlight_transform(pl.Feature_transform):
     """take a set of features and transform into a sorted dictionary of numeric id:value features
+
+    Args:
+        included (list): set of feature to use as input
+
+        zero_based (bool): whether to start first id at 0
+
+        excluded (list): set of features to exclude
     """
     def __init__(self,included=None,zero_based=False,excluded=None):
-        """create SVM light based feature
-
-        Args:
-            included (list): set of feature to use as input
-            zero_based (bool): whether to start first id at 0
-            excluded (list): set of features to exclude
-        """
         super(Svmlight_transform, self).__init__()
         self.included = included
         self.excluded = excluded
@@ -240,14 +236,13 @@ class Svmlight_transform(pl.Feature_transform):
 
 class Feature_id_transform(pl.Feature_transform):
     """create a numeric feature id
+
+    Args:
+        min_size (int): minimum number of examples of each feature value for feature to be included in transform as new id
+
+        exclude_missing (bool): exclude rows that do not have the input feature
     """
     def __init__(self,min_size=0,exclude_missing=False):
-        """create numeric feature id
-
-        Args:
-            min_size (int): minimum number of examples of each feature value for feature to be included in transform as new id
-            exclude_missing (bool): exclude rows that do not have the input feature
-        """
         super(Feature_id_transform, self).__init__()
         self.min_size = min_size
         self.exclude_missing = exclude_missing
