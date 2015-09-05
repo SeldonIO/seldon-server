@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 
 setup(name='seldon',
-      version='1.0',
+      version='1.1',
       description='Seldon Python Utilities',
       author='Clive Cox',
       author_email='support@seldon.io',

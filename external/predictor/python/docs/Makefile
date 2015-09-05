@@ -53,6 +53,7 @@ clean:
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	cd $(BUILDDIR)/html ; sed -i 's/_modules/modules/g' seldon.html ; sed -i 's/_modules/modules/g' seldon.pipeline.html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
