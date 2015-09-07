@@ -2,8 +2,6 @@ VERSION=1.0.1
 IMAGE=seldonio/vw_runtime
 
 build:
-	rm -rf test_vw
-	cp -r ../../vw test_vw
 	docker build -t ${IMAGE} .
 
 tag:
