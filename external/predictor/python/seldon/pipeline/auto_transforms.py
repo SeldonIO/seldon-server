@@ -124,7 +124,10 @@ class Auto_transform(pl.Feature_transform):
                     d = datetime.datetime.strptime( v, f )
                 except:
                     pass
-        return "t_"+str(int(self.unix_time(d)/86400))
+        if d:
+            return "t_"+str(int(self.unix_time(d)/86400))
+        else:
+            return None
 
     def fit(self,objs):
         """try to guess a transform to apply to each feature
@@ -166,7 +169,9 @@ class Auto_transform(pl.Feature_transform):
                 jNew[f] = j[f]
             else:
                 if not j[f] in self.ignore_vals:
-                    jNew[f] = getattr(self,self.transforms[f])(f,j[f])
+                    vNew = getattr(self,self.transforms[f])(f,j[f])
+                    if vNew:
+                        jNew[f] = vNew
         return jNew
 
 
