@@ -22,7 +22,9 @@ var rlClient = (function () {
             track_par_list: ["rlabs", "zehtg"],
             //  not sure
             query_delimiter: "?",
-            rectag_name: "rectag"
+            rectag_name: "rectag",
+            use_pos_name: "use_pos",
+            current_page_url: location.href
         };
 
     function extractQuery(paramString) {
@@ -35,7 +37,10 @@ var rlClient = (function () {
     }
 
     function retrieveSeldonParamsFromURL() {
-        var normalised = document.location.href, rlabs, query_params,
+        var normalised = params.current_page_url,
+            retVal,
+            rlabs,
+            query_params,
             query = normalised.replace(new RegExp(".*\\" + params.rlabs_delim), "");
         if (params.rlabs_delim === "?") {
             // removing final # if present in the query parameter
@@ -50,7 +55,20 @@ var rlClient = (function () {
                 }
             });
         }
-        return rlabs ? rlabs.split("%20") : [];
+        retVal = rlabs ? rlabs.split("%20") : [];
+        return retVal;
+    }
+
+    function extractExtraSeldonParams(param_list) {
+        var i, retVal = {};
+
+        if (param_list.length > 1) {
+            for (i = 1; i < param_list.length; i += 1) {
+                retVal[param_list[i].split('$')[0]] = param_list[i].split('$')[1];
+            }
+        }
+
+        return retVal;
     }
 
     function parameterString(params, keep) {
@@ -104,22 +122,22 @@ var rlClient = (function () {
     }
 
     function currentPageId(keep) {
-        return pageId(window.location.href, keep);
+        return pageId(params.current_page_url, keep);
     }
 
     function fullEndpoint(path) {
         return params.endpoint + path + "?consumer_key=" + params.consumer;
     }
 
-    function actionUrl(type, user_id, item_id, rlabs, source, rectag) {
+    function actionUrl(type, user_id, item_id, rlabs, source, rectag, position) {
         return fullEndpoint("/js/action/new") +
             "&type=" + type +
             "&user=" + user_id +
             "&item=" + item_id +
             (rlabs ? ("&" + params.track_par + "=" + rlabs) : "") +
             (rectag ? ("&rectag=" + rectag) : "") +
-            (source ? ("&source=" + encodeURIComponent(normalise(source))) : "");
-
+            (source ? ("&source=" + encodeURIComponent(normalise(source))) : "") +
+            (position ? ("&pos=" + position) : "");
     }
 
     function userUrl(user_id, facebook_opts) {
@@ -180,15 +198,16 @@ var rlClient = (function () {
         return { fired: true };
     }
 
-    function addAction(type, callback, user_id, item_id, rlabs, source, rectag) {
+    function addAction(type, callback, user_id, item_id, rlabs, source, rectag, pos) {
         return withMandatory("user_id", user_id, function () {
             var urlparams = retrieveSeldonParamsFromURL(),
                 id = item_id || currentPageId(params.retain),
                 recId = rlabs || urlparams[0],
-                tag = rectag || urlparams[1],
+                tag = rectag || extractExtraSeldonParams(urlparams).rt,
+                position = pos || extractExtraSeldonParams(urlparams).p,
                 url;
 
-            url = actionUrl(type, user_id, id, recId, source, tag);
+            url = actionUrl(type, user_id, id, recId, source, tag, position);
             jsonpCall(url, callback);
         });
     }
@@ -222,7 +241,7 @@ var rlClient = (function () {
             var itemId = options.item || currentPageId(params.retain),
                 paramsFromURL = retrieveSeldonParamsFromURL(),
                 rlabs = options[params.track_par] || paramsFromURL[0],
-                rectag = options[params.rectag_name] || paramsFromURL[1],
+                rectag = options[params.rectag_name] || extractExtraSeldonParams(paramsFromURL).rt,
                 url = recommendationsUrl(user_id, itemId, rlabs, rectag, options);
             jsonpCall(url, callback);
         });
@@ -230,7 +249,9 @@ var rlClient = (function () {
 
     function appendClickTo(items, options) {
         var delim = params.rlabs_delim,
-            rectag = options[params.rectag_name];
+            rectag = options[params.rectag_name],
+            use_pos = options[params.use_pos_name],
+            pos = 0;
         underscore.each(items, function (item) {
             var id = item.id,
                 uuid = item.attributesName.recommendationUuid;
@@ -238,7 +259,11 @@ var rlClient = (function () {
                 id += id.match(new RegExp("\\" + params.query_delimiter)) ? "&" : delim;
                 id += params.track_par + "=" + uuid;
                 if (rectag) {
-                    id += "%20" + rectag;
+                    id += "%20rt$" + rectag;
+                }
+                if (use_pos) {
+                    pos += 1;
+                    id += "%20p$" + pos;
                 }
             }
             item.id = id;
