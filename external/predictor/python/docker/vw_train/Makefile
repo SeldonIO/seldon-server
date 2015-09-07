@@ -2,7 +2,7 @@ VERSION=1.0.1
 IMAGE=seldonio/vw_train
 
 build:
-	rm -r python-modules
+	rm -rf python-modules
 	cp -R ../../seldon python-modules
 	docker build -t ${IMAGE} .
 
