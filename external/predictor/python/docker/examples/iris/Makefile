@@ -1,5 +1,6 @@
 SHELL=/bin/bash
-DOCKER_IMAGE=iris_pipeline
+IMAGE=seldonio/iris_pipeline
+VERSION=1.0.1
 .PHONY:build_docker 
 
 # Download iris data
@@ -13,12 +14,23 @@ data/iris/events/1/iris.json:data/iris.data
 	cat data/iris.data | python create-json.py | shuf > data/iris/events/1/iris.json
 
 # build docker iris feature extraction pipleline
-build_docker:Dockerfile
-	docker build -t ${DOCKER_IMAGE} .
+build_pipeline:Dockerfile
+	docker build -t ${IMAGE} .
+
+tag:
+	docker tag $(IMAGE) $(IMAGE):$(VERSION)
+	docker tag $(IMAGE) $(IMAGE):latest
+
+push_to_dockerhub:
+	@docker login -u seldonio && \
+		docker push $(IMAGE)
+	@docker login -u seldonio && \
+		docker push $(IMAGE):$(VERSION)
+
 
 # run feature extraction pipeline
 data/iris/features/1 data/iris/models/1:data/iris/events/1/iris.json
-	docker run --rm -t -v ${PWD}/data:/data iris_pipeline bash -c "python /pipeline/iris_pipeline.py --events /data/iris/events/1 --features /data/iris/features/1 --models /data/iris/models/1"
+	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline bash -c "python /pipeline/iris_pipeline.py --events /data/iris/events/1 --features /data/iris/features/1 --models /data/iris/models/1"
 
 # create vw model
 data/iris/vw/1:data/iris/features/1
