@@ -14,7 +14,7 @@ install_node_related_stuff() {
     # Install node and related stuff
     mkdir -p ~/tmp
     cd ~/tmp
-    wget http://nodejs.org/dist/${NODE_VERSION}/${NODE_ARCH_FILE}
+    wget https://nodejs.org/dist/${NODE_VERSION}/${NODE_ARCH_FILE}
     sudo tar xvf ~/tmp/${NODE_ARCH_FILE} -C /opt
     rm -fv ~/tmp/${NODE_ARCH_FILE}
     cd /opt
