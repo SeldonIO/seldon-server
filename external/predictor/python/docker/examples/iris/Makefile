@@ -1,6 +1,18 @@
 SHELL=/bin/bash
 IMAGE=seldonio/iris_pipeline
 VERSION=1.0.1
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	SHUF=shuf
+	HOST_IP=localhost
+endif
+ifeq ($(UNAME_S),Darwin)
+	SHUF=gshuf
+	BOOT2DOCKER_HOST_IP:=$(shell boot2docker ip 2> /dev/null)
+	HOST_IP:=$(BOOT2DOCKER_HOST_IP)
+endif
+
 .PHONY:build_docker 
 
 # Download iris data
@@ -11,7 +23,7 @@ data/iris.data:
 # create JSON events data
 data/iris/events/1/iris.json:data/iris.data
 	mkdir -p data/iris/events/1
-	cat data/iris.data | python create-json.py | shuf > data/iris/events/1/iris.json
+	cat data/iris.data | python create-json.py | $(SHUF) > data/iris/events/1/iris.json
 
 # build docker iris feature extraction pipleline
 build_pipeline:Dockerfile
@@ -52,7 +64,7 @@ stop_vw_runtime:
 
 # send test JSON for prediction against vw microservice
 test_vw_runtime:vw_runtime
-	curl -G  "http://127.0.0.1:5000/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
+	curl -G  "http://$(HOST_IP):5000/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
 
 # start xgboost microservice for iris
 xgboost_runtime:data/iris/xgboost/1
@@ -66,7 +78,5 @@ stop_xgboost_runtime:
 
 # send test JSON for prediction against xgboost microservice
 test_xgboost_runtime:xgboost_runtime
-	curl -G  "http://127.0.0.1:5001/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
-
-
+	curl -G  "http://$(HOST_IP):5001/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
 
