@@ -24,6 +24,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <exclude.tests>no-exclusions</exclude.tests>
         <config.version>local</config.version>
+        <scala.version>2.10</scala.version>
+        <spark.version>1.5.0</spark.version>
     </properties>
 
     <build>
@@ -443,6 +445,21 @@
     		<artifactId>fastutil</artifactId>
     		<version>7.0.6</version>
 		</dependency>
+		
+	<dependency>
+		<groupId>org.apache.spark</groupId>
+		<artifactId>spark-core_${scala.version}</artifactId>
+		<version>${spark.version}</version>
+		<scope>provided</scope>
+	</dependency>
+
+	<dependency>
+		<groupId>org.apache.spark</groupId>
+		<artifactId>spark-mllib_${scala.version}</artifactId>
+		<version>${spark.version}</version>
+		<scope>provided</scope>
+	</dependency>
+		
 
     </dependencies>
 
