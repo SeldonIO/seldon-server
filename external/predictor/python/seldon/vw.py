@@ -176,7 +176,6 @@ class VWSeldon:
             return None
         if len(ns['def']) == 0:
             ns['def'] = None
-        print "label ",label," features ",ns['def']
         if self.weights:
             return self.vw2.make_line(response=label,importance=importance,tag=tag,features=ns['def'],namespaces=namespaces)
         else:
