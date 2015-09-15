@@ -262,6 +262,11 @@
                     <groupId>org.codehaus.jackson</groupId>
                     <artifactId>jackson-mapper-asl</artifactId>
                 </exclusion>
+
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                </exclusion>
             </exclusions>
             <version>0.8</version>
         </dependency>
@@ -269,6 +274,12 @@
 			<groupId>org.apache.mahout</groupId>
 			<artifactId>mahout-examples</artifactId>
 			<version>0.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -373,11 +384,13 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.6.0</version>
         </dependency>
+        <!-- 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jcl</artifactId>
             <version>1.6.0</version>
         </dependency>
+ -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -451,6 +464,12 @@
 		<artifactId>spark-core_${scala.version}</artifactId>
 		<version>${spark.version}</version>
 		<scope>provided</scope>
+		<exclusions>
+        	<exclusion>  <!-- declare the exclusion here -->
+          		<groupId>org.slf4j</groupId>
+         	 	<artifactId>jcl-over-slf4j</artifactId>
+        	</exclusion>
+      </exclusions> 
 	</dependency>
 
 	<dependency>
