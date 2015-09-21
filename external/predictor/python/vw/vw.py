@@ -86,7 +86,7 @@ def score(json):
 
 # ignores client in this example. One could direct to multiple daemons holding different models 1 for each client.
 def get_predictions(client,json):
-    return score(json)
+    return (score(json),"example_vw_model")
 
 
 

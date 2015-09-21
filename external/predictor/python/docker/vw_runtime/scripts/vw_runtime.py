@@ -33,6 +33,8 @@ def init(config):
     print "initialising with ",vw_config
     # we tail the raw prediction file to get the full scores from daemon sevrer
     threading.Thread(target=tail_forever, args=(vw_config['raw_predictions'],)).start()
+    global modelLocation
+    modelLocation = vw_config["modelsPath"]
     global idMap
     idMap = vw_config['classIds']
     global pipeline
@@ -96,7 +98,7 @@ def score(json):
     s.connect(("localhost", 26542)) # connect to server on the port
     s.send(vwRequest)               # send the data
     data = s.recv(1028) # receive up to 1K bytes
-    return get_full_scores(tag)
+    return (get_full_scores(tag), modelLocation)
     
 
 # ignores client in this example. One could direct to multiple daemons holding different models 1 for each client.

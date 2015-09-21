@@ -25,14 +25,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PredictionsResult {
+	public String model;
 	public List<PredictionResult> predictions;
 	
 	public PredictionsResult() {
+		model = "";
 		predictions = new ArrayList<>();
 	}
 
 	public PredictionsResult(List<PredictionResult> predictions) {
 		super();
+		this.model = "";
+		this.predictions = predictions;
+	}
+
+	public PredictionsResult(String model,List<PredictionResult> predictions) {
+		super();
+		this.model = model;
 		this.predictions = predictions;
 	}
 	

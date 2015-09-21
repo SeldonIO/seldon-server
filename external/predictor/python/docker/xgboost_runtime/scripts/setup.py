@@ -26,8 +26,11 @@ if __name__ == '__main__':
     print conf
 
     featuresModelPath = args.inputPath + "/" + args.client + "/models/" + str(args.day)
+    xgboostModelPath = args.inputPath + "/" + args.client + "/xgboost/" + str(args.day)
     print "features path",featuresModelPath
     conf["featuresPath"] = featuresModelPath
+    print "model path",xgboostModelPath
+    conf["modelPath"] = xgboostModelPath
 
     #create server config
     f = open("./server_config.py","w")
