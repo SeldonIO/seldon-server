@@ -5,6 +5,39 @@ import logging
 import operator
 import re
 
+class Binary_transform(pl.Feature_transform):
+    """Create a binary feature based on existence of a feature
+
+    """
+    def __init__(self):
+        super(Binary_transform, self).__init__()
+
+
+    def get_models(self):
+        """get model data for this transform.
+        """
+        return super(Binary_transform, self).get_models()
+    
+    def set_models(self,models):
+        """set the included features
+        """
+        models = super(Binary_transform, self).set_models(models)
+
+    def fit(self,objs):
+        """nothing to do in fit
+        """
+        pass
+
+    def transform(self,j):
+        """only include features specified in result
+        """
+        jNew = {}
+        if self.input_feature in j and len(j[self.input_feature]) > 0 and not (j[self.input_feature] == "#N/A"):
+            j[self.output_feature] = 1
+        else:
+            j[self.output_feature] = 0
+        return j
+
 class Include_features_transform(pl.Feature_transform):
     """Filter a dataset and include only specided set of features
 
