@@ -16,9 +16,8 @@ The best place to get started with Seldon is to use our packaged [Vagrant VM](ht
 
 ## Keep in touch
 
-* To be the first to receive product updates and early private releases, please [sign up for our mailing list](http://www.seldon.io/open-source/).
+* [Sign up to our newsletter](http://www.seldon.io/open-source/) to receive product updates and early access to new features.
 * Join the [seldon-users group](https://groups.google.com/forum/#!forum/seldon-users) - we encourage you to leave feedback and ask questions in this group so that we can share the answers with the community.
-* Star and watch this Github repo and [other open-source projects](https://github.com/SeldonIO/). 
 * Visit our website at http://seldon.io
 
 ## Enterprise
