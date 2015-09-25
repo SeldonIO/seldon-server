@@ -8,16 +8,21 @@ class Auto_transform(pl.Feature_transform):
 
     Args:
         exclude (list):list of features to not include
-
+    
+        include (list): features to include if None then all unless exclude used
+    
         max_values_numeric_categorical (int):max number of unique values for numeric feature to treat as categorical
 
         custom_date_formats (list(str)): list of custom date formats to try
 
         ignore_vals (list(str)): list of feature values to treat as NA/ignored values
+
+        force_categorical (list(str)): features to force to be categorical
     """
-    def __init__(self,exclude=[],max_values_numeric_categorical=20,custom_date_formats=None,ignore_vals=None):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=20,custom_date_formats=None,ignore_vals=None,force_categorical=[]):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
+        self.include = include
         self.max_values_numeric_categorical = max_values_numeric_categorical
         self.scalers = {}
         self.custom_date_formats = custom_date_formats
@@ -26,6 +31,7 @@ class Auto_transform(pl.Feature_transform):
         else:
             self.ignore_vals = ["NA",""]
         self.transforms = {}
+        self.force_categorical = force_categorical
 
     def get_models(self):
         return [(self.exclude,self.custom_date_formats,self.max_values_numeric_categorical),self.transforms,self.scalers]
@@ -87,7 +93,7 @@ class Auto_transform(pl.Feature_transform):
         """
         v = str(v).lower().replace(" ","_")
         if Auto_transform.is_number(v):
-            return "t_"+v
+            return f.replace(" ","_")+"_"+v
         else:
             return v
 
@@ -138,14 +144,17 @@ class Auto_transform(pl.Feature_transform):
             for f in j:
                 if f in self.exclude or j[f] in self.ignore_vals:
                     pass
-                else:
+                elif not self.include or f in self.include:
                     cur = values.get(f,set())
                     if len(cur) < (self.max_values_numeric_categorical + 1):
                         cur.add(j[f])
                         values[f] = cur
         featuresToScale = []
         for f in values:
-            if all(self.isBoolean(x) for x in values[f]):
+            print f,values[f]
+            if f in self.force_categorical:
+                self.transforms[f] = self.make_categorical_token.__name__
+            elif all(self.isBoolean(x) for x in values[f]):
                 self.transforms[f] = self.toBoolean.__name__
             else:
                 if len(values[f]) > self.max_values_numeric_categorical:

@@ -28,11 +28,20 @@ class Binary_transform(pl.Feature_transform):
         """
         pass
 
+    @staticmethod
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+
     def transform(self,j):
         """only include features specified in result
         """
         jNew = {}
-        if self.input_feature in j and len(j[self.input_feature]) > 0 and not (j[self.input_feature] == "#N/A"):
+        if self.input_feature in j and ((self.is_number(j[self.input_feature]) and not float(j[self.input_feature]) == 0) or (not self.is_number(j[self.input_feature]) and len(j[self.input_feature]) > 0)):
             j[self.output_feature] = 1
         else:
             j[self.output_feature] = 0
