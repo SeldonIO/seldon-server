@@ -15,10 +15,15 @@ The best place to get started with Seldon is to use our packaged [Vagrant VM](ht
  * [General prediction deployment steps](http://docs.seldon.io/prediction-deployment.html)
 
 ## Keep in touch
-* To be the first to receive product updates and early private releases, please [sign up for our open-source beta list](http://www.seldon.io/open-source/).
+
+* To be the first to receive product updates and early private releases, please [sign up for our mailing list](http://www.seldon.io/open-source/).
 * Join the [seldon-users group](https://groups.google.com/forum/#!forum/seldon-users) - we encourage you to leave feedback and ask questions in this group so that we can share the answers with the community.
-* Star and watch this Github repo and [other open-source projects](https://github.com/SeldonIO/). Watching [our docs repo](https://github.com/SeldonIO/seldonio.github.com) (powered by Github Pages) will be particularly useful as we're currently rolling out documentation - [http://docs.seldon.io](http://docs.seldon.io)
+* Star and watch this Github repo and [other open-source projects](https://github.com/SeldonIO/). 
 * Visit our website at http://seldon.io
+
+## Enterprise
+
+ * [Engage with us to solve your predictive analytics tasks](http://www.seldon.io/enterprise/). We provide both cloud and on-premise managed solutions.
 
 ## License
 Seldon is available under [Apache Licence, Version 2.0](https://github.com/SeldonIO/seldon-server/blob/master/README.md)
