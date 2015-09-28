@@ -28,22 +28,30 @@ class Auto_transform(pl.Feature_transform):
         self.scalers = {}
         self.custom_date_formats = custom_date_formats
         if ignore_vals:
-            self.ignore_vals = ignore_vals
+            self.ignore_vals = set(ignore_vals)
         else:
-            self.ignore_vals = ["NA",""]
+            self.ignore_vals = set(["NA",""])
         self.transforms = {}
         self.force_categorical = force_categorical
         self.min_categorical_keep_feature = min_categorical_keep_feature
         self.catValueCount = {}
 
     def get_models(self):
-        return [(self.exclude,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature),self.transforms,self.scalers,self.catValueCount]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature,self.ignore_vals),self.transforms,self.scalers,self.catValueCount]
     
     def set_models(self,models):
-        (self.exclude,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature) = models[0]
+        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature,self.ignore_vals) = models[0]
         self.transforms = models[1]
         self.scalers = models[2]
         self.catValueCount = models[3]
+
+
+    def ignore_value(self,v):
+        val = str(v)
+        if val in self.ignore_vals:
+            return True
+        else:
+            return False
 
     @staticmethod
     def is_number(s):
@@ -76,7 +84,7 @@ class Auto_transform(pl.Feature_transform):
             Xs[f] = []
         for j in objs:
             for f in features:
-                if f in j and self.is_number(j[f]):
+                if f in j and self.is_number(j[f]) and not self.ignore_value(j[f]):
                     Xs[f].append(float(j[f]))
         c = 1
         for f in Xs:
@@ -148,7 +156,7 @@ class Auto_transform(pl.Feature_transform):
         for j in objs:
             c += 1
             for f in j:
-                if f in self.exclude or j[f] in self.ignore_vals:
+                if f in self.exclude or self.ignore_value(j[f]):
                     pass
                 elif not self.include or f in self.include:
                     cur = values.get(f,set())
@@ -191,7 +199,7 @@ class Auto_transform(pl.Feature_transform):
             if not f in self.transforms:
                 jNew[f] = j[f]
             else:
-                if not j[f] in self.ignore_vals:
+                if not self.ignore_value(j[f]):
                     vNew = getattr(self,self.transforms[f])(f,j[f])
                     if vNew:
                         jNew[f] = vNew
