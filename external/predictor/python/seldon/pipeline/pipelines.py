@@ -247,21 +247,6 @@ class Pipeline(object):
             f = ft.transform(f)
         return f
 
-    def get_csv_fieldnames(self,ds,ft):
-        """get the fieldnames for csv output for thsi transform
-
-        union of added features from transform along with existing features
-
-        Args:
-            ds (Dataset): dataset
-            ft (Feature_transform): feature transform
-        """
-        fieldnames = set(ft.get_added_features())
-        for d in ds:
-            fieldnames = fieldnames.union(set(d.keys()))
-            break
-        return list(fieldnames)
-
     def _transform(self,ds,ft):
         """internal transform of dataset by a feature transform
 
@@ -293,6 +278,20 @@ class Pipeline(object):
         self.active_file.close()
         shutil.move(self.next_dataset,self.current_dataset)
 
+    def convert_to_csv(self):
+        ds = JsonDataSet(self.current_dataset)
+        self.active_file = open(self.next_dataset,"w")
+        fieldNames = set()
+        for j in ds:
+            for f in j:
+                fieldNames.add(f)
+        csvwriter = unicodecsv.DictWriter(self.active_file, fieldnames=list(fieldNames))
+        csvwriter.writeheader()
+        for j in ds:
+            csvwriter.writerow(j)
+        self.active_file.close()
+        shutil.move(self.next_dataset,self.current_dataset)
+
 
     def transform(self):
         """apply all transforms in a pipeline
@@ -304,7 +303,11 @@ class Pipeline(object):
         for ft in self.pipeline:
             ds = self.get_dataset(self.current_dataset)
             self._transform(ds,ft)
-        return self.get_dataset(self.current_dataset)
+        if self.data_type == 'csv':
+            self.convert_to_csv()
+            return CsvDataSet(self.current_dataset)
+        else:
+            return JsonDataSet(self.current_dataset)
 
     def fit_transform(self):
         """fit a pipeline and then apply its transforms
@@ -318,11 +321,16 @@ class Pipeline(object):
             ds = self.get_dataset(self.current_dataset)
             ft.fit(ds)
             self._transform(ds,ft)
+        if self.data_type == 'csv':
+            self.convert_to_csv()
         self.store_models()
         self.save_pipeline()
         self.upload_models()
         self.store_features()
-        return self.get_dataset(self.current_dataset)
+        if self.data_type == 'csv':
+            return CsvDataSet(self.current_dataset)
+        else:
+            return JsonDataSet(self.current_dataset)
 
 class JsonDataSet(object):
     """a JSON dataset

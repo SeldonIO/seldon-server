@@ -88,13 +88,12 @@ class Auto_transform(pl.Feature_transform):
                     Xs[f].append(float(j[f]))
         c = 1
         for f in Xs:
-            print "creating feature scaler",c," for ",f
             self.scalers[f] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(Xs[f])
             c += 1
 
     def scale(self,f,v):
         if self.is_number(v):
-            return self.scalers[f].transform([v])[0]
+            return self.scalers[f].transform([float(v)])[0]
         else:
             return 0
 
