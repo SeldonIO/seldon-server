@@ -285,7 +285,7 @@ class Pipeline(object):
         for j in ds:
             for f in j:
                 fieldNames.add(f)
-        csvwriter = unicodecsv.DictWriter(self.active_file, fieldnames=list(fieldNames))
+        csvwriter = unicodecsv.DictWriter(self.active_file, fieldnames=sorted(list(fieldNames)))
         csvwriter.writeheader()
         for j in ds:
             csvwriter.writerow(j)
