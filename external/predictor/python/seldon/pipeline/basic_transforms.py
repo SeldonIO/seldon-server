@@ -4,6 +4,7 @@ from  collections import OrderedDict
 import logging
 import operator
 import re
+import pandas as pd
 
 class Binary_transform(pl.Feature_transform):
     """Create a binary feature based on existence of a feature
@@ -28,24 +29,9 @@ class Binary_transform(pl.Feature_transform):
         """
         pass
 
-    @staticmethod
-    def is_number(s):
-        try:
-            float(s)
-            return True
-        except ValueError:
-            return False
-
-
-    def transform(self,j):
-        """only include features specified in result
-        """
-        jNew = {}
-        if self.input_feature in j and ((self.is_number(j[self.input_feature]) and not float(j[self.input_feature]) == 0) or (not self.is_number(j[self.input_feature]) and len(j[self.input_feature]) > 0)):
-            j[self.output_feature] = 1
-        else:
-            j[self.output_feature] = 0
-        return j
+    def transform(self,df):
+        df[self.output_feature] = df.apply(lambda row: 1 if not pd.isnull(row[self.input_feature]) and not row[self.input_feature] == 0 and not row[self.input_feature] == "" else 0,axis=1)
+        return df
 
 class Include_features_transform(pl.Feature_transform):
     """Filter a dataset and include only specided set of features
@@ -53,7 +39,7 @@ class Include_features_transform(pl.Feature_transform):
     Args:
         included (list): list of features to be included
     """
-    def __init__(self,included=None):
+    def __init__(self,included=[]):
         super(Include_features_transform, self).__init__()
         self.included = included
 
@@ -74,14 +60,10 @@ class Include_features_transform(pl.Feature_transform):
         """
         pass
 
-    def transform(self,j):
+    def transform(self,df):
         """only include features specified in result
         """
-        jNew = {}
-        for feat in self.included:
-            if feat in j:
-                jNew[feat] = j[feat]
-        return jNew
+        return df[self.included]
 
 
 class Split_transform(pl.Feature_transform):

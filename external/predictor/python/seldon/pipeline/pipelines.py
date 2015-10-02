@@ -5,6 +5,7 @@ import os.path
 import logging
 import shutil 
 import unicodecsv
+import pandas as pd
 
 class Feature_transform(object):
     """Base feature transformation class with method defaults
@@ -217,7 +218,7 @@ class Pipeline(object):
         self.active_file.write(line+"\n")
 
 
-    def getFeatures(self,locations):
+    def copy_features_locally(self,locations):
         """get features from folders and store locally the data
 
         Args:
@@ -227,6 +228,30 @@ class Pipeline(object):
         self.active_file = open(self.current_dataset,"w")
         self.fu.stream_multi(locations,self.save_features_local)
         self.active_file.close()
+
+    def convert_dataframe(self):
+        if self.data_type == 'csv':
+            return pd.read_csv(self.current_dataset)
+        else:
+            df = None
+            with open(self.current_dataset) as f:
+                first = True
+                for line in f:
+                    line = line.rstrip()
+                    j = json.loads(line)
+                    if not first:
+                        df1 = pd.DataFrame.from_dict([j])
+                        df = df.append(df1)
+                    else:
+                        df = pd.DataFrame.from_dict([j])
+                        first = False
+            return df
+
+    def save_dataframe(self,df):
+        if self.data_type == 'csv':
+            df.to_csv(self.current_dataset,index=False)
+        else:
+            df.to_json(self.current_dataset,orient='records')
 
     def transform_init(self):
         """prepare for transform
@@ -247,90 +272,31 @@ class Pipeline(object):
             f = ft.transform(f)
         return f
 
-    def _transform(self,ds,ft):
-        """internal transform of dataset by a feature transform
-
-        Handles both csv and json data. Loads each into a dictionary to be transformed. Uses two files current and next, iterates over current and writes to next. Finally, swaps the two around ready for next transform.
-        Args:
-            ds (Dataset): dataset
-            ft (Feature_transform): feature transform
-        """
-        self.active_file = open(self.next_dataset,"w")
-        for j in ds:
-            jNew = ft.transform(j)
-            if jNew:
-                jStr =  json.dumps(jNew,sort_keys=True)
-                self.active_file.write(jStr+"\n")
-        self.active_file.close()
-        shutil.move(self.next_dataset,self.current_dataset)
-
-    def get_dataset(self,filename):
-        """get dataset 
-        """
-        return JsonDataSet(filename)
-
-    def convert_to_json(self):
-        ds = CsvDataSet(self.current_dataset)
-        self.active_file = open(self.next_dataset,"w")
-        for j in ds:
-            jStr =  json.dumps(j,sort_keys=True)
-            self.active_file.write(jStr+"\n")
-        self.active_file.close()
-        shutil.move(self.next_dataset,self.current_dataset)
-
-    def convert_to_csv(self):
-        ds = JsonDataSet(self.current_dataset)
-        self.active_file = open(self.next_dataset,"w")
-        fieldNames = set()
-        for j in ds:
-            for f in j:
-                fieldNames.add(f)
-        csvwriter = unicodecsv.DictWriter(self.active_file, fieldnames=sorted(list(fieldNames)))
-        csvwriter.writeheader()
-        for j in ds:
-            csvwriter.writerow(j)
-        self.active_file.close()
-        shutil.move(self.next_dataset,self.current_dataset)
-
-
     def transform(self):
         """apply all transforms in a pipeline
         """
         self.transform_init()
-        self.getFeatures(self.input_folders)
-        if self.data_type == 'csv':
-            self.convert_to_json()
+        self.copy_features_locally(self.input_folders)
+        df = self.convert_dataframe()
         for ft in self.pipeline:
-            ds = self.get_dataset(self.current_dataset)
-            self._transform(ds,ft)
-        if self.data_type == 'csv':
-            self.convert_to_csv()
-            return CsvDataSet(self.current_dataset)
-        else:
-            return JsonDataSet(self.current_dataset)
+            df = ft.transform(df)
+        self.save_dataframe(df)
 
     def fit_transform(self):
         """fit a pipeline and then apply its transforms
 
         gets features, fits, transforms and stores results
         """
-        self.getFeatures(self.input_folders)
-        if self.data_type == 'csv':
-            self.convert_to_json()
+        self.copy_features_locally(self.input_folders)
+        df = self.convert_dataframe()
         for ft in self.pipeline:
-            ds = self.get_dataset(self.current_dataset)
-            ft.fit(ds)
-            self._transform(ds,ft)
-        if self.data_type == 'csv':
-            self.convert_to_csv()
+            ft.fit(df)
+            df = ft.transform(df)
+        self.save_dataframe(df)
         self.store_models()
         self.save_pipeline()
         self.upload_models()
         self.store_features()
-        if self.data_type == 'csv':
-            return CsvDataSet(self.current_dataset)
-        else:
-            return JsonDataSet(self.current_dataset)
 
 class JsonDataSet(object):
     """a JSON dataset
