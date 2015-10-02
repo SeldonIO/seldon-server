@@ -35,6 +35,7 @@ if __name__ == '__main__':
     print "model path",vwModelPath
     print "features path",featuresModelPath
     conf["featuresPath"] = featuresModelPath
+    conf["modelsPath"] = vwModelPath
     # copy files to local directory
     fileUtil = FileUtil(key=args.awsKey,secret=args.awsSecret)
     fileUtil.copy(vwModelPath,"vw_model")

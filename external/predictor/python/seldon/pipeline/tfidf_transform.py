@@ -39,7 +39,9 @@ class Tfidf_transform(pl.Feature_transform):
         """
         if self.input_feature in j:
             if isinstance(j[self.input_feature], list):
-                return " ".join(map(str,j[self.input_feature]))
+                return " ".join([i if isinstance(i, basestring) else str(i) for i in j[self.input_feature]])
+            elif isinstance(j[self.input_feature], basestring):
+                return j[self.input_feature]
             else:
                 return str(j[self.input_feature])
         else:

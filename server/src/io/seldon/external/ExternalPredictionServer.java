@@ -22,6 +22,7 @@
 package io.seldon.external;
 
 import io.seldon.api.APIException;
+import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 @Component
 public class ExternalPredictionServer implements GlobalConfigUpdateListener, PredictionAlgorithm  {
 	private static Logger logger = Logger.getLogger(ExternalPredictionServer.class.getName());
+	private static final String name = ExternalPredictionServer.class.getName();
     private static final String URL_PROPERTY_NAME="io.seldon.algorithm.external.url";
     private static final String ALG_NAME_PROPERTY_NAME ="io.seldon.algorithm.external.name";
     private static final String ZK_CONFIG_TEMP = "prediction_server"; //TEMPORARY FOT TESTING
@@ -58,6 +60,10 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     private CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
     
+    public String getName()
+    {
+    	return name;
+    }
     
     public static class PredictionServerConfig {
     	public int maxConnections;
@@ -127,6 +133,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     				PredictionsResult res = reader.readValue(resp.getEntity().getContent());
     				if (logger.isDebugEnabled())
     					logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
+    				PredictLogger.log(name, jsonNode, res);
     				return res;
     			} 
     			else 

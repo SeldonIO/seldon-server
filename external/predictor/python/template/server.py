@@ -17,7 +17,7 @@ def extract_input():
     }
     return input
 
-def format_predictions(predictions):
+def format_predictions(predictions,model):
     formatted_recs_list=[]
     for (score,classId,confidence) in predictions:
         formatted_recs_list.append({
@@ -25,15 +25,15 @@ def format_predictions(predictions):
             "predictedClass": str(classId),
             "confidence" : confidence
         })
-    return { "predictions": formatted_recs_list }
+    return { "predictions": formatted_recs_list , "model" : model}
 
 @app.route('/predict', methods=['GET'])
 def predict():
     input = extract_input()
-    recs = _recs_mod.get_predictions(
+    (recs, model) = _recs_mod.get_predictions(
             input['client'],
             input['json'])
-    f=format_predictions(recs)
+    f=format_predictions(recs,model)
     json = jsonify(f)
     return json
 

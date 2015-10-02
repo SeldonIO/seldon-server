@@ -19,30 +19,28 @@
  *
  ********************************************************************************************** 
 */
-package io.seldon.prediction;
+package io.seldon.api.logging;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.seldon.prediction.PredictionsResult;
 
-public class PredictionsResult {
-	public String model;
-	public List<PredictionResult> predictions;
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
+
+
+public class PredictLogger {
+
+	private static Logger predictLogger = Logger.getLogger( "PredictLogger" );
 	
-	public PredictionsResult() {
-		model = "";
-		predictions = new ArrayList<>();
+	public static void log(String algKey,JsonNode input,PredictionsResult response)
+	{
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode prediction = mapper.valueToTree(response);
+		ObjectNode topNode = mapper.createObjectNode();
+		topNode.put("input", input);
+		topNode.put("prediction", prediction);
+		topNode.put("algorithm", algKey);
+		predictLogger.info(topNode.toString());
 	}
-
-	public PredictionsResult(List<PredictionResult> predictions) {
-		super();
-		this.model = "";
-		this.predictions = predictions;
-	}
-
-	public PredictionsResult(String model,List<PredictionResult> predictions) {
-		super();
-		this.model = model;
-		this.predictions = predictions;
-	}
-	
 }

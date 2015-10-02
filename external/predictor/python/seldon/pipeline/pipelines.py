@@ -247,21 +247,6 @@ class Pipeline(object):
             f = ft.transform(f)
         return f
 
-    def get_csv_fieldnames(self,ds,ft):
-        """get the fieldnames for csv output for thsi transform
-
-        union of added features from transform along with existing features
-
-        Args:
-            ds (Dataset): dataset
-            ft (Feature_transform): feature transform
-        """
-        fieldnames = set(ft.get_added_features())
-        for d in ds:
-            fieldnames = fieldnames.union(set(d.keys()))
-            break
-        return list(fieldnames)
-
     def _transform(self,ds,ft):
         """internal transform of dataset by a feature transform
 
@@ -271,37 +256,58 @@ class Pipeline(object):
             ft (Feature_transform): feature transform
         """
         self.active_file = open(self.next_dataset,"w")
-        if self.data_type == 'csv':
-            csvwriter = unicodecsv.DictWriter(self.active_file, fieldnames=self.get_csv_fieldnames(ds,ft), restval="NA")
-            csvwriter.writeheader()
         for j in ds:
             jNew = ft.transform(j)
             if jNew:
-                if self.data_type == 'csv':
-                    csvwriter.writerow(jNew)
-                else:
-                    jStr =  json.dumps(jNew,sort_keys=True)
-                    self.active_file.write(jStr+"\n")
+                jStr =  json.dumps(jNew,sort_keys=True)
+                self.active_file.write(jStr+"\n")
         self.active_file.close()
         shutil.move(self.next_dataset,self.current_dataset)
 
     def get_dataset(self,filename):
-        """get dataset based on type (csv or json)
+        """get dataset 
         """
-        if self.data_type == "json":
-            return JsonDataSet(filename)
-        elif self.data_type == "csv":
-            return CsvDataSet(filename)
+        return JsonDataSet(filename)
+
+    def convert_to_json(self):
+        ds = CsvDataSet(self.current_dataset)
+        self.active_file = open(self.next_dataset,"w")
+        for j in ds:
+            jStr =  json.dumps(j,sort_keys=True)
+            self.active_file.write(jStr+"\n")
+        self.active_file.close()
+        shutil.move(self.next_dataset,self.current_dataset)
+
+    def convert_to_csv(self):
+        ds = JsonDataSet(self.current_dataset)
+        self.active_file = open(self.next_dataset,"w")
+        fieldNames = set()
+        for j in ds:
+            for f in j:
+                fieldNames.add(f)
+        csvwriter = unicodecsv.DictWriter(self.active_file, fieldnames=sorted(list(fieldNames)))
+        csvwriter.writeheader()
+        for j in ds:
+            csvwriter.writerow(j)
+        self.active_file.close()
+        shutil.move(self.next_dataset,self.current_dataset)
+
 
     def transform(self):
         """apply all transforms in a pipeline
         """
         self.transform_init()
         self.getFeatures(self.input_folders)
+        if self.data_type == 'csv':
+            self.convert_to_json()
         for ft in self.pipeline:
             ds = self.get_dataset(self.current_dataset)
             self._transform(ds,ft)
-        return self.get_dataset(self.current_dataset)
+        if self.data_type == 'csv':
+            self.convert_to_csv()
+            return CsvDataSet(self.current_dataset)
+        else:
+            return JsonDataSet(self.current_dataset)
 
     def fit_transform(self):
         """fit a pipeline and then apply its transforms
@@ -309,15 +315,22 @@ class Pipeline(object):
         gets features, fits, transforms and stores results
         """
         self.getFeatures(self.input_folders)
+        if self.data_type == 'csv':
+            self.convert_to_json()
         for ft in self.pipeline:
             ds = self.get_dataset(self.current_dataset)
             ft.fit(ds)
             self._transform(ds,ft)
+        if self.data_type == 'csv':
+            self.convert_to_csv()
         self.store_models()
         self.save_pipeline()
         self.upload_models()
         self.store_features()
-        return self.get_dataset(self.current_dataset)
+        if self.data_type == 'csv':
+            return CsvDataSet(self.current_dataset)
+        else:
+            return JsonDataSet(self.current_dataset)
 
 class JsonDataSet(object):
     """a JSON dataset
