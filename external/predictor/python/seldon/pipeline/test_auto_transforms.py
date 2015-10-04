@@ -1,26 +1,6 @@
 import unittest
 import auto_transforms as at
-import json
-
-class Categorical_data():
-
-    def __init__(self):
-        self.data = '{"a":"A"}\n{"a":"A"}\n{"a":"B"}'
-
-    def __iter__(self):
-        for line in self.data.split("\n"):
-            j = json.loads(line)
-            yield j
-
-class Ignore_data():
-
-    def __init__(self):
-        self.data = '{"a":"NA"}\n{"a":998}\n{"a":"B"}'
-
-    def __iter__(self):
-        for line in self.data.split("\n"):
-            j = json.loads(line)
-            yield j
+import pandas as pd
 
 
 
@@ -29,24 +9,13 @@ class Test_auto_transforms(unittest.TestCase):
     Test that categorical values can be limited. Those appearing less than some value are removed.
     """
     def test_categorical_values_limit(self):
-        atrans = at.Auto_transform(min_categorical_keep_feature=0.5)
-        d = Categorical_data()
-        atrans.fit(d)
-        for j in d:
-            jNew = atrans.transform(j)
-            self.assertTrue(not "b" in jNew)
+                df = pd.DataFrame([{"a":10,"b":1},{"a":5,"b":2},{"a":10,"b":3}])
+                t = at.Auto_transform(max_values_numeric_categorical=2)
+                t.fit(df)
+                df2 = t.transform(df)
+                print df2
 
-
-    def test_ignore_vals(self):
-        atrans = at.Auto_transform(ignore_vals=["NA","998"])
-        d = Ignore_data()
-        atrans.fit(d)
-        for j in d:
-            jNew = atrans.transform(j)
-            print "jNew = ",jNew
-            if "a" in jNew:
-                self.assertTrue(not jNew["a"] == "NA")
-                self.assertTrue(not jNew["a"] == 998)
+#    def test_ignore_vals(self):
 
         
 if __name__ == '__main__':

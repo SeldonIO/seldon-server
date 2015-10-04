@@ -20,7 +20,7 @@ class Auto_transform(pl.Feature_transform):
 
         force_categorical (list(str)): features to force to be categorical
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=20,custom_date_formats=None,ignore_vals=None,force_categorical=[],min_categorical_keep_feature=0.0):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,custom_date_formats=None,ignore_vals=None,force_categorical=[],min_categorical_keep_feature=0.0):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -31,99 +31,21 @@ class Auto_transform(pl.Feature_transform):
             self.ignore_vals = set(ignore_vals)
         else:
             self.ignore_vals = set(["NA",""])
-        self.transforms = {}
         self.force_categorical = force_categorical
         self.min_categorical_keep_feature = min_categorical_keep_feature
         self.catValueCount = {}
+        self.convert_categorical = set()
+        self.convert_date = set()
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature,self.ignore_vals),self.transforms,self.scalers,self.catValueCount]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature,self.ignore_vals),self.convert_categorical,self.scalers,self.catValueCount]
     
     def set_models(self,models):
         (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.min_categorical_keep_feature,self.ignore_vals) = models[0]
-        self.transforms = models[1]
+        self.convert_categorical = models[1]
         self.scalers = models[2]
         self.catValueCount = models[3]
 
-
-    def ignore_value(self,v):
-        val = str(v)
-        if val in self.ignore_vals:
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def is_number(s):
-        try:
-            float(s)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def isBoolean(v):
-        v = str(v)
-        return v.lower() == "true" or v.lower() == "false" or v == "1" or v == "0"
-
-    def toBoolean(self,f,v):
-        v = str(v)
-        if v.lower() == "true" or v == "1":
-            return 1
-        else:
-            return 0
-
-    def fit_scalers(self,objs,features):
-        """fit numeric scalers on all numeric features
-
-        requires enough memory to run sklearn standard scaler on all values for a feature
-        """
-        print "creating ",len(features),"features scalers"
-        Xs = {}
-        for f in features:
-            Xs[f] = []
-        for j in objs:
-            for f in features:
-                if f in j and self.is_number(j[f]) and not self.ignore_value(j[f]):
-                    Xs[f].append(float(j[f]))
-        c = 1
-        for f in Xs:
-            self.scalers[f] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(Xs[f])
-            c += 1
-
-    def scale(self,f,v):
-        if self.is_number(v):
-            return self.scalers[f].transform([float(v)])[0]
-        else:
-            return 0
-
-    def make_categorical_token(self,f,v):
-        """make a ctaegorical feature from feature and its value
-        """
-        if f in self.catValueCount:
-            if not v in self.catValueCount[f] or self.catValueCount[f][v] < self.min_categorical_keep_feature:
-                return None
-        v = str(v).lower().replace(" ","_")
-        if Auto_transform.is_number(v):
-            return f.replace(" ","_")+"_"+v
-        else:
-            return v
-
-    def is_date(self,v):
-        """is this feature a date
-        """
-        try:
-            parse(v)
-            return True
-        except:
-            if self.custom_date_formats:
-                for f in self.custom_date_formats:
-                    try:
-                        datetime.datetime.strptime( v, f )
-                        return True
-                    except:
-                        pass
-            return False
 
     def unix_time(self,dt):
         """transform a date into a unix day number
@@ -147,7 +69,46 @@ class Auto_transform(pl.Feature_transform):
         else:
             return None
 
-    def fit(self,objs):
+    def scale(self,v,col):
+        return self.scalers[col].transform([float(v)])[0]
+
+    def make_cat(self,v,col):
+        return col+"_"+str(v)
+
+    def fit(self,df):
+        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+        numeric_cols = set(df.select_dtypes(include=numerics).columns)
+        categorical_cols = set(df.select_dtypes(exclude=numerics).columns)
+        for col in df.columns:
+            if col in self.exclude:
+                pass
+            elif not self.include or col in self.include:
+                counts = df[col].value_counts()
+                if col in numeric_cols:
+                    if len(counts) > self.max_values_numeric_categorical:
+                        print "fitting scaler for col ",col
+                        self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(df[col].astype(float))
+                    else:
+                        self.convert_categorical.add(col)
+                else:
+                    self.convert_categorical.add(col)
+
+    def transform(self,df):
+        for col in self.scalers:
+          df[col] = df[col].apply(self.scale,col=col)
+        for col in self.convert_categorical:
+            df[col] = df[col].astype(str)
+            df[col] = df[col].apply(self.make_cat,col=col)
+        return df
+
+
+
+
+
+
+
+
+    def _fit(self,objs):
         """try to guess a transform to apply to each feature
         """
         values = {}
@@ -190,7 +151,7 @@ class Auto_transform(pl.Feature_transform):
                     self.transforms[f] = self.make_categorical_token.__name__
         self.fit_scalers(objs,featuresToScale)
 
-    def transform(self,j):
+    def _transform(self,j):
         """Apply learnt transforms on each feature
         """
         jNew = {}

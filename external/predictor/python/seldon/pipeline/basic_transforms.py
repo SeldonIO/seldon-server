@@ -309,26 +309,5 @@ class Feature_id_transform(pl.Feature_transform):
             df = df[pd.notnull(df[self.output_feature])]
         return df
 
-    def _transform(self,df):
-        """transform features creating a new id and exluding rows if needed
-        """
-        exclude = False
-        if self.input_feature in j:
-            cl = j[self.input_feature]
-            if isinstance(cl, list):
-                r = []
-                for v in cl:
-                    if v in self.idMap:
-                        r.append(self.idMap[v])
-                j[self.output_feature] = r
-            else:
-                if cl in self.idMap:
-                    j[self.output_feature] = self.idMap[cl]
-                elif self.exclude_missing:
-                    exclude = True
-        if not exclude:
-            return j
-        else:
-            return None
 
 
