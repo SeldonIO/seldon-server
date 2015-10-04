@@ -65,6 +65,7 @@ class Include_features_transform(pl.Feature_transform):
         """
         return df[self.included]
 
+#############
 
 class Split_transform(pl.Feature_transform):
     """Split a set of string input features on an expression and create a new feature which has a list of values
@@ -120,6 +121,8 @@ class Split_transform(pl.Feature_transform):
         j[self.output_feature] = ftokens
         return j
 
+#############
+
 class Exist_features_transform(pl.Feature_transform):
     """Filter rows based on whether a specified set of features exists
 
@@ -140,19 +143,13 @@ class Exist_features_transform(pl.Feature_transform):
     def fit(self,objs):
         pass
 
-    def transform(self,j):
+    def transform(self,df):
         """transform by returning input feature set if required features exist in it
         """
-        ok = True
-        for feat in self.included:
-            if not feat in j:
-                ok = False
-        if ok:
-            return j
-        else:
-            return None
+        df.dropna(subset=self.included,inplace=True)
+        return df
 
-
+#############
 
 class Svmlight_transform(pl.Feature_transform):
     """take a set of features and transform into a sorted dictionary of numeric id:value features
@@ -192,70 +189,69 @@ class Svmlight_transform(pl.Feature_transform):
         except ValueError:
             return False
 
-    def get_feature_val(self,feature,val):
-        """create categorical or numeric feature.
 
-        categorical features the id is created from input feature name and input (string) value with a final output value of 1
-        """
-        if self.is_number(val):
-            return (feature,float(val))
+
+    def map(self,v,col):
+        if isinstance(v,list):
+            return set([col+"_"+lval for lval in v])
+        elif isinstance(v,dict):
+            return set([col+"_"+k if self.is_number(v) else col+"_"+k+"_"+str(v) for k,v in v.items()])
         else:
-            return (feature+"_"+val,1)
+            if self.is_number(v):
+                return set(col)
+            else:
+                return set([col+"_"+str(v)])
 
-    def addId(self,feature,val):
-        (f,v) = self.get_feature_val(feature,val)
-        if not f in self.idMap:
-            self.idMap[f] = self.lastId
-            self.lastId += 1
 
-    def getId(self,feature,val):
-        (f,v) = self.get_feature_val(feature,val)
-        if not f in self.idMap:
-            return (None,0)
+    def set_id(self,v,col):
+        if isinstance(v,list):
+            return [(self.idMap[col+"_"+lval],1) for lval in v]
+        elif isinstance(v,dict):
+            return [(self.idMap[col+"_"+k],v) if self.is_number(v) else (self.idMap[col+"_"+k+"_"+str(v)],1) for k,v in v.items()]
         else:
-            return (self.idMap[f],v)
+            if self.is_number(v):
+                if not pd.isnull(v):
+                    return [(self.idMap[col],v)]
+                else:
+                    return []
+            else:
+                return [(self.idMap[col+"_"+v],1)]
 
-    def fit(self,objs):
+
+    def union(self,vals):
+        s = set()
+        for v in vals:
+            s = s.union(v)
+        return s
+
+
+    def fit(self,df):
         """create ids for each feature to be included
         """
-        self.idMap = {}
-        for j in objs:
-            for f in j:
-                if (self.included and f in self.included) or (self.excluded and not f in self.excluded):
-                    v = j[f]
-                    if isinstance(v, list):
-                        for vList in v:
-                            self.addId(f+"_"+vList,1)
-                    elif isinstance(v,dict):
-                        for k in v:
-                            self.addId(f+"_"+k,v[k])
-                    else:
-                        self.addId(f,v)
+        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+        features = set()
+        df_numeric = df.select_dtypes(include=numerics)
+        df_categorical = df.select_dtypes(exclude=numerics)
+        for col in df_categorical.columns:
+            if (self.included and col in self.included) or (self.excluded and not col in self.excluded) or not(self.included and self.included):
+                res = df[col].apply(self.map,col=col)
+                s = res.groupby(lambda x : "all").aggregate(self.union)
+                features = features.union(s["all"])
+        for col in df_numeric.columns:
+            features.add(col)
+        self.idMap = dict([(v,i+1) for i,v in enumerate(features)])
 
-    def transform(self,j):
+    def transform(self,df):
         """transform features by getting id and numeric value
         """
-        features = {}
-        for f in j:
-            if (self.included and f in self.included) or (self.excluded and not f in self.excluded):
-                v = j[f]
-                if isinstance(v, list):
-                    for vList in cl:
-                        (fid,fv) = self.getId(f+"_"+vList,1) 
-                        if fid:
-                            features[fid] = fv
-                elif isinstance(v,dict):
-                    for k in v:
-                        (fid,fv) = self.getId(f+"_"+k,v[k])
-                        if fid:
-                            features[fid] = fv
-                else:
-                    (fid,fv) = self.getId(f,v)
-                    if fid:
-                        features[fid] = fv
-        od = OrderedDict(sorted(features.items()))
-        j[self.output_feature] = od
-        return j
+        df_tmp = pd.DataFrame()
+        for col in df.columns:
+            if (self.included and col in self.included) or (self.excluded and not col in self.excluded) or not(self.included and self.included):
+                df_tmp[col] = df[col].apply(self.set_id,col=col)
+        df[self.output_feature] = df_tmp.sum(axis=1)
+        return df
+
+#############
 
 
 class Feature_id_transform(pl.Feature_transform):
@@ -283,29 +279,37 @@ class Feature_id_transform(pl.Feature_transform):
         self.idMap = models[1]
 
 
-    def fit(self,objs):
+    def fit(self,df):
         """create map of ids for each feature value
 
         create counts of occurrences of each feature value. Exclude features with not enough counds. Create id map.
         """
-        sizeMap = defaultdict(int)
-        for j in objs:
-            if self.input_feature in j:
-                cl = j[self.input_feature]
-                if isinstance(cl, list):
-                    for v in cl:
-                        sizeMap[v] += 1
-                else:
-                    sizeMap[cl] += 1
-        sorted_x = sorted(sizeMap.items(), key=operator.itemgetter(1),reverse=True)        
-        nxtId = 1
-        for (feature,size) in sorted_x:
-            if size > self.min_size:
-                self.idMap[feature] = nxtId
-                nxtId += 1
-        self.logger.info("%s Final id map has size %d",self.get_log_prefix(),len(self.idMap))
+        counts = df[self.input_feature].value_counts()
+        self.idMap = {}
+        idx = 1
+        for c,v in counts.iteritems():
+            if v >= self.min_size:
+                self.idMap[c] = idx
+                idx += 1
+            else:
+                break
+        return self.idMap
 
-    def transform(self,j):
+    def map(self,v):
+        if v in self.idMap:
+            return self.idMap[v]
+        else:
+            return None
+
+    def transform(self,df):
+        """transform features creating a new id and exluding rows if needed
+        """
+        df[self.output_feature] =  df[self.input_feature].apply(self.map)        
+        if self.exclude_missing:
+            df = df[pd.notnull(df[self.output_feature])]
+        return df
+
+    def _transform(self,df):
         """transform features creating a new id and exluding rows if needed
         """
         exclude = False
