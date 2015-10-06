@@ -116,7 +116,7 @@ class Auto_transform(pl.Feature_transform):
             elif not self.include or col in self.include:
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
                 cat_counts = df[col].value_counts(normalize=True)
-                if col in numeric_cols:
+                if df[col].dtype in numerics:
                     if len(cat_counts) > self.max_values_numeric_categorical and not col in self.force_categorical:
                         print "fitting scaler for col ",col
                         dfs = df[col].dropna()
@@ -132,6 +132,9 @@ class Auto_transform(pl.Feature_transform):
                     else:
                         self.convert_categorical.add(col)
                         self.cat_percent[col] = cat_counts
+        print "num scalers",len(self.scalers)
+        print "num categorical ",len(self.convert_categorical)
+        print "num dates",len(self.convert_date)
 
     def transform(self,df):
         c = 0
