@@ -66,12 +66,12 @@ class Tfidf_transform(pl.Feature_transform):
         counts = self.vectorizer.fit_transform(docs)
         self.tfidf = self.tfidf_transformer.fit_transform(counts)
         self.fnames = self.vectorizer.get_feature_names()
-        print "base tfidf features",len(self.fnames))
+        print "base tfidf features",len(self.fnames)
         if self.select_features:
             self.ch2 = SelectKBest(chi2, k=self.topn_features)
             self.ch2.fit_transform(self.tfidf, df[self.target_feature])
             self.feature_names_support = set([self.fnames[i] for i in self.ch2.get_support(indices=True)])
-            print "selected tfidf features",len(self.feature_names_support))
+            print "selected tfidf features",len(self.feature_names_support)
 
 
     def create_tfidf(self,v):

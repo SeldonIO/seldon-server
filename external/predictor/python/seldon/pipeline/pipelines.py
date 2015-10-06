@@ -249,9 +249,17 @@ class Pipeline(object):
 
     def save_dataframe(self,df):
         if self.data_type == 'csv':
+            print "saving dataframe as csv"
             df.to_csv(self.current_dataset,index=False)
         else:
-            df.to_json(self.current_dataset,orient='records')
+            print "saving dataframe as json"
+            f = open(self.current_dataset,"w")
+            for i in range(0, df.shape[0]):
+                row = df.irow(i).dropna()
+                jNew = row.to_dict()
+                jStr =  json.dumps(jNew,sort_keys=True)
+                f.write(jStr+"\n")
+            f.close()
 
     def transform_init(self):
         """prepare for transform
@@ -262,15 +270,16 @@ class Pipeline(object):
         self.load_pipeline()
         self.load_models()
 
-    def transform_json(self,f):
+    def transform_json(self,j):
         """transform a features dictionary row
 
         Args:
             f (dict): features to transform
         """
+        df = pd.DataFrame.from_dict([j])
         for ft in self.pipeline:
-            f = ft.transform(f)
-        return f
+            df = ft.transform(df)
+        return df.iloc[0].to_dict()
 
     def transform(self):
         """apply all transforms in a pipeline
@@ -297,43 +306,6 @@ class Pipeline(object):
         self.save_pipeline()
         self.upload_models()
         self.store_features()
-
-class JsonDataSet(object):
-    """a JSON dataset
-        
-    Args:
-        filename (str): location of JSON file
-    """
-
-    def __init__(self, filename):
-        self.filename =filename
- 
-    def __iter__(self):
-        """iterate over a JSON dataset
-        """
-        f = open(self.filename,"r")
-        for line in f:
-            line = line.rstrip()
-            j = json.loads(line)
-            yield j
-
-class CsvDataSet(object):
-    """a CSV Dataset
-        
-    Args:
-        filename (str): location of JSON file
-    """
-
-    def __init__(self, filename):
-        self.filename =filename
- 
-    def __iter__(self):
-        """iterate over a CSV dataset
-        """
-        csvfile = open(self.filename,"r")
-        reader = unicodecsv.DictReader(csvfile,encoding='utf-8')
-        for d in reader:
-            yield d
 
 
             

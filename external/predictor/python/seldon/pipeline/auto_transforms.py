@@ -23,7 +23,7 @@ class Auto_transform(pl.Feature_transform):
 
         force_categorical (list(str)): features to force to be categorical
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[]):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -39,17 +39,21 @@ class Auto_transform(pl.Feature_transform):
         self.convert_categorical = set()
         self.convert_date = set()
         self.date_cols = date_cols
+        self.min_cat_percent = min_cat_percent
+        self.max_cat_percent = max_cat_percent
+        self.cat_percent = {}
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent]
     
     def set_models(self,models):
-        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals) = models[0]
+        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent) = models[0]
         self.convert_categorical = models[1]
         self.convert_date = models[2]
         self.scalers = models[3]
         self.catValueCount = models[4]
         self.date_cols = models[5]
+        self.cat_percent = models[6]
 
 
     def to_date(self,f,v):
@@ -77,7 +81,12 @@ class Auto_transform(pl.Feature_transform):
         if not isinstance(v,basestring) and np.isnan(v):
             return v
         else:
-            return col+"_"+str(v)
+            if col in self.cat_percent and v in self.cat_percent[col] and self.cat_percent[col][v] >= self.min_cat_percent and self.cat_percent[col][v] <= self.max_cat_percent:
+                val = str(v)
+                val = val.replace(" ","_")
+                return col+"_"+val
+            else:
+                return np.nan
 
     def create_hour_features(self,v,col):
         val = (v.hour/24.0) * 2*math.pi
@@ -101,19 +110,20 @@ class Auto_transform(pl.Feature_transform):
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
         numeric_cols = set(df.select_dtypes(include=numerics).columns)
         categorical_cols = set(df.select_dtypes(exclude=numerics).columns)
-        df.replace(self.ignore_vals,np.nan,inplace=True)
         for col in df.columns:
             if col in self.exclude:
                 pass
             elif not self.include or col in self.include:
-                counts = df[col].value_counts()
+                df[col].replace(self.ignore_vals,np.nan,inplace=True)
+                cat_counts = df[col].value_counts(normalize=True)
                 if col in numeric_cols:
-                    if len(counts) > self.max_values_numeric_categorical and not col in self.force_categorical:
+                    if len(cat_counts) > self.max_values_numeric_categorical and not col in self.force_categorical:
                         print "fitting scaler for col ",col
                         dfs = df[col].dropna()
                         self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(dfs.astype(float))
                     else:
                         self.convert_categorical.add(col)
+                        self.cat_percent[col] = cat_counts
                 else:
                     if df[col].dtype == 'datetime64[ns]':
                         self.convert_date.add(col)
@@ -121,25 +131,27 @@ class Auto_transform(pl.Feature_transform):
                         self.convert_date.add(col)
                     else:
                         self.convert_categorical.add(col)
+                        self.cat_percent[col] = cat_counts
 
     def transform(self,df):
-        df.replace(self.ignore_vals,np.nan,inplace=True)
+        c = 0
+        num_cats = len(self.convert_categorical)
+        for col in self.convert_categorical:
+            df[col].replace(self.ignore_vals,np.nan,inplace=True)
+            c += 1
+            print "convert categorical ",col,c,"/",num_cats
+            df[col] = df[col].apply(self.make_cat,col=col)
         num_scalers = len(self.scalers)
         c = 0
         for col in self.scalers:
+            df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "scaling col ",col,c,"/",num_scalers
             df[col] = df[col].apply(self.scale,col=col)
         c = 0
-        num_cats = len(self.convert_categorical)
-        for col in self.convert_categorical:
-            c += 1
-            print "convert categorical ",col,c,"/",num_cats
-            #df[col] = df[col].astype(str)
-            df[col] = df[col].apply(self.make_cat,col=col)
-        c = 0
         num_dates  = len(self.convert_date)
         for col in self.convert_date:
+            df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "convert date ",col,c,"/",num_dates
             if not df[col].dtype == 'datetime64[ns]':
