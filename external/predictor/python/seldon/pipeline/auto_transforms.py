@@ -135,23 +135,8 @@ class Auto_transform(pl.Feature_transform):
 
     def transform(self,df):
         c = 0
-        num_cats = len(self.convert_categorical)
-        for col in self.convert_categorical:
-            df[col].replace(self.ignore_vals,np.nan,inplace=True)
-            c += 1
-            print "convert categorical ",col,c,"/",num_cats
-            df[col] = df[col].apply(self.make_cat,col=col)
-        num_scalers = len(self.scalers)
-        c = 0
-        for col in self.scalers:
-            df[col].replace(self.ignore_vals,np.nan,inplace=True)
-            c += 1
-            print "scaling col ",col,c,"/",num_scalers
-            df[col] = df[col].apply(self.scale,col=col)
-        c = 0
         num_dates  = len(self.convert_date)
         for col in self.convert_date:
-            df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "convert date ",col,c,"/",num_dates
             if not df[col].dtype == 'datetime64[ns]':
@@ -168,5 +153,19 @@ class Auto_transform(pl.Feature_transform):
                 df.drop(col,axis=1, inplace=True)
             else:
                 print "warning - failed to convert to date col ",col
+        c = 0
+        num_cats = len(self.convert_categorical)
+        for col in self.convert_categorical:
+            df[col].replace(self.ignore_vals,np.nan,inplace=True)
+            c += 1
+            print "convert categorical ",col,c,"/",num_cats
+            df[col] = df[col].apply(self.make_cat,col=col)
+        num_scalers = len(self.scalers)
+        c = 0
+        for col in self.scalers:
+            df[col].replace(self.ignore_vals,np.nan,inplace=True)
+            c += 1
+            print "scaling col ",col,c,"/",num_scalers
+            df[col] = df[col].apply(self.scale,col=col)
         return df
 
