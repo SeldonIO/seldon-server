@@ -83,8 +83,8 @@ class Auto_transform(pl.Feature_transform):
         else:
             if col in self.cat_percent and v in self.cat_percent[col] and self.cat_percent[col][v] >= self.min_cat_percent and self.cat_percent[col][v] <= self.max_cat_percent:
                 val = str(v)
-                val = val.replace(" ","_")
-                return col+"_"+val
+                val = val.replace(" ","_").lower()
+                return val
             else:
                 return np.nan
 

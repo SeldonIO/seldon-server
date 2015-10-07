@@ -21,7 +21,7 @@ class Test_auto_transforms(unittest.TestCase):
         t.fit(df)
         df2 = t.transform(df)
         self.assertTrue(np.isnan(df2["a"][0]))
-        self.assertTrue(df2["a"][1] == "a_v1")
+        self.assertTrue(df2["a"][1] == "v1")
 
 
     """
@@ -32,7 +32,7 @@ class Test_auto_transforms(unittest.TestCase):
         t = at.Auto_transform(max_values_numeric_categorical=2)
         t.fit(df)
         df2 = t.transform(df)
-        self.assertEqual(df["a"][0],"a_10")
+        self.assertEqual(df["a"][0],"10")
 
     def test_ignored_values(self):
         df = pd.DataFrame([{"a":10},{"a":99},{"a":12},{"a":8}])
