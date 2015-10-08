@@ -23,7 +23,7 @@ class Auto_transform(pl.Feature_transform):
 
         force_categorical (list(str)): features to force to be categorical
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0}):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -42,9 +42,11 @@ class Auto_transform(pl.Feature_transform):
         self.min_cat_percent = min_cat_percent
         self.max_cat_percent = max_cat_percent
         self.cat_percent = {}
+        self.bool_map = bool_map
+        self.convert_bool = set()
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool]
     
     def set_models(self,models):
         (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent) = models[0]
@@ -54,7 +56,8 @@ class Auto_transform(pl.Feature_transform):
         self.catValueCount = models[4]
         self.date_cols = models[5]
         self.cat_percent = models[6]
-
+        self.bool_map = models[7]
+        self.convert_bool = models[8]
 
     def to_date(self,f,v):
         d = None
@@ -115,8 +118,16 @@ class Auto_transform(pl.Feature_transform):
                 pass
             elif not self.include or col in self.include:
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
+                df[col] = df[col].apply(lambda x: np.nan if isinstance(x, basestring) and len(x)==0 else x)
                 cat_counts = df[col].value_counts(normalize=True)
-                if df[col].dtype in numerics:
+                is_bool = True
+                for val in cat_counts.index:
+                    if not str(val).lower() in self.bool_map.keys():
+                        is_bool = False
+                        break
+                if is_bool:
+                    self.convert_bool.add(col)
+                elif df[col].dtype in numerics:
                     if len(cat_counts) > self.max_values_numeric_categorical and not col in self.force_categorical:
                         print "fitting scaler for col ",col
                         dfs = df[col].dropna()
@@ -135,8 +146,16 @@ class Auto_transform(pl.Feature_transform):
         print "num scalers",len(self.scalers)
         print "num categorical ",len(self.convert_categorical)
         print "num dates",len(self.convert_date)
+        print "num bool",len(self.convert_bool)
 
     def transform(self,df):
+        c = 0
+        num_bools  = len(self.convert_bool)
+        for col in self.convert_bool:
+            c += 1
+            print "convert bool",col,c,"/",num_bools
+            df[col] = df[col].apply(str).apply(str.lower)
+            df[col] = df[col].map(self.bool_map)
         c = 0
         num_dates  = len(self.convert_date)
         for col in self.convert_date:

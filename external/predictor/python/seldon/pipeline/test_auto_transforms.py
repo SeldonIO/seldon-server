@@ -6,6 +6,30 @@ import numpy as np
 
 class Test_auto_transforms(unittest.TestCase):
 
+    def test_bool_col(self):
+        df = pd.DataFrame([True,False])
+        t = at.Auto_transform(ignore_vals=["NA",""])
+        t.fit(df)
+        df2 = t.transform(df)
+        self.assertTrue(df2[0][0] == 1)
+        self.assertTrue(df2[0][1] == 0)
+
+    def test_boolean_col(self):
+        df = pd.DataFrame([{"a":"true"},{"a":"false"},{"a":""}])
+        t = at.Auto_transform(ignore_vals=["NA"])
+        t.fit(df)
+        df2 = t.transform(df)
+        self.assertTrue(df2["a"][0] == 1)
+        self.assertTrue(df2["a"][1] == 0)
+
+    def test_boolean_col2(self):
+        df = pd.DataFrame([{"a":1},{"a":0},{"a":""}])
+        t = at.Auto_transform(ignore_vals=["NA"])
+        t.fit(df)
+        df2 = t.transform(df)
+        self.assertTrue(df2["a"][0] == 1)
+        self.assertTrue(df2["a"][1] == 0)
+
     def test_change_type_when_ignored_removed(self):
         df = pd.DataFrame([{"a":"NA"},{"a":10},{"a":12},{"a":8}])
         t = at.Auto_transform(ignore_vals=["NA"])
@@ -16,12 +40,13 @@ class Test_auto_transforms(unittest.TestCase):
         self.assertAlmostEqual(df2["a"][2],1.224745,places=4)
 
     def test_categorical(self):
-        df = pd.DataFrame([{"a":"NA"},{"a":"v1"},{"a":"v2"},{"a":"v3"}])
+        df = pd.DataFrame([{"a":""},{"a":"v1"},{"a":"v2"},{"a":"v3"}])
         t = at.Auto_transform(ignore_vals=["NA"])
         t.fit(df)
         df2 = t.transform(df)
         self.assertTrue(np.isnan(df2["a"][0]))
         self.assertTrue(df2["a"][1] == "v1")
+        self.assertTrue(df2["a"][2] == "v2")
 
 
     """
