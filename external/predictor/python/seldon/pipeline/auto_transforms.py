@@ -23,7 +23,7 @@ class Auto_transform(pl.Feature_transform):
 
         force_categorical (list(str)): features to force to be categorical
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0}):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN"):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -44,12 +44,13 @@ class Auto_transform(pl.Feature_transform):
         self.cat_percent = {}
         self.bool_map = bool_map
         self.convert_bool = set()
+        self.cat_missing_val = cat_missing_val
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool]
     
     def set_models(self,models):
-        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent) = models[0]
+        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val) = models[0]
         self.convert_categorical = models[1]
         self.convert_date = models[2]
         self.scalers = models[3]
@@ -82,7 +83,7 @@ class Auto_transform(pl.Feature_transform):
 
     def make_cat(self,v,col):
         if not isinstance(v,basestring) and np.isnan(v):
-            return v
+            return self.cat_missing_val
         else:
             if col in self.cat_percent and v in self.cat_percent[col] and self.cat_percent[col][v] >= self.min_cat_percent and self.cat_percent[col][v] <= self.max_cat_percent:
                 val = str(v)
@@ -119,7 +120,7 @@ class Auto_transform(pl.Feature_transform):
             elif not self.include or col in self.include:
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
                 df[col] = df[col].apply(lambda x: np.nan if isinstance(x, basestring) and len(x)==0 else x)
-                cat_counts = df[col].value_counts(normalize=True)
+                cat_counts = df[col].value_counts(normalize=True,dropna=False)
                 is_bool = True
                 for val in cat_counts.index:
                     if not str(val).lower() in self.bool_map.keys():

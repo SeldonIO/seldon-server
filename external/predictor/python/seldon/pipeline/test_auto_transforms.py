@@ -14,16 +14,28 @@ class Test_auto_transforms(unittest.TestCase):
         self.assertTrue(df2[0][0] == 1)
         self.assertTrue(df2[0][1] == 0)
 
-    def test_boolean_col(self):
+    def test_boolean_col_with_missing(self):
         df = pd.DataFrame([{"a":"true"},{"a":"false"},{"a":""}])
         t = at.Auto_transform(ignore_vals=["NA"])
         t.fit(df)
         df2 = t.transform(df)
-        self.assertTrue(df2["a"][0] == 1)
-        self.assertTrue(df2["a"][1] == 0)
+        print df2
+        self.assertTrue(df2["a"][0] == "true")
+        self.assertTrue(df2["a"][1] == "false")
+        self.assertTrue(df2["a"][2] == "UKN")
+
+    def test_boolean_col_with_missing2(self):
+        df = pd.DataFrame([{"a":"true"},{"a":"false"},{"a":""}])
+        t = at.Auto_transform(ignore_vals=["NA"],cat_missing_val="?")
+        t.fit(df)
+        df2 = t.transform(df)
+        print df2
+        self.assertTrue(df2["a"][0] == "true")
+        self.assertTrue(df2["a"][1] == "false")
+        self.assertTrue(df2["a"][2] == "?")
 
     def test_boolean_col2(self):
-        df = pd.DataFrame([{"a":1},{"a":0},{"a":""}])
+        df = pd.DataFrame([{"a":1},{"a":0},{"a":"false"}])
         t = at.Auto_transform(ignore_vals=["NA"])
         t.fit(df)
         df2 = t.transform(df)
@@ -44,7 +56,7 @@ class Test_auto_transforms(unittest.TestCase):
         t = at.Auto_transform(ignore_vals=["NA"])
         t.fit(df)
         df2 = t.transform(df)
-        self.assertTrue(np.isnan(df2["a"][0]))
+        self.assertTrue(df2["a"][0] == "UKN")
         self.assertTrue(df2["a"][1] == "v1")
         self.assertTrue(df2["a"][2] == "v2")
 
