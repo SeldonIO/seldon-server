@@ -36,14 +36,14 @@ class Auto_transform(pl.Feature_transform):
             self.ignore_vals = ["NA",""]
         self.force_categorical = force_categorical
         self.catValueCount = {}
-        self.convert_categorical = set()
-        self.convert_date = set()
+        self.convert_categorical = []
+        self.convert_date = []
         self.date_cols = date_cols
         self.min_cat_percent = min_cat_percent
         self.max_cat_percent = max_cat_percent
         self.cat_percent = {}
         self.bool_map = bool_map
-        self.convert_bool = set()
+        self.convert_bool = []
         self.cat_missing_val = cat_missing_val
 
     def get_models(self):
@@ -127,22 +127,23 @@ class Auto_transform(pl.Feature_transform):
                         is_bool = False
                         break
                 if is_bool:
-                    self.convert_bool.add(col)
+                    self.convert_bool.append(col)
                 elif df[col].dtype in numerics:
                     if len(cat_counts) > self.max_values_numeric_categorical and not col in self.force_categorical:
                         print "fitting scaler for col ",col
                         dfs = df[col].dropna()
-                        self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(dfs.astype(float))
+                        if dfs.shape[0] > 0:
+                            self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(dfs.astype(float))
                     else:
-                        self.convert_categorical.add(col)
+                        self.convert_categorical.append(col)
                         self.cat_percent[col] = cat_counts
                 else:
                     if df[col].dtype == 'datetime64[ns]':
-                        self.convert_date.add(col)
+                        self.convert_date.append(col)
                     elif col in self.date_cols:
-                        self.convert_date.add(col)
+                        self.convert_date.append(col)
                     else:
-                        self.convert_categorical.add(col)
+                        self.convert_categorical.append(col)
                         self.cat_percent[col] = cat_counts
         print "num scalers",len(self.scalers)
         print "num categorical ",len(self.convert_categorical)
