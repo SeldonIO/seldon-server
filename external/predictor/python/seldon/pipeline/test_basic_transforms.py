@@ -2,6 +2,35 @@ import unittest
 import basic_transforms as bt
 import pandas as pd
 
+class Test_split_transform(unittest.TestCase):
+
+    def test_multiple_cols(self):
+        t = bt.Split_transform(input_features=["a","b"])
+        t.set_output_feature("res")
+        df = pd.DataFrame.from_dict([{"a":"a b","b":"c d","c":3},{"a":"word1","b":"word2"}])
+        df2 = t.transform(df)
+        print df2
+        self.assertTrue(len(df2["res"][0]) == 4)
+
+    def test_multiple_cols_with_missing_cols(self):
+        t = bt.Split_transform(input_features=["a","b"])
+        t.set_output_feature("res")
+        df = pd.DataFrame.from_dict([{"a":"a b","c":3},{"b":"word2"}])
+        df2 = t.transform(df)
+        print df2
+        self.assertTrue(len(df2["res"][0]) == 2)
+        self.assertTrue(len(df2["res"][1]) == 1)
+
+    def test_multiple_cols_numbers_ignored(self):
+        t = bt.Split_transform(input_features=["a","b"],ignore_numbers=True)
+        t.set_output_feature("res")
+        df = pd.DataFrame.from_dict([{"a":"a b","b":"c 1","c":3}])
+        print df
+        df2 = t.transform(df)
+        print df2
+        self.assertTrue(len(df2["res"][0]) == 3)
+
+
 class Test_include_transform(unittest.TestCase):
 
     def test_include(self):
@@ -26,6 +55,8 @@ class Test_svmlight_transform(unittest.TestCase):
         t.set_output_feature("svm")
         t.fit(df)
         df2 = t.transform(df)
+        print df2 
+        self.assertEquals(df2["svm"][1][5],3.0)
 
 class Test_feature_id_transform(unittest.TestCase):
 

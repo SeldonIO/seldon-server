@@ -107,19 +107,22 @@ class Split_transform(pl.Feature_transform):
     def fit(self,objs):
         pass
 
-    def transform(self,j):
-        """transform text features by splitting them and creating a list of feature as result
-        """
+    def split(self,row):
         ftokens = []
-        for feat in self.input_features:
-            if feat in j:
-                tokens = re.split(self.split_expression,j[feat])
+        for col in self.input_features:
+            if isinstance(row[col],basestring):
+                tokens = re.split(self.split_expression,row[col])
                 for token in tokens:
                     token = token.rstrip().lower()
                     if not self.ignore_numbers or (self.ignore_numbers and not self.is_number(token)):
                         ftokens.append(token)
-        j[self.output_feature] = ftokens
-        return j
+        return pd.Series({'val': ftokens})
+
+    def transform(self,df):
+        """transform text features by splitting them and creating a list of feature as result
+        """
+        df[self.output_feature] = df.apply(self.split,axis=1)
+        return df
 
 #############
 
@@ -146,6 +149,7 @@ class Exist_features_transform(pl.Feature_transform):
     def transform(self,df):
         """transform by returning input feature set if required features exist in it
         """
+        print "running exists features with ",self.included
         df.dropna(subset=self.included,inplace=True)
         return df
 
@@ -241,6 +245,9 @@ class Svmlight_transform(pl.Feature_transform):
             features.add(col)
         self.idMap = dict([(v,i+1) for i,v in enumerate(features)])
 
+    def toDict(self,x):
+        return dict(x)
+
     def transform(self,df):
         """transform features by getting id and numeric value
         """
@@ -249,6 +256,7 @@ class Svmlight_transform(pl.Feature_transform):
             if (self.included and col in self.included) or (self.excluded and not col in self.excluded) or not(self.included and self.included):
                 df_tmp[col] = df[col].apply(self.set_id,col=col)
         df[self.output_feature] = df_tmp.sum(axis=1)
+        df[self.output_feature] = df[self.output_feature].apply(self.toDict)
         return df
 
 #############

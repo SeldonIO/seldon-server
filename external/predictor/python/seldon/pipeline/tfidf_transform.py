@@ -61,9 +61,11 @@ class Tfidf_transform(pl.Feature_transform):
     def fit(self,df):
         self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
         self.tfidf_transformer = TfidfTransformer()
+        print "getting docs"
         docs = df[self.input_feature].apply(self.get_tokens)
-        print docs
-        counts = self.vectorizer.fit_transform(docs)
+        print "running vectorizer"
+        counts = self.vectorizer.fit_transform(docs.as_matrix())
+        print "run tfidf transform"
         self.tfidf = self.tfidf_transformer.fit_transform(counts)
         self.fnames = self.vectorizer.get_feature_names()
         print "base tfidf features",len(self.fnames)
@@ -95,47 +97,5 @@ class Tfidf_transform(pl.Feature_transform):
         df[self.output_feature] = df[self.input_feature].apply(self.create_tfidf)
         return df
 
-    def _fit(self,objs):
-        """fit using sklean transforms
-
-        vectorizer->tfidf->(optional) chi-squqred test
-        """
-        docs = []
-        target = []
-        self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
-        self.tfidf_transformer = TfidfTransformer()
-        for j in objs:
-            docs.append(self.getTokens(j))
-            if self.target_feature:
-                target.append(int(j[self.target_feature]))
-        counts = self.vectorizer.fit_transform(docs)
-        self.tfidf = self.tfidf_transformer.fit_transform(counts)
-        self.fnames = self.vectorizer.get_feature_names()
-        self.logger.info("%s base tfidf features %d",self.get_log_prefix(),len(self.fnames))
-        if self.select_features:
-            self.ch2 = SelectKBest(chi2, k=self.topn_features)
-            self.ch2.fit_transform(self.tfidf, target)
-            self.feature_names_support = set([self.fnames[i] for i in self.ch2.get_support(indices=True)])
-            self.logger.info("%s selected tfidf features %d",self.get_log_prefix(),len(self.feature_names_support))
-
-    def _transform(self,j):
-        """transform features into final tfidf features
-        """
-        docs = []
-        docs.append(self.getTokens(j))
-        counts = self.vectorizer.transform(docs)
-        self.tfidf = self.tfidf_transformer.transform(counts)
-        if self.select_features:
-            self.ch2.transform(self.tfidf)
-        doc_tfidf = {}
-        for (col,val) in zip(self.tfidf[0].indices,self.tfidf[0].data):
-            fname = self.fnames[col]
-            if self.select_features:
-                if fname in self.feature_names_support:
-                    doc_tfidf[fname] = val
-            else:
-                doc_tfidf[fname] = val
-        j[self.output_feature] = doc_tfidf
-        return j
 
 

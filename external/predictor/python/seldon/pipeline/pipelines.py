@@ -215,7 +215,10 @@ class Pipeline(object):
         Args:
             line (str): features data line
         """
+        if self.lines_read > 0:
+            self.active_file.write(",")
         self.active_file.write(line+"\n")
+        self.lines_read += 1
 
 
     def copy_features_locally(self,locations):
@@ -224,28 +227,24 @@ class Pipeline(object):
         Args:
             locations (list): list of folders
         """
-        print "streaming features from",locations," to ",self.current_dataset
+        print "streaming features ",locations," to ",self.current_dataset
+        self.lines_read = 0
         self.active_file = open(self.current_dataset,"w")
+        if not self.data_type == 'csv':
+            self.active_file.write("[")
         self.fu.stream_multi(locations,self.save_features_local)
+        if not self.data_type == 'csv':
+            self.active_file.write("]")
         self.active_file.close()
 
     def convert_dataframe(self):
+        print "loading data into pandas dataframe"
         if self.data_type == 'csv':
+            print "loading csv"
             return pd.read_csv(self.current_dataset)
         else:
-            df = None
-            with open(self.current_dataset) as f:
-                first = True
-                for line in f:
-                    line = line.rstrip()
-                    j = json.loads(line)
-                    if not first:
-                        df1 = pd.DataFrame.from_dict([j])
-                        df = df.append(df1)
-                    else:
-                        df = pd.DataFrame.from_dict([j])
-                        first = False
-            return df
+            print "loading json"
+            return pd.read_json(self.current_dataset,orient='records')
 
     def save_dataframe(self,df):
         if self.data_type == 'csv':
