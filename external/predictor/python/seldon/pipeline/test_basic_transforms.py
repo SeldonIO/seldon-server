@@ -54,21 +54,42 @@ class Test_svmlight_transform(unittest.TestCase):
         t = bt.Svmlight_transform()
         t.set_output_feature("svm")
         t.fit(df)
+        models =t.get_models()
+        print models
         df2 = t.transform(df)
         print df2 
         self.assertEquals(df2["svm"][1][5],3.0)
 
+    def test_svm_with_include(self):
+        df = pd.DataFrame([{"a":1.2,"b":"word","c":["a","b"],"d":{"a":1}},{"a":3,"c":["b","d"]},{"c":{"k":1,"k2":"word"}}])
+        t = bt.Svmlight_transform(included=["a"])
+        t.set_output_feature("svm")
+        t.fit(df)
+        df2 = t.transform(df)
+        print df2 
+        self.assertEquals(df2["svm"][0][1],1.2)
+
 class Test_feature_id_transform(unittest.TestCase):
 
-    def test_ids(self):
+    def test_ids_exclude_too_few(self):
         df = pd.DataFrame([{"a":"type1"},{"a":"type2"},{"a":"type1"}])
         t = bt.Feature_id_transform(min_size=2,exclude_missing=True)
         t.set_input_feature("a")
         t.set_output_feature("id")
         r = t.fit(df)
-        print r
         df2 = t.transform(df)
+        print "dtype is ",df2["id"].dtype
         print df2
+        self.assertEquals(df2.shape[0],2)
+
+    def test_ids(self):
+        df = pd.DataFrame([{"a":"type1"},{"a":"type2"},{"a":"type1"}])
+        t = bt.Feature_id_transform(min_size=1,exclude_missing=True)
+        t.set_input_feature("a")
+        t.set_output_feature("id")
+        r = t.fit(df)
+        df2 = t.transform(df)
+        self.assertEquals(df2.shape[0],3)
         
 
 

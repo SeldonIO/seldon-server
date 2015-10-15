@@ -228,6 +228,7 @@ class Pipeline(object):
             locations (list): list of folders
         """
         print "streaming features ",locations," to ",self.current_dataset
+        print "input type is ",self.data_type
         self.lines_read = 0
         self.active_file = open(self.current_dataset,"w")
         if not self.data_type == 'csv':
@@ -236,6 +237,7 @@ class Pipeline(object):
         if not self.data_type == 'csv':
             self.active_file.write("]")
         self.active_file.close()
+        print "finished stream of features"
 
     def convert_dataframe(self):
         print "loading data into pandas dataframe"
@@ -305,6 +307,43 @@ class Pipeline(object):
         self.save_pipeline()
         self.upload_models()
         self.store_features()
+
+class JsonDataSet(object):
+    """a JSON dataset
+        
+    Args:
+        filename (str): location of JSON file
+    """
+
+    def __init__(self, filename):
+        self.filename =filename
+ 
+    def __iter__(self):
+        """iterate over a JSON dataset
+        """
+        f = open(self.filename,"r")
+        for line in f:
+            line = line.rstrip()
+            j = json.loads(line)
+            yield j
+
+class CsvDataSet(object):
+    """a CSV Dataset
+        
+    Args:
+        filename (str): location of JSON file
+    """
+
+    def __init__(self, filename):
+        self.filename =filename
+ 
+    def __iter__(self):
+        """iterate over a CSV dataset
+        """
+        csvfile = open(self.filename,"r")
+        reader = unicodecsv.DictReader(csvfile,encoding='utf-8')
+        for d in reader:
+            yield d
 
 
             

@@ -5,6 +5,7 @@ import logging
 import operator
 import re
 import pandas as pd
+import numpy as np
 
 class Binary_transform(pl.Feature_transform):
     """Create a binary feature based on existence of a feature
@@ -165,7 +166,7 @@ class Svmlight_transform(pl.Feature_transform):
 
         excluded (list): set of features to exclude
     """
-    def __init__(self,included=None,zero_based=False,excluded=None):
+    def __init__(self,included=None,zero_based=False,excluded=[]):
         super(Svmlight_transform, self).__init__()
         self.included = included
         self.excluded = excluded
@@ -307,14 +308,17 @@ class Feature_id_transform(pl.Feature_transform):
         if v in self.idMap:
             return self.idMap[v]
         else:
-            return None
+            return np.nan
 
     def transform(self,df):
         """transform features creating a new id and exluding rows if needed
         """
-        df[self.output_feature] =  df[self.input_feature].apply(self.map)        
+        df[self.output_feature] = df[self.input_feature].apply(self.map)
         if self.exclude_missing:
             df = df[pd.notnull(df[self.output_feature])]
+            df[self.output_feature] = df[self.output_feature].astype(int)
+        else:
+            df[self.output_feature] = df[self.output_feature].fillna(-1).astype(int)
         return df
 
 

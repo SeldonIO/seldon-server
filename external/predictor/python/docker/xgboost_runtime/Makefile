@@ -1,4 +1,4 @@
-VERSION=1.0.2
+VERSION=1.1
 IMAGE=seldonio/xgboost_runtime
 
 build:
