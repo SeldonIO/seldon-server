@@ -292,6 +292,19 @@ class Pipeline(object):
             df = ft.transform(df)
         self.save_dataframe(df)
 
+    def fit(self):
+        """fit a pipeline
+
+        gets features, fits, and stores models
+        """
+        self.copy_features_locally(self.input_folders)
+        df = self.convert_dataframe()
+        for ft in self.pipeline:
+            ft.fit(df)
+        self.store_models()
+        self.save_pipeline()
+        self.upload_models()
+
     def fit_transform(self):
         """fit a pipeline and then apply its transforms
 

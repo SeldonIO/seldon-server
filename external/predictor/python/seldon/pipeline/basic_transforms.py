@@ -238,11 +238,13 @@ class Svmlight_transform(pl.Feature_transform):
         df_numeric = df.select_dtypes(include=numerics)
         df_categorical = df.select_dtypes(exclude=numerics)
         for col in df_categorical.columns:
-            if (self.included and col in self.included) or (self.excluded and not col in self.excluded) or not(self.included and self.included):
+            print "SVM transform - Fitting categorical feature ",col
+            if (not self.included or col in self.included) and (not col in self.excluded):
                 res = df[col].apply(self.map,col=col)
                 s = res.groupby(lambda x : "all").aggregate(self.union)
                 features = features.union(s["all"])
         for col in df_numeric.columns:
+            print "SVM transform - Fitting numerical feature ",col
             features.add(col)
         self.idMap = dict([(v,i+1) for i,v in enumerate(features)])
 
@@ -254,7 +256,7 @@ class Svmlight_transform(pl.Feature_transform):
         """
         df_tmp = pd.DataFrame()
         for col in df.columns:
-            if (self.included and col in self.included) or (self.excluded and not col in self.excluded) or not(self.included and self.included):
+            if (not self.included or col in self.included) and (not col in self.excluded):
                 df_tmp[col] = df[col].apply(self.set_id,col=col)
         df[self.output_feature] = df_tmp.sum(axis=1)
         df[self.output_feature] = df[self.output_feature].apply(self.toDict)
