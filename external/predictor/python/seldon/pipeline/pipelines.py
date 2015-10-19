@@ -53,15 +53,15 @@ class Feature_transform(object):
         """
         self.output_feature = feature
 
-    def fit(self,objs):
-        """fir method by default does nothing
+    def fit(self,df):
+        """fit method by default does nothing
         """
         pass
 
-    def transform(self,obj):
+    def transform(self,df):
         """transform by default does nothing
         """
-        return obj
+        return df
 
     def set_logging(self,logger):
         """setter for logging 
@@ -92,6 +92,8 @@ class Pipeline(object):
         aws_secret [Optional(str)]: aws secret (for S3 access)
 
         data_type (str): json or csv
+
+        output_format [Optional(str)]: output file format
     """
 
     def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None):
@@ -241,6 +243,8 @@ class Pipeline(object):
         print "finished stream of features"
 
     def convert_dataframe(self):
+        """load csv or json into pandas dataframe
+        """
         print "loading data into pandas dataframe"
         if self.data_type == 'csv':
             print "loading csv"
@@ -250,6 +254,8 @@ class Pipeline(object):
             return pd.read_json(self.current_dataset,orient='records')
 
     def save_dataframe(self,df):
+        """save dataframe to csv or json
+        """
         out_type = self.data_type
         if self.output_format:
             out_type = self.output_format
@@ -295,6 +301,7 @@ class Pipeline(object):
         for ft in self.pipeline:
             df = ft.transform(df)
         self.save_dataframe(df)
+        return df
 
     def fit(self):
         """fit a pipeline
@@ -324,6 +331,7 @@ class Pipeline(object):
         self.save_pipeline()
         self.upload_models()
         self.store_features()
+        return df
 
 class JsonDataSet(object):
     """a JSON dataset

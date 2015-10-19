@@ -22,6 +22,14 @@ class Auto_transform(pl.Feature_transform):
         ignore_vals (list(str)): list of feature values to treat as NA/ignored values
 
         force_categorical (list(str)): features to force to be categorical
+
+        min_cat_percent (float):min percentage for a categorical value to be kept
+
+        max_cat_percent (float):max percentage for a categorical value to be kept
+
+        bool_map (dict):set of string values to be treated as boolean
+
+        cat_missing_value (str):String to use for missing categorical values
     """
     def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN"):
         super(Auto_transform, self).__init__()
