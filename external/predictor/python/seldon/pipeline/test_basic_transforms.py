@@ -112,6 +112,15 @@ class Test_feature_id_transform(unittest.TestCase):
         self.assertEquals(df2.shape[0],3)
         self.assertEquals(df2["id"][0],1)
 
+    def test_missing_input_feature(self):
+        df = pd.DataFrame([{"a":"type1"},{"a":"type2"},{"a":"type1"}])
+        t = bt.Feature_id_transform(min_size=1,exclude_missing=True)
+        t.set_input_feature("missing")
+        t.set_output_feature("id")
+        r = t.fit(df)
+        df2 = t.transform(df)
+        self.assertEquals(df2.shape[0],3)
+        self.assertFalse('missing' in df2)
 
 
 if __name__ == '__main__':

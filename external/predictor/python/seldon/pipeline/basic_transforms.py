@@ -295,16 +295,17 @@ class Feature_id_transform(pl.Feature_transform):
 
         create counts of occurrences of each feature value. Exclude features with not enough counds. Create id map.
         """
-        counts = df[self.input_feature].value_counts()
-        self.idMap = {}
-        idx = 1
-        for c,v in counts.iteritems():
-            if v >= self.min_size:
-                self.idMap[c] = idx
-                idx += 1
-            else:
-                break
-        return self.idMap
+        if self.input_feature in df:
+            counts = df[self.input_feature].value_counts()
+            self.idMap = {}
+            idx = 1
+            for c,v in counts.iteritems():
+                if v >= self.min_size:
+                    self.idMap[c] = idx
+                    idx += 1
+                else:
+                    break
+
 
     def map(self,v):
         if v in self.idMap:
@@ -315,12 +316,13 @@ class Feature_id_transform(pl.Feature_transform):
     def transform(self,df):
         """transform features creating a new id and exluding rows if needed
         """
-        df[self.output_feature] = df[self.input_feature].apply(self.map)
-        if self.exclude_missing:
-            df = df[pd.notnull(df[self.output_feature])]
-            df[self.output_feature] = df[self.output_feature].astype(int)
-        else:
-            df[self.output_feature] = df[self.output_feature].fillna(-1).astype(int)
+        if self.input_feature in df:
+            df[self.output_feature] = df[self.input_feature].apply(self.map)
+            if self.exclude_missing:
+                df = df[pd.notnull(df[self.output_feature])]
+                df[self.output_feature] = df[self.output_feature].astype(int)
+            else:
+                df[self.output_feature] = df[self.output_feature].fillna(-1).astype(int)
         return df
 
 
