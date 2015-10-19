@@ -9,8 +9,7 @@ build:
 clean:
 	rm -rf ./python-modules
 tag:
-	docker tag $(IMAGE) $(IMAGE):$(VERSION)
-	docker tag $(IMAGE) $(IMAGE):latest
+	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
 
 push_to_dockerhub:
 	@docker login -u seldonio && \

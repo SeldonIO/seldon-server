@@ -5,7 +5,7 @@ build:
 	docker build -t ${IMAGE} .
 
 tag:
-	docker tag $(IMAGE) $(IMAGE):$(VERSION)
+	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
 
 push_to_dockerhub:
 	@docker login -u seldonio && \
