@@ -94,7 +94,7 @@ class Pipeline(object):
         data_type (str): json or csv
     """
 
-    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json'):
+    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None):
         self.pipeline = []
         self.models_folder = models_folder
         self.input_folders = input_folders
@@ -115,6 +115,7 @@ class Pipeline(object):
         self.current_dataset = self.local_data_folder + "/current"
         self.next_dataset = self.local_data_folder + "/next"
         self.data_type = data_type
+        self.output_format = output_format
 
     def full_class_name(self,o):
         """get name of class
@@ -249,7 +250,10 @@ class Pipeline(object):
             return pd.read_json(self.current_dataset,orient='records')
 
     def save_dataframe(self,df):
-        if self.data_type == 'csv':
+        out_type = self.data_type
+        if self.output_format:
+            out_type = self.output_format
+        if out_type == 'csv':
             print "saving dataframe as csv"
             df.to_csv(self.current_dataset,index=False)
         else:
