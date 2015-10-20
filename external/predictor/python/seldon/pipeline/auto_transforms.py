@@ -31,7 +31,7 @@ class Auto_transform(pl.Feature_transform):
 
         cat_missing_value (str):String to use for missing categorical values
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN"):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True]):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -53,12 +53,13 @@ class Auto_transform(pl.Feature_transform):
         self.bool_map = bool_map
         self.convert_bool = []
         self.cat_missing_val = cat_missing_val
+        self.date_transforms=date_transforms
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool,self.date_transforms]
     
     def set_models(self,models):
-        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val) = models[0]
+        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms) = models[0]
         self.convert_categorical = models[1]
         self.convert_date = models[2]
         self.scalers = models[3]
@@ -191,10 +192,15 @@ class Auto_transform(pl.Feature_transform):
                         if df[col].dtype == 'datetime64[ns]':
                             break
             if df[col].dtype == 'datetime64[ns]':
-                df = pd.concat([df,df[col].apply(self.create_hour_features,col=col)],axis=1)
-                df = pd.concat([df,df[col].apply(self.create_month_features,col=col)],axis=1)
-                df = pd.concat([df,df[col].apply(self.create_dayofweek_features,col=col)],axis=1)
-                df.drop(col,axis=1, inplace=True)
+                if self.date_transforms[0]:
+                    print "creating hour features"
+                    df = pd.concat([df,df[col].apply(self.create_hour_features,col=col)],axis=1)
+                if self.date_transforms[1]:
+                    print "creating month features"
+                    df = pd.concat([df,df[col].apply(self.create_month_features,col=col)],axis=1)
+                if self.date_transforms[2]:                    
+                    print "creating day of week features"
+                    df = pd.concat([df,df[col].apply(self.create_dayofweek_features,col=col)],axis=1)
             else:
                 print "warning - failed to convert to date col ",col
         c = 0
