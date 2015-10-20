@@ -94,9 +94,11 @@ class Pipeline(object):
         data_type (str): json or csv
 
         output_format [Optional(str)]: output file format
+
+        csv_dates [Optional(list str)]: optional csv columns to parse as dates when loading initial data
     """
 
-    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None):
+    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None,csv_dates=False):
         self.pipeline = []
         self.models_folder = models_folder
         self.input_folders = input_folders
@@ -118,6 +120,7 @@ class Pipeline(object):
         self.next_dataset = self.local_data_folder + "/next"
         self.data_type = data_type
         self.output_format = output_format
+        self.csv_dates = csv_dates
 
     def full_class_name(self,o):
         """get name of class
@@ -218,7 +221,7 @@ class Pipeline(object):
         Args:
             line (str): features data line
         """
-        if self.lines_read > 0:
+        if not self.data_type == 'csv' and self.lines_read > 0:
             self.active_file.write(",")
         self.active_file.write(line+"\n")
         self.lines_read += 1
@@ -247,8 +250,8 @@ class Pipeline(object):
         """
         print "loading data into pandas dataframe"
         if self.data_type == 'csv':
-            print "loading csv"
-            return pd.read_csv(self.current_dataset)
+            print "loading csv ",self.csv_dates
+            return pd.read_csv(self.current_dataset,parse_dates=self.csv_dates)
         else:
             print "loading json"
             return pd.read_json(self.current_dataset,orient='records')

@@ -182,7 +182,7 @@ class Auto_transform(pl.Feature_transform):
         num_dates  = len(self.convert_date)
         for col in self.convert_date:
             c += 1
-            print "convert date ",col,c,"/",num_dates
+            print "convert date ",col,c,"/",num_dates,df[col].dtype
             if not df[col].dtype == 'datetime64[ns]':
                 df[col] = pd.to_datetime(df[col])
                 if not df[col].dtype == 'datetime64[ns]':

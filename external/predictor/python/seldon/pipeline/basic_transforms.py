@@ -66,6 +66,41 @@ class Include_features_transform(pl.Feature_transform):
         """
         return df[self.included]
 
+
+class Exclude_features_transform(pl.Feature_transform):
+    """Filter a dataset and exclude specided set of features
+
+    Args:
+        excluded (list): list of features to be excluded
+    """
+    def __init__(self,excluded=[]):
+        super(Exclude_features_transform, self).__init__()
+        self.excluded = excluded
+
+
+    def get_models(self):
+        """get model data for this transform.
+        """
+        return [self.excluded]
+    
+    def set_models(self,models):
+        """set the included features
+        """
+        self.excluded = models[0]
+        self.logger.info("set feature names to %s",self.excluded)
+
+    def fit(self,objs):
+        """nothing to do in fit
+        """
+        pass
+
+    def transform(self,df):
+        """only include features specified in result
+        """
+        df = df.drop(self.excluded, axis=1)
+        return df
+
+
 #############
 
 class Split_transform(pl.Feature_transform):
