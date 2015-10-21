@@ -11,3 +11,7 @@ dist:sdist bdist
 
 push:
 	twine upload dist/*
+
+clean:
+	rm -r build
+	rm -r dist
