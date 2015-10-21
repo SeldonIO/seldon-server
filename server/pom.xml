@@ -459,26 +459,6 @@
     		<version>7.0.6</version>
 		</dependency>
 		
-	<dependency>
-		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-core_${scala.version}</artifactId>
-		<version>${spark.version}</version>
-		<scope>provided</scope>
-		<exclusions>
-        	<exclusion>  <!-- declare the exclusion here -->
-          		<groupId>org.slf4j</groupId>
-         	 	<artifactId>jcl-over-slf4j</artifactId>
-        	</exclusion>
-      </exclusions> 
-	</dependency>
-
-	<dependency>
-		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-mllib_${scala.version}</artifactId>
-		<version>${spark.version}</version>
-		<scope>provided</scope>
-	</dependency>
-		
 
     </dependencies>
 

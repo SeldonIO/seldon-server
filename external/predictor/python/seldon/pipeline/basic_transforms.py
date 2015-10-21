@@ -97,7 +97,7 @@ class Exclude_features_transform(pl.Feature_transform):
     def transform(self,df):
         """only include features specified in result
         """
-        df = df.drop(self.excluded, axis=1)
+        df = df.drop(self.excluded, axis=1,errors='ignore')
         return df
 
 
