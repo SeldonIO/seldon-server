@@ -56,7 +56,7 @@ class Auto_transform(pl.Feature_transform):
         self.date_transforms=date_transforms
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool,self.date_transforms]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool]
     
     def set_models(self,models):
         (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms) = models[0]
