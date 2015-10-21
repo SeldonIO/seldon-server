@@ -308,18 +308,19 @@ class Feature_id_transform(pl.Feature_transform):
 
         exclude_missing (bool): exclude rows that do not have the input feature
     """
-    def __init__(self,min_size=0,exclude_missing=False):
+    def __init__(self,min_size=0,exclude_missing=False,zero_based=False):
         super(Feature_id_transform, self).__init__()
         self.min_size = min_size
         self.exclude_missing = exclude_missing
         self.idMap = {}
+        self.zero_based = zero_based
 
     def get_models(self):
-        return super(Feature_id_transform, self).get_models() + [(self.min_size,self.exclude_missing),self.idMap]
+        return super(Feature_id_transform, self).get_models() + [(self.min_size,self.exclude_missing,self.zero_based),self.idMap]
     
     def set_models(self,models):
         models = super(Feature_id_transform, self).set_models(models)
-        (self.min_size,self.exclude_missing) = models[0]
+        (self.min_size,self.exclude_missing,self.zero_based) = models[0]
         self.logger.info("%s set min feature size to %d ",self.get_log_prefix(),self.min_size)
         self.logger.info("%s exclude missing to %s ",self.get_log_prefix(),self.exclude_missing)
         self.idMap = models[1]
@@ -333,7 +334,10 @@ class Feature_id_transform(pl.Feature_transform):
         if self.input_feature in df:
             counts = df[self.input_feature].value_counts()
             self.idMap = {}
-            idx = 1
+            if self.zero_based:
+                idx = 0
+            else:
+                idx = 1
             for c,v in counts.iteritems():
                 if v >= self.min_size:
                     self.idMap[c] = idx

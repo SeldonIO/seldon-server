@@ -53,6 +53,14 @@ class Feature_transform(object):
         """
         self.output_feature = feature
 
+    def save_model(self,folder_prefix):
+        models = self.get_models()
+        joblib.dump(models,folder_prefix)
+
+    def load_model(self,folder_prefix):
+        models = joblib.load(folder_prefix)
+        self.set_models(models)
+
     def fit(self,df):
         """fit method by default does nothing
         """
@@ -159,6 +167,7 @@ class Pipeline(object):
 
         create an instance of each class specified in pipeline defns file and add to pipeline
         """
+        self.pipeline = []
         f =open(self.local_models_folder+"/pipeline.txt")
         for line in f:
             line = line.rstrip()
@@ -186,23 +195,22 @@ class Pipeline(object):
             self.fu.copy(self.current_dataset,self.output_folder+"/features")
 
     def store_models(self):
-        """for each transformation in pipeline get models and pickle them
+        """for each transformation in pipeline store model to local folder
         """
         if not os.path.exists(self.local_models_folder):
             os.makedirs(self.local_models_folder)
         pos = 1
         for t in self.pipeline:
             models = t.get_models()
-            joblib.dump(models,self.local_models_folder+"/"+str(pos))
+            t.save_model(self.local_models_folder+"/"+str(pos))
             pos += 1
 
     def load_models(self):
-        """local models for each transformation in pipelie from pickle file
+        """load models for each transformation in pipeline from local folder
         """
         pos = 1
         for t in self.pipeline:
-            models = joblib.load(self.local_models_folder+"/"+str(pos))
-            t.set_models(models)
+            t.load_model(self.local_models_folder+"/"+str(pos))
             pos += 1
 
     def add(self,feature_transform):
@@ -305,6 +313,17 @@ class Pipeline(object):
             df = ft.transform(df)
         self.save_dataframe(df)
         return df
+
+    def predict_proba(self):
+        """apply all transforms except last in a pipeline and then call predict_proba on last
+        """
+        self.transform_init()
+        self.copy_features_locally(self.input_folders)
+        df = self.convert_dataframe()
+        for ft in self.pipeline[:-1]:
+            df = ft.transform(df)
+        return self.pipeline[-1].predict_proba(df)
+
 
     def fit(self):
         """fit a pipeline
