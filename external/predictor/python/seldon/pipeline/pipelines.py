@@ -106,7 +106,7 @@ class Pipeline(object):
         csv_dates [Optional(list str)]: optional csv columns to parse as dates when loading initial data
     """
 
-    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None,csv_dates=False):
+    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None,csv_dates=False,index_col=None):
         self.pipeline = []
         self.models_folder = models_folder
         self.input_folders = input_folders
@@ -129,6 +129,7 @@ class Pipeline(object):
         self.data_type = data_type
         self.output_format = output_format
         self.csv_dates = csv_dates
+        self.index_col = index_col
 
     def full_class_name(self,o):
         """get name of class
@@ -258,8 +259,8 @@ class Pipeline(object):
         """
         print "loading data into pandas dataframe"
         if self.data_type == 'csv':
-            print "loading csv ",self.csv_dates
-            return pd.read_csv(self.current_dataset,parse_dates=self.csv_dates)
+            print "loading csv ",self.csv_dates,"index ",self.index_col
+            return pd.read_csv(self.current_dataset,parse_dates=self.csv_dates,index_col=self.index_col)
         else:
             print "loading json"
             return pd.read_json(self.current_dataset,orient='records')
@@ -272,7 +273,7 @@ class Pipeline(object):
             out_type = self.output_format
         if out_type == 'csv':
             print "saving dataframe as csv"
-            df.to_csv(self.current_dataset,index=False)
+            df.to_csv(self.current_dataset,index=True)
         else:
             print "saving dataframe as json"
             f = open(self.current_dataset,"w")
