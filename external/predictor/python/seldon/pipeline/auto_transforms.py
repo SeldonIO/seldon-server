@@ -31,7 +31,7 @@ class Auto_transform(pl.Feature_transform):
 
         cat_missing_value (str):String to use for missing categorical values
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True]):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True]):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -88,7 +88,7 @@ class Auto_transform(pl.Feature_transform):
         if np.isnan(v):
             return 0.0
         else:
-            return self.scalers[col].transform([float(v)])[0]
+            return self.scalers[col].transform([[float(v)]])[0,0]
 
     @staticmethod
     def is_number(s):
@@ -117,19 +117,22 @@ class Auto_transform(pl.Feature_transform):
         val = (v.hour/24.0) * 2*math.pi
         v1 = math.sin(val)
         v2 = math.cos(val)
-        return pd.Series({col+"_"+'h1':v1, col+"_"+'h2':v2})
+        return pd.Series({col+"_hour":"h"+str(v.hour),col+"_"+'h1':v1, col+"_"+'h2':v2})
 
     def create_month_features(self,v,col):
         val = (v.month/12.0) * 2*math.pi
         v1 = math.sin(val)
         v2 = math.cos(val)
-        return pd.Series({col+"_"+'m1':v1, col+"_"+'m2':v2})
+        return pd.Series({col+"_month":"m"+str(v.month),col+"_"+'m1':v1, col+"_"+'m2':v2})
 
     def create_dayofweek_features(self,v,col):
         val = (v.dayofweek/7.0) * 2*math.pi
         v1 = math.sin(val)
         v2 = math.cos(val)
-        return pd.Series({col+"_"+'w1':v1, col+"_"+'w2':v2})
+        return pd.Series({col+"_w":"w"+str(v.dayofweek),col+"_"+'w1':v1, col+"_"+'w2':v2})
+
+    def create_year_features(self,v,col):
+        return pd.Series({col+"_year":"y"+str(v.year)})
 
     def fit(self,df):
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -154,7 +157,8 @@ class Auto_transform(pl.Feature_transform):
                         print "fitting scaler for col ",col
                         dfs = df[col].dropna()
                         if dfs.shape[0] > 0:
-                            self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(dfs.astype(float))
+                            arr = dfs.astype(float).values.reshape(-1,1)
+                            self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(arr)
                     else:
                         self.convert_categorical.append(col)
                         self.cat_percent[col] = cat_counts
@@ -201,6 +205,9 @@ class Auto_transform(pl.Feature_transform):
                 if self.date_transforms[2]:                    
                     print "creating day of week features"
                     df = pd.concat([df,df[col].apply(self.create_dayofweek_features,col=col)],axis=1)
+                if self.date_transforms[3]:                    
+                    print "creating year features"
+                    df = pd.concat([df,df[col].apply(self.create_year_features,col=col)],axis=1)
             else:
                 print "warning - failed to convert to date col ",col
         c = 0

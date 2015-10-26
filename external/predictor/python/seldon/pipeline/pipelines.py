@@ -7,6 +7,11 @@ import shutil
 import unicodecsv
 import pandas as pd
 
+class Estimator(object):
+
+    def predict_proba(self,df=None):
+        raise NotImplementedError("predict_proba not implemented")
+
 class Feature_transform(object):
     """Base feature transformation class with method defaults
     """
@@ -108,15 +113,11 @@ class Pipeline(object):
 
     def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None,csv_dates=False,index_col=None):
         self.pipeline = []
-        self.models_folder = models_folder
         self.input_folders = input_folders
         self.output_folder = output_folder
+        self.models_folder = models_folder
         self.local_models_folder = local_models_folder
         self.local_data_folder = local_data_folder
-        if not os.path.exists(self.local_models_folder):
-            os.makedirs(self.local_models_folder)
-        if not os.path.exists(self.local_data_folder):
-            os.makedirs(self.local_data_folder)
         self.fu = fu.FileUtil(key=aws_key,secret=aws_secret)
         self.logger = logging.getLogger('seldon')
         self.logger.setLevel(logging.DEBUG)
@@ -125,11 +126,11 @@ class Pipeline(object):
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
         self.current_dataset = self.local_data_folder + "/current"
-        self.next_dataset = self.local_data_folder + "/next"
         self.data_type = data_type
         self.output_format = output_format
         self.csv_dates = csv_dates
         self.index_col = index_col
+        self.loaded_models = False
 
     def full_class_name(self,o):
         """get name of class
@@ -152,7 +153,7 @@ class Pipeline(object):
             m = getattr(m, comp)            
         return m
 
-    def save_pipeline(self):
+    def _save_pipeline(self):
         """save a pipeline
 
         store ordered list of class names
@@ -177,16 +178,24 @@ class Pipeline(object):
             self.add(t)
         f.close()
 
-    def upload_models(self):
+    def save_models(self,folder):
+        print "saving models to ",folder
+        self._store_models()
+        self._save_pipeline()
+        self._upload_models(folder)
+
+
+    def _upload_models(self,models_folder):
         """upload models from local folder to final models folder
         """
-        if self.models_folder:
-            self.fu.copy(self.local_models_folder,self.models_folder)
+        self.fu.copy(self.local_models_folder,models_folder)
 
     def download_models(self):
         """download models to local folder
         """
         if self.models_folder:
+            if not os.path.exists(self.local_models_folder):
+                os.makedirs(self.local_models_folder)
             self.fu.copy(self.models_folder,self.local_models_folder)
 
     def store_features(self):
@@ -195,7 +204,7 @@ class Pipeline(object):
         if self.output_folder:
             self.fu.copy(self.current_dataset,self.output_folder+"/features")
 
-    def store_models(self):
+    def _store_models(self):
         """for each transformation in pipeline store model to local folder
         """
         if not os.path.exists(self.local_models_folder):
@@ -284,76 +293,75 @@ class Pipeline(object):
                 f.write(jStr+"\n")
             f.close()
 
-    def transform_init(self):
+    def init_models(self):
         """prepare for transform
 
         download models locally, load the pipeline and set its models
         """
-        self.download_models()
-        self.load_pipeline()
-        self.load_models()
+        if not self.loaded_models:
+            self.download_models()
+            self.load_pipeline()
+            self.load_models()
 
-    def transform_json(self,j):
-        """transform a features dictionary row
-
-        Args:
-            f (dict): features to transform
-        """
-        df = pd.DataFrame.from_dict([j])
-        for ft in self.pipeline:
-            df = ft.transform(df)
-        return df.iloc[0].to_dict()
-
-    def transform(self):
-        """apply all transforms in a pipeline
-        """
-        self.transform_init()
-        self.copy_features_locally(self.input_folders)
-        df = self.convert_dataframe()
-        for ft in self.pipeline:
-            df = ft.transform(df)
-        self.save_dataframe(df)
+    def create_dataframe(self,data=None):
+        if data is not None:
+            if isinstance(data, pd.DataFrame):
+                return data
+            elif isinstance(data,dict):
+                df = pd.DataFrame([data])
+            else:
+                raise ValueError("unknown argument type for data")
+        else:
+            self.copy_features_locally(self.input_folders)
+            df = self.convert_dataframe()
         return df
 
-    def predict_proba(self):
+    def transform(self,data=None):
+        """apply all transforms in a pipeline
+        """
+        self.init_models()
+        df = self.create_dataframe(data)
+        for ft in self.pipeline:
+            df = ft.transform(df)
+        if data is None:
+            self.save_dataframe(df)
+        return df
+
+    def predict_proba(self,data=None):
         """apply all transforms except last in a pipeline and then call predict_proba on last
         """
-        self.transform_init()
-        self.copy_features_locally(self.input_folders)
-        df = self.convert_dataframe()
+        self.init_models()
+        df = self.create_dataframe(data)
         for ft in self.pipeline[:-1]:
             df = ft.transform(df)
         return self.pipeline[-1].predict_proba(df)
 
 
-    def fit(self):
+    def fit(self,data=None):
         """fit a pipeline
 
         gets features, fits, and stores models
         """
-        self.copy_features_locally(self.input_folders)
-        df = self.convert_dataframe()
+        df = self.create_dataframe(data)
         for ft in self.pipeline:
             ft.fit(df)
-        self.store_models()
-        self.save_pipeline()
-        self.upload_models()
+        if not self.models_folder is None:
+            self.save_models(self.models_folder)
 
-    def fit_transform(self):
+    def fit_transform(self,data=None):
         """fit a pipeline and then apply its transforms
 
         gets features, fits, transforms and stores results
         """
-        self.copy_features_locally(self.input_folders)
-        df = self.convert_dataframe()
+        df = self.create_dataframe(data)
         for ft in self.pipeline:
             ft.fit(df)
             df = ft.transform(df)
-        self.save_dataframe(df)
-        self.store_models()
-        self.save_pipeline()
-        self.upload_models()
-        self.store_features()
+        if not self.models_folder is None:
+            self.save_models(self.models_folder)
+        if not self.output_folder is None:
+            self.save_dataframe(df)
+            self.store_features()
         return df
 
 class JsonDataSet(object):
