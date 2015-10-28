@@ -43,13 +43,29 @@ push_to_dockerhub:
 data/iris/features/1 data/iris/models/1:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.1 bash -c "python /pipeline/iris_pipeline.py --events /data/iris/events/1 --features /data/iris/features/1 --models /data/iris/models/1"
 
+data/iris/xgb_models/1:data/iris/events/1/iris.json
+	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline bash -c "python /pipeline/xgb_pipeline.py --events /data/iris/events/1 --models /data/iris/xgb_models/1"
+
+xgboost_runtime:
+	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/pipelines bash -c "python /scripts/server.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb"
+	touch xgboost_runtime
+
+#stop xgboost runtime
+stop_xgboost_runtime:
+	docker rm -f xgboost_runtime
+	rm -f xgboost_runtime
+
+# send test JSON for prediction against xgboost microservice
+test_xgboost_runtime:xgboost_runtime
+	curl -G  "http://$(HOST_IP):5001/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
+
+
+###needs changing
+
 # create vw model
 data/iris/vw/1:data/iris/features/1
 	docker run --rm -t -v ${PWD}/data:/data seldonio/vw_train:1.1 bash -c "cd /vw/vw_train ; python vw_train.py --client iris --day 1 --inputPath /data/ --outputPath /data/ --vwArgs '--passes 3 --oaa 3' --target nameId --include f1 f2 f3 f4 --train_filename train.vw --target_readable name"
 
-# create xgboost model
-data/iris/xgboost/1:data/iris/features/1
-	docker run --rm -t -v ${PWD}/data:/data seldonio/xgboost_train:1.1 bash -c  "cd /xgboost/xgboost_train ; python xgboost_train.py --client iris --inputPath /data --outputPath /data --day 1 --target nameId --svmFeatures svmfeatures --target_readable name"
 
 # start vw microservice for iris
 vw_runtime:data/iris/vw/1
@@ -65,17 +81,5 @@ stop_vw_runtime:
 test_vw_runtime:vw_runtime
 	curl -G  "http://$(HOST_IP):5000/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
 
-# start xgboost microservice for iris
-xgboost_runtime:data/iris/xgboost/1
-	docker run --name="xgboost_runtime" -d -p 5001:5000 -v ${PWD}/data:/data seldonio/xgboost_runtime:1.1 bash -c "cd xgboost/xgboost_runtime ; python setup.py --client iris --day 1 --inputPath /data --svmFeatures svmfeatures ; ./start-service.sh"
-	touch xgboost_runtime
 
-#stop xgboost runtime
-stop_xgboost_runtime:
-	docker rm -f xgboost_runtime
-	rm -f xgboost_runtime
-
-# send test JSON for prediction against xgboost microservice
-test_xgboost_runtime:xgboost_runtime
-	curl -G  "http://$(HOST_IP):5001/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
 

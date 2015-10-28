@@ -5,6 +5,109 @@ import json
 from wabbit_wappa import *
 from subprocess import call
 import seldon.pipeline.pipelines as pl
+import numpy as np
+
+class VwClassifier(pl.Estimator,pl.Feature_transform):
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None,num_iterations=1, **vw_args):
+        super(VwClassifier, self).__init__()
+        self.clf = None
+        self.target = target
+        self.target_readable = target_readable
+        self.set_class_id_map({})
+        self.included = included
+        self.excluded = excluded
+        self.num_iterations = num_iterations
+        self.vwArgs = vwArgs
+        self.model_file=None
+        self.model_suffix="_model"
+
+
+    def get_models(self):
+        """get model data for this transform.
+        """
+        return [self.target,self.included,self.excluded,self.vectorizer,self.num_iterations,self.params,self.get_class_id_map()]
+    
+    def set_models(self,models):
+        """set the included features
+        """
+        self.target = models[0]
+        self.included = models[1]
+        self.excluded = models[2]
+        self.vectorizer = models[3]
+        self.num_iterations = models[4]
+        self.params = models[5]
+        self.set_class_id_map(models[6])
+
+
+    def save_model(self,folder_prefix):
+        super(VwClassifier, self).save_model(folder_prefix+self.params_suffix)
+        self.vw.save_model(folder_prefix+self.model_suffix)
+
+
+    def load_model(self,folder_prefix):
+        super(VwClassifier, self).load_model(folder_prefix+self.params_suffix)
+        self.model_file=folder_prefix+self.model_suffix
+
+    @staticmethod
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+
+    def get_feature(self,name,val):
+        if isinstance(val, basestring):
+            if len(val) > 0:
+                if self.is_number(val):
+                    return (name,float(val))
+                else:
+                    return (name+"_"+val)
+        else:
+            if not np.isnan(val):
+                return (name,float(val))
+
+    def convert_row(self,row):
+        ns = []
+        for col in row.index.values:
+            if not col == self.target:
+                val = row[col]
+                feature = None
+                if isinstance(col,basestring):
+                    feature = self.get_feature(col,val)
+                elif isinstance(val,dict):
+                    for key in val:
+                        feature = self.get_feature(col+"_"+key,val)
+                elif isinstance(val,list):
+                    for v in val:
+                        feature = self.get_feature(col,v)
+                if not feature is None:
+                    ns.append(feature)
+        return self.vw.make_line(response=row[self.target],features=ns)
+    
+
+    def fit(self,df):
+        if not self.target_readable is None:
+            self.create_class_id_map(df,self.target,self.target_readable)
+        num_classes = len(df[self.target].unique())
+        print "num classes ",num_classes
+        command = "vw --save_resume --predictions /dev/stdout"
+        self.vw =  VW(oaa=num_classes)
+        df_vw = df.apply(self.convert_row,axis=1)
+        for i in range(0,self.num_iterations):
+            for (index,val) in df_vw.iteritems():
+                print "training->",val
+                self.vw.send_example(val)
+
+    def predict_proba(self,df):
+        self.vw =  VW(i=self.model_file,raw_predictions="/tmp/raw.preds")
+        df_vw = df.apply(self.convert_row,axis=1)
+        for (index,val) in df_vw.iteritems():
+            print "sending ",val
+            prediction = self.vw.get_prediction(val)
+            print "prediction->",prediction
+
 
 class VWSeldon:
     """Wrapper to train a Vowpal Wabbit model for Seldon data

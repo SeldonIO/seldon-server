@@ -1,16 +1,68 @@
 import seldon.fileutil as fu
 import json
 from sklearn.externals import joblib
+from sklearn.feature_extraction import DictVectorizer
 import os.path
 import logging
 import shutil 
 import unicodecsv
 import pandas as pd
 
+
 class Estimator(object):
+
+    def __init__(self):
+        print "Estimator init called"
+        self.id_map = None
 
     def predict_proba(self,df=None):
         raise NotImplementedError("predict_proba not implemented")
+
+    def set_class_id_map(self,id_map):
+        self.id_map = id_map
+
+    def get_class_id_map(self):
+        return self.id_map
+
+    def create_class_id_map(self,df,target,target_readable):
+        ids = df.drop_duplicates([target,target_readable]).to_dict(orient='records')
+        m = {}
+        for d in ids:
+            m[d[target]] = d[target_readable]
+        print "id map ",m
+        self.set_class_id_map(m)
+
+    def encode_onehot(self,df, cols, vec, op):
+        if op == "fit":
+            vec_data = pd.DataFrame(vec.fit_transform(df[cols].to_dict(outtype='records')).toarray())
+        else:
+            vec_data = pd.DataFrame(vec.transform(df[cols].to_dict(outtype='records')).toarray())
+        vec_data.columns = vec.get_feature_names()
+        vec_data.index = df.index
+        
+        df = df.drop(cols, axis=1)
+        df = df.join(vec_data)
+        return df
+
+    def convert_dataframe(self,df_base,vectorizer):
+        if vectorizer is None:
+            vectorizer = DictVectorizer()
+            op = "fit"
+        else:
+            op = "transform"
+        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+        df_numeric = df_base.select_dtypes(include=numerics)
+        df_categorical = df_base.select_dtypes(exclude=numerics)
+        cat_cols = []
+        if len(df_categorical.columns) > 0:
+            df_categorical = encode_onehot(df_categorical, cols=df_categorical.columns,vec=vectorizer,op=op)
+            df_X = pd.concat([df_numeric, df_categorical], axis=1)
+        else:
+            df_X = df_numeric
+        return (df_X,vectorizer)
+
+
+
 
 class Feature_transform(object):
     """Base feature transformation class with method defaults
@@ -198,11 +250,34 @@ class Pipeline(object):
                 os.makedirs(self.local_models_folder)
             self.fu.copy(self.models_folder,self.local_models_folder)
 
-    def store_features(self):
+    def save_features(self,df,location):
+        self._save_dataframe(df)
+        self._store_features(location)
+
+    def _save_dataframe(self,df):
+        """save dataframe to csv or json
+        """
+        out_type = self.data_type
+        if self.output_format:
+            out_type = self.output_format
+        if out_type == 'csv':
+            print "saving dataframe as csv"
+            df.to_csv(self.current_dataset,index=True)
+        else:
+            print "saving dataframe as json"
+            f = open(self.current_dataset,"w")
+            for i in range(0, df.shape[0]):
+                row = df.irow(i).dropna()
+                jNew = row.to_dict()
+                jStr =  json.dumps(jNew,sort_keys=True)
+                f.write(jStr+"\n")
+            f.close()
+
+
+    def _store_features(self,output_folder):
         """store features in final location folder
         """
-        if self.output_folder:
-            self.fu.copy(self.current_dataset,self.output_folder+"/features")
+        self.fu.copy(self.current_dataset,output_folder+"/features")
 
     def _store_models(self):
         """for each transformation in pipeline store model to local folder
@@ -274,24 +349,6 @@ class Pipeline(object):
             print "loading json"
             return pd.read_json(self.current_dataset,orient='records')
 
-    def save_dataframe(self,df):
-        """save dataframe to csv or json
-        """
-        out_type = self.data_type
-        if self.output_format:
-            out_type = self.output_format
-        if out_type == 'csv':
-            print "saving dataframe as csv"
-            df.to_csv(self.current_dataset,index=True)
-        else:
-            print "saving dataframe as json"
-            f = open(self.current_dataset,"w")
-            for i in range(0, df.shape[0]):
-                row = df.irow(i).dropna()
-                jNew = row.to_dict()
-                jStr =  json.dumps(jNew,sort_keys=True)
-                f.write(jStr+"\n")
-            f.close()
 
     def init_models(self):
         """prepare for transform
@@ -323,8 +380,6 @@ class Pipeline(object):
         df = self.create_dataframe(data)
         for ft in self.pipeline:
             df = ft.transform(df)
-        if data is None:
-            self.save_dataframe(df)
         return df
 
     def predict_proba(self,data=None):
@@ -336,6 +391,8 @@ class Pipeline(object):
             df = ft.transform(df)
         return self.pipeline[-1].predict_proba(df)
 
+    def get_estimator_class_ids(self):
+        return self.pipeline[-1].get_class_id_map()
 
     def fit(self,data=None):
         """fit a pipeline
@@ -360,8 +417,7 @@ class Pipeline(object):
         if not self.models_folder is None:
             self.save_models(self.models_folder)
         if not self.output_folder is None:
-            self.save_dataframe(df)
-            self.store_features()
+            self.save_features(df,self.output_folder)
         return df
 
 class JsonDataSet(object):
