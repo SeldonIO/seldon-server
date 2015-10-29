@@ -11,7 +11,7 @@ class Test_vw(unittest.TestCase):
         df = pd.DataFrame.from_dict([{"target":"1","b":"c d","c":3},{"target":"2","b":"word2"}])
         t.fit(df)
         t.predict_proba(df)
-
+        t.cleanup()
         
 if __name__ == '__main__':
     unittest.main()

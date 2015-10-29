@@ -61,6 +61,8 @@ class Estimator(object):
             df_X = df_numeric
         return (df_X,vectorizer)
 
+    def close(self):
+        pass
 
 
 
@@ -137,6 +139,9 @@ class Feature_transform(object):
         """get a useful description for logging
         """
         return self.__class__.__module__ + "." + self.__class__.__name__+" "+self.input_feature+"->"+self.output_feature
+
+    def close(self):
+        pass
 
 class Pipeline(object):
     """A pipeline of feature transformation
@@ -420,42 +425,12 @@ class Pipeline(object):
             self.save_features(df,self.output_folder)
         return df
 
-class JsonDataSet(object):
-    """a JSON dataset
-        
-    Args:
-        filename (str): location of JSON file
-    """
-
-    def __init__(self, filename):
-        self.filename =filename
- 
-    def __iter__(self):
-        """iterate over a JSON dataset
+    def close(self):
+        """ clear and release any resources held by parts of the pipeline
         """
-        f = open(self.filename,"r")
-        for line in f:
-            line = line.rstrip()
-            j = json.loads(line)
-            yield j
-
-class CsvDataSet(object):
-    """a CSV Dataset
+        for ft in self.pipeline:
+            ft.close()
         
-    Args:
-        filename (str): location of JSON file
-    """
-
-    def __init__(self, filename):
-        self.filename =filename
- 
-    def __iter__(self):
-        """iterate over a CSV dataset
-        """
-        csvfile = open(self.filename,"r")
-        reader = unicodecsv.DictReader(csvfile,encoding='utf-8')
-        for d in reader:
-            yield d
 
 
             
