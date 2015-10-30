@@ -67,7 +67,7 @@ class Keras(pl.Estimator,pl.Feature_transform):
         if not self.included is None:
             df_keras = df_keras(self.included)
         elif not self.excluded is None:
-            df_keras = df_keras.drop(self.excluded, axis=1)
+            df_keras = df_keras.drop(set(self.excluded).intersection(df_keras.columns), axis=1)
         return df_keras
 
     def fit(self,df):
