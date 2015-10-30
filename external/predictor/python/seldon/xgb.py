@@ -43,16 +43,6 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         self.clf = xgb.Booster({'nthread':-1}) 
         self.clf.load_model(folder_prefix+self.model_suffix) 
 
-    def get_params(self, deep=True):
-        return self.params
-
-    def set_params(self, **params):
-        if 'num_boost_round' in params:
-            self.num_boost_round = params.pop('num_boost_round')
-        if 'objective' in params:
-            del params['objective']
-        self.params.update(params)
-        return self
 
     def fit(self,df):
         (X,y,self.vectorizer) = self.convert_numpy(df)
