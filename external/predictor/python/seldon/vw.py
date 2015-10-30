@@ -116,16 +116,15 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
         return normalized  
 
     def close(self):
-        self.p.terminate()
         if not self.vw is None:
             self.vw.close()
             self.vw = None
 
     def tail_forever(self,fn):
         print "tailing ",fn
-        self.p = subprocess.Popen(["tail", "-f", fn], stdout=subprocess.PIPE)
+        p = subprocess.Popen(["tail", "-f", fn], stdout=subprocess.PIPE)
         while 1:
-            line = self.p.stdout.readline()
+            line = p.stdout.readline()
             print "adding line",line
             self.tailq.put(line)
             if not line:
@@ -146,7 +145,7 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
         for nscore in nscores:
             fscores.append(nscore)
             c = c + 1
-        return fscores
+        return np.array(fscores)
 
     def _exclude_include_features(self,df):
         if not self.included is None:
@@ -177,7 +176,9 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
 
     def start_raw_predictions(self):
         if not self.raw_predictions_thread_running:
-            threading.Thread(target=self.tail_forever, args=(self.raw_predictions_file,)).start()
+            thread = threading.Thread(target=self.tail_forever, args=(self.raw_predictions_file,))
+            thread.setDaemon(True)
+            thread.start()
             self.raw_predictions_thread_running = True
 
     def predict_proba(self,df):
@@ -187,12 +188,15 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
         self.start_raw_predictions()
         df_vw = df.apply(self.convert_row,axis=1)
         print df_vw
-        predictions = []
+        predictions = None
         for (index,val) in df_vw.iteritems():
             print "sending ",val
             prediction = self.vw.get_prediction(val)
             print "prediction->",prediction
             scores = self.get_full_scores()
             print "Scores",scores
-            predictions.append(scores)
+            if predictions is None:
+                predictions = scores
+            else:
+                predictions = np.vstack([predictions,scores])
         return predictions

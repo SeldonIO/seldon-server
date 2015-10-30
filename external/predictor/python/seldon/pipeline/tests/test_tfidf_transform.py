@@ -1,5 +1,5 @@
 import unittest
-import tfidf_transform as tf
+from .. import tfidf_transform as tf
 import pandas as pd
 
 

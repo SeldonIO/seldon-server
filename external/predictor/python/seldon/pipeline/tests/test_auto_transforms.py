@@ -1,5 +1,5 @@
 import unittest
-import auto_transforms as at
+from  .. import auto_transforms as at
 import pandas as pd
 import numpy as np
 
@@ -69,7 +69,7 @@ class Test_auto_transforms(unittest.TestCase):
         t = at.Auto_transform(max_values_numeric_categorical=2)
         t.fit(df)
         df2 = t.transform(df)
-        self.assertEqual(df["a"][0],"10")
+        self.assertEqual(df["a"][0],"a_10")
 
     def test_ignored_values(self):
         df = pd.DataFrame([{"a":10},{"a":99},{"a":12},{"a":8}])

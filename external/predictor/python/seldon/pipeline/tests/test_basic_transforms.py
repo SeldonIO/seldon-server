@@ -1,5 +1,5 @@
 import unittest
-import basic_transforms as bt
+from .. import basic_transforms as bt
 import pandas as pd
 
 class Test_split_transform(unittest.TestCase):

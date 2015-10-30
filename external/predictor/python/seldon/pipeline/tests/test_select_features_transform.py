@@ -1,5 +1,5 @@
 import unittest
-import select_features_transform as sf
+from .. import select_features_transform as sf
 import pandas as pd
 import numpy as np
 
