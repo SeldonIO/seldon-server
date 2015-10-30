@@ -13,13 +13,8 @@ import time
 
 class VWClassifier(pl.Estimator,pl.Feature_transform):
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,num_iterations=1, raw_predictions_file="/tmp/raw_predictions",**vw_args):
-        super(VWClassifier, self).__init__()
+        super(VWClassifier, self).__init__(target,target_readable,included,excluded)
         self.clf = None
-        self.target = target
-        self.target_readable = target_readable
-        self.set_class_id_map({})
-        self.included = included
-        self.excluded = excluded
         self.num_iterations = num_iterations
         self.vw_args = vw_args
         self.model_file="/tmp/model"
@@ -33,18 +28,15 @@ class VWClassifier(pl.Estimator,pl.Feature_transform):
     def get_models(self):
         """get model data for this transform.
         """
-        return [self.target,self.included,self.excluded,self.num_iterations,self.vw_args,self.raw_predictions_file,self.get_class_id_map()]
+        return super(VWClassifier, self).get_models_estimator() + [self.num_iterations,self.vw_args,self.raw_predictions_file]
     
     def set_models(self,models):
         """set the included features
         """
-        self.target = models[0]
-        self.included = models[1]
-        self.excluded = models[2]
-        self.num_iterations = models[3]
-        self.vw_args = models[4]
-        self.raw_predictions_file = models[5]
-        self.set_class_id_map(models[6])
+        models = super(VWClassifier, self).set_models_estimator(models)
+        self.num_iterations = models[0]
+        self.vw_args = models[1]
+        self.raw_predictions_file = models[2]
 
     def wait_model_saved(self,fname):
         """Hackto wait for vw model to finish saving. It created a file <model>.writing during this process
@@ -187,7 +179,6 @@ class VWClassifier(pl.Estimator,pl.Feature_transform):
 
     def predict_proba(self,df):
         if self.vw is None:
-            print "starting new vw"
             self.vw =  VW(i=self.model_file,raw_predictions=self.raw_predictions_file)
         self.start_raw_predictions()
         df_vw = df.apply(self.convert_row,axis=1)

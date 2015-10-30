@@ -11,9 +11,29 @@ import pandas as pd
 
 class Estimator(object):
 
-    def __init__(self):
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None):
         print "Estimator init called"
-        self.id_map = None
+        self.target = target
+        self.target_readable = target_readable
+        self.set_class_id_map({})
+        self.included = included
+        self.excluded = excluded
+        self.vectorizer = None
+
+    def get_models_estimator(self):
+        """get model data for this transform.
+        """
+        return [self.target,self.included,self.excluded,self.vectorizer,self.id_map]
+    
+    def set_models_estimator(self,models):
+        """set the included features
+        """
+        self.target = models[0]
+        self.included = models[1]
+        self.excluded = models[2]
+        self.vectorizer = models[3]
+        self.id_map = models[4]
+        return models[5:]
 
     def predict_proba(self,df=None):
         raise NotImplementedError("predict_proba not implemented")
@@ -60,6 +80,31 @@ class Estimator(object):
         else:
             df_X = df_numeric
         return (df_X,vectorizer)
+
+    def _exclude_include_features(self,df):
+        if not self.included is None:
+            print "including features ",self.included
+            df = df(self.included)
+        elif not self.excluded is None:
+            print "excluding features",self.excluded
+            df = df.drop(set(self.excluded).intersection(df.columns), axis=1)
+        return df
+
+    def convert_numpy(self,df):
+        if self.target in df:
+            if not self.target_readable is None:
+                self.create_class_id_map(df,self.target,self.target_readable)
+            df_y = df[self.target]
+            df_base = df.drop([self.target], axis=1)
+        else:
+            df_y = None
+            df_base = df
+        df_base = self._exclude_include_features(df_base)
+        df_base = df_base.fillna(0)
+
+        (df_X,self.vectorizer) = self.convert_dataframe(df_base,self.vectorizer)
+        return (df_X.as_matrix(),df_y,self.vectorizer)
+
 
     def close(self):
         pass

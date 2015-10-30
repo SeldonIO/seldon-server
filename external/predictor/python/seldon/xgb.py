@@ -15,14 +15,8 @@ import seldon.pipeline.pipelines as pl
 
 class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,num_rounds=10, **params):
-        super(XGBoostClassifier, self).__init__()
+        super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded)
         self.clf = None
-        self.target = target
-        self.target_readable = target_readable
-        self.set_class_id_map({})
-        self.included = included
-        self.excluded = excluded
-        self.vectorizer = None
         self.num_boost_round = num_rounds
         self.params = params
         self.params_suffix = "_params"
@@ -31,19 +25,14 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
     def get_models(self):
         """get model data for this transform.
         """
-        return [self.target,self.included,self.excluded,self.vectorizer,self.num_boost_round,self.params,self.get_class_id_map()]
+        return super(XGBoostClassifier, self).get_models_estimator() + [self.num_boost_round,self.params]
     
     def set_models(self,models):
         """set the included features
         """
-        self.target = models[0]
-        self.included = models[1]
-        self.excluded = models[2]
-        self.vectorizer = models[3]
-        self.num_boost_round = models[4]
-        self.params = models[5]
-        self.set_class_id_map(models[6])
-
+        models = super(XGBoostClassifier, self).set_models_estimator(models)
+        self.num_boost_round = models[0]
+        self.params = models[1]
 
     def save_model(self,folder_prefix):
         super(XGBoostClassifier, self).save_model(folder_prefix+self.params_suffix)
@@ -65,26 +54,9 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         self.params.update(params)
         return self
 
-    def _exclude_include_features(self,df):
-        if not self.included is None:
-            print "including features ",self.included
-            df = df(self.included)
-        elif not self.excluded is None:
-            print "excluding features",self.excluded
-            df = df.drop(set(self.excluded).intersection(df.columns), axis=1)
-        return df
-
     def fit(self,df):
-        df_y = df[self.target]
-        if not self.target_readable is None:
-            self.create_class_id_map(df,self.target,self.target_readable)
-        df_base = df.drop([self.target], axis=1)
-        df_base = self._exclude_include_features(df_base)
-        df_base = df_base.fillna(0)
-
-        (df_X,self.vectorizer) = self.convert_dataframe(df_base,self.vectorizer)
-        print df_X
-        dtrain = xgb.DMatrix(df_X, label=df_y)
+        (X,y,self.vectorizer) = self.convert_numpy(df)
+        dtrain = xgb.DMatrix(X, label=y)
         watchlist = [ (dtrain,'train') ]
         self.clf = xgb.train(params=self.params, dtrain=dtrain, num_boost_round=self.num_boost_round,evals=watchlist)
 
@@ -95,17 +67,8 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         return np.array([num2label[i] for i in y])
 
     def predict_proba(self, df):
-        if self.target in df:
-            df_y = df[self.target]
-            df_base = df.drop([self.target], axis=1)
-        else:
-            df_y = None
-            df_base = df
-        df_base = self._exclude_include_features(df_base)
-        df_base = df_base.fillna(0)
-
-        (df_X,_) = self.convert_dataframe(df_base,self.vectorizer)
-        dtest = xgb.DMatrix(df_X)
+        (X,_,_) = self.convert_numpy(df)
+        dtest = xgb.DMatrix(X)
         res =  self.clf.predict(dtest)
         return res
 
