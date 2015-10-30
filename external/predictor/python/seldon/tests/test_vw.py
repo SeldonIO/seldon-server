@@ -6,7 +6,7 @@ from .. import vw
 class Test_vw(unittest.TestCase):
 
     def test_create_features(self):
-        t = vw.VwClassifier(target="target")
+        t = vw.VWClassifier(target="target")
         df = pd.DataFrame.from_dict([{"target":"1","b":"c d","c":3},{"target":"2","b":"word2"}])
         t.fit(df)
         scores = t.predict_proba(df)

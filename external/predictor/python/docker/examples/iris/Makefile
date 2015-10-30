@@ -39,25 +39,34 @@ push_to_dockerhub:
 		docker push $(IMAGE):$(VERSION)
 
 
-# run feature extraction pipeline
-data/iris/features/1 data/iris/models/1:data/iris/events/1/iris.json
-	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.1 bash -c "python /pipeline/iris_pipeline.py --events /data/iris/events/1 --features /data/iris/features/1 --models /data/iris/models/1"
+#
+# XGBoost example
+#
 
-data/iris/xgb_models/1:data/iris/events/1/iris.json
+xgboost_pipeline:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline bash -c "python /pipeline/xgb_pipeline.py --events /data/iris/events/1 --models /data/iris/xgb_models/1"
 
 xgboost_runtime:
 	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/pipelines bash -c "python /scripts/server.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb"
 	touch xgboost_runtime
 
-#stop xgboost runtime
 stop_xgboost_runtime:
 	docker rm -f xgboost_runtime
 	rm -f xgboost_runtime
 
-# send test JSON for prediction against xgboost microservice
 test_xgboost_runtime:xgboost_runtime
 	curl -G  "http://$(HOST_IP):5001/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
+
+#
+# VW example
+#
+
+vw_pipeline:data/iris/events/1/iris.json
+	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline bash -c "python /pipeline/vw_pipeline.py --events /data/iris/events/1 --models /data/iris/vw_models/1"
+
+vw_runtime:
+	docker run --name="vw_runtime" -d -p 5000:5000  -v ${PWD}/data:/data seldonio/pipelines bash -c "python /scripts/server.py --pipeline /data/iris/vw_models/1 --model_name model_vw"
+	touch vw_runtime
 
 
 ###needs changing
@@ -68,9 +77,6 @@ data/iris/vw/1:data/iris/features/1
 
 
 # start vw microservice for iris
-vw_runtime:data/iris/vw/1
-	docker run --name="vw_runtime" -d -v ${PWD}/data:/data -p 5000:5000 seldonio/vw_runtime:1.1 bash -c "cd /vw/vw_runtime;python setup.py --client iris --day 1 --inputPath /data --exclude svmfeatures ;./start_vw_service.sh"
-	touch vw_runtime
 
 # stop vw microservice
 stop_vw_runtime:

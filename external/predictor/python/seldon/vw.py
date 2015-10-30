@@ -11,9 +11,9 @@ from socket import *
 import threading, Queue, subprocess
 import time
 
-class VwClassifier(pl.Estimator,pl.Feature_transform):
+class VWClassifier(pl.Estimator,pl.Feature_transform):
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,num_iterations=1, raw_predictions_file="/tmp/raw_predictions",**vw_args):
-        super(VwClassifier, self).__init__()
+        super(VWClassifier, self).__init__()
         self.clf = None
         self.target = target
         self.target_readable = target_readable
@@ -56,13 +56,13 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
             time.sleep(1)
 
     def save_model(self,folder_prefix):
-        super(VwClassifier, self).save_model(folder_prefix+self.param_suffix)
+        super(VWClassifier, self).save_model(folder_prefix+self.param_suffix)
         fname = folder_prefix+self.model_suffix
         self.vw.save_model(fname)
         self.wait_model_saved(fname+".writing")
 
     def load_model(self,folder_prefix):
-        super(VwClassifier, self).load_model(folder_prefix+self.param_suffix)
+        super(VWClassifier, self).load_model(folder_prefix+self.param_suffix)
         self.model_file=folder_prefix+self.model_suffix
 
     @staticmethod
@@ -101,7 +101,11 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
                         feature = self.get_feature(col,v)
                 if not feature is None:
                     ns.append(feature)
-        return self.vw.make_line(response=row[self.target],features=ns,tag=tag)
+        if self.target in row:
+            target = row[self.target]
+        else:
+            target = "1"
+        return self.vw.make_line(response=target,features=ns,tag=tag)
     
     @staticmethod
     def sigmoid(x):
@@ -196,7 +200,7 @@ class VwClassifier(pl.Estimator,pl.Feature_transform):
             scores = self.get_full_scores()
             print "Scores",scores
             if predictions is None:
-                predictions = scores
+                predictions = np.array([scores])
             else:
                 predictions = np.vstack([predictions,scores])
         return predictions

@@ -6,6 +6,9 @@ build:
 	cp -R ../../seldon python-modules
 	docker build -t ${IMAGE} .
 
+shell:
+	docker run -it --rm seldonio/pipelines bash
+
 clean:
 	rm -rf ./python-modules
 tag:

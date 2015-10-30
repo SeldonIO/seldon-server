@@ -83,6 +83,7 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         df_base = df_base.fillna(0)
 
         (df_X,self.vectorizer) = self.convert_dataframe(df_base,self.vectorizer)
+        print df_X
         dtrain = xgb.DMatrix(df_X, label=df_y)
         watchlist = [ (dtrain,'train') ]
         self.clf = xgb.train(params=self.params, dtrain=dtrain, num_boost_round=self.num_boost_round,evals=watchlist)

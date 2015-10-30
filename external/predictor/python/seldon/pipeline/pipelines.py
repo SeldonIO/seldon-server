@@ -55,7 +55,7 @@ class Estimator(object):
         df_categorical = df_base.select_dtypes(exclude=numerics)
         cat_cols = []
         if len(df_categorical.columns) > 0:
-            df_categorical = encode_onehot(df_categorical, cols=df_categorical.columns,vec=vectorizer,op=op)
+            df_categorical = self.encode_onehot(df_categorical, cols=df_categorical.columns,vec=vectorizer,op=op)
             df_X = pd.concat([df_numeric, df_categorical], axis=1)
         else:
             df_X = df_numeric
