@@ -8,7 +8,6 @@ import sys
 import seldon.pipeline.pipelines as pl
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer
-import json
 
 
 def default_classification_model(input_width,num_classes):
