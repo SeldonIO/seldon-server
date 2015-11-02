@@ -71,8 +71,9 @@ class Estimator(object):
         else:
             op = "transform"
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+        # will ignore all date columns
         df_numeric = df_base.select_dtypes(include=numerics)
-        df_categorical = df_base.select_dtypes(exclude=numerics)
+        df_categorical = df_base.select_dtypes(exclude=numerics+['datetime64[ns]'])
         cat_cols = []
         if len(df_categorical.columns) > 0:
             df_categorical = self.encode_onehot(df_categorical, cols=df_categorical.columns,vec=vectorizer,op=op)

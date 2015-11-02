@@ -6,6 +6,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 import math
+import itertools
 
 class Auto_transform(pl.Feature_transform):
     """Automatically transform a set of features into normalzied numeric or categorical features or dates
@@ -31,12 +32,13 @@ class Auto_transform(pl.Feature_transform):
 
         cat_missing_value (str):String to use for missing categorical values
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True]):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
         self.max_values_numeric_categorical = max_values_numeric_categorical
         self.scalers = {}
+        self.date_diff_scalers = {}
         self.custom_date_formats = custom_date_formats
         if ignore_vals:
             self.ignore_vals = ignore_vals
@@ -54,9 +56,12 @@ class Auto_transform(pl.Feature_transform):
         self.convert_bool = []
         self.cat_missing_val = cat_missing_val
         self.date_transforms=date_transforms
+        self.create_date_differences = create_date_differences
+        self.nan_threshold=nan_threshold
+        self.drop_cols = []
 
     def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool]
+        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool,self.date_diff_scalers,self.create_date_differences,self.nan_threshold,self.drop_cols]
     
     def set_models(self,models):
         print "setting models"
@@ -69,6 +74,10 @@ class Auto_transform(pl.Feature_transform):
         self.cat_percent = models[6]
         self.bool_map = models[7]
         self.convert_bool = models[8]
+        self.date_diff_scalers = models[9]
+        self.create_date_differences = models[10]
+        self.nan_threshold = models[11]
+        self.drop_cols = models[12]
 
     def to_date(self,f,v):
         d = None
@@ -90,6 +99,12 @@ class Auto_transform(pl.Feature_transform):
             return 0.0
         else:
             return self.scalers[col].transform([[float(v)]])[0,0]
+
+    def scale_date_diff(self,v,col):
+        if np.isnan(v):
+            return 0.0
+        else:
+            return self.date_diff_scalers[col].transform([[float(v)]])[0,0]
 
     @staticmethod
     def is_number(s):
@@ -135,7 +150,27 @@ class Auto_transform(pl.Feature_transform):
     def create_year_features(self,v,col):
         return pd.Series({col+"_year":"y"+str(v.year)})
 
+
+    def convert_to_date(self,df,col):
+        if not df[col].dtype == 'datetime64[ns]':
+            try:
+                return pd.to_datetime(df[col])
+            except:
+                print "failed default conversion "
+                pass
+            for f in self.custom_date_formats:
+                try:
+                    return pd.to_datetime(df[col],format=f)
+                except:
+                    print "failed custom conversion ",f
+                    pass
+            return None
+        else:
+            return df[col]
+
     def fit(self,df):
+        if not self.nan_threshold is None:
+            max_nan = float(len(df)) * self.nan_threshold
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
         numeric_cols = set(df.select_dtypes(include=numerics).columns)
         categorical_cols = set(df.select_dtypes(exclude=numerics).columns)
@@ -143,6 +178,12 @@ class Auto_transform(pl.Feature_transform):
             if col in self.exclude:
                 pass
             elif not self.include or col in self.include:
+                if not self.nan_threshold is None:
+                    num_nan = len(df) - df[col].count()
+                    if num_nan > max_nan:
+                        print "adding ",col,"to drop columns",num_nan,max_nan
+                        self.drop_cols.append(col)
+                        continue
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
                 df[col] = df[col].apply(lambda x: np.nan if isinstance(x, basestring) and len(x)==0 else x)
                 cat_counts = df[col].value_counts(normalize=True,dropna=False)
@@ -171,12 +212,28 @@ class Auto_transform(pl.Feature_transform):
                     else:
                         self.convert_categorical.append(col)
                         self.cat_percent[col] = cat_counts
+        if self.create_date_differences:
+            dates_converted = pd.DataFrame([])
+            for col in self.convert_date:
+                date_converted = self.convert_to_date(df,col)
+                if not date_converted is None:
+                    dates_converted[col] = date_converted
+            print dates_converted.columns
+            if len(dates_converted.columns)>1:
+                for (col1,col2) in itertools.combinations(dates_converted.columns, 2):
+                    print "training date diff scaler for ",col1,col2
+                    d_diff = dates_converted[col1] - dates_converted[col2]
+                    d_diff = (d_diff / np.timedelta64(1, 'D')).astype(float)
+                    self.date_diff_scalers[col1+"_"+col2] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(arr)
+        print "num columns to drop ",len(self.drop_cols)
         print "num scalers",len(self.scalers)
         print "num categorical ",len(self.convert_categorical)
         print "num dates",len(self.convert_date)
+        print "num date diffs",len(self.date_diff_scalers)
         print "num bool",len(self.convert_bool)
 
     def transform(self,df):
+        df.drop(self.drop_cols,inplace=True,axis=1)
         c = 0
         num_bools  = len(self.convert_bool)
         for col in self.convert_bool:
@@ -186,19 +243,15 @@ class Auto_transform(pl.Feature_transform):
             df[col] = df[col].map(self.bool_map)
         c = 0
         num_dates  = len(self.convert_date)
+        dates_converted = []
         for col in self.convert_date:
             c += 1
             print "convert date ",col,c,"/",num_dates,df[col].dtype
-            if not df[col].dtype == 'datetime64[ns]':
-                try:
-                    df[col] = pd.to_datetime(df[col])
-                except:
-                    pass
-                if not df[col].dtype == 'datetime64[ns]':
-                    for f in self.custom_date_formats:
-                        df[col] = pd.to_datetime(df[col],format=f)
-                        if df[col].dtype == 'datetime64[ns]':
-                            break
+            date_converted = self.convert_to_date(df,col)
+            if not date_converted is None:
+                print "successfully converted ",col," to date"
+                df[col] = date_converted
+                dates_converted.append(col)
             if df[col].dtype == 'datetime64[ns]':
                 if self.date_transforms[0]:
                     print "creating hour features"
@@ -214,6 +267,14 @@ class Auto_transform(pl.Feature_transform):
                     df = pd.concat([df,df[col].apply(self.create_year_features,col=col)],axis=1)
             else:
                 print "warning - failed to convert to date col ",col
+        if self.create_date_differences and len(dates_converted) > 1:
+            for (col1,col2) in itertools.combinations(dates_converted, 2):
+                print "diff scaler for ",col1,col2
+                col_name = col1+"_"+col2
+                df[col_name] = df[col1] - df[col2]
+                df[col_name] = (df[col_name] / np.timedelta64(1, 'D')).astype(float)
+                df[col_name].replace(self.ignore_vals,np.nan,inplace=True)
+                df[col_name] = df[col_name].apply(self.scale_date_diff,col=col_name)
         c = 0
         num_cats = len(self.convert_categorical)
         for col in self.convert_categorical:

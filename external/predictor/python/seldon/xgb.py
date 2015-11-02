@@ -47,10 +47,9 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         self.clf = xgb.train(params=self.params, dtrain=dtrain, num_boost_round=self.num_boost_round,evals=watchlist)
 
     def predict(self, X):
-        num2label = dict((i, label)for label, i in self.label2num.items())
         Y = self.predict_proba(X)
         y = np.argmax(Y, axis=1)
-        return np.array([num2label[i] for i in y])
+        return y
 
     def predict_proba(self, df):
         (X,_,_) = self.convert_numpy(df)
