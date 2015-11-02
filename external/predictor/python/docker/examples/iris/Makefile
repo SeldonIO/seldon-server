@@ -43,10 +43,10 @@ push_to_dockerhub:
 # XGBoost example
 #
 
-xgboost_pipeline:data/iris/events/1/iris.json
+data/iris/xgb_models/1:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/xgb_pipeline.py --events /data/iris/events/1 --models /data/iris/xgb_models/1"
 
-xgboost_runtime:xgboost_pipeline
+xgboost_runtime:data/iris/xgb_models/1
 	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "python /scripts/server.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb"
 	touch xgboost_runtime
 
@@ -62,7 +62,7 @@ stop_xgboost_runtime:
 # VW example
 #
 
-vw_pipeline:data/iris/events/1/iris.json
+data/iris/vw_models/1:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/vw_pipeline.py --events /data/iris/events/1 --models /data/iris/vw_models/1"
 
 vw_runtime:data/iris/vw_models/1
@@ -84,7 +84,7 @@ stop_vw_runtime:
 # Keras example
 #
 
-keras_pipeline:data/iris/events/1/iris.json
+data/iris/keras_models/1:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/keras_pipeline.py --events /data/iris/events/1 --models /data/iris/keras_models/1"
 
 

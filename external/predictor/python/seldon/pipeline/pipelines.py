@@ -44,11 +44,14 @@ class Estimator(object):
     def get_class_id_map(self):
         return self.id_map
 
-    def create_class_id_map(self,df,target,target_readable):
+    def create_class_id_map(self,df,target,target_readable,zero_based=True):
         ids = df.drop_duplicates([target,target_readable]).to_dict(orient='records')
         m = {}
         for d in ids:
-            m[d[target]] = d[target_readable]
+            if zero_based:
+                m[d[target]] = d[target_readable]
+            else:
+                m[d[target]-1] = d[target_readable]
         print "id map ",m
         self.set_class_id_map(m)
 
@@ -410,6 +413,7 @@ class Pipeline(object):
             self.download_models()
             self.load_pipeline()
             self.load_models()
+            self.loaded_models = True
 
     def create_dataframe(self,data=None):
         if data is not None:

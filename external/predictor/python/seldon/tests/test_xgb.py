@@ -13,6 +13,14 @@ class Test_xgb(unittest.TestCase):
         print scores.shape
         print "scores->",scores
 
+    def test_create_features(self):
+        t = xgb.XGBoostClassifier(target="target",dict_feature="svm",objective='multi:softprob',eta=0.1,silent=0,booster='gbtree')
+        df = pd.DataFrame.from_dict([{"target":0,"svm":{"1":1.0,"2":2.0}},{"target":1,"svm":{"1":2.0}}])
+        t.fit(df)
+        scores = t.predict_proba(df)
+        print scores.shape
+        print "scores->",scores
+
         
 if __name__ == '__main__':
     unittest.main()

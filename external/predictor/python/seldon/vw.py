@@ -156,7 +156,7 @@ class VWClassifier(pl.Estimator,pl.Feature_transform):
 
     def fit(self,df):
         if not self.target_readable is None:
-            self.create_class_id_map(df,self.target,self.target_readable)
+            self.create_class_id_map(df,self.target,self.target_readable,zero_based=False)
         df_base = self._exclude_include_features(df)
         df_base = df_base.fillna(0)
 
