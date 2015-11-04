@@ -14,6 +14,7 @@ import psutil
 import pandas as pd
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
+from sklearn.base import BaseEstimator
 
 class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
     """Wrapper for Vowpall Wabbit classifier

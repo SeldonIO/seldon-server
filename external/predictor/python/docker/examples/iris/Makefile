@@ -92,7 +92,7 @@ keras_runtime:data/iris/keras_models/1
 	docker run --name="keras_runtime" -d -p 5002:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "python /scripts/server.py --pipeline /data/iris/keras_models/1 --model_name model_keras"
 	touch keras_runtime
 
-test_keras_runtime:vw_runtime
+test_keras_runtime:keras_runtime
 	curl -G  "http://$(HOST_IP):5002/predict?client=iris" --data-urlencode 'json={"f1": 4.6, "f2": 3.2, "f3": 1.4, "f4": 0.2}'
 
 
