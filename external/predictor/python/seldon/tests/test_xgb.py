@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
 from .. import xgb
+import numpy as np
 
 class Test_xgb(unittest.TestCase):
 
@@ -20,6 +21,14 @@ class Test_xgb(unittest.TestCase):
         scores = t.predict_proba(df)
         print scores.shape
         print "scores->",scores
+
+    def test_numpy_input(self):
+        t = xgb.XGBoostClassifier(objective='multi:softprob',eta=0.1,silent=0,booster='gbtree')
+        X = np.random.randn(6,4)
+        y = np.array([0,1,1,0,0,1])
+        t.fit(X,y)
+        scores = t.predict_proba(X)
+        print scores
 
         
 if __name__ == '__main__':

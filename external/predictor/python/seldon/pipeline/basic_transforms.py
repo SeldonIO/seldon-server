@@ -64,7 +64,7 @@ class Include_features_transform(pl.Feature_transform):
     def transform(self,df):
         """only include features specified in result
         """
-        return df[self.included]
+        return df[list(set(self.included).intersection(df.columns))]
 
 
 class Exclude_features_transform(pl.Feature_transform):

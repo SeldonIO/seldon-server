@@ -8,9 +8,14 @@ import sys
 import seldon.pipeline.pipelines as pl
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer
+from sklearn.utils import check_X_y
+from sklearn.utils import check_array
+from sklearn.base import BaseEstimator
 
 
-def default_classification_model(input_width,num_classes):
+def default_classification_model(input_width,num_classes,BaseEstimator):
+    """Default classification model
+    """
     model = Sequential()                         
     print "input width=",input_width
     model.add(Dense(5, init='uniform',input_dim=4))
@@ -52,8 +57,13 @@ class Keras(pl.Estimator,pl.Feature_transform):
         self.model.load_weights(folder_prefix+self.weights_suffix)
 
 
-    def fit(self,df):
-        (X,y,self.vectorizer) = self.convert_numpy(df)
+    def fit(self,X,y=None):
+        if isinstance(X,pd.DataFrame):
+            df = X
+            (X,y,self.vectorizer) = self.convert_numpy(df)
+        else:
+            check_X_y(X,y)
+
         input_width = X.shape[1]
         num_classes = len(y.unique())
         train_y = np_utils.to_categorical(y, num_classes)
@@ -61,8 +71,12 @@ class Keras(pl.Estimator,pl.Feature_transform):
         history = self.model.fit(X, train_y, nb_epoch=self.epochs, batch_size=self.batch_size, verbose=1, show_accuracy=True, validation_split=self.validation_split)
         return df
 
-    def predict_proba(self,df):
-        (X,_,_) = self.convert_numpy(df)
+    def predict_proba(self,X):
+        if isinstance(X,pd.DataFrame):
+            df = X
+            (X,_,_) = self.convert_numpy(df)
+        else:
+            check_array(X)
         return self.model.predict(X,verbose=1)
 
         

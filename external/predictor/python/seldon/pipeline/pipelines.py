@@ -7,10 +7,13 @@ import logging
 import shutil 
 import unicodecsv
 import pandas as pd
-
+import random
+import string
 
 class Estimator(object):
-
+    """
+    scikit leanr like estimator
+    """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None):
         print "Estimator init called"
         self.target = target
@@ -18,6 +21,11 @@ class Estimator(object):
         self.set_class_id_map({})
         self.included = included
         self.excluded = excluded
+        if not self.target_readable is None:
+            if self.excluded is None:
+                self.excluded = [self.target_readable]
+            else:
+                self.excluded.append(self.target_readable)
         self.vectorizer = None
 
     def get_models_estimator(self):
@@ -45,6 +53,9 @@ class Estimator(object):
         return self.id_map
 
     def create_class_id_map(self,df,target,target_readable,zero_based=True):
+        """
+        Create a map of classification ids to readable values 
+        """
         ids = df.drop_duplicates([target,target_readable]).to_dict(orient='records')
         m = {}
         for d in ids:
@@ -56,6 +67,9 @@ class Estimator(object):
         self.set_class_id_map(m)
 
     def encode_onehot(self,df, cols, vec, op):
+        """
+        One hot encode categorical values from a data frame useing a vectorizer passed in
+        """
         if op == "fit":
             vec_data = pd.DataFrame(vec.fit_transform(df[cols].to_dict(outtype='records')).toarray())
         else:
@@ -68,6 +82,12 @@ class Estimator(object):
         return df
 
     def convert_dataframe(self,df_base,vectorizer):
+        """
+        Convert a dataframe into one for use with ml algorithms
+        One hot encode the categorical variable
+        Ignore date values
+        concatenate with numeric values
+        """
         if vectorizer is None:
             vectorizer = DictVectorizer()
             op = "fit"
@@ -86,15 +106,23 @@ class Estimator(object):
         return (df_X,vectorizer)
 
     def _exclude_include_features(self,df):
+        """
+        Utility function to include and exclude features from a data frame to create a new one
+        """
         if not self.included is None:
             print "including features ",self.included
-            df = df(self.included)
-        elif not self.excluded is None:
+            df = df[list(set(self.included+[self.target]).intersection(df.columns))]
+        if not self.excluded is None:
             print "excluding features",self.excluded
             df = df.drop(set(self.excluded).intersection(df.columns), axis=1)
         return df
 
     def convert_numpy(self,df):
+        """
+        Convert a dataframe into a numpy data matrix for training and an array of target values
+        Uses a vectorizer for one hot encoding which is returned
+        NaNs are filled with zeros
+        """
         if self.target in df:
             if not self.target_readable is None:
                 self.create_class_id_map(df,self.target,self.target_readable)
@@ -162,10 +190,16 @@ class Feature_transform(object):
         self.output_feature = feature
 
     def save_model(self,folder_prefix):
+        """
+        Default saves model routine using joblib pickling
+        """
         models = self.get_models()
         joblib.dump(models,folder_prefix)
 
     def load_model(self,folder_prefix):
+        """
+        Default load models routine using joblib pickling.
+        """
         models = joblib.load(folder_prefix)
         self.set_models(models)
 
@@ -215,15 +249,27 @@ class Pipeline(object):
         output_format [Optional(str)]: output file format
 
         csv_dates [Optional(list str)]: optional csv columns to parse as dates when loading initial data
+
+        index_col [Optional(str)]: index col for loading into pandas from csv file
     """
 
-    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder="./models",local_data_folder="./data",aws_key=None,aws_secret=None,data_type='json',output_format=None,csv_dates=False,index_col=None):
+    def __init__(self,input_folders=[],output_folder=None,models_folder=None,local_models_folder=None,local_data_folder=None,aws_key=None,aws_secret=None,data_type='json',output_format=None,csv_dates=False,index_col=None):
         self.pipeline = []
         self.input_folders = input_folders
         self.output_folder = output_folder
         self.models_folder = models_folder
-        self.local_models_folder = local_models_folder
-        self.local_data_folder = local_data_folder
+        rand_folder = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(7))
+        if local_models_folder is None:
+            self.local_models_folder = "/tmp/" + rand_folder
+        else:
+            self.local_models_folder = local_models_folder
+        print "local models folder is "+self.local_models_folder
+        if local_data_folder is None:
+            self.local_data_folder = "/tmp/" + rand_folder
+        else:
+            self.local_data_folder = local_data_folder
+        print "local data folder is "+self.local_data_folder
+        self.current_dataset = self.local_data_folder + "/current"
         self.fu = fu.FileUtil(key=aws_key,secret=aws_secret)
         self.logger = logging.getLogger('seldon')
         self.logger.setLevel(logging.DEBUG)
@@ -231,7 +277,6 @@ class Pipeline(object):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
-        self.current_dataset = self.local_data_folder + "/current"
         self.data_type = data_type
         self.output_format = output_format
         self.csv_dates = csv_dates
@@ -337,6 +382,7 @@ class Pipeline(object):
         """for each transformation in pipeline store model to local folder
         """
         if not os.path.exists(self.local_models_folder):
+            print "creating folder ",self.local_models_folder
             os.makedirs(self.local_models_folder)
         pos = 1
         for t in self.pipeline:
@@ -380,6 +426,9 @@ class Pipeline(object):
         Args:
             locations (list): list of folders
         """
+        if not os.path.exists(self.local_data_folder):
+            print "creating ",self.local_data_folder
+            os.makedirs(self.local_data_folder)
         print "streaming features ",locations," to ",self.current_dataset
         print "input type is ",self.data_type
         self.lines_read = 0

@@ -39,6 +39,12 @@ class Test_include_transform(unittest.TestCase):
         df2 = t.transform(df)
         self.assertTrue(sorted(df2.columns) == sorted(["a","b"]))
 
+    def test_include_missing_column(self):
+        t = bt.Include_features_transform(included=["a","b"])
+        df = pd.DataFrame.from_dict([{"a":1,"c":3}])
+        df2 = t.transform(df)
+        self.assertTrue(sorted(df2.columns) == sorted(["a"]))
+
 class Test_exist_features_transform(unittest.TestCase):
 
     def test_exist(self):

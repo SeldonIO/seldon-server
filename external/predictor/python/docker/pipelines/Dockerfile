@@ -15,13 +15,14 @@ RUN cd /usr/local/src && mkdir xgboost && cd xgboost && \
 
 # Install and make vw (Vowpal Wabbit) 
 
-RUN cd /usr/local/src;git clone https://github.com/JohnLangford/vowpal_wabbit.git;cd vowpal_wabbit;git checkout 7.10;./autogen.sh;./configure;make;make test;make install
+RUN cd /usr/local/src;git clone https://github.com/JohnLangford/vowpal_wabbit.git;cd vowpal_wabbit;git checkout 8.1 ;./autogen.sh;./configure;make;make test;make install
+
+
+RUN cd /usr/local/src; git clone https://github.com/seldonio/wabbit_wappa.git  ; cd wabbit_wappa ; python setup.py install
 
 # perf
 
 RUN cd /usr/local/src;wget http://osmot.cs.cornell.edu/kddcup/perf/perf.src.tar.gz;tar xvf perf.src.tar.gz;rm perf.src.tar.gz;mv perf.src perf;cd perf;make -B perf;make install
-
-RUN cd /usr/local/src; git clone https://github.com/mokelly/wabbit_wappa.git ; cd wabbit_wappa ; python setup.py install
 
 RUN pip install kazoo filechunkio Flask gunicorn
 

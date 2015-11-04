@@ -9,8 +9,30 @@ from sklearn.feature_extraction import DictVectorizer
 import seldon.pipeline.pipelines as pl
 from collections import OrderedDict
 import io
+from sklearn.utils import check_X_y
+from sklearn.utils import check_array
+from sklearn.base import BaseEstimator
 
-class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
+class XGBoostClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
+    """Wrapper for XGBoost classifier
+
+       Args:
+
+       target (Str): Target column
+
+       target_readable (Str): More descriptive version of target variable
+
+       included [Optional(list(str))]: columns to include
+
+       excluded [Optional(list(str))]: columns to exclude
+
+       num_iterations (int): number of iterations over data to run vw
+
+       raw_predictions (str): file to push raw predictions from vw to
+
+       params (optional xgboost args):arguments passed to xgboost
+
+    """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,dict_feature=None,num_rounds=10, **params):
         super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded)
         self.clf = None
@@ -44,6 +66,8 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
 
 
     def to_svmlight(self,row):
+        """Convert a dataframe row containing a dict of id:val to svmlight line
+        """
         if self.target in row:
             line = str(row[self.target])
         else:
@@ -55,6 +79,8 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         return line
         
     def load_from_dict(self,df):
+        """Load data from dataframe with dict of id:val into numpy matrix
+        """
         print "loading from dictionary feature"
         df_svm = df.apply(self.to_svmlight,axis=1)
         output = io.BytesIO()
@@ -65,15 +91,25 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         return (X,y)
 
 
-    def fit(self,df):
-        if not self.dict_feature is None:
-            if not self.target_readable is None:
-                self.create_class_id_map(df,self.target,self.target_readable)
-            (X,y) = self.load_from_dict(df)
-            num_class = len(np.unique(y))
+    def fit(self,X,y=None):
+        """Fit a model from various sources: 
+           1. dataframe with dict of numeric id:floats converted via svmlight format lines
+           2. dataframe with numeric and categorical features
+        """
+        if isinstance(X,pd.DataFrame):
+            df = X
+            if not self.dict_feature is None:
+                if not self.target_readable is None:
+                    self.create_class_id_map(df,self.target,self.target_readable)
+                (X,y) = self.load_from_dict(df)
+                num_class = len(np.unique(y))
+            else:
+                (X,y,self.vectorizer) = self.convert_numpy(df)
+                num_class = len(y.unique())
         else:
-            (X,y,self.vectorizer) = self.convert_numpy(df)
-            num_class = len(y.unique())
+            check_X_y(X,y)
+            num_class = len(np.unique(y))
+
         print "num class",num_class
         self.params['num_class'] = num_class
         dtrain = xgb.DMatrix(X, label=y)
@@ -85,11 +121,20 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform):
         y = np.argmax(Y, axis=1)
         return y
 
-    def predict_proba(self, df):
-        if not self.dict_feature is None:
-            (X,_) = self.load_from_dict(df)
+    def predict_proba(self, X):
+        """Predict from data in following formats:
+           1. dataframe with dict of numeric id:floats converted via svmlight format lines
+           2. dataframe with numeric and categorical features
+        """
+        if isinstance(X,pd.DataFrame):
+            df = X
+            if not self.dict_feature is None:
+                (X,_) = self.load_from_dict(df)
+            else:
+                (X,_,_) = self.convert_numpy(df)
         else:
-            (X,_,_) = self.convert_numpy(df)
+            check_array(X)
+
         dtest = xgb.DMatrix(X)
         res =  self.clf.predict(dtest)
         return res
