@@ -79,4 +79,3 @@ class Keras(pl.Estimator,pl.Feature_transform):
             check_array(X)
         return self.model.predict(X,verbose=1)
 
-        

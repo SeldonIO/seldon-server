@@ -6,6 +6,7 @@ import os.path
 import logging
 import shutil 
 import unicodecsv
+import numpy as np
 import pandas as pd
 import random
 import string
@@ -45,6 +46,10 @@ class Estimator(object):
 
     def predict_proba(self,df=None):
         raise NotImplementedError("predict_proba not implemented")
+
+    def predict(self,X):
+        proba = self.predict_proba(X)
+        return np.argmax(proba, axis=1)
 
     def set_class_id_map(self,id_map):
         self.id_map = id_map
@@ -494,6 +499,15 @@ class Pipeline(object):
         for ft in self.pipeline[:-1]:
             df = ft.transform(df)
         return self.pipeline[-1].predict_proba(df)
+
+    def predict(self,data=None):
+        """apply all transforms except last in a pipeline and then call predict on last
+        """
+        self.init_models()
+        df = self.create_dataframe(data)
+        for ft in self.pipeline[:-1]:
+            df = ft.transform(df)
+        return self.pipeline[-1].predict(df)
 
     def get_estimator_class_ids(self):
         return self.pipeline[-1].get_class_id_map()

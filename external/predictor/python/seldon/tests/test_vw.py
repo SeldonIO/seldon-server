@@ -17,6 +17,18 @@ class Test_vw(unittest.TestCase):
         finally:
             t.close()
 
+    def test_predictions(self):
+        try:
+            t = vw.VWClassifier(target="target")
+            df = pd.DataFrame.from_dict([{"target":"1","b":"c d","c":3},{"target":"2","b":"word2"}])
+            t.fit(df)
+            preds = t.predict(df)
+            print preds
+            self.assertEquals(preds[0],0)
+            self.assertEquals(preds[1],1)
+        finally:
+            t.close()
+
 
     def test_dict_feature(self):
         try:

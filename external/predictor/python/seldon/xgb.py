@@ -33,36 +33,36 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
        params (optional xgboost args):arguments passed to xgboost
 
     """
-    def __init__(self, target=None, target_readable=None,included=None,excluded=None,dict_feature=None,num_rounds=10, **params):
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None,dict_feature=None, 
+                 max_depth=3, learning_rate=0.1, n_estimators=100,
+                 silent=True, objective="reg:linear",
+                 nthread=-1, gamma=0, min_child_weight=1, max_delta_step=0,
+                 subsample=1, colsample_bytree=1, colsample_bylevel=1,
+                 reg_alpha=0, reg_lambda=1, scale_pos_weight=1,
+                 base_score=0.5, seed=0, missing=None):
         super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded)
         self.clf = None
-        self.num_boost_round = num_rounds
-        self.params = params
+        self.params = { "max_depth":max_depth,"learning_rate":learning_rate,"n_estimators":n_estimators,
+                       "silent":silent, "objective":objective,
+                       "nthread":nthread, "gamma":gamma, "min_child_weight":min_child_weight, "max_delta_step":max_delta_step,
+                       "subsample":subsample, "colsample_bytree":colsample_bytree, "colsample_bylevel":colsample_bylevel,
+                       "reg_alpha":reg_alpha, "reg_lambda":reg_lambda, "scale_pos_weight":scale_pos_weight,
+                       "base_score":base_score, "seed":seed, "missing":missing }
         self.params_suffix = "_params"
-        self.model_suffix = "_model"
         self.dict_feature = dict_feature
 
     def get_models(self):
         """get model data for this transform.
         """
-        return super(XGBoostClassifier, self).get_models_estimator() + [self.dict_feature,self.num_boost_round,self.params]
+        return super(XGBoostClassifier, self).get_models_estimator() + [self.dict_feature,self.params,self.clf]
     
     def set_models(self,models):
         """set the included features
         """
         models = super(XGBoostClassifier, self).set_models_estimator(models)
         self.dict_feature = models[0]
-        self.num_boost_round = models[1]
-        self.params = models[2]
-
-    def save_model(self,folder_prefix):
-        super(XGBoostClassifier, self).save_model(folder_prefix+self.params_suffix)
-        self.clf.save_model(folder_prefix+self.model_suffix)
-
-    def load_model(self,folder_prefix):
-        super(XGBoostClassifier, self).load_model(folder_prefix+self.params_suffix)
-        self.clf = xgb.Booster({'nthread':-1}) 
-        self.clf.load_model(folder_prefix+self.model_suffix) 
+        self.params = models[1]
+        self.clf = models[2]
 
 
     def to_svmlight(self,row):
@@ -110,16 +110,9 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
             check_X_y(X,y)
             num_class = len(np.unique(y))
 
-        print "num class",num_class
-        self.params['num_class'] = num_class
-        dtrain = xgb.DMatrix(X, label=y)
-        watchlist = [ (dtrain,'train') ]
-        self.clf = xgb.train(params=self.params, dtrain=dtrain, num_boost_round=self.num_boost_round,evals=watchlist)
-
-    def predict(self, X):
-        Y = self.predict_proba(X)
-        y = np.argmax(Y, axis=1)
-        return y
+        self.clf = xgb.XGBClassifier(**self.params)
+        self.clf.fit(X,y,verbose=True)
+        print self.clf.get_params(deep=True)
 
     def predict_proba(self, X):
         """Predict from data in following formats:
@@ -135,19 +128,5 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
         else:
             check_array(X)
 
-        dtest = xgb.DMatrix(X)
-        res =  self.clf.predict(dtest)
-        return res
-
-    def score(self, X, y):
-        Y = self.predict_proba(X)
-        return 1 / logloss(y, Y)
-
-    
-    
-def logloss(y_true, Y_pred):
-    label2num = dict((name, i) for i, name in enumerate(sorted(set(y_true))))
-    return -1 * sum(math.log(y[label2num[label]]) if y[label2num[label]] > 0 else -np.inf for y, label in zip(Y_pred, y_true)) / len(Y_pred)
-
-
+        return self.clf.predict_proba(X)
 

@@ -248,15 +248,9 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
             df_base = pd.concat([df_X,df_y],axis=1)
             print df_base.head()
 
-        num_classes = len(df_base[self.target].unique())
-        print "num classes ",num_classes
-        if self.vw is None or self.vw_mode == "test":
-            if not self.vw is None:
-                self.close()
-            print "Creating vw in train mode"
-            self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29742,num_children=1,oaa=num_classes,**self.vw_args)
-            print self.vw.command
-            self.vw_mode = 'train'
+        self.num_classes = len(df_base[self.target].unique())
+        print "num classes ",self.num_classes
+        self._start_vw_if_needed("train")
         df_vw = df_base.apply(self.convert_row,axis=1)
         for i in range(0,self.num_iterations):
             for (index,val) in df_vw.iteritems():
@@ -273,19 +267,26 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
         df_vw = df_base.apply(self.convert_row,axis=1)
         df_vw.to_csv(filename,index=False,header=False)
 
+
+    def _start_vw_if_needed(self,mode):
+        if self.vw is None or self.vw_mode != mode:
+            print "Creating vw in mode",mode
+            if not self.vw is None:
+                self.close()
+            if mode == "test":
+                self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29743,num_children=1,i=self.model_file,raw_predictions=self.raw_predictions_file,t=True)
+            else:
+                self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29742,num_children=1,oaa=self.num_classes,**self.vw_args)
+            print self.vw.command
+            self.vw_mode = mode
+
+
     def predict_proba(self,X):
         """Create predictions. Start a vw process. Convert data to vw format and send. 
            Caveats : 
-               1. A seldon specific fork of wabbit_wappa is needed to allow vw to run in server mode without save_resume. Save_resume seems to cause issues with the scores returned. Maybe connected to https://github.com/JohnLangford/vowpal_wabbit/issues/262
+               1. A seldon specific fork of wabbit_wappa is needed to allow vw to run in server mode without save_resume. Save_resume seems to cause issues with the scores returned. Maybe connected to https://github.com/JohnLangford/vowpal_wabb#it/issues/262
         """
-        if self.vw is None or self.vw_mode == 'train':
-            print "Creating vw in test mode"
-            if not self.vw is None:
-                self.close()
-            self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29743,num_children=1,i=self.model_file,raw_predictions=self.raw_predictions_file,t=True)
-            print self.vw.command
-            self.vw_mode = 'test'
-
+        self._start_vw_if_needed("test")
         if isinstance(X,pd.DataFrame):
             df = X
             df_base = self._exclude_include_features(df)
@@ -305,3 +306,4 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
             else:
                 predictions = np.vstack([predictions,scores])
         return predictions
+
