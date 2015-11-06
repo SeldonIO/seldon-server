@@ -13,7 +13,7 @@ import string
 
 class Estimator(object):
     """
-    scikit leanr like estimator
+    scikit learn like estimator
     """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None):
         print "Estimator init called"
@@ -28,6 +28,9 @@ class Estimator(object):
             else:
                 self.excluded.append(self.target_readable)
         self.vectorizer = None
+
+    def get_target(self):
+        return self.target
 
     def get_models_estimator(self):
         """get model data for this transform.

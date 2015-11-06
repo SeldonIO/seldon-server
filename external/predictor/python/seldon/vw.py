@@ -57,15 +57,16 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
     def get_models(self):
         """get model data for this transform.
         """
-        return super(VWClassifier, self).get_models_estimator() + [self.num_iterations,self.vw_args,self.raw_predictions_file]
+        return super(VWClassifier, self).get_models_estimator() + [self.zero_based,self.num_iterations,self.vw_args,self.raw_predictions_file]
     
     def set_models(self,models):
         """set the included features
         """
         models = super(VWClassifier, self).set_models_estimator(models)
-        self.num_iterations = models[0]
-        self.vw_args = models[1]
-        self.raw_predictions_file = models[2]
+        self.zero_based = models[0]
+        self.num_iterations = models[1]
+        self.vw_args = models[2]
+        self.raw_predictions_file = models[3]
 
     def wait_model_saved(self,fname):
         """Hack to wait for vw model to finish saving. It creates a file <model>.writing during this process
@@ -147,6 +148,9 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
                             ns[col].append(feature)
         if self.target in row:
             target = row[self.target]
+            target = int(target)
+            if self.zero_based:
+                target += 1
         else:
             target = None
         namespaces = []
@@ -236,17 +240,24 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
         """
         if isinstance(X,pd.DataFrame):
             df = X
-            if not self.target_readable is None:
-                self.create_class_id_map(df,self.target,self.target_readable,zero_based=False)
             df_base = self._exclude_include_features(df)
             df_base = df_base.fillna(0)
         else:
             check_X_y(X,y)
-            df_X = pd.DataFrame(X)
+            df = pd.DataFrame(X)
             df_y = pd.DataFrame(y,columns=list('y'))
             self.target='y'
-            df_base = pd.concat([df_X,df_y],axis=1)
+            df_base = pd.concat([df,df_y],axis=1)
             print df_base.head()
+
+        min_target = df_base[self.target].astype(float).min()
+        print "min target ",min_target
+        if min_target == 0:
+            self.zero_based = True
+        else:
+            self.zero_based = False
+        if not self.target_readable is None:
+            self.create_class_id_map(df,self.target,self.target_readable,zero_based=self.zero_based)
 
         self.num_classes = len(df_base[self.target].unique())
         print "num classes ",self.num_classes

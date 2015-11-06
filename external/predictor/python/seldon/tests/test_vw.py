@@ -5,6 +5,34 @@ import numpy as np
 
 class Test_vw(unittest.TestCase):
 
+    def test_zero_based_target(self):
+        try:
+            t = vw.VWClassifier(target="target",target_readable="name")
+            df = pd.DataFrame.from_dict([{"target":0,"b":"c d","c":3,"name":"zeroTarget"},{"target":1,"b":"word2","name":"oneTarget"}])
+            t.fit(df)
+            scores = t.predict_proba(df)
+            print "scores->",scores
+            self.assertEquals(scores.shape[0],2)
+            self.assertEquals(scores.shape[1],2)
+            idMap = t.get_class_id_map()
+            print idMap
+            formatted_recs_list=[]
+            for index, proba in enumerate(scores[0]):
+                print index,proba
+                if index in idMap:
+                    indexName = idMap[index]
+                else:
+                    indexName = str(index)
+                formatted_recs_list.append({
+                        "prediction": str(proba),
+                        "predictedClass": indexName,
+                        "confidence" : str(proba)
+        })
+            print formatted_recs_list
+        finally:
+            t.close()
+
+
     def test_create_features(self):
         try:
             t = vw.VWClassifier(target="target")
