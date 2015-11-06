@@ -1,26 +1,13 @@
 import pandas as pd
 from sklearn.cross_validation import KFold
 from sklearn.metrics import accuracy_score
-import seldon.pipeline.pipelines as pl
 from sklearn.base import BaseEstimator
 
-class Seldon_KFold(pl.Estimator,pl.Feature_transform,BaseEstimator):
+class Seldon_KFold(BaseEstimator):
 
     def __init__(self,clf=None,k=3):
         self.clf = clf
         self.k = k
-
-    def get_models(self):
-        return self.clf.get_models()
-
-    def set_models(self,models):
-        self.clf.set_mdoels(models)
-
-    def save_model(self,folder_prefix):
-        self.clf.save_model(folder_prefix)
-
-    def load_model(self,folder_prefix):
-        self.clf.load_model(folder_prefix)
 
     def get_scores(self):
         return self.scores
@@ -43,6 +30,10 @@ class Seldon_KFold(pl.Estimator,pl.Feature_transform,BaseEstimator):
             self.scores.append(accuracy_score(y_test, y_pred))
         print "accuracy scores ",self.scores
         self.clf.fit(X,y)
+        return self
+
+    def transform(self,X):
+        return X
 
     def predict_proba(self, X):
         self.clf.predict_proba(X)

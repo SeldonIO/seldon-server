@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 import math
 import itertools
+from sklearn.base import BaseEstimator,TransformerMixin
 
-class Auto_transform(pl.Feature_transform):
+class Auto_transform(BaseEstimator,TransformerMixin):
     """Automatically transform a set of features into normalzied numeric or categorical features or dates
 
     Args:
@@ -59,25 +60,6 @@ class Auto_transform(pl.Feature_transform):
         self.create_date_differences = create_date_differences
         self.nan_threshold=nan_threshold
         self.drop_cols = []
-
-    def get_models(self):
-        return [(self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms),self.convert_categorical,self.convert_date,self.scalers,self.catValueCount,self.date_cols,self.cat_percent,self.bool_map,self.convert_bool,self.date_diff_scalers,self.create_date_differences,self.nan_threshold,self.drop_cols]
-    
-    def set_models(self,models):
-        print "setting models"
-        (self.exclude,self.include,self.custom_date_formats,self.max_values_numeric_categorical,self.force_categorical,self.ignore_vals,self.min_cat_percent,self.max_cat_percent,self.cat_missing_val,self.date_transforms) = models[0]
-        self.convert_categorical = models[1]
-        self.convert_date = models[2]
-        self.scalers = models[3]
-        self.catValueCount = models[4]
-        self.date_cols = models[5]
-        self.cat_percent = models[6]
-        self.bool_map = models[7]
-        self.convert_bool = models[8]
-        self.date_diff_scalers = models[9]
-        self.create_date_differences = models[10]
-        self.nan_threshold = models[11]
-        self.drop_cols = models[12]
 
     def to_date(self,f,v):
         d = None
@@ -231,6 +213,7 @@ class Auto_transform(pl.Feature_transform):
         print "num dates",len(self.convert_date)
         print "num date diffs",len(self.date_diff_scalers)
         print "num bool",len(self.convert_bool)
+        return self
 
     def transform(self,df):
         df.drop(self.drop_cols,inplace=True,axis=1)

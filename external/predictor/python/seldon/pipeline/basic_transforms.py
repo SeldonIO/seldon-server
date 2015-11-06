@@ -6,93 +6,61 @@ import operator
 import re
 import pandas as pd
 import numpy as np
+from sklearn.base import BaseEstimator,TransformerMixin
 
-class Binary_transform(pl.Feature_transform):
+class Binary_transform(BaseEstimator,TransformerMixin):
     """Create a binary feature based on existence of a feature
 
     """
-    def __init__(self):
-        super(Binary_transform, self).__init__()
+    def __init__(self,input_feature=None,output_feature=None):
+        self.input_feature=input_feature
+        self.output_feature=output_feature
 
-
-    def get_models(self):
-        """get model data for this transform.
-        """
-        return super(Binary_transform, self).get_models()
-    
-    def set_models(self,models):
-        """set the included features
-        """
-        models = super(Binary_transform, self).set_models(models)
-
-    def fit(self,objs):
+    def fit(self,X):
         """nothing to do in fit
         """
-        pass
+        return self
 
     def transform(self,df):
         df[self.output_feature] = df.apply(lambda row: 1 if not pd.isnull(row[self.input_feature]) and not row[self.input_feature] == 0 and not row[self.input_feature] == "" else 0,axis=1)
         return df
 
-class Include_features_transform(pl.Feature_transform):
+################
+
+class Include_features_transform(BaseEstimator,TransformerMixin):
     """Filter a dataset and include only specided set of features
 
     Args:
         included (list): list of features to be included
     """
     def __init__(self,included=[]):
-        super(Include_features_transform, self).__init__()
         self.included = included
 
-
-    def get_models(self):
-        """get model data for this transform.
-        """
-        return [self.included]
-    
-    def set_models(self,models):
-        """set the included features
-        """
-        self.included = models[0]
-        self.logger.info("set feature names to %s",self.included)
-
-    def fit(self,objs):
+    def fit(self,X):
         """nothing to do in fit
         """
-        pass
+        return self
 
     def transform(self,df):
         """only include features specified in result
         """
         return df[list(set(self.included).intersection(df.columns))]
 
+################
 
-class Exclude_features_transform(pl.Feature_transform):
+class Exclude_features_transform(BaseEstimator,TransformerMixin):
     """Filter a dataset and exclude specided set of features
 
     Args:
         excluded (list): list of features to be excluded
     """
     def __init__(self,excluded=[]):
-        super(Exclude_features_transform, self).__init__()
         self.excluded = excluded
 
-
-    def get_models(self):
-        """get model data for this transform.
-        """
-        return [self.excluded]
-    
-    def set_models(self,models):
-        """set the included features
-        """
-        self.excluded = models[0]
-        self.logger.info("set feature names to %s",self.excluded)
-
-    def fit(self,objs):
+    def fit(self,X):
         """nothing to do in fit
         """
-        pass
+        return self
 
     def transform(self,df):
         """only include features specified in result
@@ -103,7 +71,7 @@ class Exclude_features_transform(pl.Feature_transform):
 
 #############
 
-class Split_transform(pl.Feature_transform):
+class Split_transform(BaseEstimator,TransformerMixin):
     """Split a set of string input features on an expression and create a new feature which has a list of values
 
     Args:
@@ -113,25 +81,12 @@ class Split_transform(pl.Feature_transform):
 
         input_features (list): list of feature names to split - should all have text values
     """
-    def __init__(self,split_expression=" ",ignore_numbers=False,input_features=[]):
+    def __init__(self,split_expression=" ",ignore_numbers=False,input_features=[],output_feature=None):
         super(Split_transform, self).__init__()
         self.split_expression=split_expression
         self.ignore_numbers=ignore_numbers
         self.input_features=input_features
-        self.input_feature = ""
-
-    def get_models(self):
-        """return data needed for this transform
-        """
-        return super(Split_transform, self).get_models() + [self.split_expression,self.ignore_numbers,self.input_features]
-
-    def set_models(self,models):
-        """set model data
-        """
-        models = super(Split_transform, self).set_models(models)
-        self.split_expression = models[0]
-        self.ignore_features= models[1]
-        self.input_features = models[2]
+        self.output_feature = output_feature
 
     def is_number(self,s):
         try:
@@ -140,8 +95,8 @@ class Split_transform(pl.Feature_transform):
         except ValueError:
             return False
 
-    def fit(self,objs):
-        pass
+    def fit(self,X):
+        return self
 
     def split(self,row):
         ftokens = []
@@ -162,7 +117,7 @@ class Split_transform(pl.Feature_transform):
 
 #############
 
-class Exist_features_transform(pl.Feature_transform):
+class Exist_features_transform(BaseEstimator,TransformerMixin):
     """Filter rows based on whether a specified set of features exists
 
     Args:
@@ -172,15 +127,8 @@ class Exist_features_transform(pl.Feature_transform):
         super(Exist_features_transform, self).__init__()
         self.included = included
 
-    def get_models(self):
-        return [self.included]
-
-    def set_models(self,models):
-        self.included = models[0]
-        self.logger.info("%s set feature names to %s",self.get_log_prefix(),self.included)
-
     def fit(self,objs):
-        pass
+        return self
 
     def transform(self,df):
         """transform by returning input feature set if required features exist in it
@@ -191,7 +139,7 @@ class Exist_features_transform(pl.Feature_transform):
 
 #############
 
-class Svmlight_transform(pl.Feature_transform):
+class Svmlight_transform(BaseEstimator,TransformerMixin):
     """take a set of features and transform into a sorted dictionary of numeric id:value features
 
     Args:
@@ -201,25 +149,17 @@ class Svmlight_transform(pl.Feature_transform):
 
         excluded (list): set of features to exclude
     """
-    def __init__(self,included=None,zero_based=False,excluded=[]):
+    def __init__(self,included=None,zero_based=False,excluded=[],id_map={},output_feature=None):
         super(Svmlight_transform, self).__init__()
         self.included = included
         self.excluded = excluded
-        self.idMap = {}
+        self.id_map = id_map
         self.zero_based = False
         if self.zero_based:
             self.lastId = 0
         else:
             self.lastId = 1
-
-    
-    def get_models(self):
-        return super(Svmlight_transform, self).get_models() + [(self.included,self.excluded),self.idMap]
-    
-    def set_models(self,models):
-        models = super(Svmlight_transform, self).set_models(models)
-        (self.included,self.excluded) = models[0]
-        self.idMap = models[1]
+        self.output_feature=output_feature
 
     @staticmethod
     def is_number(s):
@@ -228,8 +168,6 @@ class Svmlight_transform(pl.Feature_transform):
             return True
         except ValueError:
             return False
-
-
 
     def map(self,v,col):
         if isinstance(v,list):
@@ -242,20 +180,19 @@ class Svmlight_transform(pl.Feature_transform):
             else:
                 return set([col+"_"+str(v)])
 
-
     def set_id(self,v,col):
         if isinstance(v,list):
-            return [(self.idMap[col+"_"+lval],1) for lval in v]
+            return [(self.id_map[col+"_"+lval],1) for lval in v]
         elif isinstance(v,dict):
-            return [(self.idMap[col+"_"+k],v) if self.is_number(v) else (self.idMap[col+"_"+k+"_"+str(v)],1) for k,v in v.items()]
+            return [(self.id_map[col+"_"+k],v) if self.is_number(v) else (self.id_map[col+"_"+k+"_"+str(v)],1) for k,v in v.items()]
         else:
             if self.is_number(v):
                 if not pd.isnull(v):
-                    return [(self.idMap[col],v)]
+                    return [(self.id_map[col],v)]
                 else:
                     return []
             else:
-                return [(self.idMap[col+"_"+v],1)]
+                return [(self.id_map[col+"_"+v],1)]
 
 
     def union(self,vals):
@@ -282,7 +219,8 @@ class Svmlight_transform(pl.Feature_transform):
             if (not self.included or col in self.included) and (not col in self.excluded):
                 print "SVM transform - Fitting numerical feature ",col
                 features.add(col)
-        self.idMap = dict([(v,i+1) for i,v in enumerate(features)])
+        self.id_map = dict([(v,i+1) for i,v in enumerate(features)])
+        return self
 
     def toDict(self,x):
         return dict(x)
@@ -301,7 +239,7 @@ class Svmlight_transform(pl.Feature_transform):
 #############
 
 
-class Feature_id_transform(pl.Feature_transform):
+class Feature_id_transform(BaseEstimator,TransformerMixin):
     """create a numeric feature id
 
     Args:
@@ -309,23 +247,13 @@ class Feature_id_transform(pl.Feature_transform):
 
         exclude_missing (bool): exclude rows that do not have the input feature
     """
-    def __init__(self,min_size=0,exclude_missing=False,zero_based=False):
-        super(Feature_id_transform, self).__init__()
+    def __init__(self,input_feature=None,output_feature=None,min_size=0,exclude_missing=False,zero_based=False,id_map={}):
+        self.input_feature=input_feature
+        self.output_feature=output_feature
         self.min_size = min_size
         self.exclude_missing = exclude_missing
-        self.idMap = {}
+        self.id_map = id_map
         self.zero_based = zero_based
-
-    def get_models(self):
-        return super(Feature_id_transform, self).get_models() + [(self.min_size,self.exclude_missing,self.zero_based),self.idMap]
-    
-    def set_models(self,models):
-        models = super(Feature_id_transform, self).set_models(models)
-        (self.min_size,self.exclude_missing,self.zero_based) = models[0]
-        self.logger.info("%s set min feature size to %d ",self.get_log_prefix(),self.min_size)
-        self.logger.info("%s exclude missing to %s ",self.get_log_prefix(),self.exclude_missing)
-        self.idMap = models[1]
-
 
     def fit(self,df):
         """create map of ids for each feature value
@@ -334,22 +262,22 @@ class Feature_id_transform(pl.Feature_transform):
         """
         if self.input_feature in df:
             counts = df[self.input_feature].value_counts()
-            self.idMap = {}
+            self.id_map = {}
             if self.zero_based:
                 idx = 0
             else:
                 idx = 1
             for c,v in counts.iteritems():
                 if v >= self.min_size:
-                    self.idMap[c] = idx
+                    self.id_map[c] = idx
                     idx += 1
                 else:
                     break
-
+        return self
 
     def map(self,v):
-        if v in self.idMap:
-            return self.idMap[v]
+        if v in self.id_map:
+            return self.id_map[v]
         else:
             return np.nan
 

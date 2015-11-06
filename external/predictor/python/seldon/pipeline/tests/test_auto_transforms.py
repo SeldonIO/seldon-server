@@ -2,9 +2,24 @@ import unittest
 from  .. import auto_transforms as at
 import pandas as pd
 import numpy as np
-
+from sklearn.pipeline import Pipeline
+from sklearn.externals import joblib
 
 class Test_auto_transforms(unittest.TestCase):
+
+    def test_sklearn_pipeline(self):
+        t = at.Auto_transform(ignore_vals=["NA",""])
+        transformers = [("auto",t)]
+        p = Pipeline(transformers)
+        df = pd.DataFrame([True,False])
+        df2 = p.fit_transform(df)
+        self.assertTrue(df2[0][0] == 1)
+        self.assertTrue(df2[0][1] == 0)
+        joblib.dump(p,"/tmp/pipeline/p")
+        p2 = joblib.load("/tmp/pipeline/p")
+        df3 = p2.transform(df)
+        self.assertTrue(df3[0][0] == 1)
+        self.assertTrue(df3[0][1] == 0)
 
     def test_bool_col(self):
         df = pd.DataFrame([True,False])

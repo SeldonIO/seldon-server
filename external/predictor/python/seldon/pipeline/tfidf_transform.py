@@ -1,10 +1,10 @@
-import seldon.pipeline.pipelines as pl
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.base import BaseEstimator,TransformerMixin
 import logging 
 
-class Tfidf_transform(pl.Feature_transform):
+class Tfidf_transform(BaseEstimator,TransformerMixin):
     """create TF-IDF (term frequency - inverse document frequency) features. 
 
     can use chi-squared test to limit features. Assumes string based input feature that can be split.
@@ -23,28 +23,21 @@ class Tfidf_transform(pl.Feature_transform):
 
         target_feature (str): target feature for chi-squared test
     """
-    def __init__(self,min_df=0,max_df=1.0,select_features=False,topn_features=50000,stop_words=None,target_feature=None):
-        super(Tfidf_transform, self).__init__()
+    def __init__(self,input_feature=None,output_feature=None,min_df=0,max_df=1.0,select_features=False,topn_features=50000,stop_words=None,target_feature=None,vectorizer=None,tfidf_transformer=None,ch2=None,fnames=None,feature_names_support=[]):
+        self.input_feature=input_feature
+        self.output_feature=output_feature
         self.min_df=min_df
         self.max_df=max_df
         self.select_features = select_features
         self.topn_features=topn_features
         self.stop_words = stop_words
         self.target_feature = target_feature
-        self.ch2 = ""
-        self.feature_names_support = []
+        self.vectorizer = vectorizer
+        self.tfidf_transformer = tfidf_transformer
+        self.ch2 = ch2
+        self.fnames = fnames
+        self.feature_names_support = feature_names_support
 
-    def get_models(self):
-        return super(Tfidf_transform, self).get_models() + [(self.min_df,self.max_df,self.select_features,self.topn_features,self.stop_words,self.target_feature),self.vectorizer,self.tfidf_transformer,self.ch2,self.fnames,self.feature_names_support]
-    
-    def set_models(self,models):
-        models = super(Tfidf_transform, self).set_models(models)
-        (self.min_df,self.max_df,self.select_features,self.topn_features,self.stop_words,self.target_feature) = models[0]
-        self.vectorizer = models[1]
-        self.tfidf_transformer = models[2]
-        self.ch2 = models[3]
-        self.fnames = models[4]
-        self.feature_names_support = models[5]
 
     def get_tokens(self,v):
         """basic method to get "document" string from feature
@@ -56,9 +49,8 @@ class Tfidf_transform(pl.Feature_transform):
         else:
             return str(v)
 
-
     
-    def fit(self,df):
+    def fit(self,df,y=None):
         self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
         self.tfidf_transformer = TfidfTransformer()
         print "getting docs"
@@ -74,7 +66,7 @@ class Tfidf_transform(pl.Feature_transform):
             self.ch2.fit_transform(self.tfidf, df[self.target_feature])
             self.feature_names_support = set([self.fnames[i] for i in self.ch2.get_support(indices=True)])
             print "selected tfidf features",len(self.feature_names_support)
-
+        return self
 
     def create_tfidf(self,v):
         s = [self.get_tokens(v)]

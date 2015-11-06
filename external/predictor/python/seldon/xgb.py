@@ -6,14 +6,14 @@ import scipy.sparse
 import math
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer
-import seldon.pipeline.pipelines as pl
+from seldon.pipeline.pandas_pipelines import PandasEstimator 
 from collections import OrderedDict
 import io
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator,ClassifierMixin
 
-class XGBoostClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
+class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
     """Wrapper for XGBoost classifier
 
        Args:
@@ -33,37 +33,35 @@ class XGBoostClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
        params (optional xgboost args):arguments passed to xgboost
 
     """
-    def __init__(self, target=None, target_readable=None,included=None,excluded=None,dict_feature=None, 
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None,clf=None,
+                 id_map={},vectorizer=None,dict_feature=None, 
                  max_depth=3, learning_rate=0.1, n_estimators=100,
                  silent=True, objective="reg:linear",
                  nthread=-1, gamma=0, min_child_weight=1, max_delta_step=0,
                  subsample=1, colsample_bytree=1, colsample_bylevel=1,
                  reg_alpha=0, reg_lambda=1, scale_pos_weight=1,
                  base_score=0.5, seed=0, missing=None):
-        super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded)
-        self.clf = None
+        super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded,id_map)
+        self.target = target
+        self.target_readable = target_readable
+        self.id_map=id_map
+        self.included = included
+        self.excluded = excluded
+        if not self.target_readable is None:
+            if self.excluded is None:
+                self.excluded = [self.target_readable]
+            else:
+                self.excluded.append(self.target_readable)
+        self.vectorizer = vectorizer
+        self.clf = clf
         self.params = { "max_depth":max_depth,"learning_rate":learning_rate,"n_estimators":n_estimators,
                        "silent":silent, "objective":objective,
                        "nthread":nthread, "gamma":gamma, "min_child_weight":min_child_weight, "max_delta_step":max_delta_step,
                        "subsample":subsample, "colsample_bytree":colsample_bytree, "colsample_bylevel":colsample_bylevel,
                        "reg_alpha":reg_alpha, "reg_lambda":reg_lambda, "scale_pos_weight":scale_pos_weight,
                        "base_score":base_score, "seed":seed, "missing":missing }
-        self.params_suffix = "_params"
         self.dict_feature = dict_feature
-
-    def get_models(self):
-        """get model data for this transform.
-        """
-        return super(XGBoostClassifier, self).get_models_estimator() + [self.dict_feature,self.params,self.clf]
-    
-    def set_models(self,models):
-        """set the included features
-        """
-        models = super(XGBoostClassifier, self).set_models_estimator(models)
-        self.dict_feature = models[0]
-        self.params = models[1]
-        self.clf = models[2]
-
+        
 
     def to_svmlight(self,row):
         """Convert a dataframe row containing a dict of id:val to svmlight line
