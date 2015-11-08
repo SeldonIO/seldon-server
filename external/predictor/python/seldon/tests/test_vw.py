@@ -2,12 +2,42 @@ import unittest
 import pandas as pd
 from .. import vw
 import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.externals import joblib
 
 class Test_vw(unittest.TestCase):
 
+    def test_sklearn_pipeline(self):
+        t = vw.VWClassifier(target="target")
+        f1 = {"target":0,"b":1.0,"c":0}
+        f2 = {"target":1,"b":0,"c":2.0}
+        fs = []
+        for i in range (1,50):
+            fs.append(f1)
+            fs.append(f2)
+        print "features=>",fs
+        df = pd.DataFrame.from_dict(fs)
+        estimators = [("vw",t)]
+        p = Pipeline(estimators)
+        print "fitting"
+        p.fit(df)
+        print "get preds 1 "
+        preds = p.predict_proba(df)
+        print preds
+        print "-------------------"
+        t.close()
+        joblib.dump(p,"/tmp/pipeline/p")
+        p2 = joblib.load("/tmp/pipeline/p")
+        print "get preds 2"
+        df3 = p2.predict_proba(df)
+        print df3
+        vw2 = p2._final_estimator
+        vw2.close()
+
+
     def test_zero_based_target(self):
+        t = vw.VWClassifier(target="target",target_readable="name")
         try:
-            t = vw.VWClassifier(target="target",target_readable="name")
             df = pd.DataFrame.from_dict([{"target":0,"b":"c d","c":3,"name":"zeroTarget"},{"target":1,"b":"word2","name":"oneTarget"}])
             t.fit(df)
             scores = t.predict_proba(df)
@@ -34,8 +64,8 @@ class Test_vw(unittest.TestCase):
 
 
     def test_create_features(self):
+        t = vw.VWClassifier(target="target")
         try:
-            t = vw.VWClassifier(target="target")
             df = pd.DataFrame.from_dict([{"target":"1","b":"c d","c":3},{"target":"2","b":"word2"}])
             t.fit(df)
             scores = t.predict_proba(df)

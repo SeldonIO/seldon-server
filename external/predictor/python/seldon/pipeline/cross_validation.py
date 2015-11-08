@@ -36,4 +36,7 @@ class Seldon_KFold(BaseEstimator):
         return X
 
     def predict_proba(self, X):
-        self.clf.predict_proba(X)
+        return self.clf.predict_proba(X)
+
+    def get_class_id_map(self):
+        return self.clf.get_class_id_map()

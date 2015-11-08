@@ -1,10 +1,8 @@
 import sys
 from fileutil import *
-from kazoo.client import KazooClient
 import json
 from wabbit_wappa import *
 from subprocess import call
-import seldon.pipeline.pipelines as pl
 import numpy as np
 import random
 from socket import *
@@ -12,11 +10,12 @@ import threading, Queue, subprocess
 import time
 import psutil
 import pandas as pd
+from seldon.pipeline.pandas_pipelines import PandasEstimator 
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator,ClassifierMixin
 
-class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
+class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
     """Wrapper for Vowpall Wabbit classifier
 
        Args:
@@ -39,11 +38,10 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
 
        vw_args (optional vw args):arguments passed to vw
     """
-    def __init__(self, target=None, target_readable=None,included=None,excluded=None,num_iterations=1, raw_predictions_file="/tmp/raw_predictions",model_file="/tmp/model",pid_file='/tmp/vw_pid_file',**vw_args):
-        super(VWClassifier, self).__init__(target,target_readable,included,excluded)
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={},num_iterations=1, raw_predictions_file="/tmp/raw_predictions",model_file="/tmp/model",pid_file='/tmp/vw_pid_file',b=18):
+        super(VWClassifier, self).__init__(target,target_readable,included,excluded,id_map)
         self.clf = None
         self.num_iterations = num_iterations
-        self.vw_args = vw_args
         self.model_file="/tmp/model"
         self.param_suffix="_params"
         self.model_suffix="_model"
@@ -53,21 +51,25 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
         self.vw = None
         self.vw_mode = None
         self.pid_file = pid_file
+        self.vw_args = {"b":b}
+        self.model = None
+        self.model_saved = False
 
-    def get_models(self):
-        """get model data for this transform.
-        """
-        return super(VWClassifier, self).get_models_estimator() + [self.zero_based,self.num_iterations,self.vw_args,self.raw_predictions_file]
-    
-    def set_models(self,models):
-        """set the included features
-        """
-        models = super(VWClassifier, self).set_models_estimator(models)
-        self.zero_based = models[0]
-        self.num_iterations = models[1]
-        self.vw_args = models[2]
-        self.raw_predictions_file = models[3]
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        del result['model_saved']
+        del result['vw']
+        del result['tailq']
+        del result['raw_predictions_thread_running']
+        return result
 
+    def __setstate__(self, dict):
+        self.__dict__ = dict
+        self.model_saved = False
+        self.vw = None
+        self.tailq = Queue.Queue(maxsize=1000)      
+        self.raw_predictions_thread_running=False
+            
     def wait_model_saved(self,fname):
         """Hack to wait for vw model to finish saving. It creates a file <model>.writing during this process
         """
@@ -77,22 +79,20 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
             print "sleeping until model is saved"
             time.sleep(1)
 
-    def save_vw_model(self,fname):
-        self.vw.save_model(fname)
-        self.wait_model_saved(fname+".writing")
-
-    def save_model(self,folder_prefix):
+    def save_model(self,fname):
         """Save vw model from running vw instance
         """
-        super(VWClassifier, self).save_model(folder_prefix+self.param_suffix)
-        self.model_file=folder_prefix+self.model_suffix
-        self.save_vw_model(self.model_file)
+        self.vw.save_model(fname)
+        self.wait_model_saved(fname+".writing")
+        with open(fname, mode='rb') as file: # b is important -> binary
+            self.model = file.read()
 
-    def load_model(self,folder_prefix):
-        """set model file for vw
-        """
-        super(VWClassifier, self).load_model(folder_prefix+self.param_suffix)
-        self.model_file=folder_prefix+self.model_suffix
+    def write_model(self):
+        print "storing vw model to file"
+        with open(self.model_file, mode='wb') as modelfile: # b is important -> binary
+            modelfile.write(self.model)
+            self.model_saved = True
+
 
     @staticmethod
     def is_number(s):
@@ -266,7 +266,7 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
         for i in range(0,self.num_iterations):
             for (index,val) in df_vw.iteritems():
                 self.vw.send_line(val,parse_result=False)
-        self.save_vw_model(self.model_file)        
+        self.save_model(self.model_file)        
 
 
     def save_vw_lines(self,df,filename):
@@ -285,6 +285,8 @@ class VWClassifier(pl.Estimator,pl.Feature_transform,BaseEstimator):
             if not self.vw is None:
                 self.close()
             if mode == "test":
+                if not self.model_saved:
+                    self.write_model()
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29743,num_children=1,i=self.model_file,raw_predictions=self.raw_predictions_file,t=True)
             else:
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29742,num_children=1,oaa=self.num_classes,**self.vw_args)
