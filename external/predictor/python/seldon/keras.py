@@ -61,6 +61,7 @@ class KerasClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         self.callbacks = [] if callbacks is None else callbacks
         self.verbose=verbose
         self.tmp_model=tmp_model
+        self.compiled_model_ = None
 
     def __getstate__(self):
         result = self.__dict__.copy()
@@ -97,9 +98,10 @@ class KerasClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
                 y = to_categorical(y)
         else:
             self.classes_ = np.arange(0, y.shape[1])
-
-        self.compiled_model_ = copy.deepcopy(self.model)
-        self.compiled_model_.compile(optimizer=self.optimizer, loss=self.loss)
+        
+        if self.compiled_model_ is None:
+            self.compiled_model_ = copy.deepcopy(self.model)
+            self.compiled_model_.compile(optimizer=self.optimizer, loss=self.loss)
         history = self.compiled_model_.fit(
             X, y, batch_size=self.train_batch_size, nb_epoch=self.nb_epoch, verbose=self.verbose,
             shuffle=self.shuffle, show_accuracy=self.show_accuracy,
