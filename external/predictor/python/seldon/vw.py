@@ -267,7 +267,7 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             for (index,val) in df_vw.iteritems():
                 self.vw.send_line(val,parse_result=False)
         self.save_model(self.model_file)        
-
+        return self
 
     def save_vw_lines(self,df,filename):
         if self.vw is None:

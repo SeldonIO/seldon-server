@@ -42,16 +42,6 @@ class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
                  reg_alpha=0, reg_lambda=1, scale_pos_weight=1,
                  base_score=0.5, seed=0, missing=None):
         super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded,id_map)
-        self.target = target
-        self.target_readable = target_readable
-        self.id_map=id_map
-        self.included = included
-        self.excluded = excluded
-        if not self.target_readable is None:
-            if self.excluded is None:
-                self.excluded = [self.target_readable]
-            else:
-                self.excluded.append(self.target_readable)
         self.vectorizer = vectorizer
         self.clf = clf
         self.params = { "max_depth":max_depth,"learning_rate":learning_rate,"n_estimators":n_estimators,
@@ -111,6 +101,7 @@ class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         self.clf = xgb.XGBClassifier(**self.params)
         self.clf.fit(X,y,verbose=True)
         print self.clf.get_params(deep=True)
+        return self
 
     def predict_proba(self, X):
         """Predict from data in following formats:
