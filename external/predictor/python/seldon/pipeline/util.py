@@ -11,7 +11,21 @@ import string
 from sklearn.externals import joblib
 
 class Pipeline_wrapper(object):
-    
+    """
+    Wrapper to allow dataframes to be created and saved from external data sources.
+    Data sources:AWS s3 and file system
+    Formats: JSON and CSV
+
+    Parameters
+    ----------
+
+    work_folder : str
+       load work folder to stage files
+    aws_key : str, optional
+       AWS key
+    aws_secret : str, optional
+       AWS secret
+    """
     def __init__(self,work_folder="/tmp",aws_key=None,aws_secret=None):
         self.work_folder=work_folder
         self.lines_read = 0
@@ -35,8 +49,18 @@ class Pipeline_wrapper(object):
 
     def save_dataframe(self,df,location,df_format="json",csv_index=True):
         """Save dataframe
-        """
-        """save dataframe to csv or json
+
+        Parameters
+        ----------
+
+        df : pandas daraframe
+           dataframe to save
+        location : str
+           external filesystem location to save to
+        df_format : str
+           format to use : json or csv
+        csv_index : bool
+           whether to save index when outputing to csv
         """
         self.create_work_folder()
         tmp_file = self.work_folder+"/df_tmp"
@@ -62,9 +86,6 @@ class Pipeline_wrapper(object):
 
     def _save_features_local(self,line):
         """save data line to local features file
-
-        Args:
-            line (str): features data line
         """
         if not self.df_format == 'csv' and self.lines_read > 0:
             self.active_file.write(",")
@@ -101,6 +122,18 @@ class Pipeline_wrapper(object):
 
 
     def create_dataframe(self,data=None,df_format="json",csv_dates=None,index_col=None):
+        """
+        Create Pandas dataframe from external source
+
+        Parameters
+        ----------
+
+        data : object, list, dict or str
+           object : pandas dataframe - will be returned as is
+           list : list of folders to load data frame
+           str : filename to load data frome
+           dict : data in dict
+        """
         if data is not None:
             if isinstance(data, pd.DataFrame):
                 return data
@@ -125,6 +158,17 @@ class Pipeline_wrapper(object):
     #
 
     def save_pipeline(self,pipeline,location):
+        """
+        Save scikit learn pipeline to external location
+
+        Parameters
+        ----------
+
+        pipelines : sklearn pipeline
+           pipeline to be saved
+        location : str
+           external folder to save pipeline
+        """
         self.create_work_folder()
         pipeline_folder = self.work_folder+"/pipeline"
         if not os.path.exists(pipeline_folder):
@@ -137,6 +181,15 @@ class Pipeline_wrapper(object):
 
 
     def load_pipeline(self,pipeline_folder):
+        """
+        Load scikit learn pipeline from external folder
+        
+        Parameters
+        ----------
+
+        pipeline_folder : str
+           external folder holding pipeline
+        """
         self.create_work_folder()
         local_pipeline_folder = self.work_folder+"/pipeline"
         if not os.path.exists(local_pipeline_folder):
@@ -147,10 +200,6 @@ class Pipeline_wrapper(object):
         return joblib.load(local_pipeline_folder+"/p")
 
 
-    def get_estimator_class_ids(self):
-        return self.pipeline[-1].get_class_id_map()
-
-        
 
 
             

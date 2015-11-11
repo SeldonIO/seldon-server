@@ -10,35 +10,40 @@ import threading, Queue, subprocess
 import time
 import psutil
 import pandas as pd
-from seldon.pipeline.pandas_pipelines import PandasEstimator 
+from seldon.pipeline.pandas_pipelines import BasePandasEstimator 
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator,ClassifierMixin
 
-class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
-    """Wrapper for Vowpall Wabbit classifier
-
-       Args:
-
-       target (Str): Target column
-
-       target_readable (Str): More descriptive version of target variable
-
-       included [Optional(list(str))]: columns to include
-
-       excluded [Optional(list(str))]: columns to exclude
-
-       num_iterations (int): number of iterations over data to run vw
-
-       raw_predictions (str): file to push raw predictions from vw to
-
-       model_file (str): model filename
-
-       pid_file (str): file to store pid of vw server so we can terminate it
-
-       vw_args (optional vw args):arguments passed to vw
+class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     """
-    def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={},num_iterations=1, raw_predictions_file="/tmp/raw_predictions",model_file="/tmp/model",pid_file='/tmp/vw_pid_file',b=18):
+    Wrapper for Vowpall Wabbit classifier with pandas support
+
+    Parameters
+    ----------
+           
+    target : str
+       Target column
+    target_readable : str
+       More descriptive version of target variable
+    included : list str, optional
+       columns to include
+    excluded : list str, optional
+       columns to exclude
+    id_map : dict (int,str), optional
+       map of class ids to high level names
+    num_iterations : int
+       number of iterations over data to run vw
+    raw_predictions_file : str
+       file to push raw predictions from vw to
+    model_file : str
+       model filename
+    pid_file : str
+       file to store pid of vw server so we can terminate it
+    vw_args : optional dict 
+       extra args to pass to vw
+    """
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={},num_iterations=1, raw_predictions_file="/tmp/raw_predictions",model_file="/tmp/model",pid_file='/tmp/vw_pid_file',vw_args={}):
         super(VWClassifier, self).__init__(target,target_readable,included,excluded,id_map)
         self.clf = None
         self.num_iterations = num_iterations
@@ -51,11 +56,14 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         self.vw = None
         self.vw_mode = None
         self.pid_file = pid_file
-        self.vw_args = {"b":b}
+        self.vw_args = vw_args
         self.model = None
         self.model_saved = False
 
     def __getstate__(self):
+        """
+        Remove things that should not be pickled
+        """
         result = self.__dict__.copy()
         del result['model_saved']
         del result['vw']
@@ -64,14 +72,18 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         return result
 
     def __setstate__(self, dict):
+        """
+        Add thread based variables when creating
+        """
         self.__dict__ = dict
         self.model_saved = False
         self.vw = None
         self.tailq = Queue.Queue(maxsize=1000)      
         self.raw_predictions_thread_running=False
             
-    def wait_model_saved(self,fname):
-        """Hack to wait for vw model to finish saving. It creates a file <model>.writing during this process
+    def _wait_model_saved(self,fname):
+        """
+        Hack to wait for vw model to finish saving. It creates a file <model>.writing during this process
         """
         print "waiting for ",fname
         time.sleep(1)
@@ -79,23 +91,26 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             print "sleeping until model is saved"
             time.sleep(1)
 
-    def save_model(self,fname):
-        """Save vw model from running vw instance
+    def _save_model(self,fname):
+        """
+        Save vw model from running vw instance
         """
         self.vw.save_model(fname)
-        self.wait_model_saved(fname+".writing")
+        self._wait_model_saved(fname+".writing")
         with open(fname, mode='rb') as file: # b is important -> binary
             self.model = file.read()
 
-    def write_model(self):
-        print "storing vw model to file"
+    def _write_model(self):
+        """
+        Write the vw model to file
+        """
         with open(self.model_file, mode='wb') as modelfile: # b is important -> binary
             modelfile.write(self.model)
             self.model_saved = True
 
 
     @staticmethod
-    def is_number(s):
+    def _is_number(s):
         try:
             float(s)
             return True
@@ -103,12 +118,13 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             return False
 
 
-    def get_feature(self,name,val):
-        """Create a vw feature from name and value
+    def _get_feature(self,name,val):
+        """
+        Create a vw feature from name and value
         """
         if isinstance(val, basestring):
             if len(val) > 0:
-                if self.is_number(val):
+                if self._is_number(val):
                     return (name,float(val))
                 else:
                     if len(name) > 0:
@@ -119,7 +135,7 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             if not np.isnan(val):
                 return (name,float(val))
 
-    def convert_row(self,row,tag=None):
+    def _convert_row(self,row,tag=None):
         """Convert a dataframe row into a vw line
         """
         ns = {}
@@ -129,19 +145,19 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
                 val = row[col]
                 feature = None
                 if isinstance(val,basestring):
-                    feature = self.get_feature(col,val)
+                    feature = self._get_feature(col,val)
                     if not feature is None:
                         ns["def"].append(feature)
                 elif isinstance(val,dict):
                     for key in val:
-                        feature = self.get_feature(str(key),val[key])
+                        feature = self._get_feature(str(key),val[key])
                         if not feature is None:
                             if not col in ns:
                                 ns[col] = []
                             ns[col].append(feature)
                 elif isinstance(val,list):
                     for v in val:
-                        feature = self.get_feature("",v)
+                        feature = self._get_feature("",v)
                         if not feature is None:
                             if not col in ns:
                                 ns[col] = []
@@ -157,26 +173,25 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         for k in ns:
             if not k == 'def':
                 namespaces.append(Namespace(name=k,features=ns[k]))
-        #tag = "tag"+str(random.randrange(0,9999999))
         return self.vw.make_line(response=target,features=ns['def'],namespaces=namespaces)
     
     @staticmethod
-    def sigmoid(x):
+    def _sigmoid(x):
         return 1 / (1 + math.exp(-x))
 
     @staticmethod        
-    def normalize( predictions ):
+    def _normalize( predictions ):
         s = sum( predictions )
         normalized = []
         for p in predictions:
             normalized.append( p / s )
         return normalized  
 
-    def start_raw_predictions(self):
+    def _start_raw_predictions(self):
         """Start a thread to tail the raw predictions file
         """
         if not self.raw_predictions_thread_running:
-            thread = threading.Thread(target=self.tail_forever, args=(self.raw_predictions_file,))
+            thread = threading.Thread(target=self._tail_forever, args=(self.raw_predictions_file,))
             thread.setDaemon(True)
             thread.start()
             self.raw_predictions_thread_running = True
@@ -194,7 +209,7 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             self.vw = None
 
 
-    def tail_forever(self,fn):
+    def _tail_forever(self,fn):
         """Tail the raw predictions file so we can get class probabilities when doing predictions
         """
         p = subprocess.Popen(["tail", "-f", fn], stdout=subprocess.PIPE)
@@ -204,7 +219,7 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             if not line:
                 break
 
-    def get_full_scores(self):
+    def _get_full_scores(self):
         """Get the predictions from the vw raw predictions and normalise them
         """
         rawLine = self.tailq.get()
@@ -213,8 +228,8 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         scores = []
         for score in parts:
             (classId,score) = score.split(':')
-            scores.append(self.sigmoid(float(score)))
-        nscores = self.normalize(scores)
+            scores.append(self._sigmoid(float(score)))
+        nscores = self._normalize(scores)
         fscores = []
         c = 1
         for nscore in nscores:
@@ -235,8 +250,20 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
     def fit(self,X,y=None):
         """Convert data to vw lines and then train for required iterations
            
-           Caveats : 
-               1. A seldon specific fork of wabbit_wappa is needed to allow vw to run in server mode without save_resume. Save_resume seems to cause issues with the scores returned. Maybe connected to https://github.com/JohnLangford/vowpal_wabbit/issues/262
+        Parameters
+        ----------
+
+        X : pandas dataframe or array-like
+           training samples
+        y : array like, required for array-like X and not used presently for pandas dataframe
+           class labels
+
+        Returns
+        -------
+        self: object
+
+        Caveats : 
+        1. A seldon specific fork of wabbit_wappa is needed to allow vw to run in server mode without save_resume. Save_resume seems to cause issues with the scores returned. Maybe connected to https://github.com/JohnLangford/vowpal_wabbit/issues/262
         """
         if isinstance(X,pd.DataFrame):
             df = X
@@ -262,22 +289,12 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         self.num_classes = len(df_base[self.target].unique())
         print "num classes ",self.num_classes
         self._start_vw_if_needed("train")
-        df_vw = df_base.apply(self.convert_row,axis=1)
+        df_vw = df_base.apply(self._convert_row,axis=1)
         for i in range(0,self.num_iterations):
             for (index,val) in df_vw.iteritems():
                 self.vw.send_line(val,parse_result=False)
-        self.save_model(self.model_file)        
+        self._save_model(self.model_file)        
         return self
-
-    def save_vw_lines(self,df,filename):
-        if self.vw is None:
-            self.vw =  VW(i=self.model_file)
-        df_base = self._exclude_include_features(df)
-        df_base = df_base.fillna(0)
-        self.start_raw_predictions()
-        df_vw = df_base.apply(self.convert_row,axis=1)
-        df_vw.to_csv(filename,index=False,header=False)
-
 
     def _start_vw_if_needed(self,mode):
         if self.vw is None or self.vw_mode != mode:
@@ -286,7 +303,7 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
                 self.close()
             if mode == "test":
                 if not self.model_saved:
-                    self.write_model()
+                    self._write_model()
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29743,num_children=1,i=self.model_file,raw_predictions=self.raw_predictions_file,t=True)
             else:
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29742,num_children=1,oaa=self.num_classes,**self.vw_args)
@@ -296,8 +313,18 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
 
     def predict_proba(self,X):
         """Create predictions. Start a vw process. Convert data to vw format and send. 
-           Caveats : 
-               1. A seldon specific fork of wabbit_wappa is needed to allow vw to run in server mode without save_resume. Save_resume seems to cause issues with the scores returned. Maybe connected to https://github.com/JohnLangford/vowpal_wabb#it/issues/262
+        Returns class probability estimates for the given test data.
+
+        X : pandas dataframe or array-like
+            Test samples 
+        
+        Returns
+        -------
+        proba : array-like, shape = (n_samples, n_outputs)
+            Class probability estimates.
+  
+        Caveats : 
+        1. A seldon specific fork of wabbit_wappa is needed to allow vw to run in server mode without save_resume. Save_resume seems to cause issues with the scores returned. Maybe connected to https://github.com/JohnLangford/vowpal_wabb#it/issues/262
         """
         self._start_vw_if_needed("test")
         if isinstance(X,pd.DataFrame):
@@ -307,13 +334,12 @@ class VWClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         else:
             check_array(X)
             df_base = pd.DataFrame(X)
-            
-        df_vw = df_base.apply(self.convert_row,axis=1)
+        df_vw = df_base.apply(self._convert_row,axis=1)
         predictions = None
         for (index,val) in df_vw.iteritems():
             prediction = self.vw.send_line(val,parse_result=True)
-            self.start_raw_predictions()
-            scores = self.get_full_scores()
+            self._start_raw_predictions()
+            scores = self._get_full_scores()
             if predictions is None:
                 predictions = np.array([scores])
             else:

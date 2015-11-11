@@ -5,23 +5,27 @@ from sklearn.base import BaseEstimator,TransformerMixin
 import logging 
 
 class Tfidf_transform(BaseEstimator,TransformerMixin):
-    """create TF-IDF (term frequency - inverse document frequency) features. 
+    """
+    Create TF-IDF (term frequency - inverse document frequency) features. 
 
     can use chi-squared test to limit features. Assumes string based input feature that can be split.
     Uses scikit-learn based transformers internally
 
-    Args:
-        min_df (int): min document frequency (for sklearn vectorizer)
+    Parameters
+    ----------
 
-        max_df (float): max document frequency (for sklearn vectorizer)
-
-        select_features (bool): use chi-squared test to select features
-
-        topn_features (int): keep top features from chi-squared test
-
-        stop_words (str): stop words (for sklearn vectorizer)
-
-        target_feature (str): target feature for chi-squared test
+    min_df : int, optinal
+       min document frequency (for sklearn vectorizer)
+    max_df : float, optional
+       max document frequency (for sklearn vectorizer)
+    select_features : bool, optional
+       use chi-squared test to select features
+    topn_features : int, optional
+       keep top features from chi-squared test
+    stop_words : str, optional
+       stop words (for sklearn vectorizer)
+    target_feature : str, optional
+       target feature for chi-squared test
     """
     def __init__(self,input_feature=None,output_feature=None,min_df=0,max_df=1.0,select_features=False,topn_features=50000,stop_words=None,target_feature=None,vectorizer=None,tfidf_transformer=None,ch2=None,fnames=None,feature_names_support=[]):
         self.input_feature=input_feature
@@ -50,7 +54,19 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
             return str(v)
 
     
-    def fit(self,df,y=None):
+    def fit(self,df):
+        """
+        Fit tfidf transform
+
+        Parameters
+        ----------
+
+        df : pandas dataframe 
+
+        Returns
+        -------
+        self: object
+        """
         self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
         self.tfidf_transformer = TfidfTransformer()
         print "getting docs"
@@ -68,7 +84,7 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
             print "selected tfidf features",len(self.feature_names_support)
         return self
 
-    def create_tfidf(self,v):
+    def _create_tfidf(self,v):
         s = [self.get_tokens(v)]
         counts = self.vectorizer.transform(s)
         self.tfidf = self.tfidf_transformer.transform(counts)
@@ -86,7 +102,20 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         
 
     def transform(self,df):
-        df[self.output_feature] = df[self.input_feature].apply(self.create_tfidf)
+        """
+        transform features with tfidf transform
+
+        Parameters
+        ----------
+
+        X : pandas dataframe 
+
+        Returns
+        -------
+        
+        Transformed pandas dataframe
+        """
+        df[self.output_feature] = df[self.input_feature].apply(self._create_tfidf)
         return df
 
 

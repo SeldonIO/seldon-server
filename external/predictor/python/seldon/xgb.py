@@ -6,32 +6,69 @@ import scipy.sparse
 import math
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer
-from seldon.pipeline.pandas_pipelines import PandasEstimator 
+from seldon.pipeline.pandas_pipelines import BasePandasEstimator 
 from collections import OrderedDict
 import io
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator,ClassifierMixin
 
-class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
-    """Wrapper for XGBoost classifier
+class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
+    """
+    Wrapper for XGBoost classifier with pandas support
+    XGBoost specific arguments follow https://github.com/dmlc/xgboost/blob/master/python-package/xgboost/sklearn.py
 
-       Args:
-
-       target (Str): Target column
-
-       target_readable (Str): More descriptive version of target variable
-
-       included [Optional(list(str))]: columns to include
-
-       excluded [Optional(list(str))]: columns to exclude
-
-       num_iterations (int): number of iterations over data to run vw
-
-       raw_predictions (str): file to push raw predictions from vw to
-
-       params (optional xgboost args):arguments passed to xgboost
-
+    target : str
+       Target column
+    target_readable : str
+       More descriptive version of target variable
+    included : list str, optional
+       columns to include
+    excluded : list str, optional
+       columns to exclude
+    id_map : dict (int,str), optional
+       map of class ids to high level names
+    num_iterations : int
+       number of iterations over data to run vw
+    raw_predictions : str
+       file to push raw predictions from vw to
+    max_depth : int
+        Maximum tree depth for base learners.
+    learning_rate : float
+        Boosting learning rate (xgb's "eta")
+    n_estimators : int
+        Number of boosted trees to fit.
+    silent : boolean
+        Whether to print messages while running boosting.
+    objective : string
+        Specify the learning task and the corresponding learning objective.
+    nthread : int
+        Number of parallel threads used to run xgboost.
+    gamma : float
+        Minimum loss reduction required to make a further partition on a leaf node of the tree.
+    min_child_weight : int
+        Minimum sum of instance weight(hessian) needed in a child.
+    max_delta_step : int
+        Maximum delta step we allow each tree's weight estimation to be.
+    subsample : float
+        Subsample ratio of the training instance.
+    colsample_bytree : float
+        Subsample ratio of columns when constructing each tree.
+    colsample_bylevel : float
+        Subsample ratio of columns for each split, in each level.
+    reg_alpha : float (xgb's alpha)
+        L2 regularization term on weights
+    reg_lambda : float (xgb's lambda)
+        L1 regularization term on weights
+    scale_pos_weight : float
+        Balancing of positive and negative weights.
+    base_score:
+        The initial prediction score of all instances, global bias.
+    seed : int
+        Random number seed.
+    missing : float, optional
+        Value in the data which needs to be present as a missing value. If
+        None, defaults to np.nan.
     """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,clf=None,
                  id_map={},vectorizer=None,dict_feature=None, 
@@ -53,7 +90,7 @@ class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         self.dict_feature = dict_feature
         
 
-    def to_svmlight(self,row):
+    def _to_svmlight(self,row):
         """Convert a dataframe row containing a dict of id:val to svmlight line
         """
         if self.target in row:
@@ -66,11 +103,11 @@ class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
             line += (" "+str(k)+":"+str(b[k]))
         return line
         
-    def load_from_dict(self,df):
+    def _load_from_dict(self,df):
         """Load data from dataframe with dict of id:val into numpy matrix
         """
         print "loading from dictionary feature"
-        df_svm = df.apply(self.to_svmlight,axis=1)
+        df_svm = df.apply(self._to_svmlight,axis=1)
         output = io.BytesIO()
         df_svm.to_csv(output,index=False,header=False)
         output.seek(0)
@@ -80,16 +117,28 @@ class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
 
 
     def fit(self,X,y=None):
-        """Fit a model from various sources: 
-           1. dataframe with dict of numeric id:floats converted via svmlight format lines
-           2. dataframe with numeric and categorical features
+        """Fit a model: 
+
+        Parameters
+        ----------
+
+        X : pandas dataframe or array-like
+           training samples. If pandas dataframe can handle dict of feature in one column or cnvert a set of columns
+        y : array like, required for array-like X and not used presently for pandas dataframe
+           class labels
+
+        Returns
+        -------
+        self: object
+
+
         """
         if isinstance(X,pd.DataFrame):
             df = X
             if not self.dict_feature is None:
                 if not self.target_readable is None:
                     self.create_class_id_map(df,self.target,self.target_readable)
-                (X,y) = self.load_from_dict(df)
+                (X,y) = self._load_from_dict(df)
                 num_class = len(np.unique(y))
             else:
                 (X,y,self.vectorizer) = self.convert_numpy(df)
@@ -104,18 +153,28 @@ class XGBoostClassifier(PandasEstimator,BaseEstimator,ClassifierMixin):
         return self
 
     def predict_proba(self, X):
-        """Predict from data in following formats:
-           1. dataframe with dict of numeric id:floats converted via svmlight format lines
-           2. dataframe with numeric and categorical features
+        """
+        Returns class probability estimates for the given test data.
+
+        X : pandas dataframe or array-like
+            Test samples 
+        
+        Returns
+        -------
+        proba : array-like, shape = (n_samples, n_outputs)
+            Class probability estimates.
+  
         """
         if isinstance(X,pd.DataFrame):
             df = X
             if not self.dict_feature is None:
-                (X,_) = self.load_from_dict(df)
+                (X,_) = self._load_from_dict(df)
             else:
                 (X,_,_) = self.convert_numpy(df)
         else:
             check_array(X)
 
         return self.clf.predict_proba(X)
+
+
 

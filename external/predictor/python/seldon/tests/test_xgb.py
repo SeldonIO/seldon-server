@@ -3,7 +3,6 @@ import pandas as pd
 from seldon import xgb 
 import numpy as np
 import sys
-import seldon.pipeline.pipelines as pl
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 

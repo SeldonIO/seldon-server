@@ -1,4 +1,3 @@
-import seldon.pipeline.pipelines as pl
 from sklearn import preprocessing
 from dateutil.parser import parse
 import datetime
@@ -10,28 +9,38 @@ import itertools
 from sklearn.base import BaseEstimator,TransformerMixin
 
 class Auto_transform(BaseEstimator,TransformerMixin):
-    """Automatically transform a set of features into normalzied numeric or categorical features or dates
+    """
+    Automatically transform a set of features into normalzied numeric or categorical features or dates
 
-    Args:
-        exclude (list):list of features to not include
-    
-        include (list): features to include if None then all unless exclude used
-    
-        max_values_numeric_categorical (int):max number of unique values for numeric feature to treat as categorical
+    Parameters
+    ----------
 
-        custom_date_formats (list(str)): list of custom date formats to try
-
-        ignore_vals (list(str)): list of feature values to treat as NA/ignored values
-
-        force_categorical (list(str)): features to force to be categorical
-
-        min_cat_percent (float):min percentage for a categorical value to be kept
-
-        max_cat_percent (float):max percentage for a categorical value to be kept
-
-        bool_map (dict):set of string values to be treated as boolean
-
-        cat_missing_value (str):String to use for missing categorical values
+    exclude : list str, optional
+       list of features to not include
+    include : list str, optional
+       features to include if None then all unless exclude used
+    max_values_numeric_categorical : int, optional
+       max number of unique values for numeric feature to treat as categorical
+    custom_date_formats : list str, optional
+       list of custom date formats to try
+    ignore_vals : list str, optional
+       list of feature values to treat as NA/ignored values
+    force_categorical : list str, optional
+       features to force to be categorical
+    min_cat_percent : list str, optional
+       min percentage for a categorical value to be kept
+    max_cat_percent : float, optional
+       max percentage for a categorical value to be kept
+    bool_map : dict, optional
+       set of string values to be treated as boolean
+    cat_missing_value : str, optional
+       string to use for missing categorical values
+    date_transforms : list bool, optional
+       which date transforms to apply [hour,day_of_week,month,year], default is all
+    create_date_differences : bool, optional
+       whether to create differences between all date variables
+    nan_threshold : float, optional
+       featurs to drop if too many nan, threshold is between 0-1 as percent
     """
     def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None):
         super(Auto_transform, self).__init__()
@@ -61,35 +70,21 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         self.nan_threshold=nan_threshold
         self.drop_cols = []
 
-    def to_date(self,f,v):
-        d = None
-        try:
-            d = parse(v)
-        except:
-            for f in self.custom_date_formats:
-                try:
-                    d = datetime.datetime.strptime( v, f )
-                except:
-                    pass
-        if d:
-            return "t_"+str(int(self.unix_time(d)/86400))
-        else:
-            return None
 
-    def scale(self,v,col):
+    def _scale(self,v,col):
         if np.isnan(v):
             return 0.0
         else:
             return self.scalers[col].transform([[float(v)]])[0,0]
 
-    def scale_date_diff(self,v,col):
+    def _scale_date_diff(self,v,col):
         if np.isnan(v):
             return 0.0
         else:
             return self.date_diff_scalers[col].transform([[float(v)]])[0,0]
 
     @staticmethod
-    def is_number(s):
+    def _is_number(s):
         try:
             float(s)
             return True
@@ -97,13 +92,13 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             return False
 
 
-    def make_cat(self,v,col):
+    def _make_cat(self,v,col):
         if not isinstance(v,basestring) and np.isnan(v):
             return self.cat_missing_val
         else:
             if col in self.cat_percent and v in self.cat_percent[col] and self.cat_percent[col][v] >= self.min_cat_percent and self.cat_percent[col][v] <= self.max_cat_percent:
                 val = str(v)
-                if self.is_number(v):
+                if self._is_number(v):
                     val = col + "_" + val.replace(" ","_").lower()
                 else:
                     val = val.replace(" ","_").lower()
@@ -111,29 +106,29 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             else:
                 return np.nan
 
-    def create_hour_features(self,v,col):
+    def _create_hour_features(self,v,col):
         val = (v.hour/24.0) * 2*math.pi
         v1 = math.sin(val)
         v2 = math.cos(val)
         return pd.Series({col+"_hour":"h"+str(v.hour),col+"_"+'h1':v1, col+"_"+'h2':v2})
 
-    def create_month_features(self,v,col):
+    def _create_month_features(self,v,col):
         val = (v.month/12.0) * 2*math.pi
         v1 = math.sin(val)
         v2 = math.cos(val)
         return pd.Series({col+"_month":"m"+str(v.month),col+"_"+'m1':v1, col+"_"+'m2':v2})
 
-    def create_dayofweek_features(self,v,col):
+    def _create_dayofweek_features(self,v,col):
         val = (v.dayofweek/7.0) * 2*math.pi
         v1 = math.sin(val)
         v2 = math.cos(val)
         return pd.Series({col+"_w":"w"+str(v.dayofweek),col+"_"+'w1':v1, col+"_"+'w2':v2})
 
-    def create_year_features(self,v,col):
+    def _create_year_features(self,v,col):
         return pd.Series({col+"_year":"y"+str(v.year)})
 
 
-    def convert_to_date(self,df,col):
+    def _convert_to_date(self,df,col):
         if not df[col].dtype == 'datetime64[ns]':
             try:
                 return pd.to_datetime(df[col])
@@ -151,6 +146,19 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             return df[col]
 
     def fit(self,df):
+        """
+        Fit models against an input pandas dataframe
+
+        Parameters
+        ----------
+
+        X : pandas dataframe 
+
+        Returns
+        -------
+        self: object
+
+        """
         if not self.nan_threshold is None:
             max_nan = float(len(df)) * self.nan_threshold
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -197,7 +205,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         if self.create_date_differences:
             dates_converted = pd.DataFrame([])
             for col in self.convert_date:
-                date_converted = self.convert_to_date(df,col)
+                date_converted = self._convert_to_date(df,col)
                 if not date_converted is None:
                     dates_converted[col] = date_converted
             print dates_converted.columns
@@ -216,6 +224,20 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         return self
 
     def transform(self,df):
+        """
+        transform a datframe with fitted models
+
+        Parameters
+        ----------
+
+        X : pandas dataframe 
+
+        Returns
+        -------
+        
+        Transformed pandas dataframe
+
+        """
         df.drop(self.drop_cols,inplace=True,axis=1)
         c = 0
         num_bools  = len(self.convert_bool)
@@ -230,7 +252,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         for col in self.convert_date:
             c += 1
             print "convert date ",col,c,"/",num_dates,df[col].dtype
-            date_converted = self.convert_to_date(df,col)
+            date_converted = self._convert_to_date(df,col)
             if not date_converted is None:
                 print "successfully converted ",col," to date"
                 df[col] = date_converted
@@ -238,16 +260,16 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             if df[col].dtype == 'datetime64[ns]':
                 if self.date_transforms[0]:
                     print "creating hour features"
-                    df = pd.concat([df,df[col].apply(self.create_hour_features,col=col)],axis=1)
+                    df = pd.concat([df,df[col].apply(self._create_hour_features,col=col)],axis=1)
                 if self.date_transforms[1]:
                     print "creating month features"
-                    df = pd.concat([df,df[col].apply(self.create_month_features,col=col)],axis=1)
+                    df = pd.concat([df,df[col].apply(self._create_month_features,col=col)],axis=1)
                 if self.date_transforms[2]:                    
                     print "creating day of week features"
-                    df = pd.concat([df,df[col].apply(self.create_dayofweek_features,col=col)],axis=1)
+                    df = pd.concat([df,df[col].apply(self._create_dayofweek_features,col=col)],axis=1)
                 if self.date_transforms[3]:                    
                     print "creating year features"
-                    df = pd.concat([df,df[col].apply(self.create_year_features,col=col)],axis=1)
+                    df = pd.concat([df,df[col].apply(self._create_year_features,col=col)],axis=1)
             else:
                 print "warning - failed to convert to date col ",col
         if self.create_date_differences and len(dates_converted) > 1:
@@ -257,20 +279,20 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                 df[col_name] = df[col1] - df[col2]
                 df[col_name] = (df[col_name] / np.timedelta64(1, 'D')).astype(float)
                 df[col_name].replace(self.ignore_vals,np.nan,inplace=True)
-                df[col_name] = df[col_name].apply(self.scale_date_diff,col=col_name)
+                df[col_name] = df[col_name].apply(self._scale_date_diff,col=col_name)
         c = 0
         num_cats = len(self.convert_categorical)
         for col in self.convert_categorical:
             df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "convert categorical ",col,c,"/",num_cats
-            df[col] = df[col].apply(self.make_cat,col=col)
+            df[col] = df[col].apply(self._make_cat,col=col)
         num_scalers = len(self.scalers)
         c = 0
         for col in self.scalers:
             df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "scaling col ",col,c,"/",num_scalers
-            df[col] = df[col].apply(self.scale,col=col)
+            df[col] = df[col].apply(self._scale,col=col)
         return df
 

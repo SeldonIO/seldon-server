@@ -11,9 +11,23 @@ import pandas as pd
 import random
 import string
 
-class PandasEstimator(object):
+class BasePandasEstimator(object):
     """
-    Tools to help with Pandas based estimators
+    Tools to help with Pandas based estimators.
+
+    Parameters
+    ----------
+    
+    target : str
+       Target column
+    target_readable : str
+       More descriptive version of target variable
+    included : list str, optional
+       columns to include
+    excluded : list str, optional
+       columns to exclude
+    id_map : dict (int,str), optional
+       map of class ids to high level names
     """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={}):
         print "Estimator init called"
@@ -107,6 +121,18 @@ class PandasEstimator(object):
         Convert a dataframe into a numpy data matrix for training and an array of target values
         Uses a vectorizer for one hot encoding which is returned
         NaNs are filled with zeros
+
+        Parameters
+        ----------
+
+        df : pandas dataframe
+
+        Returns
+        -------
+
+        X : array like - data as array
+        y : array - target labels
+        vectorizer : vectorizer used for one hot encoding
         """
         if self.target in df:
             if not self.target_readable is None:

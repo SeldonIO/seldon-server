@@ -22,7 +22,7 @@ def run_pipeline(events,models):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='bbm_pipeline')
+    parser = argparse.ArgumentParser(prog='xgb_pipeline')
     parser.add_argument('--events', help='events folder', required=True)
     parser.add_argument('--models', help='output models folder', required=True)
 

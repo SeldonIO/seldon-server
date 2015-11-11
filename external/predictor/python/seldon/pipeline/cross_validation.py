@@ -4,8 +4,18 @@ from sklearn.metrics import accuracy_score
 from sklearn.base import BaseEstimator
 
 class Seldon_KFold(BaseEstimator):
+    """
+    Simple wrapper to provide cross validation test using estimator with input from pandas dataframe
 
-    def __init__(self,clf=None,k=3):
+    Parameters
+    ----------
+
+    clf : object
+       Pandas compatible scikit learn Estimator to apply to data splits
+    k : int, optional
+       number of folds
+    """
+    def __init__(self,clf=None,k=5):
         self.clf = clf
         self.k = k
 
@@ -13,6 +23,17 @@ class Seldon_KFold(BaseEstimator):
         return self.scores
 
     def fit(self,X,y=None):
+        """
+        Split dataframe into k folds and train test classifier on each. Finally train classifier on all data.
+        Parameters
+        ----------
+
+        X : pandas dataframe 
+
+        Returns
+        -------
+        self: object
+        """
         df_len = X.shape[0]
         kf = KFold(df_len, n_folds=self.k,shuffle=True)
         self.scores = []
@@ -33,6 +54,9 @@ class Seldon_KFold(BaseEstimator):
         return self
 
     def transform(self,X):
+        """
+        Do nothing and pass input back
+        """
         return X
 
     def predict_proba(self, X):
