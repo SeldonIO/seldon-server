@@ -64,8 +64,8 @@ class Test_include_transform(unittest.TestCase):
         df = pd.DataFrame.from_dict([{"a":1,"b":2,"c":3}])
         df2 = p.fit_transform(df)
         self.assertTrue(sorted(df2.columns) == sorted(["a","b"]))
-        joblib.dump(p,"/tmp/pipeline/p")
-        p2 = joblib.load("/tmp/pipeline/p")
+        joblib.dump(p,"/tmp/p")
+        p2 = joblib.load("/tmp/p")
         df3 = p2.transform(df)
         self.assertTrue(sorted(df3.columns) == sorted(["a","b"]))
 

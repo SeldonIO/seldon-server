@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from .. import xgb
+from seldon import xgb 
 import numpy as np
 import sys
 import seldon.pipeline.pipelines as pl

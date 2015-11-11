@@ -1,6 +1,9 @@
 SHEL=/bin/bash
 
 
+test:
+	nosetests -s -v seldon
+
 bdist:
 	python setup.py bdist_wheel --universal
 

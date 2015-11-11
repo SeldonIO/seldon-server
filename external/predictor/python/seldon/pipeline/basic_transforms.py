@@ -1,4 +1,3 @@
-import seldon.pipeline.pipelines as pl
 from collections import defaultdict
 from  collections import OrderedDict
 import logging

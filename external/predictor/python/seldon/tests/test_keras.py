@@ -4,7 +4,7 @@ from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.normalization import BatchNormalization
 import unittest
 import pandas as pd
-from .. import keras
+from seldon import keras
 import numpy as np
 import sys
 import seldon.pipeline.pipelines as pl
@@ -45,8 +45,8 @@ class Test_keras(unittest.TestCase):
         preds = p.predict_proba(df)
         print preds
         print "-------------------"
-        joblib.dump(p,"/tmp/pipeline/p")
-        p2 = joblib.load("/tmp/pipeline/p")
+        joblib.dump(p,"/tmp/p")
+        p2 = joblib.load("/tmp/p")
         df3 = p2.predict_proba(df)
         print "df3"
         print df3

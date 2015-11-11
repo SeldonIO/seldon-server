@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from .. import vw
+from seldon import vw
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
@@ -76,8 +76,8 @@ class Test_vw(unittest.TestCase):
             t.close()
 
     def test_predictions(self):
+        t = vw.VWClassifier(target="target")
         try:
-            t = vw.VWClassifier(target="target")
             df = pd.DataFrame.from_dict([{"target":"1","b":"c d","c":3},{"target":"2","b":"word2"}])
             t.fit(df)
             preds = t.predict(df)
@@ -89,8 +89,8 @@ class Test_vw(unittest.TestCase):
 
 
     def test_dict_feature(self):
+        t = vw.VWClassifier(target="target")
         try:
-            t = vw.VWClassifier(target="target")
             df = pd.DataFrame.from_dict([{"target":"1","df":{"1":0.234,"2":0.1}},{"target":"2","df":{"1":0.5}}])
             t.fit(df)
             scores = t.predict_proba(df)
@@ -101,8 +101,8 @@ class Test_vw(unittest.TestCase):
             t.close()
 
     def test_list_feature(self):
+        t = vw.VWClassifier(target="target",num_iterations=10)
         try:
-            t = vw.VWClassifier(target="target",num_iterations=10)
             df = pd.DataFrame.from_dict([{"target":"1","df":["a","b","c","d"]},{"target":"2","df":["x","y","z"]}])
             t.fit(df)
             df2 = pd.DataFrame.from_dict([{"df":["a","b","c","d"]},{"df":["x","y","z"]}])
@@ -118,8 +118,8 @@ class Test_vw(unittest.TestCase):
 
 
     def test_vw_same_score_bug(self):
+        t = vw.VWClassifier(target="target",num_iterations=10)
         try:
-            t = vw.VWClassifier(target="target",num_iterations=10)
             df = pd.DataFrame.from_dict([{"target":"1","df":["a","b","c","d"]},{"target":"2","df":["x","y","z"]}])
             t.fit(df)
             df2 = pd.DataFrame.from_dict([{"df":["a","b","c","d"]},{"df":["x","y","z"]}])
@@ -134,8 +134,8 @@ class Test_vw(unittest.TestCase):
             t.close()
 
     def test_large_number_features(self):
+        t = vw.VWClassifier(target="target")
         try:
-            t = vw.VWClassifier(target="target")
             f = {}
             f2 = {}
             for i in range(1,5000):
@@ -152,8 +152,8 @@ class Test_vw(unittest.TestCase):
 
 
     def test_numpy_input(self):
+        t = vw.VWClassifier()
         try:
-            t = vw.VWClassifier()
             X = np.random.randn(6,4)
             y = np.array([1,2,1,1,2,2])
             t.fit(X,y)
