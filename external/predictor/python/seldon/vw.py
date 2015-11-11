@@ -345,4 +345,3 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             else:
                 predictions = np.vstack([predictions,scores])
         return predictions
-
