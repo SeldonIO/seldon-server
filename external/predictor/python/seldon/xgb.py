@@ -148,8 +148,8 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             num_class = len(np.unique(y))
 
         self.clf = xgb.XGBClassifier(**self.params)
-        self.clf.fit(X,y,verbose=True)
         print self.clf.get_params(deep=True)
+        self.clf.fit(X,y,verbose=True)
         return self
 
     def predict_proba(self, X):

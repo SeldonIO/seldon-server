@@ -150,6 +150,23 @@ class Test_vw(unittest.TestCase):
         finally:
             t.close()
 
+    def test_vw_args(self):
+        t = vw.VWClassifier(target="target",b=18)
+        try:
+            f = {}
+            f2 = {}
+            for i in range(1,5000):
+                f[i] = 1
+                f2[i] = 0.1
+            df = pd.DataFrame.from_dict([{"target":"1","df":f},{"target":"2","df":f2}])
+            t.fit(df)
+            scores = t.predict_proba(df)
+            print scores
+            self.assertEquals(scores.shape[0],2)
+            self.assertEquals(scores.shape[1],2)
+        finally:
+            t.close()
+
 
     def test_numpy_input(self):
         t = vw.VWClassifier()

@@ -43,7 +43,7 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     vw_args : optional dict 
        extra args to pass to vw
     """
-    def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={},num_iterations=1, raw_predictions_file="/tmp/raw_predictions",model_file="/tmp/model",pid_file='/tmp/vw_pid_file',vw_args={}):
+    def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={},num_iterations=1, raw_predictions_file="/tmp/raw_predictions",model_file="/tmp/model",pid_file='/tmp/vw_pid_file',**vw_args):
         super(VWClassifier, self).__init__(target,target_readable,included,excluded,id_map)
         self.clf = None
         self.num_iterations = num_iterations
