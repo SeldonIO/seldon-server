@@ -8,6 +8,11 @@ from sklearn.externals import joblib
 
 class Test_xgb(unittest.TestCase):
 
+    def test_set_params(self):
+        t = xgb.XGBoostClassifier(target="target",learning_rate=0.1,silent=0,objective='binary:logistic')
+        t.set_params(learning_rate=0.9,gamma=0.1)
+        self.assertEquals(t.get_params()['learning_rate'],0.9)
+
     def test_sklearn_pipeline(self):
         t = xgb.XGBoostClassifier(target="target",learning_rate=0.1,silent=0,objective='binary:logistic')
         f1 = {"target":0,"b":1.0,"c":0}

@@ -18,6 +18,9 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     Wrapper for XGBoost classifier with pandas support
     XGBoost specific arguments follow https://github.com/dmlc/xgboost/blob/master/python-package/xgboost/sklearn.py
 
+    Parameters
+    ----------
+           
     target : str
        Target column
     target_readable : str
@@ -81,12 +84,30 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         super(XGBoostClassifier, self).__init__(target,target_readable,included,excluded,id_map)
         self.vectorizer = vectorizer
         self.clf = clf
-        self.params = { "max_depth":max_depth,"learning_rate":learning_rate,"n_estimators":n_estimators,
-                       "silent":silent, "objective":objective,
-                       "nthread":nthread, "gamma":gamma, "min_child_weight":min_child_weight, "max_delta_step":max_delta_step,
-                       "subsample":subsample, "colsample_bytree":colsample_bytree, "colsample_bylevel":colsample_bylevel,
-                       "reg_alpha":reg_alpha, "reg_lambda":reg_lambda, "scale_pos_weight":scale_pos_weight,
-                       "base_score":base_score, "seed":seed, "missing":missing }
+        self.max_depth=max_depth 
+        self.learning_rate=learning_rate
+        self.n_estimators=n_estimators
+        self.silent=silent
+        self.objective=objective
+        self.nthread=nthread
+        self.gamma=gamma 
+        self.min_child_weight=min_child_weight
+        self.max_delta_step=max_delta_step
+        self.subsample=subsample 
+        self.colsample_bytree=colsample_bytree
+        self.colsample_bylevel=colsample_bylevel
+        self.reg_alpha=reg_alpha
+        self.reg_lambda=reg_lambda
+        self.scale_pos_weight=scale_pos_weight
+        self.base_score=base_score
+        self.seed=seed
+        self.missing=missing
+        #self.params = { "max_depth":max_depth,"learning_rate":learning_rate,"n_estimators":n_estimators,
+        #               "silent":silent, "objective":objective,
+        #               "nthread":nthread, "gamma":gamma, "min_child_weight":min_child_weight, "max_delta_step":max_delta_step,
+        #               "subsample":subsample, "colsample_bytree":colsample_bytree, "colsample_bylevel":colsample_bylevel,
+        #               "reg_alpha":reg_alpha, "reg_lambda":reg_lambda, "scale_pos_weight":scale_pos_weight,
+        #               "base_score":base_score, "seed":seed, "missing":missing }
         self.svmlight_feature = svmlight_feature
         
 
@@ -146,7 +167,17 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             check_X_y(X,y)
             num_class = len(np.unique(y))
 
-        self.clf = xgb.XGBClassifier(**self.params)
+        self.clf = xgb.XGBClassifier(max_depth=self.max_depth, learning_rate=self.learning_rate, 
+                                     n_estimators=self.n_estimators,
+                                     silent=self.silent, objective=self.objective,
+                                     nthread=self.nthread, gamma=self.gamma, 
+                                     min_child_weight=self.min_child_weight, 
+                                     max_delta_step=self.max_delta_step,
+                                     subsample=self.subsample, colsample_bytree=self.colsample_bytree, 
+                                     colsample_bylevel=self.colsample_bylevel,
+                                     reg_alpha=self.reg_alpha, reg_lambda=self.reg_lambda, 
+                                     scale_pos_weight=self.scale_pos_weight,
+                                     base_score=self.base_score, seed=self.seed, missing=self.missing)
         print self.clf.get_params(deep=True)
         self.clf.fit(X,y,verbose=True)
         return self

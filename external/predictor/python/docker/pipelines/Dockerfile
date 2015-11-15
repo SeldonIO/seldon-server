@@ -32,6 +32,10 @@ RUN cd /usr/local/src && mkdir keras && cd keras && \
        git clone https://github.com/fchollet/keras.git && \
        cd keras && git checkout tags/0.2.0 && python setup.py install
 
+# bayes_opt
+
+RUN cd /ur/local/src; git clone https://github.com/fmfn/BayesianOptimization ; cd BayesianOptimization ; python setup.py install
+
 ADD ./python-modules /python-modules/seldon
 
 ENV PYTHONPATH $PYTHONPATH:/python-modules

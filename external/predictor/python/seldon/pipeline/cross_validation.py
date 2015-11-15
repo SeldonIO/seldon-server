@@ -18,9 +18,17 @@ class Seldon_KFold(BaseEstimator):
     def __init__(self,clf=None,k=5):
         self.clf = clf
         self.k = k
+        self.scores = []
 
     def get_scores(self):
         return self.scores
+
+    def get_score(self):
+        if len(self.scores) > 0:
+            return sum(self.scores) / float(len(self.scores))
+        else:
+            return 0.0
+
 
     def fit(self,X,y=None):
         """
@@ -64,3 +72,6 @@ class Seldon_KFold(BaseEstimator):
 
     def get_class_id_map(self):
         return self.clf.get_class_id_map()
+
+    def set_params(self,**params):
+        self.clf.set_params(params)
