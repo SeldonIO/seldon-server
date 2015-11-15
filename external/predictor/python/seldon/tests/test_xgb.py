@@ -57,6 +57,12 @@ class Test_xgb(unittest.TestCase):
         scores = t.predict_proba(X)
         print scores
 
+
+    def test_svmlight_features(self):
+        t = xgb.XGBoostClassifier(target="target",svmlight_feature="svm",learning_rate=0.1,silent=0,objective='binary:logistic')
+        df = pd.DataFrame([{"svm":[(1,2.0),(2,3.0)],"target":1}])
+        t.fit(df)
+
         
 if __name__ == '__main__':
     unittest.main()

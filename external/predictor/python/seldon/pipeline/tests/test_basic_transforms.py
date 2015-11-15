@@ -91,33 +91,43 @@ class Test_exist_features_transform(unittest.TestCase):
 
 class Test_svmlight_transform(unittest.TestCase):
 
+    def test_svm_with_list(self):
+        df = pd.DataFrame([{"a":{"abc":1,"def":2}},{"a":{"gh1":1,"def":2}}])
+        t = bt.Svmlight_transform(included=["a"],output_feature="svm")
+        t.fit(df)
+        df2 = t.transform(df)
+        print df2
+        self.assertEquals(df2["svm"][0][0],(1,1))
+
+
     def test_svm(self):
         df = pd.DataFrame([{"a":1.2,"b":"word","c":["a","b"],"d":{"a":1}},{"a":3,"c":["b","d"]},{"c":{"k":1,"k2":"word"}}])
         t = bt.Svmlight_transform(output_feature="svm")
         t.fit(df)
         df2 = t.transform(df)
-        self.assertEquals(df2["svm"][1][5],3.0)
+        print df2
+        self.assertEquals(df2["svm"][0][1],(5,1.2))
 
     def test_svm_with_include(self):
         df = pd.DataFrame([{"a":1.2,"b":"word","c":["a","b"],"d":{"a":1}},{"a":3,"c":["b","d"]},{"c":{"k":1,"k2":"word"}}])
         t = bt.Svmlight_transform(included=["a"],output_feature="svm")
         t.fit(df)
         df2 = t.transform(df)
-        self.assertEquals(df2["svm"][0][1],1.2)
+        self.assertEquals(df2["svm"][0][0],(1,1.2))
 
     def test_svm_with_include_and_categorical(self):
         df = pd.DataFrame([{"a":"word1"},{"a":"word2"},{"a":"word1"}])
         t = bt.Svmlight_transform(included=["a"],output_feature="svm")
         t.fit(df)
         df2 = t.transform(df)
-        self.assertEquals(df2["svm"][0][2],1)
+        self.assertEquals(df2["svm"][0][0],(2,1))
 
     def test_svm_with_exclude(self):
         df = pd.DataFrame([{"a":1.2,"b":"word","c":["a","b"],"d":{"a":1}},{"a":3,"c":["b","d"]},{"c":{"k":1,"k2":"word"}}])
         t = bt.Svmlight_transform(excluded=["b","c","d"],output_feature="svm")
         t.fit(df)
         df2 = t.transform(df)
-        self.assertEquals(df2["svm"][0][1],1.2)
+        self.assertEquals(df2["svm"][0][0],(1,1.2))
 
 
 class Test_feature_id_transform(unittest.TestCase):

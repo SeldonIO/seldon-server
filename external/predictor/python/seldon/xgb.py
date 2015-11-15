@@ -71,7 +71,7 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         None, defaults to np.nan.
     """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,clf=None,
-                 id_map={},vectorizer=None,dict_feature=None, 
+                 id_map={},vectorizer=None,svmlight_feature=None, 
                  max_depth=3, learning_rate=0.1, n_estimators=100,
                  silent=True, objective="reg:linear",
                  nthread=-1, gamma=0, min_child_weight=1, max_delta_step=0,
@@ -87,7 +87,7 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
                        "subsample":subsample, "colsample_bytree":colsample_bytree, "colsample_bylevel":colsample_bylevel,
                        "reg_alpha":reg_alpha, "reg_lambda":reg_lambda, "scale_pos_weight":scale_pos_weight,
                        "base_score":base_score, "seed":seed, "missing":missing }
-        self.dict_feature = dict_feature
+        self.svmlight_feature = svmlight_feature
         
 
     def _to_svmlight(self,row):
@@ -97,13 +97,12 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             line = str(row[self.target])
         else:
             line = "1"
-        d = row[self.dict_feature]
-        b = OrderedDict(sorted(d.items(), key=lambda t: float(t[0])))
-        for k in b:
-            line += (" "+str(k)+":"+str(b[k]))
+        d = row[self.svmlight_feature]
+        for (k,v) in d:
+            line += (" "+str(k)+":"+str(v))
         return line
         
-    def _load_from_dict(self,df):
+    def _load_from_svmlight(self,df):
         """Load data from dataframe with dict of id:val into numpy matrix
         """
         print "loading from dictionary feature"
@@ -135,10 +134,10 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         """
         if isinstance(X,pd.DataFrame):
             df = X
-            if not self.dict_feature is None:
+            if not self.svmlight_feature is None:
                 if not self.target_readable is None:
                     self.create_class_id_map(df,self.target,self.target_readable)
-                (X,y) = self._load_from_dict(df)
+                (X,y) = self._load_from_svmlight(df)
                 num_class = len(np.unique(y))
             else:
                 (X,y,self.vectorizer) = self.convert_numpy(df)
@@ -167,8 +166,8 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         """
         if isinstance(X,pd.DataFrame):
             df = X
-            if not self.dict_feature is None:
-                (X,_) = self._load_from_dict(df)
+            if not self.svmlight_feature is None:
+                (X,_) = self._load_from_svmlight(df)
             else:
                 (X,_,_) = self.convert_numpy(df)
         else:

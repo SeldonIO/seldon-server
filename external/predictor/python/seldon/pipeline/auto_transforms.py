@@ -50,10 +50,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         self.scalers = {}
         self.date_diff_scalers = {}
         self.custom_date_formats = custom_date_formats
-        if ignore_vals:
-            self.ignore_vals = ignore_vals
-        else:
-            self.ignore_vals = ["NA",""]
+        self.ignore_vals  = ignore_vals
         self.force_categorical = force_categorical
         self.catValueCount = {}
         self.convert_categorical = []
@@ -174,7 +171,8 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                         print "adding ",col,"to drop columns",num_nan,max_nan
                         self.drop_cols.append(col)
                         continue
-                df[col].replace(self.ignore_vals,np.nan,inplace=True)
+                if not self.ignore_vals is None:
+                    df[col].replace(self.ignore_vals,np.nan,inplace=True)
                 df[col] = df[col].apply(lambda x: np.nan if isinstance(x, basestring) and len(x)==0 else x)
                 cat_counts = df[col].value_counts(normalize=True,dropna=False)
                 is_bool = True
@@ -278,19 +276,22 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                 col_name = col1+"_"+col2
                 df[col_name] = df[col1] - df[col2]
                 df[col_name] = (df[col_name] / np.timedelta64(1, 'D')).astype(float)
-                df[col_name].replace(self.ignore_vals,np.nan,inplace=True)
+                if not self.ignore_vals is None:
+                    df[col_name].replace(self.ignore_vals,np.nan,inplace=True)
                 df[col_name] = df[col_name].apply(self._scale_date_diff,col=col_name)
         c = 0
         num_cats = len(self.convert_categorical)
         for col in self.convert_categorical:
-            df[col].replace(self.ignore_vals,np.nan,inplace=True)
+            if not self.ignore_vals is None:
+                df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "convert categorical ",col,c,"/",num_cats
             df[col] = df[col].apply(self._make_cat,col=col)
         num_scalers = len(self.scalers)
         c = 0
         for col in self.scalers:
-            df[col].replace(self.ignore_vals,np.nan,inplace=True)
+            if not self.ignore_vals is None:
+                df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
             print "scaling col ",col,c,"/",num_scalers
             df[col] = df[col].apply(self._scale,col=col)

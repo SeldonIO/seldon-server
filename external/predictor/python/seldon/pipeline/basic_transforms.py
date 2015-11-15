@@ -6,6 +6,7 @@ import re
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
+import time
 
 class Binary_transform(BaseEstimator,TransformerMixin):
     """
@@ -42,6 +43,7 @@ class Binary_transform(BaseEstimator,TransformerMixin):
         Transformed pandas dataframe
 
         """
+
         df[self.output_feature] = df.apply(lambda row: 1 if not pd.isnull(row[self.input_feature]) and not row[self.input_feature] == 0 and not row[self.input_feature] == "" else 0,axis=1)
         return df
 
@@ -214,7 +216,6 @@ class Exist_features_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
-        print "running exists features with ",self.included
         df.dropna(subset=self.included,inplace=True)
         return df
 
@@ -265,19 +266,22 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
             else:
                 return set([col+"_"+str(v)])
 
-    def _set_id(self,v,col):
-        if isinstance(v,list):
-            return [(self.id_map[col+"_"+lval],1) for lval in v]
-        elif isinstance(v,dict):
-            return [(self.id_map[col+"_"+k],v) if self._is_number(v) else (self.id_map[col+"_"+k+"_"+str(v)],1) for k,v in v.items()]
-        else:
-            if self._is_number(v):
-                if not pd.isnull(v):
-                    return [(self.id_map[col],v)]
+    def _set_id(self,row):
+        lvals = []
+        for col in row.index.values:
+            if (not self.included or col in self.included) and (not col in self.excluded):
+                v = row[col]
+                if isinstance(v,list):
+                    lvals += [(self.id_map[col+"_"+lval],1) for lval in v]
+                elif isinstance(v,dict):
+                    lvals += [(self.id_map[col+"_"+k],v) if self._is_number(v) else (self.id_map[col+"_"+k+"_"+str(v)],1) for k,v in v.items()]
                 else:
-                    return []
-            else:
-                return [(self.id_map[col+"_"+v],1)]
+                    if self._is_number(v):
+                        if not pd.isnull(v):
+                            lvals += [(self.id_map[col],v)]
+                    else:
+                        lvals += [(self.id_map[col+"_"+v],1)]
+        return pd.Series([sorted(lvals)])
 
 
     def _union(self,vals):
@@ -317,9 +321,6 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         self.id_map = dict([(v,i+1) for i,v in enumerate(features)])
         return self
 
-    def _toDict(self,x):
-        return dict(x)
-
     def transform(self,df):
         """
         Transform features by getting id and numeric value
@@ -334,12 +335,7 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
-        df_tmp = pd.DataFrame()
-        for col in df.columns:
-            if (not self.included or col in self.included) and (not col in self.excluded):
-                df_tmp[col] = df[col].apply(self._set_id,col=col)
-        df[self.output_feature] = df_tmp.sum(axis=1)
-        df[self.output_feature] = df[self.output_feature].apply(self._toDict)
+        df[self.output_feature] = df.apply(self._set_id,axis=1,reduce=True)
         return df
 
 #############

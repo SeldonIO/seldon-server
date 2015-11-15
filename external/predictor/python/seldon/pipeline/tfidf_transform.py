@@ -3,6 +3,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.base import BaseEstimator,TransformerMixin
 import logging 
+import time
 
 class Tfidf_transform(BaseEstimator,TransformerMixin):
     """
@@ -88,8 +89,6 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         s = [self.get_tokens(v)]
         counts = self.vectorizer.transform(s)
         self.tfidf = self.tfidf_transformer.transform(counts)
-        if self.select_features:
-            self.ch2.transform(self.tfidf)
         doc_tfidf = {}
         for (col,val) in zip(self.tfidf[0].indices,self.tfidf[0].data):
             fname = self.fnames[col]
