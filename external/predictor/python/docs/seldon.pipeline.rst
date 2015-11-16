@@ -21,6 +21,14 @@ seldon.pipeline.basic_transforms module
     :undoc-members:
     :show-inheritance:
 
+seldon.pipeline.bayes_optimize module
+-------------------------------------
+
+.. automodule:: seldon.pipeline.bayes_optimize
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 seldon.pipeline.cross_validation module
 ---------------------------------------
