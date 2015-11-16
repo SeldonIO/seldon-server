@@ -47,7 +47,7 @@ data/iris/xgb_models/1:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/xgb_pipeline.py --events /data/iris/events/1 --models /data/iris/xgb_models/1"
 
 xgboost_runtime:data/iris/xgb_models/1
-	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "python /scripts/server.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb"
+	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "cd /scripts ; python create_app_conf.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb ; python server.py"
 	touch xgboost_runtime
 
 test_xgboost_runtime:xgboost_runtime
@@ -66,7 +66,7 @@ data/iris/vw_models/1:data/iris/events/1/iris.json
 	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/vw_pipeline.py --events /data/iris/events/1 --models /data/iris/vw_models/1"
 
 vw_runtime:data/iris/vw_models/1
-	docker run --name="vw_runtime" -d -p 5000:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "python /scripts/server.py --pipeline /data/iris/vw_models/1 --model_name model_vw"
+	docker run --name="vw_runtime" -d -p 5000:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "cd /scripts ; python create_app_conf.py --pipeline /data/iris/vw_models/1 --model_name model_vw ; python server.py"
 	touch vw_runtime
 
 # send test JSON for prediction against vw microservice
@@ -89,7 +89,7 @@ data/iris/keras_models/1:data/iris/events/1/iris.json
 
 
 keras_runtime:data/iris/keras_models/1
-	docker run --name="keras_runtime" -d -p 5002:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "python /scripts/server.py --pipeline /data/iris/keras_models/1 --model_name model_keras"
+	docker run --name="keras_runtime" -d -p 5002:5000  -v ${PWD}/data:/data seldonio/pipelines:1.2 bash -c "cd /scripts ; python create_app_conf.py --pipeline /data/iris/keras_models/1 --model_name model_keras ; python server.py"
 	touch keras_runtime
 
 test_keras_runtime:keras_runtime

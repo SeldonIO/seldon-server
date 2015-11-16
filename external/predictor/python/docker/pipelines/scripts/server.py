@@ -1,4 +1,4 @@
-import sys, getopt, argparse
+import sys
 import importlib
 from flask import Flask, jsonify
 from flask import request
@@ -7,7 +7,16 @@ import json
 import pprint
 from sklearn.pipeline import Pipeline
 import seldon.pipeline.util as sutl
-import pandas as pd
+import random
+
+
+app.config.from_object('server_config')
+rint = random.randint(1,999999)
+if 'AWS_KEY' in app.config:
+    pw = sutl.Pipeline_wrapper(work_folder='/tmp/pl_'+str(rint),aws_key=app.config['AWS_KEY'],aws_secret=app.config['AWS_SECRET'])
+else:
+    pw = sutl.Pipeline_wrapper(work_folder='/tmp/pl_'+str(rint))
+pipeline = pw.load_pipeline(app.config['PIPELINE'])
 
 def extract_input():
     client = request.args.get('client')
@@ -21,17 +30,13 @@ def extract_input():
 
 @app.route('/predict', methods=['GET'])
 def predict():
-    print "predict called"
     input = extract_input()
-    print input,args.pipeline
+    print input
     df = pw.create_dataframe(input["json"])
-    print df
     preds = pipeline.predict_proba(df)
-    print preds
     idMap = pipeline._final_estimator.get_class_id_map()
     formatted_recs_list=[]
     for index, proba in enumerate(preds[0]):
-        print index,proba
         if index in idMap:
             indexName = idMap[index]
         else:
@@ -41,22 +46,10 @@ def predict():
             "predictedClass": indexName,
             "confidence" : str(proba)
         })
-    ret = { "predictions": formatted_recs_list , "model" : args.model_name }
+    ret = { "predictions": formatted_recs_list , "model" : app.config['MODEL'] }
     json = jsonify(ret)
     return json
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='microservice')
-    parser.add_argument('--model_name', help='name of model', required=True)
-    parser.add_argument('--pipeline', help='location of prediction pipeline', required=True)
-    parser.add_argument('--aws_key', help='aws key', required=False)
-    parser.add_argument('--aws_secret', help='aws secret', required=False)
-
-    args = parser.parse_args()
-    opts = vars(args)
-
-    pw = sutl.Pipeline_wrapper(aws_key=args.aws_key,aws_secret=args.aws_secret)
-    pipeline = pw.load_pipeline(args.pipeline)
-
     app.run(host="0.0.0.0", debug=True)
