@@ -37,6 +37,8 @@ ${INSTALL_DEPS_DIR}/install-locale.sh
 ${INSTALL_DEPS_DIR}/install-linux-image-extra.sh
 ${INSTALL_DEPS_DIR}/install-docker.sh
 ${INSTALL_DEPS_DIR}/install-vim.sh
+${INSTALL_DEPS_DIR}/install-vim-config.sh
+${INSTALL_DEPS_DIR}/install-tmux-config.sh
 ${INSTALL_DEPS_DIR}/install-jdk7.sh
 ${INSTALL_DEPS_DIR}/install-tomcat.sh
 ${INSTALL_DEPS_DIR}/install-spark.sh
