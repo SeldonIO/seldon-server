@@ -21,7 +21,7 @@ export INSTALL_DEPS_TOMCAT_HOME=/home/vagrant/apps/tomcat
 export INSTALL_DEPS_SPARK_HOME=/home/vagrant/apps/spark
 export INSTALL_DEPS_SELDON_SERVER_HOME=/home/vagrant/seldon-server
 export INSTALL_DEPS_VM_USER=vagrant
-export INSTALL_DEPS_ANACONDA_HOME=/home/ubuntu/anaconda2
+export INSTALL_DEPS_ANACONDA_HOME=/home/vagrant/anaconda2
 
 ###############################################################################
 # Clone the "seldon-server" project
