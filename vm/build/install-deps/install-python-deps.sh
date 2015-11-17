@@ -24,5 +24,6 @@ pip install kazoo
 sudo apt-get install -y git
 sudo apt-get install -y g++
 pip install -e git+git://github.com/SeldonIO/wabbit_wappa#egg=wabbit-wappa-3.0.2
+pip install -e git+git://github.com/fmfn/BayesianOptimization#egg=bayes_opt
 pip install seldon
 
