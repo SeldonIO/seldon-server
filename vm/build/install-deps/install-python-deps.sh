@@ -13,7 +13,7 @@ wget -O /tmp/${ANACONDA_INSTALL_FILE} http://static.seldon.io/vm-resources/anaco
 bash /tmp/Anaconda2-2.4.0-Linux-x86_64.sh -b
 
 # use anaconda for rest of python install
-export PATH=${ANACONDA_HOME}/bin:${PATH}
+export PATH=${INSTALL_DEPS_ANACONDA_HOME}/bin:${PATH}
 
 sudo apt-get update
 sudo apt-get install -y make libmysqlclient-dev mysql-client-core-5.6
