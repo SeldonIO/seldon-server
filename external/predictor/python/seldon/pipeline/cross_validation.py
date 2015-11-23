@@ -2,6 +2,9 @@ import pandas as pd
 from sklearn.cross_validation import KFold
 from sklearn.metrics import accuracy_score
 from sklearn.base import BaseEstimator
+import logging
+
+logger = logging.getLogger('seldon.pipeline.cross_validation')
 
 class Seldon_KFold(BaseEstimator):
     """
@@ -57,7 +60,7 @@ class Seldon_KFold(BaseEstimator):
             self.clf.fit(X_train,y_train)
             y_pred = self.clf.predict(X_test)
             self.scores.append(accuracy_score(y_test, y_pred))
-        print "accuracy scores ",self.scores
+        logger.info("accuracy scores %s",self.scores)
         self.clf.fit(X,y)
         return self
 

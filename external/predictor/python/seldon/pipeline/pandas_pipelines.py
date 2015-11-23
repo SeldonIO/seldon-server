@@ -30,7 +30,6 @@ class BasePandasEstimator(object):
        map of class ids to high level names
     """
     def __init__(self, target=None, target_readable=None,included=None,excluded=None,id_map={}):
-        print "Estimator init called"
         self.target = target
         self.target_readable = target_readable
         self.id_map=id_map
@@ -62,7 +61,6 @@ class BasePandasEstimator(object):
                 m[d[target]] = d[target_readable]
             else:
                 m[d[target]-1] = d[target_readable]
-        print "id map ",m
         self.set_class_id_map(m)
 
     def encode_onehot(self,df, cols, vec, op):
@@ -109,10 +107,8 @@ class BasePandasEstimator(object):
         Utility function to include and exclude features from a data frame to create a new one
         """
         if not self.included is None:
-            print "including features ",self.included
             df = df[list(set(self.included+[self.target]).intersection(df.columns))]
         if not self.excluded is None:
-            print "excluding features",self.excluded
             df = df.drop(set(self.excluded).intersection(df.columns), axis=1)
         return df
 

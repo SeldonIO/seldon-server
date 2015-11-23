@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
+import logging
 
 class Test_auto_transforms(unittest.TestCase):
 
@@ -15,8 +16,8 @@ class Test_auto_transforms(unittest.TestCase):
         df2 = p.fit_transform(df)
         self.assertTrue(df2[0][0] == 1)
         self.assertTrue(df2[0][1] == 0)
-        joblib.dump(p,"/tmp/pipeline/p")
-        p2 = joblib.load("/tmp/pipeline/p")
+        joblib.dump(p,"/tmp/auto_pl")
+        p2 = joblib.load("/tmp/auto_pl")
         df3 = p2.transform(df)
         self.assertTrue(df3[0][0] == 1)
         self.assertTrue(df3[0][1] == 0)
@@ -105,5 +106,6 @@ class Test_auto_transforms(unittest.TestCase):
 
         
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()
 

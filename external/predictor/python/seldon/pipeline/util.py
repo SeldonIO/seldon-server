@@ -9,6 +9,9 @@ import pandas as pd
 import random
 import string
 from sklearn.externals import joblib
+import logging
+
+logger = logging.getLogger('seldon.pipeline.util')
 
 class Pipeline_wrapper(object):
     """
@@ -39,7 +42,7 @@ class Pipeline_wrapper(object):
 
     def create_work_folder(self):
         if not os.path.exists(self.work_folder):
-            print "creating ",self.work_folder
+            logger.info("creating %s",self.work_folder)
             os.makedirs(self.work_folder)
 
 
@@ -65,10 +68,10 @@ class Pipeline_wrapper(object):
         self.create_work_folder()
         tmp_file = self.work_folder+"/df_tmp"
         if df_format == 'csv':
-            print "saving dataframe as csv"
+            logger.info("saving dataframe as csv")
             df.to_csv(tmp_file,index=csv_index)
         else:
-            print "saving dataframe as json"
+            logger.info("saving dataframe as json")
             f = open(tmp_file,"w")
             for i in range(0, df.shape[0]):
                 row = df.irow(i).dropna()
@@ -96,8 +99,8 @@ class Pipeline_wrapper(object):
     def _copy_features_locally(self,locations,local_file,df_format):
         self.df_format=df_format
         self.create_work_folder()
-        print "streaming features ",locations," to ",local_file
-        print "input type is ",self.df_format
+        logger.info("streaming features %s to %s",locations,local_file)
+        logger.info("input type is %s",self.df_format)
         self.lines_read = 0
         self.active_file = open(local_file,"w")
         if not self.df_format == 'csv':
@@ -107,17 +110,17 @@ class Pipeline_wrapper(object):
         if not self.df_format == 'csv':
             self.active_file.write("]")
         self.active_file.close()
-        print "finished stream of features"
+        logger.info("finished stream of features")
 
     def _convert_dataframe(self,local_file,df_format,csv_dates=None,index_col=None):
         """load csv or json into pandas dataframe
         """
-        print "loading data into pandas dataframe"
+        logger.info("loading data into pandas dataframe")
         if df_format == 'csv':
-            print "loading csv ",csv_dates,"index ",index_col
+            logger.info("loading csv %s index:%s",csv_dates,index_col)
             return pd.read_csv(local_file,parse_dates=csv_dates,index_col=index_col)
         else:
-            print "loading json"
+            logger.info("loading json")
             return pd.read_json(local_file,orient='records')
 
 
@@ -172,7 +175,7 @@ class Pipeline_wrapper(object):
         self.create_work_folder()
         pipeline_folder = self.work_folder+"/pipeline"
         if not os.path.exists(pipeline_folder):
-            print "creating folder ",pipeline_folder
+            logger.info("creating folder %s",pipeline_folder)
             os.makedirs(pipeline_folder)
         tmp_file = pipeline_folder+"/p"
         joblib.dump(pipeline,tmp_file)
@@ -193,7 +196,7 @@ class Pipeline_wrapper(object):
         self.create_work_folder()
         local_pipeline_folder = self.work_folder+"/pipeline"
         if not os.path.exists(local_pipeline_folder):
-            print "creating folder ",local_pipeline_folder
+            logger.info("creating folder %s",local_pipeline_folder)
             os.makedirs(local_pipeline_folder)
         futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
         futil.copy(pipeline_folder,local_pipeline_folder)

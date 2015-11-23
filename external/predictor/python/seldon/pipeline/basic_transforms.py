@@ -8,6 +8,8 @@ import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
 import time
 
+logger = logging.getLogger('seldon.pipeline.basic_transforms')
+
 class Binary_transform(BaseEstimator,TransformerMixin):
     """
     Create a binary feature based on existence of another feature
@@ -310,13 +312,13 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         df_categorical = df.select_dtypes(exclude=numerics)
         for col in df_categorical.columns:
             if (not self.included or col in self.included) and (not col in self.excluded):
-                print "SVM transform - Fitting categorical feature ",col
+                logger.info("SVM transform - Fitting categorical feature %s" % col)
                 res = df[col].apply(self._map,col=col)
                 s = res.groupby(lambda x : "all").aggregate(self._union)
                 features = features.union(s["all"])
         for col in df_numeric.columns:
             if (not self.included or col in self.included) and (not col in self.excluded):
-                print "SVM transform - Fitting numerical feature ",col
+                logger.info("SVM transform - Fitting numerical feature %s" % col)
                 features.add(col)
         self.id_map = dict([(v,i+1) for i,v in enumerate(features)])
         return self

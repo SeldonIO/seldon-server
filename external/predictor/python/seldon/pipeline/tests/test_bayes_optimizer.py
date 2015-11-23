@@ -2,7 +2,7 @@ import unittest
 from .. import bayes_optimize as bopt
 import seldon.xgb as xgb
 import pandas as pd
-
+import logging
 
 
 class Test_bopt(unittest.TestCase):
@@ -25,5 +25,6 @@ class Test_bopt(unittest.TestCase):
 
         
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()
 

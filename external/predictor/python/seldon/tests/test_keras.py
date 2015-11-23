@@ -10,6 +10,7 @@ import sys
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 from keras.wrappers.scikit_learn import KerasClassifier
+import logging
 
 def default_classification_model(input_width,num_classes):
     """Default classification model
@@ -54,4 +55,5 @@ class Test_keras(unittest.TestCase):
 
         
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()

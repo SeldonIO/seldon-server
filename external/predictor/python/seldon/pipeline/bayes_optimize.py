@@ -3,6 +3,9 @@ import numpy as np
 from bayes_opt import BayesianOptimization
 from sklearn.base import BaseEstimator
 import seldon.pipeline.cross_validation as cf
+import logging
+
+logger = logging.getLogger('seldon.pipeline.bayes_optimize')
 
 class BayesOptimizer(BaseEstimator):
 
@@ -71,7 +74,7 @@ class BayesOptimizer(BaseEstimator):
         self.y = y
         bopt = BayesianOptimization(self._maximize,self.param_ranges)
         bopt.maximize()
-        print  bopt.res
+        logger.info(bopt.res)
         self.best_score = bopt.res['max']['max_val']
         params = bopt.res['max']['max_params']
         for v in self.param_int:

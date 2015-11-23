@@ -4,6 +4,9 @@ from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.base import BaseEstimator,TransformerMixin
 import logging 
 import time
+import logging
+
+logger = logging.getLogger('seldon.pipeline.tfidf_transform')
 
 class Tfidf_transform(BaseEstimator,TransformerMixin):
     """
@@ -70,19 +73,19 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         """
         self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
         self.tfidf_transformer = TfidfTransformer()
-        print "getting docs"
+        logger.info("getting docs")
         docs = df[self.input_feature].apply(self.get_tokens)
-        print "running vectorizer"
+        logger.info("running vectorizer")
         counts = self.vectorizer.fit_transform(docs.as_matrix())
-        print "run tfidf transform"
+        logger.info("run tfidf transform")
         self.tfidf = self.tfidf_transformer.fit_transform(counts)
         self.fnames = self.vectorizer.get_feature_names()
-        print "base tfidf features",len(self.fnames)
+        logger.info("base tfidf features %d",len(self.fnames))
         if self.select_features:
             self.ch2 = SelectKBest(chi2, k=self.topn_features)
             self.ch2.fit_transform(self.tfidf, df[self.target_feature])
             self.feature_names_support = set([self.fnames[i] for i in self.ch2.get_support(indices=True)])
-            print "selected tfidf features",len(self.feature_names_support)
+            logger.info("selected tfidf features %d",len(self.feature_names_support))
         return self
 
     def _create_tfidf(self,v):

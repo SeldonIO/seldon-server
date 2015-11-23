@@ -6,6 +6,7 @@ import json
 import os.path
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
+import logging
 
 class Test_wrapper(unittest.TestCase):
 
@@ -72,4 +73,5 @@ class Test_wrapper(unittest.TestCase):
         self.assertTrue(sorted(df3.columns) == sorted(["a","b"]))
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()

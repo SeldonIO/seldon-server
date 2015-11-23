@@ -14,6 +14,9 @@ from seldon.pipeline.pandas_pipelines import BasePandasEstimator
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator,ClassifierMixin
+import logging
+
+logger = logging.getLogger('seldon.vw')
 
 class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     """
@@ -85,10 +88,10 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         """
         Hack to wait for vw model to finish saving. It creates a file <model>.writing during this process
         """
-        print "waiting for ",fname
+        logger.info("waiting for %s",fname)
         time.sleep(1)
         while os.path.isfile(fname):
-            print "sleeping until model is saved"
+            logger.info("sleeping until model is saved")
             time.sleep(1)
 
     def _save_model(self,fname):
@@ -202,7 +205,7 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         if not self.vw is None:
             f=open(self.pid_file)
             for line in f:
-                print "terminating pid ",line
+                logger.info("terminating pid %s",line)
                 p = psutil.Process(int(line))
                 p.terminate()
             self.vw.close()
@@ -239,10 +242,8 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
 
     def _exclude_include_features(self,df):
         if not self.included is None:
-            print "including features ",self.included
             df = df[list(set(self.included+[self.target]).intersection(df.columns))]
         if not self.excluded is None:
-            print "excluding features",self.excluded
             df = df.drop(set(self.excluded).intersection(df.columns), axis=1)
         return df
 
@@ -275,10 +276,8 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             df_y = pd.DataFrame(y,columns=list('y'))
             self.target='y'
             df_base = pd.concat([df,df_y],axis=1)
-            print df_base.head()
 
         min_target = df_base[self.target].astype(float).min()
-        print "min target ",min_target
         if min_target == 0:
             self.zero_based = True
         else:
@@ -287,7 +286,6 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             self.create_class_id_map(df,self.target,self.target_readable,zero_based=self.zero_based)
 
         self.num_classes = len(df_base[self.target].unique())
-        print "num classes ",self.num_classes
         self._start_vw_if_needed("train")
         df_vw = df_base.apply(self._convert_row,axis=1)
         for i in range(0,self.num_iterations):
@@ -298,7 +296,7 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
 
     def _start_vw_if_needed(self,mode):
         if self.vw is None or self.vw_mode != mode:
-            print "Creating vw in mode",mode
+            logger.info("Creating vw in mode %s",mode)
             if not self.vw is None:
                 self.close()
             if mode == "test":
@@ -307,7 +305,7 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29743,num_children=1,i=self.model_file,raw_predictions=self.raw_predictions_file,t=True)
             else:
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29742,num_children=1,oaa=self.num_classes,**self.vw_args)
-            print self.vw.command
+            logger.info(self.vw.command)
             self.vw_mode = mode
 
 

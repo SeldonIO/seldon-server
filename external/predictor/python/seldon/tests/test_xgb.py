@@ -5,6 +5,7 @@ import numpy as np
 import sys
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
+import logging
 
 class Test_xgb(unittest.TestCase):
 
@@ -70,5 +71,6 @@ class Test_xgb(unittest.TestCase):
 
         
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()
 

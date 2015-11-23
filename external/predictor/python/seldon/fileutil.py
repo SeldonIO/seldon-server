@@ -9,6 +9,9 @@ from shutil import copyfile
 import os
 import math
 from filechunkio import FileChunkIO
+import logging
+
+logger = logging.getLogger('seldon.fileutil')
 
 class FileUtil:
     """utilities to input and output files. Locally or from AWS S3.
@@ -97,7 +100,7 @@ class FileUtil:
             fromPath (str): local from path to copy all files under
             toPath (str): local destination folder (will be created if does not exist)
         """
-        print "copy ",fromPath,"to",toPath
+        logger.info("copy %s to %s",fromPath,toPath)
         if os.path.isfile(fromPath):
             dir = os.path.dirname(toPath)
             if len(dir) > 0 and not os.path.exists(dir):
@@ -109,7 +112,7 @@ class FileUtil:
             for f in glob.glob(fromPath+"/*"):
                 basename = os.path.basename(f)
                 fnew = toPath+"/"+basename
-                print "copying ",f,"to",fnew
+                logger.info("copying %s to %s",f,fnew)
                 copyfile(f,fnew)
 
     def stream_s3(self,bucket,prefix,fn):
@@ -126,7 +129,6 @@ class FileUtil:
             self.conn = boto.connect_s3()
         b = self.conn.get_bucket(bucket)
         for k in b.list(prefix=prefix):
-            print k.name
             if k.name.endswith(".gz"):
                 self.stream_gzip(k,fn)
             else:
@@ -145,12 +147,11 @@ class FileUtil:
             self.conn = boto.connect_s3(self.key,self.secret)
         else:
             self.conn = boto.connect_s3()
-        print fromPath, bucket, path
         b = self.conn.get_bucket(bucket)
         source_size = os.stat(fromPath).st_size
         # Create a multipart upload request
         uploadPath = path
-        print "uploading to bucket ",bucket," path ",uploadPath
+        logger.info("uploading to bucket %s path %s",bucket,uploadPath)
         mp = b.initiate_multipart_upload(uploadPath)
         chunk_size = 10485760
         chunk_count = int(math.ceil(source_size / float(chunk_size)))
@@ -158,10 +159,10 @@ class FileUtil:
             offset = chunk_size * i
             bytes = min(chunk_size, source_size - offset)
             with FileChunkIO(fromPath, 'r', offset=offset,bytes=bytes) as fp:
-                print "uploading to s3 chunk ",(i+1),"/",chunk_count
+                logger.info("uploading to s3 chunk %d/%d",(i+1),chunk_count)
                 mp.upload_part_from_file(fp, part_num=i + 1)
         # Finish the upload
-        print "completing transfer to s3"
+        logger.info("completing transfer to s3")
         mp.complete_upload()
 
     
@@ -191,14 +192,14 @@ class FileUtil:
         else:
             isS3 = False
         if isS3:
-            print "AWS S3 input path ",inputPath
+            logger.info("AWS S3 input path %s",inputPath)
             parts = inputPath.split('/')
             bucket = parts[0]
             prefix = inputPath[len(bucket)+1:]
             self.stream_s3(bucket,prefix,fn)
         else:
             folders = [inputPath+"/*"]
-            print "local input folders: ",folders
+            logger.info("local input folders: %s",folders)
             self.stream_local(folders,fn)
 
     def upload_s3(self,fromPath,toPath):
@@ -221,7 +222,7 @@ class FileUtil:
             for f in glob.glob(fromPath+"/*"):
                 basename = os.path.basename(f)
                 fnew = opath+"/"+basename
-                print "copying ",f,"to",fnew
+                logger.info("copying %s to %s",f,fnew)
                 self.copy_s3_file(f,bucket,fnew)
 
     def download_s3(self,fromPath,toPath):
@@ -242,12 +243,11 @@ class FileUtil:
             self.conn = boto.connect_s3(self.key,self.secret)
         else:
             self.conn = boto.connect_s3()
-        print bucket, s3path, toPath
         b = self.conn.get_bucket(bucket)
         for k in b.list(prefix=s3path):
             basename = os.path.basename(k.name)
             fnew = toPath+"/"+basename
-            print "copying ",k.name,"to",fnew
+            logger.info("copying %s to %s",k.name,fnew)
             k.get_contents_to_filename(fnew)
 
 
@@ -274,9 +274,9 @@ class FileUtil:
             if os.path.isdir(toPath):
                 self.download_s3(fromPath,toPath)
             else:
-                print "Local destination folder must exist :",toPath
+                logger.error("Local destination folder must exist :%s",toPath)
         else:
-            print "can't copy from s3 to s3"
+            logger.warn("can't copy from s3 to s3")
             
 
         

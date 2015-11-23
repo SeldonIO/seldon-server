@@ -12,6 +12,9 @@ import io
 from sklearn.utils import check_X_y
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator,ClassifierMixin
+import logging
+
+logger = logging.getLogger('seldon.xgb')
 
 class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     """
@@ -126,7 +129,7 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     def _load_from_svmlight(self,df):
         """Load data from dataframe with dict of id:val into numpy matrix
         """
-        print "loading from dictionary feature"
+        logger.info("loading from dictionary feature")
         df_svm = df.apply(self._to_svmlight,axis=1)
         output = io.BytesIO()
         df_svm.to_csv(output,index=False,header=False)
@@ -178,7 +181,7 @@ class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
                                      reg_alpha=self.reg_alpha, reg_lambda=self.reg_lambda, 
                                      scale_pos_weight=self.scale_pos_weight,
                                      base_score=self.base_score, seed=self.seed, missing=self.missing)
-        print self.clf.get_params(deep=True)
+        logger.info(self.clf.get_params(deep=True))
         self.clf.fit(X,y,verbose=True)
         return self
 

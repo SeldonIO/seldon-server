@@ -2,7 +2,7 @@ import unittest
 from .. import cross_validation as cf
 import seldon.xgb as xgb
 import pandas as pd
-
+import logging
 
 
 class Test_kfolds(unittest.TestCase):
@@ -23,5 +23,6 @@ class Test_kfolds(unittest.TestCase):
 
         
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()
 

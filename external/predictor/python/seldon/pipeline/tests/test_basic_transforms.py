@@ -3,6 +3,8 @@ from .. import basic_transforms as bt
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
+import logging
+
 
 class Test_binary_transform(unittest.TestCase):
 
@@ -157,4 +159,5 @@ class Test_feature_id_transform(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()

@@ -4,6 +4,7 @@ from seldon import vw
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
+import logging
 
 class Test_vw(unittest.TestCase):
 
@@ -181,5 +182,6 @@ class Test_vw(unittest.TestCase):
 
         
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     unittest.main()
 

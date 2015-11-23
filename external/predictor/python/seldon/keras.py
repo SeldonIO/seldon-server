@@ -15,12 +15,15 @@ from sklearn.base import BaseEstimator,ClassifierMixin
 from keras.utils.np_utils import to_categorical
 from keras.models import model_from_json
 import copy
+import logging
+
+logger = logging.getLogger('seldon.keras')
 
 def default_classification_model(input_width,num_classes):
     """Default classification model
     """
     model = Sequential()                         
-    print "input width=",input_width
+    logger.info("input width=%d",input_width)
     model.add(Dense(5, init='uniform',input_dim=input_width))
     model.add(Activation('tanh'))
     model.add(Dropout(0.5))
@@ -146,8 +149,8 @@ class KerasClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
 
         input_width = X.shape[1]
         num_classes = len(y.unique())
-        print "input_width",input_width
-        print "num_classes",num_classes
+        logger.info("input_width %d",input_width)
+        logger.info("num_classes %d",num_classes)
         train_y = np_utils.to_categorical(y, num_classes)
         self.model = self.model_create(input_width,num_classes)
 

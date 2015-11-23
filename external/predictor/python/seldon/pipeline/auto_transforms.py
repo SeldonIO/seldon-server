@@ -7,6 +7,9 @@ import pandas as pd
 import math
 import itertools
 from sklearn.base import BaseEstimator,TransformerMixin
+import logging
+
+logger = logging.getLogger('seldon.pipeline.auto_transforms')
 
 class Auto_transform(BaseEstimator,TransformerMixin):
     """
@@ -130,13 +133,13 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             try:
                 return pd.to_datetime(df[col])
             except:
-                print "failed default conversion "
+                logger.info("failed default conversion ")
                 pass
             for f in self.custom_date_formats:
                 try:
                     return pd.to_datetime(df[col],format=f)
                 except:
-                    print "failed custom conversion ",f
+                    logger.info("failed custom conversion %s",f)
                     pass
             return None
         else:
@@ -168,7 +171,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                 if not self.nan_threshold is None:
                     num_nan = len(df) - df[col].count()
                     if num_nan > max_nan:
-                        print "adding ",col,"to drop columns",num_nan,max_nan
+                        logger.info("adding %s to drop columns %d %d",col,num_nan,max_nan)
                         self.drop_cols.append(col)
                         continue
                 if not self.ignore_vals is None:
@@ -184,7 +187,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                     self.convert_bool.append(col)
                 elif df[col].dtype in numerics:
                     if len(cat_counts) > self.max_values_numeric_categorical and not col in self.force_categorical:
-                        print "fitting scaler for col ",col
+                        logger.info("fitting scaler for col %s",col)
                         dfs = df[col].dropna()
                         if dfs.shape[0] > 0:
                             arr = dfs.astype(float).values.reshape(-1,1)
@@ -206,19 +209,18 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                 date_converted = self._convert_to_date(df,col)
                 if not date_converted is None:
                     dates_converted[col] = date_converted
-            print dates_converted.columns
             if len(dates_converted.columns)>1:
                 for (col1,col2) in itertools.combinations(dates_converted.columns, 2):
-                    print "training date diff scaler for ",col1,col2
+                    logger.info("training date diff scaler for %s %s",col1,col2)
                     d_diff = dates_converted[col1] - dates_converted[col2]
                     d_diff = (d_diff / np.timedelta64(1, 'D')).astype(float)
                     self.date_diff_scalers[col1+"_"+col2] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(arr)
-        print "num columns to drop ",len(self.drop_cols)
-        print "num scalers",len(self.scalers)
-        print "num categorical ",len(self.convert_categorical)
-        print "num dates",len(self.convert_date)
-        print "num date diffs",len(self.date_diff_scalers)
-        print "num bool",len(self.convert_bool)
+        logger.info("num columns to drop %d",len(self.drop_cols))
+        logger.info("num scalers %d",len(self.scalers))
+        logger.info("num categorical %d",len(self.convert_categorical))
+        logger.info("num dates %d",len(self.convert_date))
+        logger.info("num date diffs %d",len(self.date_diff_scalers))
+        logger.info("num bool %d",len(self.convert_bool))
         return self
 
     def transform(self,df):
@@ -241,7 +243,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         num_bools  = len(self.convert_bool)
         for col in self.convert_bool:
             c += 1
-            print "convert bool",col,c,"/",num_bools
+            logger.info("convert bool %s %d/%d",col,c,num_bools)
             df[col] = df[col].apply(str).apply(str.lower)
             df[col] = df[col].map(self.bool_map)
         c = 0
@@ -249,30 +251,30 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         dates_converted = []
         for col in self.convert_date:
             c += 1
-            print "convert date ",col,c,"/",num_dates,df[col].dtype
+            logger.info("convert date %s %d/%d %s",col,c,num_dates,df[col].dtype)
             date_converted = self._convert_to_date(df,col)
             if not date_converted is None:
-                print "successfully converted ",col," to date"
+                logger.info("successfully converted %s to date",col)
                 df[col] = date_converted
                 dates_converted.append(col)
             if df[col].dtype == 'datetime64[ns]':
                 if self.date_transforms[0]:
-                    print "creating hour features"
+                    logger.info("creating hour features")
                     df = pd.concat([df,df[col].apply(self._create_hour_features,col=col)],axis=1)
                 if self.date_transforms[1]:
-                    print "creating month features"
+                    logger.info("creating month features")
                     df = pd.concat([df,df[col].apply(self._create_month_features,col=col)],axis=1)
                 if self.date_transforms[2]:                    
-                    print "creating day of week features"
+                    logger.info("creating day of week features")
                     df = pd.concat([df,df[col].apply(self._create_dayofweek_features,col=col)],axis=1)
                 if self.date_transforms[3]:                    
-                    print "creating year features"
+                    logger.info("creating year features")
                     df = pd.concat([df,df[col].apply(self._create_year_features,col=col)],axis=1)
             else:
-                print "warning - failed to convert to date col ",col
+                logger.info("warning - failed to convert to date col %s",col)
         if self.create_date_differences and len(dates_converted) > 1:
             for (col1,col2) in itertools.combinations(dates_converted, 2):
-                print "diff scaler for ",col1,col2
+                logger.info("diff scaler for %s %s",col1,col2)
                 col_name = col1+"_"+col2
                 df[col_name] = df[col1] - df[col2]
                 df[col_name] = (df[col_name] / np.timedelta64(1, 'D')).astype(float)
@@ -285,7 +287,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             if not self.ignore_vals is None:
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
-            print "convert categorical ",col,c,"/",num_cats
+            logger.info("convert categorical %s %d/%d ",col,c,num_cats)
             df[col] = df[col].apply(self._make_cat,col=col)
         num_scalers = len(self.scalers)
         c = 0
@@ -293,7 +295,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             if not self.ignore_vals is None:
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
             c += 1
-            print "scaling col ",col,c,"/",num_scalers
+            logger.info("scaling col %s %d/%d",col,c,num_scalers)
             df[col] = df[col].apply(self._scale,col=col)
         return df
 
