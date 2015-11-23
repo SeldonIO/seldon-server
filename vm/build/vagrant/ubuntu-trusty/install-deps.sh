@@ -21,6 +21,7 @@ export INSTALL_DEPS_TOMCAT_HOME=/home/vagrant/apps/tomcat
 export INSTALL_DEPS_SPARK_HOME=/home/vagrant/apps/spark
 export INSTALL_DEPS_SELDON_SERVER_HOME=/home/vagrant/seldon-server
 export INSTALL_DEPS_VM_USER=vagrant
+export INSTALL_DEPS_ANACONDA_HOME=/home/vagrant/anaconda2
 
 ###############################################################################
 # Clone the "seldon-server" project
@@ -36,6 +37,8 @@ ${INSTALL_DEPS_DIR}/install-locale.sh
 ${INSTALL_DEPS_DIR}/install-linux-image-extra.sh
 ${INSTALL_DEPS_DIR}/install-docker.sh
 ${INSTALL_DEPS_DIR}/install-vim.sh
+${INSTALL_DEPS_DIR}/install-vim-config.sh
+${INSTALL_DEPS_DIR}/install-tmux-config.sh
 ${INSTALL_DEPS_DIR}/install-jdk7.sh
 ${INSTALL_DEPS_DIR}/install-tomcat.sh
 ${INSTALL_DEPS_DIR}/install-spark.sh

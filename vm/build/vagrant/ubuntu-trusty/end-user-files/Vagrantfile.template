@@ -5,6 +5,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "%VMBOX_NAME%"
   config.vm.box_url = "http://%VMBOX_S3_BUCKET%/%VMBOX_NAME%/%VMBOX_NAME%_vagrant.json"
   config.vm.network "forwarded_port", guest: 8080, host: 8080
+  config.vm.network "forwarded_port", guest: 8888, host: 8888
 
   config.vm.provider "virtualbox" do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
