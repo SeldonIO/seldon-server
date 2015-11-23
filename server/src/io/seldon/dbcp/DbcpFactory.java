@@ -182,7 +182,7 @@ public class DbcpFactory implements DbcpPoolHandler,GlobalConfigUpdateListener {
 		public String driverClassName = "com.mysql.jdbc.ReplicationDriver";
 		public String user = "user1";
 		public String password = "mypass";
-		public Integer maxTotal = 600;
+		public Integer maxTotal = 200;
 		public Integer maxIdle = 5;
 		public Integer minIdle = 0;
 		public Integer maxWait = 20000;
