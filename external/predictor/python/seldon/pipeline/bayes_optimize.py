@@ -47,7 +47,7 @@ class BayesOptimizer(BaseEstimator):
     def get_best_score(self):
         return self.best_score
 
-    def _maximize(self,**params):
+    def score(self,**params):
         for v in self.param_int:
             params[v] = int(params[v])
         self.clf.set_params(**params)
@@ -72,7 +72,7 @@ class BayesOptimizer(BaseEstimator):
         """
         self.X = X
         self.y = y
-        bopt = BayesianOptimization(self._maximize,self.param_ranges)
+        bopt = BayesianOptimization(self.score,self.param_ranges)
         bopt.maximize()
         logger.info(bopt.res)
         self.best_score = bopt.res['max']['max_val']
