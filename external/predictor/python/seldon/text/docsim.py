@@ -61,7 +61,7 @@ class DefaultJsonCorpus(TextCorpus):
                 line = line.rstrip()
                 j = json.loads(line)
                 m = {}
-                m["id"] = j["id"]
+                m["id"] = long(j["id"])
                 m["title"] = j["title"]
                 m['tags'] = j['tags']
                 m['corpus_seq_id'] = doc_id

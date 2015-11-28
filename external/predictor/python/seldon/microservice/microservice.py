@@ -1,9 +1,11 @@
 from flask import Flask
 from seldon.microservice.predict import predict_blueprint
+from seldon.microservice.recommend import recommend_blueprint
+import seldon
 from sklearn.pipeline import Pipeline
 import seldon.pipeline.util as sutl
 import random
-
+import pylibmc
 
 class Microservices(object):
 
@@ -22,8 +24,24 @@ class Microservices(object):
         app.config["seldon_pipeline"] = pipeline
         app.config["seldon_model_name"] = model_name
  
-        # add your modules
         app.register_blueprint(predict_blueprint)
+
+        # other setup tasks
+        return app
+
+    def create_recommendation_microservice(self,recommender_folder,memcache_servers=None,memcache_pool_size=2):
+        app = Flask(__name__)
+
+        if not memcache_servers is None:
+            mc = pylibmc.Client(memcache_servers)
+            _mc_pool = pylibmc.ClientPool(mc, memcache_pool_size)
+            app.config["seldon_memcache"] = _mc_pool
+            
+        rw = seldon.Recommender_wrapper()
+        recommender = rw.load_recommender(recommender_folder)
+        app.config["seldon_recommender"] = recommender
+ 
+        app.register_blueprint(recommend_blueprint)
 
         # other setup tasks
         return app
