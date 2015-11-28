@@ -17,6 +17,7 @@ import glob
 import shutil
 import operator
 from collections import defaultdict
+import copy
 
 logger = logging.getLogger('seldon.text')
 
@@ -25,29 +26,54 @@ def jaccard(s1,s2):
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
-class DefaultJsonCorpus(TextCorpus):
+class DefaultJsonCorpus(object):
     """
-    A default JSON corpus that inherits from gensim TextCorpus. It assumes a file as input.
+    A default JSON corpus based on gensim TextCorpus. It assumes a file or list of JSON as input.
     The methods provided by gensim TextCorpus are needed for the GenSim training.
     Any corpus provided to DocumentSimilarity should provide the methods given in this class.
     """
     def __init__(self, input=None):
-        super(DefaultJsonCorpus, self).__init__(input)
+        super(DefaultJsonCorpus, self).__init__()
+        self.input = input
+        self.dictionary = Dictionary()
+        self.metadata = False
+        self.dictionary.add_documents(self.get_texts())
 
+
+    def __iter__(self):
+        for text in self.get_texts():
+            yield self.dictionary.doc2bow(text, allow_update=False)
+
+    def getstream(self):
+        return utils.file_or_filename(self.input)
+
+    def __len__(self):
+        if not hasattr(self, 'length'):
+            # cache the corpus length
+            self.length = sum(1 for _ in self.get_texts())
+        return self.length
+
+    def get_json(self):
+        if isinstance(self.input,list):
+            for j in self.input:
+                yield j
+        else:
+            with self.getstream() as lines:
+                for line in lines:
+                    line = line.rstrip()
+                    j = json.loads(line)
+                    yield j
 
     def get_texts(self,raw=False):
         """
         yield raw text or tokenized text
         """
-        with self.getstream() as lines:
-            for lineno, line in enumerate(lines):
-                line = line.rstrip()
-                j = json.loads(line)
-                text = j["text"]
-                if raw:
-                    yield text
-                else:
-                    yield utils.tokenize(text, deacc=True, lowercase=True)
+        for j in self.get_json():
+            text = j["text"]
+            if raw:
+                yield text
+            else:
+                yield utils.tokenize(text, deacc=True, lowercase=True)
 
     def get_meta(self):
         """
@@ -56,17 +82,12 @@ class DefaultJsonCorpus(TextCorpus):
         optional title and tags. Tags will be used as base truth used to score document similarity results.
         """
         doc_id = 0
-        with self.getstream() as lines:
-            for lineno, line in enumerate(lines):
-                line = line.rstrip()
-                j = json.loads(line)
-                m = {}
-                m["id"] = long(j["id"])
-                m["title"] = j["title"]
-                m['tags'] = j['tags']
-                m['corpus_seq_id'] = doc_id
-                doc_id += 1
-                yield m
+        for j in self.get_json():
+            m = copy.deepcopy(j)
+            m['id'] = long(m['id'])
+            m['corpus_seq_id'] = doc_id
+            doc_id += 1
+            yield m
 
     def get_dictionary(self):
         return self.dictionary
@@ -103,6 +124,25 @@ class DocumentSimilarity(Recommender):
         self.sklearn_tfidf_args = sklearn_tfidf_args
         self.sklearn_nmf_args = sklearn_nmf_args
         self.work_folder=work_folder
+
+    def __getstate__(self):
+        """
+        Remove things that should not be pickled
+        """
+        result = self.__dict__.copy()
+        del result['index']
+        del result['index_annoy']
+        del result['seq2meta']
+        del result['id2meta']
+        return result
+
+    def __setstate__(self, dict):
+        """
+        Add thread based variables when creating
+        """
+        self.__dict__ = dict
+        
+
 
     def create_gensim_model(self,corpus):
         """
@@ -269,7 +309,6 @@ class DocumentSimilarity(Recommender):
         """        
         if translate_id:
             doc_id_internal = self.id2meta[doc_id]['corpus_seq_id']
-            print "doc_id=",doc_id_internal," from ",doc_id
         else:
             doc_id_internal = doc_id
         k += 1

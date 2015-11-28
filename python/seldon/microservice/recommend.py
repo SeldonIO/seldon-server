@@ -60,12 +60,10 @@ def memcache_get(key):
 @recommend_blueprint.route('/recommend',methods=['GET','POST'])
 def do_recommend():
     input = extract_input()
-    print input
 
     data_set = set()
     for data_key in input['data_keys_list']:
         raw_data = memcache_get(data_key)
-        print raw_data
         raw_data = raw_data if raw_data != None else '[]'
         data_set |= get_data_set(raw_data)
 
