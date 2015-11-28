@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN \
     apt-get update && \
-    apt-get -y -q install build-essential automake autoconf libxmu-dev g++ gcc libpthread-stubs0-dev libtool libboost-program-options-dev libboost-python-dev zlib1g-dev libc6 libgcc1 libstdc++6 libblas-dev liblapack-dev git telnet procps
+    apt-get -y -q install build-essential automake autoconf libxmu-dev g++ gcc libpthread-stubs0-dev libtool libboost-program-options-dev libboost-python-dev zlib1g-dev libc6 libgcc1 libstdc++6 libblas-dev liblapack-dev git telnet procps memcached libmemcached-dev
 
 RUN cd /usr/local/src && mkdir xgboost && cd xgboost && \
     git clone https://github.com/dmlc/xgboost.git && cd xgboost && \
@@ -24,7 +24,7 @@ RUN cd /usr/local/src; git clone https://github.com/seldonio/wabbit_wappa.git  ;
 
 RUN cd /usr/local/src;wget http://osmot.cs.cornell.edu/kddcup/perf/perf.src.tar.gz;tar xvf perf.src.tar.gz;rm perf.src.tar.gz;mv perf.src perf;cd perf;make -B perf;make install
 
-RUN pip install kazoo filechunkio Flask gunicorn
+RUN pip install kazoo filechunkio Flask gunicorn pylibmc
 
 # keras
 

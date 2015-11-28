@@ -1,4 +1,4 @@
-FROM seldonio/pipelines
+FROM seldonio/pyseldon
 
 ADD ./pipeline /pipeline
 

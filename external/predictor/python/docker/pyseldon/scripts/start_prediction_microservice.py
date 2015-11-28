@@ -1,4 +1,5 @@
 import sys, getopt, argparse
+from seldon.microservice import Microservices
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='microservice')
@@ -10,11 +11,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     opts = vars(args)
 
-    f = open('server_config.py',"w")
-    f.write("PIPELINE='"+args.pipeline+"'\n")
-    f.write("MODEL='"+args.model_name+"'\n")
-    if not args.aws_key is None:
-        f.write("AWS_KEY='"+args.aws_key+"'\n")
-        f.write("AWS_SECRET='"+args.aws_secret+"'\n")
-    f.close()
+    m = Microservices(aws_key=args.aws_key,aws_secret=args.aws_secret)
+    app = m.create_prediction_microservice(args.pipeline,args.model_name)
+    app.run(host="0.0.0.0", debug=True)
+
 
