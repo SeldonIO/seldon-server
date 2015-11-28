@@ -1,5 +1,6 @@
 from gensim.models.doc2vec import LabeledSentence
 import gensim
+from seldon import Recommender
 from gensim.corpora.textcorpus import TextCorpus
 from gensim import interfaces, utils
 from six import string_types
@@ -12,6 +13,10 @@ from nltk.corpus import stopwords
 import logging
 import scipy
 import time
+import glob
+import shutil
+import operator
+from collections import defaultdict
 
 logger = logging.getLogger('seldon.text')
 
@@ -68,7 +73,7 @@ class DefaultJsonCorpus(TextCorpus):
 
 
 
-class DocumentSimilarity(object):
+class DocumentSimilarity(Recommender):
 
     """
 
@@ -86,7 +91,7 @@ class DocumentSimilarity(object):
     sklear_nmf_args : dict, optional
        args to pass to sklearn NMF model
     """
-    def __init__(self,model_type='gensim_lsi',vec_size=100,annoy_trees=100,sklearn_tfidf_args={'stop_words':"english"},sklearn_nmf_args={"random_state":1,"alpha":.1,"l1_ratio":.5}):
+    def __init__(self,model_type='gensim_lsi',vec_size=100,annoy_trees=100,work_folder="/tmp",sklearn_tfidf_args={'stop_words':"english"},sklearn_nmf_args={"random_state":1,"alpha":.1,"l1_ratio":.5}):
         if not (model_type == 'gensim_lsi' or model_type == 'gensim_lda' or model_type == 'gensim_rp' or model_type == 'sklearn_nmf'):
             raise ValueError("Unknown model type")
         self.model_type=model_type
@@ -97,6 +102,7 @@ class DocumentSimilarity(object):
         self.meta_output_prefix = "meta"
         self.sklearn_tfidf_args = sklearn_tfidf_args
         self.sklearn_nmf_args = sklearn_nmf_args
+        self.work_folder=work_folder
 
     def create_gensim_model(self,corpus):
         """
@@ -169,7 +175,7 @@ class DocumentSimilarity(object):
         else:
             model = self.create_gensim_model(corpus)
 
-        self.index = similarities.Similarity(None,model,self.vec_size)
+        self.index = similarities.Similarity(self.work_folder+"/gensim_index",model,self.vec_size)
         self.index_annoy = annoy.AnnoyIndex(self.vec_size, metric='angular')
         for i, vec in enumerate(model):
             self.index_annoy.add_item(i, list(gensim.matutils.sparse2full(vec, self.vec_size).astype(float)))
@@ -190,6 +196,11 @@ class DocumentSimilarity(object):
 
         folder : saved location folder
         """
+        self.index.close_shard()
+        for f in glob.glob(self.work_folder+"/gensim_index*"):
+            shutil.move(f, folder)
+        self.index.output_prefix=folder+"/gensim_index"
+        self.index.check_moved()
         self.index.save(folder+"/"+self.gensim_output_prefix)
         self.index_annoy.save(folder+"/"+self.annoy_output_prefix)
         fout = codecs.open(folder+"/"+self.meta_output_prefix, "w", "utf-8")
@@ -225,6 +236,19 @@ class DocumentSimilarity(object):
             if not doc_id == query_id:
                 transformed.append((doc_id,score))
         return transformed
+
+    def recommend(self,user=None,ids=[],recent_interactions=[],client=None,limit=1):
+        if ids is None or len(ids) == 0:
+            scores = defaultdict(float)
+            for doc_id in recent_interactions:
+                doc_scores = self.nn(doc_id,k=limit*10,translate_id=True,approx=True)
+                for (doc_id,score) in doc_scores:
+                    scores[doc_id] += score
+            sorted_x = sorted(scores.items(), key=operator.itemgetter(1))
+            sorted_x = sorted_x[::-1]
+            return sorted_x[:limit]
+        else:
+            return []
 
     def nn(self,doc_id,k=1,translate_id=False,approx=False):
         """
