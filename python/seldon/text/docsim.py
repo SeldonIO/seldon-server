@@ -341,6 +341,9 @@ class DocumentSimilarity(Recommender):
         else:
             return self._remove_query_doc(doc_id_internal,sims)
             
+    def get_meta(self,doc_id):
+        return self.id2meta[doc_id]
+
 
     def score(self,k=1,approx=False):
         """
@@ -384,3 +387,5 @@ class DocumentSimilarity(Recommender):
         accuracy = score_sum/float(num_docs)
         logger.info("accuracy: %f time: %d secs avg_call_time: %f",accuracy,duration_secs,duration_per_call)
         return accuracy
+
+
