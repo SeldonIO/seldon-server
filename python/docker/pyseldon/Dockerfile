@@ -36,6 +36,14 @@ RUN cd /usr/local/src && mkdir keras && cd keras && \
 
 RUN cd /ur/local/src; git clone https://github.com/fmfn/BayesianOptimization ; cd BayesianOptimization ; python setup.py install
 
+# ensure latest sklearn
+
+RUN pip install sklearn --upgrade
+
+# ensure latest pandas
+
+RUN pip install pandas --upgrade
+
 ADD ./python-modules /python-modules/seldon
 
 ENV PYTHONPATH $PYTHONPATH:/python-modules
