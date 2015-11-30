@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 
 setup(name='seldon',
-      version='1.3',
+      version='1.3.1',
       description='Seldon Python Utilities',
       author='Clive Cox',
       author_email='support@seldon.io',
@@ -13,5 +13,5 @@ setup(name='seldon',
       dependency_links = [
           'https://github.com/SeldonIO/wabbit_wappa/archive/3.0.2.zip#egg=wabbit-wappa-3.0.2'
       ],
-      packages=['seldon', 'seldon.pipeline'],
+      packages=['seldon', 'seldon.pipeline', 'seldon.microservice', 'seldon.text'],
       )
