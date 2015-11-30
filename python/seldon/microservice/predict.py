@@ -19,6 +19,15 @@ def extract_input():
 
 @predict_blueprint.route('/predict',methods=['GET','POST'])
 def do_predict():
+    """
+    prediction endpoint
+
+    - get recommeder from Flask app config
+    - create dataframe from JSON in call
+    - call prediction pipeline 
+    - get class id mapping
+    - construct result
+    """
     input = extract_input()
     print input
     pw = current_app.config["seldon_pipeline_wrapper"]

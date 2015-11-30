@@ -59,6 +59,15 @@ def memcache_get(key):
 
 @recommend_blueprint.route('/recommend',methods=['GET','POST'])
 def do_recommend():
+    """
+    recommendation endpoint
+
+    - extract parameters from call
+    - extract items to score from any data keys provided
+    - get recommender from Flask app config
+    - call recommender
+    - construct JSON response
+    """
     input = extract_input()
 
     data_set = set()

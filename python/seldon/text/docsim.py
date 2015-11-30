@@ -107,6 +107,8 @@ class DocumentSimilarity(Recommender):
        vector size of model
     annoy_trees : int
        number of trees to create for Annoy approx nearest neighbour
+    work_folder : str
+       folder for tmp files
     sklearn_tfidf_args : dict, optional
        args to pass to sklearn TfidfVectorizer
     sklear_nmf_args : dict, optional
@@ -127,7 +129,7 @@ class DocumentSimilarity(Recommender):
 
     def __getstate__(self):
         """
-        Remove things that should not be pickled
+        Remove things that should not be pickled as they are handled in save/load
         """
         result = self.__dict__.copy()
         del result['index']
@@ -137,9 +139,6 @@ class DocumentSimilarity(Recommender):
         return result
 
     def __setstate__(self, dict):
-        """
-        Add thread based variables when creating
-        """
         self.__dict__ = dict
         
 
@@ -148,8 +147,8 @@ class DocumentSimilarity(Recommender):
         """
         Create a gensim model
 
-        inputs
-        ------
+        Parameters
+        ----------
 
         corpus : an object that satisfies a gensim TextCorpus
 
@@ -176,10 +175,11 @@ class DocumentSimilarity(Recommender):
         """
         Create a sklearn model
 
-        inputs
-        ------
+        Parameters
+        ----------
 
-        corpus : a corpus object that has get_text(raw=True) method
+        corpus : object 
+           a corpus object that has get_text(raw=True) method
 
         Returns
         -------
@@ -200,10 +200,11 @@ class DocumentSimilarity(Recommender):
         """
         Fit a document similarity model
 
-        inputs
-        ------
+        Parameters
+        ----------
 
-        corpus : a corpus object that follows DefaultJsonCorpus
+        corpus : object
+           a corpus object that follows DefaultJsonCorpus
 
         Returns
         -------
@@ -231,10 +232,11 @@ class DocumentSimilarity(Recommender):
         """
         save models to folder
 
-        inputs
-        ------
+        Parameters
+        ----------
 
-        folder : saved location folder
+        folder : str
+           saved location folder
         """
         self.index.close_shard()
         for f in glob.glob(self.work_folder+"/gensim_index*"):
@@ -253,10 +255,11 @@ class DocumentSimilarity(Recommender):
         """
         load models from folder
 
-        inputs
-        ------
+        Parameters
+        ----------
 
-        folder : location of models
+        folder : str
+           location of models
         """
         self.index =  similarities.Similarity.load(folder+"/"+self.gensim_output_prefix)
         self.index_annoy = annoy.AnnoyIndex(self.vec_size)
@@ -294,13 +297,17 @@ class DocumentSimilarity(Recommender):
         """
         nearest neighbour query
 
-        inputs
-        ------
+        Parameters
+        ----------
 
-        doc_id : internal or external document id
-        k : number of neighbours to return
-        translate_id : translate doc_id into internal id
-        approx : run approx nearest neighbour search using Annoy
+        doc_id : long
+           internal or external document id
+        k : int
+           number of neighbours to return
+        translate_id : bool
+           translate doc_id into internal id
+        approx : bool
+           run approx nearest neighbour search using Annoy
 
         Returns
         -------
@@ -339,11 +346,13 @@ class DocumentSimilarity(Recommender):
         """
         score a model
 
-        inputs
-        ------
+        Parameters
+        ----------
 
-        k : number of neighbours to return
-        approx : run approx nearest neighbour search using Annoy
+        k : int
+           number of neighbours to return
+        approx : bool
+           run approx nearest neighbour search using Annoy
 
         Returns
         -------

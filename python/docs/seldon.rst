@@ -5,8 +5,10 @@ Subpackages
 -----------
 
 .. toctree::
-
-    seldon.pipeline
+   
+   seldon.microservice
+   seldon.pipeline
+   seldon.text
 
 Submodules
 ----------
@@ -31,6 +33,15 @@ seldon.sklearn_estimator module
 -------------------------------
 
 .. automodule:: seldon.sklearn_estimator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+seldon.util module
+------------------
+
+.. automodule:: seldon.util
     :members:
     :undoc-members:
     :show-inheritance:

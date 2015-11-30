@@ -8,12 +8,30 @@ import random
 import pylibmc
 
 class Microservices(object):
+    """
+    Allow creation of predict and recommender microservices
 
+    aws_key : str, optional
+       aws key
+    aws_secret : str, optional
+       aws secret
+    """
     def __init__(self,aws_key=None,aws_secret=None):
         self.aws_key = aws_key
         self.aws_secret = aws_secret
 
     def create_prediction_microservice(self,pipeline_folder,model_name):
+        """
+        Create a prediction Flask microservice app
+
+        Parameters
+        ----------
+
+        pipeline_folder : str
+           location of pipeline
+        model_name : str
+           model name to use for this pipeline
+        """
         app = Flask(__name__)
                    
         rint = random.randint(1,999999)
@@ -30,6 +48,19 @@ class Microservices(object):
         return app
 
     def create_recommendation_microservice(self,recommender_folder,memcache_servers=None,memcache_pool_size=2):
+        """
+        create recommedation Flask microservice app
+
+        Parameters
+        ----------
+
+        recommender_folder : str
+           location of recommender model files
+        memcache_servers : comma separated string, optional
+           memcache server locations, e.g., 127.0.0.1:11211 
+        memcache_pool_size : int, optional
+           size of memcache pool
+        """
         app = Flask(__name__)
 
         if not memcache_servers is None:

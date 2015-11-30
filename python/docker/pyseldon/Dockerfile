@@ -24,7 +24,7 @@ RUN cd /usr/local/src; git clone https://github.com/seldonio/wabbit_wappa.git  ;
 
 RUN cd /usr/local/src;wget http://osmot.cs.cornell.edu/kddcup/perf/perf.src.tar.gz;tar xvf perf.src.tar.gz;rm perf.src.tar.gz;mv perf.src perf;cd perf;make -B perf;make install
 
-RUN pip install kazoo filechunkio Flask gunicorn pylibmc
+RUN pip install kazoo filechunkio Flask gunicorn pylibmc gensim annoy
 
 # keras
 
