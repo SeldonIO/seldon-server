@@ -9,10 +9,10 @@ import copy
 class Test_docsim(unittest.TestCase):
 
     def get_docs(self):
-        return [{"id":"d1","text":"an article about sports and football, Arsenel, Liverpool","tags":"football"},
-                {"id":"d2","text":"an article about football and finance, Liverpool, Arsenel","tags":"football"},
-                {"id":"d3","text":"an article about money and lending","tags":"money"},
-                {"id":"d3","text":"an article about money and banking and lending","tags":"money"}]
+        return [{"id":1,"text":"an article about sports and football, Arsenel, Liverpool","tags":"football"},
+                {"id":2,"text":"an article about football and finance, Liverpool, Arsenel","tags":"football"},
+                {"id":3,"text":"an article about money and lending","tags":"money"},
+                {"id":4,"text":"an article about money and banking and lending","tags":"money"}]
 
 
     def test_sklearn_nmf(self):

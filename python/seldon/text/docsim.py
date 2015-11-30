@@ -187,7 +187,7 @@ class DocumentSimilarity(Recommender):
         gensim corpus model
         """
         from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
-        from sklearn.decomposition import NMF, LatentDirichletAllocation
+        from sklearn.decomposition import NMF
         #make tfidf and NMF args configurable
         tfidf_vectorizer = TfidfVectorizer(**self.sklearn_tfidf_args)
         tfidf = tfidf_vectorizer.fit_transform(corpus.get_texts(raw=True))

@@ -16,5 +16,5 @@ push:
 	twine upload dist/*
 
 clean:
-	rm -r build
-	rm -r dist
+	rm -rf build
+	rm -rf dist
