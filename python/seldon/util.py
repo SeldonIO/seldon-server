@@ -5,11 +5,12 @@ import shutil
 from sklearn.externals import joblib
 import logging
 import random
+from sklearn.base import BaseEstimator
 
 logger = logging.getLogger('seldon.util')
 
 
-class Recommender(object):
+class Recommender(BaseEstimator):
     """
     General recommendation interface
     """
