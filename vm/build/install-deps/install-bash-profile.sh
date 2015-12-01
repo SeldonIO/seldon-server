@@ -25,3 +25,5 @@ export ANACONDA_HOME=%INSTALL_DEPS_ANACONDA_HOME%
 
 export PATH=${ANACONDA_HOME}/bin:${PATH}
 
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+
