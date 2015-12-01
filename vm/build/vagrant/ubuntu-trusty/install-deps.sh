@@ -41,6 +41,7 @@ ${INSTALL_DEPS_DIR}/install-vim-config.sh
 ${INSTALL_DEPS_DIR}/install-tmux-config.sh
 ${INSTALL_DEPS_DIR}/install-jdk7.sh
 ${INSTALL_DEPS_DIR}/install-tomcat.sh
+${INSTALL_DEPS_DIR}/install-vw.sh
 ${INSTALL_DEPS_DIR}/install-spark.sh
 ${INSTALL_DEPS_DIR}/install-bash-profile.sh
 ${INSTALL_DEPS_DIR}/install-python-deps.sh
