@@ -17,6 +17,7 @@ export PATH=${INSTALL_DEPS_ANACONDA_HOME}/bin:${PATH}
 
 sudo apt-get update
 sudo apt-get install -y make libmysqlclient-dev mysql-client-core-5.6
+sudo apt-get install -y libmemcached-dev
 pip install unicodecsv
 pip install MySQL-python
 pip install kazoo
