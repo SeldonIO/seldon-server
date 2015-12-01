@@ -27,6 +27,9 @@ class Test_vw(unittest.TestCase):
         print preds
         print "-------------------"
         t.close()
+        # vw sometimes need some more time between invocations. Need to look into this.
+        import time
+        time.sleep(5)
         joblib.dump(p,"/tmp/pipeline/p")
         p2 = joblib.load("/tmp/pipeline/p")
         print "get preds 2"
