@@ -30,3 +30,6 @@ pip install seldon
 #install ipython notebook
 conda update ipython
 
+# for seldon shell
+pip install cmd2
+
