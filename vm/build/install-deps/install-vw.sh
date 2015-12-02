@@ -28,3 +28,5 @@ sudo make
 sudo make test
 sudo make install
 
+sudo rm -rf /usr/local/src/vowpal_wabbit
+
