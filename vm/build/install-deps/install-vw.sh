@@ -10,7 +10,7 @@ export DEBIAN_FRONTEND=noninteractive
 #Install vw
 VW_VERSION=8.1
 
-sudo apt-get install -y build-essential automake autoconf libxmu-dev g++ gcc libpthread-stubs0-dev libtool libboost-program-options-dev libboost-python-dev zlib1g-dev libc6 libgcc1 libstdc++6 libblas-dev liblapack-dev git telnet procps memcached libmemcached-dev
+sudo apt-get install -y build-essential automake autoconf libxmu-dev g++ gcc libpthread-stubs0-dev libtool libboost-program-options-dev libboost-python-dev zlib1g-dev libc6 libgcc1 libstdc++6 libblas-dev liblapack-dev git telnet procps libmemcached-dev
 
 if [ -z "${LD_LIBRARY_PATH+x}" ]; then
     export LD_LIBRARY_PATH=/usr/local/lib
