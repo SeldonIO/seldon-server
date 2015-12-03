@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import seldon.shell
+
+seldon.shell.start_seldonshell()
+
