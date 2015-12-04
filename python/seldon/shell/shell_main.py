@@ -25,7 +25,8 @@ gdata = {
         ("client", "configure client"),
         ("model", "configure model for client"),
         ("db", "configure databases"),
-        ("memcached", "configure memcached")
+        ("memcached", "configure memcached"),
+        ("import", "static import of data")
     ],
     'help_formatting' : { 'lmargin_size' : 4, 'cmd_size' : 40 },
 }
