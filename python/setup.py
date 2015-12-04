@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import os
 from setuptools import setup, find_packages
+from seldon import __version__
 
 setup(name='seldon',
-      version='1.3.2',
+      version=__version__,
       description='Seldon Python Utilities',
       author='Clive Cox',
       author_email='support@seldon.io',

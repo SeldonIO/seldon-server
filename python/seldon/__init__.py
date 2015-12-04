@@ -2,6 +2,8 @@ import logging
 
 from .util import Recommender_wrapper,Recommender
 
+__version__ = '1.3.2'
+
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
