@@ -12,6 +12,7 @@ import cmd_model
 import cmd_alg
 import cmd_db
 import cmd_memcached
+import cmd_import
 import pprint
 
 gdata = {
@@ -186,6 +187,13 @@ class CmdLineApp(Cmd):
                 'help_formatting' : gdata["help_formatting"],
         }
         cmd_model.cmd_model(arg, command_data)
+
+    def do_import(self, arg, opts=None):
+        command_data = {
+                'conf_data' : gdata['conf_data'],
+                'help_formatting' : gdata["help_formatting"],
+        }
+        cmd_import.cmd_import(arg, command_data)
 
     def do_help(self, arg, opts=None):
         lmargin_size=4
