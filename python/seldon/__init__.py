@@ -2,7 +2,7 @@ import logging
 
 from .util import Recommender_wrapper,Recommender
 
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 
 class NullHandler(logging.Handler):
     def emit(self, record):
