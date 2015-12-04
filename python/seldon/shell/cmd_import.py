@@ -26,26 +26,7 @@ def is_existing_client(zkroot, client_name):
     else:
         return False
 
-def subcmd_items(command_data):
-    client_name = command_data["subcmd_args"][0] if len(command_data["subcmd_args"])>0 else None
-    if client_name == None:
-        print "Need client name to add model for"
-        return
-
-    data_file_fpath = command_data["subcmd_args"][1] if len(command_data["subcmd_args"])>1 else None
-    if data_file_fpath == None:
-        print "Need data file path to import"
-        return
-
-    zkroot = command_data["conf_data"]["zkroot"]
-    if not is_existing_client(zkroot, client_name):
-        print "Invalid client[{client_name}]".format(**locals())
-        return
-
-    if not os.path.isfile(data_file_fpath):
-        print "Invalid file[{data_file_fpath}]".format(**locals())
-        return
-
+def get_db_settings(zkroot, client_name):
     def get_db_jndi_name():
         data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/_data_"
         f = open(data_fpath)
@@ -69,21 +50,40 @@ def subcmd_items(command_data):
                 break
         return db_info
 
-    def get_db_settings():
-        dbSettings = {}
-        dbSettings["host"]=re.search('://(.*?):(.*?),',db_info["jdbc"]).groups()[0]
-        dbSettings["user"]=db_info["user"]
-        dbSettings["password"]=db_info["password"]
-        return dbSettings
-
     db_name = get_db_jndi_name()
     db_info = get_db_info(db_name)
 
     if db_info == None:
         print "Invalid db name[{db_name}]".format(**locals())
+        return None
+
+    dbSettings = {}
+    dbSettings["host"]=re.search('://(.*?):(.*?),',db_info["jdbc"]).groups()[0]
+    dbSettings["user"]=db_info["user"]
+    dbSettings["password"]=db_info["password"]
+    return dbSettings
+
+def subcmd_items(command_data):
+    client_name = command_data["subcmd_args"][0] if len(command_data["subcmd_args"])>0 else None
+    if client_name == None:
+        print "Need client name to add model for"
         return
 
-    db_settings = get_db_settings()
+    data_file_fpath = command_data["subcmd_args"][1] if len(command_data["subcmd_args"])>1 else None
+    if data_file_fpath == None:
+        print "Need data file path to import"
+        return
+
+    zkroot = command_data["conf_data"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        return
+
+    if not os.path.isfile(data_file_fpath):
+        print "Invalid file[{data_file_fpath}]".format(**locals())
+        return
+
+    db_settings = get_db_settings(zkroot, client_name)
 
     import_items_utils.import_items(client_name, db_settings, data_file_fpath)
 
