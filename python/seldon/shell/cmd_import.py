@@ -5,6 +5,7 @@ import re
 
 import import_items_utils
 import import_users_utils
+import import_actions_utils
 
 gdata = {
     'all_clients_node_path': "/all_clients",
@@ -112,6 +113,35 @@ def subcmd_users(command_data):
 
     import_users_utils.import_users(client_name, db_settings, data_file_fpath)
 
+def subcmd_actions(command_data):
+    client_name = command_data["subcmd_args"][0] if len(command_data["subcmd_args"])>0 else None
+    if client_name == None:
+        print "Need client name to add model for"
+        return
+
+    data_file_fpath = command_data["subcmd_args"][1] if len(command_data["subcmd_args"])>1 else None
+    if data_file_fpath == None:
+        print "Need data file path to import"
+        return
+
+    zkroot = command_data["conf_data"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        return
+
+    if not os.path.isfile(data_file_fpath):
+        print "Invalid file[{data_file_fpath}]".format(**locals())
+        return
+
+    db_settings = get_db_settings(zkroot, client_name)
+
+    out_file_dir = command_data["conf_data"]["seldon_models"] + "/" + client_name + "/actions/1"
+    out_file_fpath = out_file_dir + "/actions.json"
+
+    seldon_utils.mkdir_p(out_file_dir)
+
+    import_actions_utils.import_actions(client_name, db_settings, data_file_fpath, out_file_fpath)
+
 def subcmd_default(command_data):
     print "todo default!"
 
@@ -141,5 +171,6 @@ subcmds = {
     "help" : subcmd_help,
     "items" : subcmd_items,
     "users" : subcmd_users,
+    "actions" : subcmd_actions,
 }
 
