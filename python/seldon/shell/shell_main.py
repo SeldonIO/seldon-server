@@ -128,6 +128,7 @@ def getOpts():
     parser.add_argument('-d', "--debug", action='store_true', help="turn on debugging")
     parser.add_argument('-q', "--quiet", action='store_true', help="only display important messages, useful in non-interactive mode")
     parser.add_argument('--zk-hosts', help="the zookeeper hosts", required=False)
+    parser.add_argument('--version', action='store_true', help="print the version", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args()
     return opts
@@ -263,6 +264,11 @@ def main():
     check_conf()
     expand_conf()
     opts = getOpts()
+    if opts.version == True:
+        from seldon import __version__
+        print __version__
+        sys.exit(0)
+
     if not opts.quiet:
         print get_seldon_banner(); print ""
 
