@@ -142,9 +142,10 @@ def subcmd_add(command_data):
     data = json_to_dict(json)
 
     algorithms = data["algorithms"]
+    includers = default_algorithms[recommender_name]["includers"] if default_algorithms[recommender_name].has_key("includers") else []
     recommender_data = {
             'filters':[],
-            'includers':[],
+            'includers': includers,
             'name': recommender_name,
             'config': default_algorithms[recommender_name]["config"]
     }
