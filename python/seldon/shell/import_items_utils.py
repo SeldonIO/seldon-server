@@ -17,6 +17,7 @@ ITEM_MAP_INT_INSERT = "insert into item_map_int (item_id, attr_id, value) values
 ITEM_MAP_BOOLEAN_INSERT = "insert into item_map_boolean (item_id, attr_id, value) values ((select item_id from items where client_item_id = %(id)s),(select attr_id from item_attr where name = %(attr_name)s), %(value)s )"
 
 ITEM_INSERT = "INSERT INTO ITEMS (name, first_op, last_op, client_item_id, type) VALUES (%(name)s, NOW(), NOW(), %(id)s, 1)"
+ITEM_INSERT_NO_AUTO_INCREMENT = "INSERT INTO ITEMS (item_id, name, first_op, last_op, client_item_id, type) VALUES (%(item_id)s, %(name)s, NOW(), NOW(), %(id)s, 1)"
 DB_BATCH_SIZE = 1000
 attr_insert_map = {
 	'ENUM': ITEM_MAP_ENUM_INSERT,
@@ -119,10 +120,11 @@ def doItemInserts(csv_file, db):
 			name = ''
 			if 'name' in line:
 				name = line['name']
-			inserts.append({'name':name,'id':client_id})
+                        inserts.append({'name':name,'id':client_id, 'item_id':client_id})
 		cur = db.cursor()
 		print "inserting items into the db"
-		cur.executemany(ITEM_INSERT, inserts)
+		###cur.executemany(ITEM_INSERT, inserts)
+		cur.executemany(ITEM_INSERT_NO_AUTO_INCREMENT, inserts)
 		db.commit()
 		print 'finished item inserts'
 
