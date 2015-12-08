@@ -48,23 +48,6 @@ def get_default_conf():
     return '''\
 {
     "default_algorithms": {
-        "mfRecommender": {
-            "config": []
-        },
-        "recentItemsRecommender": {
-            "config": []
-        },
-        "recentMfRecommender": {
-            "config": [
-                {
-                    "name": "io.seldon.algorithm.general.numrecentactionstouse",
-                    "value": "1"
-                }
-            ]
-        }
-    },
-    "default_models": {
-        "cluster-by-dimension": {},
         "externalItemRecommendationAlgorithm": {
             "config": [
                 {
@@ -84,6 +67,23 @@ def get_default_conf():
                 "recentItemsIncluder"
             ]
         },
+        "mfRecommender": {
+            "config": []
+        },
+        "recentItemsRecommender": {
+            "config": []
+        },
+        "recentMfRecommender": {
+            "config": [
+                {
+                    "name": "io.seldon.algorithm.general.numrecentactionstouse",
+                    "value": "1"
+                }
+            ]
+        }
+    },
+    "default_models": {
+        "cluster-by-dimension": {},
         "matrix-factorization": {
             "config": {
                 "activate": true,
