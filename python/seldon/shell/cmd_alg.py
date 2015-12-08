@@ -30,7 +30,8 @@ gdata = {
         ("alg show <clientName>", "show algs for client"),
         ("alg add <clientName>", "add algs for client"),
         ("alg delete <clientName>", "pick alg to delete for client"),
-        ("alg promote <clientName>", "pick alg to promote for client")
+        ("alg promote <clientName>", "pick alg to promote for client"),
+        ("alg commit <clientName>", "commit chnanges")
     ],
 }
 
@@ -234,6 +235,30 @@ def subcmd_promote(command_data):
     write_data_to_file(data_fpath, data)
     print "Promoted [{recommender_name}]".format(**locals())
 
+def subcmd_commit(command_data):
+    client_name = command_data["subcmd_args"][0] if len(command_data["subcmd_args"])>0 else None
+    if client_name == None:
+        print "Need client name to delete algs for"
+        return
+
+    zkroot = command_data["zkdetails"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        return
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+    zkroot = command_data["zkdetails"]["zkroot"]
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/algs/_data_"
+    if not os.path.isfile(data_fpath):
+        "Data to commit not found!!"
+    f = open(data_fpath)
+    data_json = f.read()
+    f.close()
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+    node_path = gdata["all_clients_node_path"] + "/" + client_name + "/algs"
+    zk_utils.node_set(zk_client, node_path, data_json)
+
 def subcmd_default(command_data):
     print "Default recommenders:"
     default_algorithms = command_data["default_algorithms"]
@@ -268,5 +293,6 @@ subcmds = {
     "add" : subcmd_add,
     "delete" : subcmd_delete,
     "promote" : subcmd_promote,
+    "commit" : subcmd_commit,
 }
 
