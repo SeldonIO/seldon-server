@@ -65,6 +65,25 @@ def get_default_conf():
     },
     "default_models": {
         "cluster-by-dimension": {},
+        "externalItemRecommendationAlgorithm": {
+            "config": [
+                {
+                    "name": "io.seldon.algorithm.inclusion.itemsperincluder",
+                    "value": 100000
+                },
+                {
+                    "name": "io.seldon.algorithm.external.url",
+                    "value": "http://127.0.0.1:5000/recommend"
+                },
+                {
+                    "name": "io.seldon.algorithm.external.name",
+                    "value": "example_alg"
+                }
+            ],
+            "includers": [
+                "recentItemsIncluder"
+            ]
+        },
         "matrix-factorization": {
             "config": {
                 "activate": true,
