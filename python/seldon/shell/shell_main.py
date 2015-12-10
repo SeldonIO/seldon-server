@@ -128,6 +128,12 @@ def get_default_conf():
 }
 '''
 
+def completions_helper(help_cmd_strs_list, text, line):
+    completions = [x[0].partition(' ')[2].partition(' ')[0] for x in help_cmd_strs_list if len(x[0].split(' '))>1]
+    mline = line.partition(' ')[2]
+    offs = len(mline) - len(text)
+    return [s[offs:] for s in completions if s.startswith(mline)]
+
 def json_to_dict(json_data):
     return json.loads(json_data)
 
@@ -194,10 +200,7 @@ class CmdLineApp(Cmd):
 
     def complete_alg(self, text, line, start_index, end_index):
         help_cmd_strs_list = cmd_alg.gdata["help_cmd_strs_list"]
-        completions = [x[0].partition(' ')[2].partition(' ')[0] for x in help_cmd_strs_list if len(x[0].split(' '))>1]
-        mline = line.partition(' ')[2]
-        offs = len(mline) - len(text)
-        return [s[offs:] for s in completions if s.startswith(mline)]
+        return completions_helper(help_cmd_strs_list, text, line)
 
     def do_attr(self, arg, opts=None):
         command_data = {
@@ -205,6 +208,10 @@ class CmdLineApp(Cmd):
                 'help_formatting' : gdata["help_formatting"],
         }
         cmd_attr.cmd_attr(arg, command_data)
+
+    def complete_attr(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_attr.gdata["help_cmd_strs_list"]
+        return completions_helper(help_cmd_strs_list, text, line)
 
     def do_model(self, arg, opts=None):
         command_data = {
