@@ -192,6 +192,13 @@ class CmdLineApp(Cmd):
         }
         cmd_alg.cmd_alg(arg, command_data)
 
+    def complete_alg(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_alg.gdata["help_cmd_strs_list"]
+        completions = [x[0].partition(' ')[2].partition(' ')[0] for x in help_cmd_strs_list if len(x[0].split(' '))>1]
+        mline = line.partition(' ')[2]
+        offs = len(mline) - len(text)
+        return [s[offs:] for s in completions if s.startswith(mline)]
+
     def do_attr(self, arg, opts=None):
         command_data = {
                 'zkdetails' : {'zkroot': gdata['conf_data']['zkroot'], 'zk_client': gdata['zk_client']},
