@@ -176,6 +176,10 @@ class CmdLineApp(Cmd):
         }
         cmd_db.cmd_db(arg, command_data)
 
+    def complete_db(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_db.gdata["help_cmd_strs_list"]
+        return completions_helper(help_cmd_strs_list, text, line)
+
     def do_memcached(self, arg, opts=None):
         command_data = {
                 'zkdetails' : {'zkroot': gdata['conf_data']['zkroot'], 'zk_client': gdata['zk_client']},
@@ -183,12 +187,20 @@ class CmdLineApp(Cmd):
         }
         cmd_memcached.cmd_memcached(arg, command_data)
 
+    def complete_memcached(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_memcached.gdata["help_cmd_strs_list"]
+        return completions_helper(help_cmd_strs_list, text, line)
+
     def do_client(self, arg, opts=None):
         command_data = {
                 'zkdetails' : {'zkroot': gdata['conf_data']['zkroot'], 'zk_client': gdata['zk_client']},
                 'help_formatting' : gdata["help_formatting"],
         }
         cmd_client.cmd_client(arg, command_data)
+
+    def complete_client(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_client.gdata["help_cmd_strs_list"]
+        return completions_helper(help_cmd_strs_list, text, line)
 
     def do_alg(self, arg, opts=None):
         command_data = {
@@ -223,12 +235,20 @@ class CmdLineApp(Cmd):
         }
         cmd_model.cmd_model(arg, command_data)
 
+    def complete_model(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_model.gdata["help_cmd_strs_list"]
+        return completions_helper(help_cmd_strs_list, text, line)
+
     def do_import(self, arg, opts=None):
         command_data = {
                 'conf_data' : gdata['conf_data'],
                 'help_formatting' : gdata["help_formatting"],
         }
         cmd_import.cmd_import(arg, command_data)
+
+    def complete_import(self, text, line, start_index, end_index):
+        help_cmd_strs_list = cmd_import.gdata["help_cmd_strs_list"]
+        return completions_helper(help_cmd_strs_list, text, line)
 
     def do_help(self, arg, opts=None):
         lmargin_size=4
