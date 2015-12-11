@@ -134,6 +134,22 @@ class Test_svmlight_transform(unittest.TestCase):
 
 class Test_feature_id_transform(unittest.TestCase):
 
+    def test_ids_max_classes(self):
+        df = pd.DataFrame([{"a":"type1"},{"a":"type2"},{"a":"type1"}])
+        t = bt.Feature_id_transform(max_classes=1,exclude_missing=True,input_feature="a",output_feature="id")
+        r = t.fit(df)
+        df2 = t.transform(df)
+        self.assertEquals(df2.shape[0],2)
+
+    def test_ids_max_classes_zero_based(self):
+        df = pd.DataFrame([{"a":"type1"},{"a":"type2"},{"a":"type1"}])
+        t = bt.Feature_id_transform(max_classes=1,exclude_missing=True,input_feature="a",output_feature="id",zero_based=True)
+        r = t.fit(df)
+        df2 = t.transform(df)
+        self.assertEquals(df2.shape[0],2)
+
+
+
     def test_ids_exclude_too_few(self):
         df = pd.DataFrame([{"a":"type1"},{"a":"type2"},{"a":"type1"}])
         t = bt.Feature_id_transform(min_size=2,exclude_missing=True,input_feature="a",output_feature="id")

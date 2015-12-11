@@ -1,6 +1,7 @@
 from flask import Flask
 from seldon.microservice.predict import predict_blueprint
 from seldon.microservice.recommend import recommend_blueprint
+from seldon.microservice.extension import extension_blueprint
 import seldon
 from sklearn.pipeline import Pipeline
 import seldon.pipeline.util as sutl
@@ -77,5 +78,29 @@ class Microservices(object):
         # other setup tasks
         return app
 
+
+    def create_extension_microservice(self,extension_folder):
+        """
+        Create a prediction Flask microservice app
+
+        Parameters
+        ----------
+
+        extension_folder : str
+           location of extension
+        """
+        app = Flask(__name__)
+                   
+        rint = random.randint(1,999999)
+        ew = seldon.Extension_wrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
+        extension = ew.load_extension(extension_folder)
+
+        app.config["seldon_extension_wrapper"] = ew
+        app.config["seldon_extension"] = extension
+ 
+        app.register_blueprint(extension_blueprint)
+
+        # other setup tasks
+        return app
 
 

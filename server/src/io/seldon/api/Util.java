@@ -154,6 +154,11 @@ public class Util {
 		return req.getParameter(Constants.URL_NAME);
 	}
 	
+	public static String getAttrName(HttpServletRequest req) {
+		return req.getParameter(Constants.URL_ATTR_NAME);
+	}
+	
+	
 	
 	public static List<String> getKeywords(HttpServletRequest req) {
 		List<String> keywords = null;

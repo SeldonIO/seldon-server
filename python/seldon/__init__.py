@@ -1,6 +1,6 @@
 import logging
 
-from .util import Recommender_wrapper,Recommender
+from .util import Recommender_wrapper,Recommender,Extension,Extension_wrapper
 
 class NullHandler(logging.Handler):
     def emit(self, record):
