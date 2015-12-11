@@ -181,7 +181,7 @@ public class RecommendationService {
                     logger.info("Item with internal ID " + internalId + " not found; ignoring..." , e);
                 }
                 if (recommendedItemId != null) {
-                    final ItemBean itemBean = ItemService.getItem(consumerBean, recommendedItemId, full);
+                    final ItemBean itemBean = itemService.getItem(consumerBean, recommendedItemId, full);
                     //filter the item
                     ItemBean resItem = ItemService.filter(itemBean, attributeList);
                     addUuidAttribute(resItem, recResult);

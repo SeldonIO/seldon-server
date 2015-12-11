@@ -358,13 +358,14 @@ class Feature_id_transform(BaseEstimator,TransformerMixin):
     exclude_missing : bool, optional
        exclude rows that do not have the input feature
     """
-    def __init__(self,input_feature=None,output_feature=None,min_size=0,exclude_missing=False,zero_based=False,id_map={}):
+    def __init__(self,input_feature=None,output_feature=None,min_size=0,max_classes=1000,exclude_missing=False,zero_based=False,id_map={}):
         self.input_feature=input_feature
         self.output_feature=output_feature
         self.min_size = min_size
         self.exclude_missing = exclude_missing
         self.id_map = id_map
         self.zero_based = zero_based
+        self.max_classes=max_classes
 
     def fit(self,df):
         """
@@ -384,13 +385,14 @@ class Feature_id_transform(BaseEstimator,TransformerMixin):
         """
         if self.input_feature in df:
             counts = df[self.input_feature].value_counts()
+            sorted_counts = sorted(counts.iteritems(), key=operator.itemgetter(1),reverse=True)
             self.id_map = {}
             if self.zero_based:
                 idx = 0
             else:
                 idx = 1
-            for c,v in counts.iteritems():
-                if v >= self.min_size:
+            for c,v in sorted_counts:
+                if v >= self.min_size and len(self.id_map)<self.max_classes:
                     self.id_map[c] = idx
                     idx += 1
                 else:
