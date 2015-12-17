@@ -289,7 +289,7 @@ def check_conf():
         f.write(default_conf)
         f.write('\n')
         f.close()
-        print "Created conf file [{fpath}] with default settinngs.".format(**locals())
+        print "Created conf file [{fpath}] with default settings.".format(**locals())
         print "Edit this file and re-run."
         sys.exit(0)
     fpath = gdata['conf_path']
