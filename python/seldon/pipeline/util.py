@@ -79,7 +79,7 @@ class Pipeline_wrapper(object):
                 jStr =  json.dumps(jNew,sort_keys=True)
                 f.write(jStr+"\n")
             f.close()
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(tmp_file,location)
 
     #
@@ -105,7 +105,7 @@ class Pipeline_wrapper(object):
         self.active_file = open(local_file,"w")
         if not self.df_format == 'csv':
             self.active_file.write("[")
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.stream_multi(locations,self._save_features_local)
         if not self.df_format == 'csv':
             self.active_file.write("]")
@@ -144,7 +144,7 @@ class Pipeline_wrapper(object):
                 return pd.DataFrame([data])
             elif isinstance(data,basestring):
                 local_file= self.work_folder+"/data"
-                futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+                futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
                 futil.copy(data,local_file)
                 return self._convert_dataframe(local_file,df_format,csv_dates,index_col)
             elif isinstance(data,list):
@@ -179,7 +179,7 @@ class Pipeline_wrapper(object):
             os.makedirs(pipeline_folder)
         tmp_file = pipeline_folder+"/p"
         joblib.dump(pipeline,tmp_file)
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(pipeline_folder,location)
 
 
@@ -198,7 +198,7 @@ class Pipeline_wrapper(object):
         if not os.path.exists(local_pipeline_folder):
             logger.info("creating folder %s",local_pipeline_folder)
             os.makedirs(local_pipeline_folder)
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(pipeline_folder,local_pipeline_folder)
         return joblib.load(local_pipeline_folder+"/p")
 

@@ -10,6 +10,7 @@ import os
 import math
 from filechunkio import FileChunkIO
 import logging
+import smart_open
 
 logger = logging.getLogger('seldon.fileutil')
 
@@ -21,99 +22,30 @@ class FileUtil:
 
         secret [Optional(str)]: aws secret
     """
-    def __init__(self, key = None, secret = None):
-        self.key = key
-        self.secret = secret
-
-    def stream_decompress(self,stream):
-        """decompress a stream
-        """
-        dec = zlib.decompressobj(16+zlib.MAX_WBITS)  # same as gzip module
-        for chunk in stream:
-            rv = dec.decompress(chunk)
-            if rv:
-                yield rv
-
-    def stream_text(self,k,fn):
-        """stream text line by line calling function for each line
-        
-        Args:
-            k (file): input text file
-            fn (function): function to call for each line
-        """
-        unfinished = ""
-        for data in k:
-            data = unfinished + data
-            lines = data.split("\n");
-            unfinished = lines.pop()
-            for line in lines:
-                fn(line)
-
-    def stream_gzip(self,k,fn):
-        """stream from gzip file and call function for each line
-        
-        Args:
-            k (file): input gziped file
-            fn (function): function to call for each line
-        """
-        unfinished = ""
-        for data in self.stream_decompress(k):
-            data = unfinished + data
-            lines = data.split("\n");
-            unfinished = lines.pop()
-            for line in lines:
-                fn(line)
-
-    def getFolders(self,baseFolder,startDay,numDays):
-        """construct list of folders for a range of days
-
-        Args:
-            baseFolder (str): base folder prefix
-            startDay (int): start day inclusive
-            numDays (int): number of day folders to list
-        """
-        folders = []
-        for day in range(startDay-numDays+1,startDay+1):
-            folders.append(baseFolder+str(day)+"/*")
-        return folders
+    def __init__(self, aws_key = None, aws_secret = None):
+        self.aws_key = aws_key
+        self.aws_secret = aws_secret
 
 
-    def stream_local(self,folders,fn):
+    #
+    # Streaming
+    #
+
+    def stream_other(self,path,fn):
         """stream from local folders call a function
 
         Args:
             folders (list): list of folders
             fn (function): function to call
         """
-        for folder in folders:
-            for f in glob.glob(folder):
-                k = open(f,"r")
-                if f.endswith(".gz"):
-                    self.stream_gzip(k,fn)
-                else:
-                    self.stream_text(k,fn)
-
-    def copy_local(self,fromPath,toPath):
-        """copy local folders
-
-        Args:
-            fromPath (str): local from path to copy all files under
-            toPath (str): local destination folder (will be created if does not exist)
-        """
-        logger.info("copy %s to %s",fromPath,toPath)
-        if os.path.isfile(fromPath):
-            dir = os.path.dirname(toPath)
-            if len(dir) > 0 and not os.path.exists(dir):
-                os.makedirs(dir)
-            copyfile(fromPath,toPath)
-        elif os.path.isdir(fromPath):
-            if not os.path.exists(toPath):
-                os.makedirs(toPath)
-            for f in glob.glob(fromPath+"/*"):
-                basename = os.path.basename(f)
-                fnew = toPath+"/"+basename
-                logger.info("copying %s to %s",f,fnew)
-                copyfile(f,fnew)
+        parsed_uri = smart_open.ParseUri(path)
+        if parsed_uri.scheme in ("file", ) and os.path.isdir(path): # stream each file from directory
+            for f in glob.glob(path+"/*"):
+                for line in smart_open.smart_open(f):
+                    fn(line)
+        else: #let smart_open handle streaming of file from location 
+            for line in smart_open.smart_open(path):
+                fn(line)
 
     def stream_s3(self,bucket,prefix,fn):
         """stream from an AWS S3 bucket all files under a prefix and call a function
@@ -123,49 +55,15 @@ class FileUtil:
             prefix (str): prefix in bucket
             fn (function): function to call for each line
         """
-        if self.key:
-            self.conn = boto.connect_s3(self.key,self.secret)
+        if self.aws_key:
+            self.conn = boto.connect_s3(self.aws_key,self.aws_secret)
         else:
             self.conn = boto.connect_s3()
         b = self.conn.get_bucket(bucket)
         for k in b.list(prefix=prefix):
-            if k.name.endswith(".gz"):
-                self.stream_gzip(k,fn)
-            else:
-                self.stream_text(k,fn)
+            for line in smart_open.smart_open(k):
+                fn(line)
 
-            
-    def copy_s3_file(self,fromPath,bucket,path):
-        """copy from local file to S3 
-
-        Args:
-            fromPath (str): local file
-            bucket (str): S3 bucket
-            path (str): S3 prefix to add to files
-        """
-        if self.key:
-            self.conn = boto.connect_s3(self.key,self.secret)
-        else:
-            self.conn = boto.connect_s3()
-        b = self.conn.get_bucket(bucket)
-        source_size = os.stat(fromPath).st_size
-        # Create a multipart upload request
-        uploadPath = path
-        logger.info("uploading to bucket %s path %s",bucket,uploadPath)
-        mp = b.initiate_multipart_upload(uploadPath)
-        chunk_size = 10485760
-        chunk_count = int(math.ceil(source_size / float(chunk_size)))
-        for i in range(chunk_count):
-            offset = chunk_size * i
-            bytes = min(chunk_size, source_size - offset)
-            with FileChunkIO(fromPath, 'r', offset=offset,bytes=bytes) as fp:
-                logger.info("uploading to s3 chunk %d/%d",(i+1),chunk_count)
-                mp.upload_part_from_file(fp, part_num=i + 1)
-        # Finish the upload
-        logger.info("completing transfer to s3")
-        mp.complete_upload()
-
-    
     def stream_multi(self,inputPaths,fn):
         """ stream multilple paths calling a function on each line
 
@@ -198,9 +96,67 @@ class FileUtil:
             prefix = inputPath[len(bucket)+1:]
             self.stream_s3(bucket,prefix,fn)
         else:
-            folders = [inputPath+"/*"]
-            logger.info("local input folders: %s",folders)
-            self.stream_local(folders,fn)
+            self.stream_other(inputPath,fn)
+
+
+    #
+    # Copying
+    #
+
+    def copy_local(self,fromPath,toPath):
+        """copy local folders
+
+        Args:
+            fromPath (str): local from path to copy all files under
+            toPath (str): local destination folder (will be created if does not exist)
+        """
+        logger.info("copy %s to %s",fromPath,toPath)
+        if os.path.isfile(fromPath):
+            dir = os.path.dirname(toPath)
+            if len(dir) > 0 and not os.path.exists(dir):
+                os.makedirs(dir)
+            copyfile(fromPath,toPath)
+        elif os.path.isdir(fromPath):
+            if not os.path.exists(toPath):
+                os.makedirs(toPath)
+            for f in glob.glob(fromPath+"/*"):
+                basename = os.path.basename(f)
+                fnew = toPath+"/"+basename
+                logger.info("copying %s to %s",f,fnew)
+                copyfile(f,fnew)
+
+            
+    def copy_s3_file(self,fromPath,bucket,path):
+        """copy from local file to S3 
+
+        Args:
+            fromPath (str): local file
+            bucket (str): S3 bucket
+            path (str): S3 prefix to add to files
+        """
+        if self.aws_key:
+            self.conn = boto.connect_s3(self.aws_key,self.aws_secret)
+        else:
+            self.conn = boto.connect_s3()
+        b = self.conn.get_bucket(bucket)
+        source_size = os.stat(fromPath).st_size
+        # Create a multipart upload request
+        uploadPath = path
+        logger.info("uploading to bucket %s path %s",bucket,uploadPath)
+        mp = b.initiate_multipart_upload(uploadPath)
+        chunk_size = 10485760
+        chunk_count = int(math.ceil(source_size / float(chunk_size)))
+        for i in range(chunk_count):
+            offset = chunk_size * i
+            bytes = min(chunk_size, source_size - offset)
+            with FileChunkIO(fromPath, 'r', offset=offset,bytes=bytes) as fp:
+                logger.info("uploading to s3 chunk %d/%d",(i+1),chunk_count)
+                mp.upload_part_from_file(fp, part_num=i + 1)
+        # Finish the upload
+        logger.info("completing transfer to s3")
+        mp.complete_upload()
+
+    
 
     def upload_s3(self,fromPath,toPath):
         """upload from local path to S3
