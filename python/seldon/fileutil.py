@@ -245,10 +245,11 @@ class FileUtil:
             self.conn = boto.connect_s3()
         b = self.conn.get_bucket(bucket)
         for k in b.list(prefix=s3path):
-            basename = os.path.basename(k.name)
-            fnew = toPath+"/"+basename
-            logger.info("copying %s to %s",k.name,fnew)
-            k.get_contents_to_filename(fnew)
+            if not k.name.endswith("/"):
+                basename = os.path.basename(k.name)
+                fnew = toPath+"/"+basename
+                logger.info("copying %s to %s",k.name,fnew)
+                k.get_contents_to_filename(fnew)
 
 
     def copy(self,fromPath,toPath):

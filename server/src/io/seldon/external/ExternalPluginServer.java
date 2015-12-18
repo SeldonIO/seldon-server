@@ -22,12 +22,11 @@
 package io.seldon.external;
 
 import io.seldon.api.APIException;
-import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
-import io.seldon.prediction.PredictionAlgorithm;
-import io.seldon.prediction.PredictionsResult;
+import io.seldon.external.ExternalPredictionServer.PredictionServerConfig;
+import io.seldon.plugins.PluginService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,22 +41,23 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-
 @Component
-public class ExternalPredictionServer implements GlobalConfigUpdateListener, PredictionAlgorithm  {
-	private static Logger logger = Logger.getLogger(ExternalPredictionServer.class.getName());
-	private static final String name = ExternalPredictionServer.class.getName();
+public class ExternalPluginServer implements GlobalConfigUpdateListener, PluginService {
+
+	private static Logger logger = Logger.getLogger(ExternalPluginServer.class.getName());
+	private static final String name = ExternalPluginServer.class.getName();
     private static final String URL_PROPERTY_NAME="io.seldon.algorithm.external.url";
-    private static final String ALG_NAME_PROPERTY_NAME ="io.seldon.algorithm.external.name";
-    private static final String ZK_CONFIG_TEMP = "prediction_server"; 
+    private static final String ZK_CONFIG_TEMP = "plugin_server"; 
     private PoolingHttpClientConnectionManager cm;
     private CloseableHttpClient httpClient;
+    
     ObjectMapper mapper = new ObjectMapper();
     
     public String getName()
@@ -65,12 +65,12 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     	return name;
     }
     
-    public static class PredictionServerConfig {
+    public static class PluginServerConfig {
     	public int maxConnections;
     }
     
     @Autowired
-    public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler){
+    public ExternalPluginServer(GlobalConfigHandler globalConfigHandler){
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(150);
         cm.setDefaultMaxPerRoute(150);
@@ -80,7 +80,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
         globalConfigHandler.addSubscriber(ZK_CONFIG_TEMP, this);
     }
     
-
+	
 	@Override
 	public void configUpdated(String configKey, String configValue) {
 		if (configValue != null && configValue.length() > 0)
@@ -102,53 +102,51 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
 		
 	}
 
-    
-    public PredictionsResult predict(String client, JsonNode jsonNode, OptionsHolder options) 
-    {
-    		long timeNow = System.currentTimeMillis();
-    		URI uri = URI.create(options.getStringOption(URL_PROPERTY_NAME));
-    		try {
-    			URIBuilder builder = new URIBuilder().setScheme("http")
-    					.setHost(uri.getHost())
-    					.setPort(uri.getPort())
-    					.setPath(uri.getPath())
-    					.setParameter("client", client)
-    					.setParameter("json", jsonNode.toString());
 
-    			uri = builder.build();
-    		} catch (URISyntaxException e) 
-    		{
-    			throw new APIException(APIException.GENERIC_ERROR);
-    		}
-    		HttpContext context = HttpClientContext.create();
-    		HttpGet httpGet = new HttpGet(uri);
-    		try  
-    		{
-    			if (logger.isDebugEnabled())
-    				logger.debug("Requesting " + httpGet.getURI().toString());
-    			CloseableHttpResponse resp = httpClient.execute(httpGet, context);
-    			if(resp.getStatusLine().getStatusCode() == 200) 
-    			{
-    				ObjectReader reader = mapper.reader(PredictionsResult.class);
-    				PredictionsResult res = reader.readValue(resp.getEntity().getContent());
-    				if (logger.isDebugEnabled())
-    					logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
-    				PredictLogger.log(name, jsonNode, res);
-    				return res;
-    			} 
-    			else 
-    			{
-    				logger.error("Couldn't retrieve prediction from external prediction server -- bad http return code: " + resp.getStatusLine().getStatusCode());
-    				throw new APIException(APIException.GENERIC_ERROR);
-    			}
-    		} 
-    		catch (IOException e) 
-    		{
-    			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
-    			throw new APIException(APIException.GENERIC_ERROR);
-    		}
+	@Override
+	public JsonNode execute(JsonNode payload, OptionsHolder options) {
+		long timeNow = System.currentTimeMillis();
+		URI uri = URI.create(options.getStringOption(URL_PROPERTY_NAME));
+		try {
+			URIBuilder builder = new URIBuilder().setScheme("http")
+					.setHost(uri.getHost())
+					.setPort(uri.getPort())
+					.setPath(uri.getPath())
+					.setParameter("json", payload.toString());
 
-    }
+			uri = builder.build();
+		} catch (URISyntaxException e) 
+		{
+			throw new APIException(APIException.GENERIC_ERROR);
+		}
+		HttpContext context = HttpClientContext.create();
+		HttpGet httpGet = new HttpGet(uri);
+		try  
+		{
+			if (logger.isDebugEnabled())
+				logger.debug("Requesting " + httpGet.getURI().toString());
+			CloseableHttpResponse resp = httpClient.execute(httpGet, context);
+			if(resp.getStatusLine().getStatusCode() == 200) 
+			{
+				
+			    JsonFactory factory = mapper.getJsonFactory();
+			    JsonParser parser = factory.createJsonParser(resp.getEntity().getContent());
+			    JsonNode actualObj = mapper.readTree(parser);
+				if (logger.isDebugEnabled())
+					logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
+				return actualObj;
+			} 
+			else 
+			{
+				logger.error("Couldn't retrieve prediction from external prediction server -- bad http return code: " + resp.getStatusLine().getStatusCode());
+				throw new APIException(APIException.GENERIC_ERROR);
+			}
+		} 
+		catch (IOException e) 
+		{
+			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
+			throw new APIException(APIException.GENERIC_ERROR);
+		}
 
-    
+	}
 }
