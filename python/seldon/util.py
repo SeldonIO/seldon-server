@@ -100,7 +100,7 @@ class Recommender_wrapper(object):
         tmp_file = recommender_folder+"/rec"
         joblib.dump(recommender,tmp_file)
         recommender.save(recommender_folder)
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(recommender_folder,location)
 
 
@@ -120,7 +120,7 @@ class Recommender_wrapper(object):
         if not os.path.exists(local_recommender_folder):
             logger.info("creating folder %s",local_recommender_folder)
             os.makedirs(local_recommender_folder)
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(recommender_folder,local_recommender_folder)
         recommender =  joblib.load(local_recommender_folder+"/rec")
         recommender.load(local_recommender_folder)
