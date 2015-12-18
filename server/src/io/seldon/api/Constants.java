@@ -89,6 +89,7 @@ public class Constants {
 	public static final String URL_ATTR_DIMENSIONS = "dimensions";	
 	public static final String URL_ATTR_SORT = "sort";	
 	public static final String URL_NAME = "name";
+	public static final String URL_ATTR_NAME = "attr_name";
 	public static final String URL_SORT = "sort";
 	public static final String URL_TYPE = "type";
 	public static final String URL_ALGORITHMS = "algorithms";

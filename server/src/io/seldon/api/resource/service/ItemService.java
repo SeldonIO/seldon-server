@@ -81,7 +81,7 @@ public class ItemService {
     @Autowired
     private ClientIdCacheStore idCache;
     
-    public static ItemBean getItem(final ConsumerBean c, final String iid, final boolean full) throws APIException
+    public ItemBean getItem(final ConsumerBean c, final String iid, final boolean full) throws APIException
     {
     	String memKey = MemCacheKeys.getItemBeanKey(c.getShort_name(), iid,full);
     	ItemBean bean =  (ItemBean) MemCachePeer.get(memKey);

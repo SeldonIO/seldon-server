@@ -32,12 +32,13 @@ class DefaultJsonCorpus(object):
     The methods provided by gensim TextCorpus are needed for the GenSim training.
     Any corpus provided to DocumentSimilarity should provide the methods given in this class.
     """
-    def __init__(self, input=None):
+    def __init__(self, input=None,create_dictionary=True):
         super(DefaultJsonCorpus, self).__init__()
         self.input = input
         self.dictionary = Dictionary()
         self.metadata = False
-        self.dictionary.add_documents(self.get_texts())
+        if create_dictionary:
+            self.dictionary.add_documents(self.get_texts())
 
 
     def __iter__(self):

@@ -289,7 +289,7 @@ public class JsClientController {
     	ItemBean item = null;
     	
     	try {
-    		item = ItemService.getItem(c, itemId, false);
+    		item = itemService.getItem(c, itemId, false);
     	}
     	catch(APIException e) {
     		//item does not exist

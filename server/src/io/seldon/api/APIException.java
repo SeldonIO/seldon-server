@@ -70,6 +70,7 @@ public class APIException extends RuntimeException {
     public static final int FACEBOOK_RESPONSE = 36;
 	public static final int NOT_VALID_STRATEGY = 37;
 	public static final int INVALID_JSON = 38;
+	public static final int PLUGIN_NOT_ENABLED = 39;
 
     //ATTRIBUTES
     int error_id;

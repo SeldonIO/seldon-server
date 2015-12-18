@@ -122,7 +122,7 @@ public class ItemController {
 		if(con instanceof ConsumerBean) {
 			MDCKeys.addKeysItem((ConsumerBean)con, itemId);
 			try {
-				res = ItemService.getItem((ConsumerBean)con,itemId,Util.getFull(req));
+				res = itemService.getItem((ConsumerBean)con,itemId,Util.getFull(req));
 			}
 			catch(APIException e) {
 				ApiLoggerServer.log(this, e);
