@@ -31,6 +31,30 @@ class FileUtil:
     # Streaming
     #
 
+    def stream_decompress(self,stream):
+        """decompress a stream
+        """
+        dec = zlib.decompressobj(16+zlib.MAX_WBITS)  # same as gzip module
+        for chunk in stream:
+            rv = dec.decompress(chunk)
+            if rv:
+                yield rv
+
+    def stream_gzip(self,k,fn):
+        """stream from gzip file and call function for each line
+        
+        Args:
+            k (file): input gziped file
+            fn (function): function to call for each line
+        """
+        unfinished = ""
+        for data in self.stream_decompress(k):
+            data = unfinished + data
+            lines = data.split("\n");
+            unfinished = lines.pop()
+            for line in lines:
+                fn(line)
+
     def stream_other(self,path,fn):
         """stream from local folders call a function
 
@@ -61,8 +85,11 @@ class FileUtil:
             self.conn = boto.connect_s3()
         b = self.conn.get_bucket(bucket)
         for k in b.list(prefix=prefix):
-            for line in smart_open.smart_open(k):
-                fn(line)
+            if k.name.endswith(".gz"): #smart_open can't currently handle gzip on s3...
+                self.stream_gzip(k,fn)
+            else:
+                for line in smart_open.smart_open(k):
+                    fn(line)
 
     def stream_multi(self,inputPaths,fn):
         """ stream multilple paths calling a function on each line
