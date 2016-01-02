@@ -185,7 +185,7 @@ class Extension_wrapper(object):
         if not os.path.exists(local_extension_folder):
             logger.info("creating folder %s",local_extension_folder)
             os.makedirs(local_extension_folder)
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(extension_folder,local_extension_folder)
         extension =  joblib.load(local_extension_folder+"/ext")
         extension.load(local_extension_folder)
@@ -201,7 +201,7 @@ class Extension_wrapper(object):
         tmp_file = extension_folder+"/ext"
         joblib.dump(extension,tmp_file)
         extension.save(extension_folder)
-        futil = fu.FileUtil(key=self.aws_key,secret=self.aws_secret)
+        futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(extension_folder,location)
 
 
