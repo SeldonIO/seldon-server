@@ -25,7 +25,7 @@ package io.seldon.recommendation;
 
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
-import io.seldon.api.caching.ActionHistoryCache;
+import io.seldon.api.caching.ActionHistoryProvider;
 import io.seldon.api.state.ClientAlgorithmStore;
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
@@ -72,7 +72,7 @@ public class RecommendationPeer {
     JdoCountRecommenderUtils cUtils;
 	
 	@Autowired
-	ActionHistoryCache actionCache;
+	ActionHistoryProvider actionProvider;
 
 	@Autowired
 	ExplicitItemsIncluder explicitItemsIncluder;
@@ -121,7 +121,7 @@ public class RecommendationPeer {
 		if (user != Constants.ANONYMOUS_USER) // only can get recent actions for non anonymous user
 		{
 			//TODO - fix limit
-			recentActions = actionCache.getRecentActions(client,user, 100);
+			recentActions = actionProvider.getRecentActions(client,user, 100);
 			numRecentActions = recentActions.size();
 			if (debugging)
 				logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + numRecentActions);

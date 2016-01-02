@@ -44,17 +44,20 @@ public class RedisPoolManager implements ClientConfigUpdateListener {
 
 	ConcurrentMap<String,JedisPool> pools = new ConcurrentHashMap<String,JedisPool>();
 	public static final String REDIS_KEY = "redis";
-	
 	@Autowired
 	public RedisPoolManager(ClientConfigHandler configHandler)
 	{
 		configHandler.addListener(this);
 	}
 	
-	private void add(String client,String host)
+	private void add(String client,String host,int maxTotal,int maxIdle)
 	{
-		logger.info("Adding Redis pool for "+client+" at "+host);
-		JedisPool pool = new JedisPool(new JedisPoolConfig(), host);
+		logger.info("Adding Redis pool for "+client+" at "+host+" maxTotal "+maxTotal+" maxIdle "+maxIdle);
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+		poolConfig.setMaxTotal(maxTotal); // maximum active connections
+		poolConfig.setMaxIdle(maxIdle);  // maximum idle connections
+
+		JedisPool pool = new JedisPool(poolConfig, host);
 		JedisPool existing = pools.get(client);
 		pools.put(client, pool);
 		if (existing != null)
@@ -87,7 +90,7 @@ public class RedisPoolManager implements ClientConfigUpdateListener {
 			try {
 				ObjectMapper mapper = new ObjectMapper();
 				RedisConfig config = mapper.readValue(configValue, RedisConfig.class);
-				add(client,config.host);
+				add(client,config.host,config.maxTotal,config.maxIdle);
 				logger.info("Successfully added new redis config for "+client);
 	            } catch (IOException | BeansException e) {
 	                logger.error("Couldn't update redis for client " +client, e);
@@ -99,6 +102,8 @@ public class RedisPoolManager implements ClientConfigUpdateListener {
 	public static class RedisConfig
 	{
 		public String host;
+		public int maxTotal = 10;
+		public int maxIdle = 2;
 	}
 
 	@Override

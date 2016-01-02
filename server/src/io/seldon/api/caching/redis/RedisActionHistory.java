@@ -68,7 +68,7 @@ public class RedisActionHistory implements ActionHistory {
 			try
 			{
 				jedis = pool.getResource();
-				String key = clientName + ":" + userId;
+				String key = MemCacheKeys.getActionHistory(clientName, userId);
 				Set<String> itemSet = jedis.zrange(key, 0, -1);
 				for (String item : itemSet)
 					res.add(Long.parseLong(item));
@@ -84,6 +84,8 @@ public class RedisActionHistory implements ActionHistory {
 		{
 			logger.error("No redis pool found for "+clientName);
 		}
+		if (logger.isDebugEnabled())
+			logger.debug("For user "+userId+" found "+res.size()+" actions:"+res.toString());
 		return res;
 	}
 
@@ -97,7 +99,7 @@ public class RedisActionHistory implements ActionHistory {
 			try
 			{
 				jedis = pool.getResource();
-				String key = MemCacheKeys.getActionHistory(clientName, userId);
+				String key = MemCacheKeys.getActionFullHistory(clientName, userId);
 				Set<String> actionSet = jedis.zrange(key, 0, -1);
 				for (String val : actionSet)
 				{
@@ -119,6 +121,8 @@ public class RedisActionHistory implements ActionHistory {
 		{
 			logger.error("No redis pool found for "+clientName);
 		}
+		if (logger.isDebugEnabled())
+			logger.debug("For user "+userId+" found "+actions.size()+" full actions");
 		return actions;
 	}
 

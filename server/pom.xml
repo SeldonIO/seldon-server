@@ -444,6 +444,13 @@
     		<version>7.0.6</version>
 		</dependency>
 		
+		<dependency>
+   		 	<groupId>redis.clients</groupId>
+    	 	<artifactId>jedis</artifactId>
+    		<version>2.7.2</version>
+    		<type>jar</type>
+    		<scope>compile</scope>
+		</dependency>
 
     </dependencies>
 

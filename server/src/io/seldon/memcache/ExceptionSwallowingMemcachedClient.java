@@ -33,10 +33,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import net.spy.memcached.AddrUtil;
+import net.spy.memcached.CASMutation;
+import net.spy.memcached.CASMutator;
 import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.DefaultConnectionFactory;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.internal.OperationFuture;
+import net.spy.memcached.transcoders.SerializingTranscoder;
+import net.spy.memcached.transcoders.Transcoder;
 
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.data.Stat;
@@ -55,6 +59,7 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
     private final String ZK_CONFIG_KEY_MEMCACHED_SERVERS_FPATH = "/config/" + ZK_CONFIG_KEY_MEMCACHED_SERVERS;
     private static Logger logger = Logger.getLogger(ExceptionSwallowingMemcachedClient.class.getName());
     public static final int MEMCACHE_OP_TIMEOUT = 2500;
+    private static final int MAX_CAS_RETRIES = 100;
     private MemcachedClient memcachedClient = null;
 
     @Autowired
@@ -130,4 +135,38 @@ public class ExceptionSwallowingMemcachedClient implements GlobalConfigUpdateLis
 		}
     	
     }
+    
+    public <T> T cas(String key,CASMutation<T> mutation,T value)
+	{
+		return cas(key,mutation,value,0);
+	}
+	
+	/**
+	 * Method to allow CAS 
+	 * @param <T>
+	 * @param key
+	 * @param mutation
+	 * @param value
+	 * @return
+	 */
+	public <T> T cas(String key,CASMutation<T> mutation,T value,int expireSecs)
+	{
+		Transcoder transcoder = new SerializingTranscoder();
+		// The mutator who'll do all the low-level stuff.
+		// Set number of retries to limit time taken..its not essential this succeeds
+		CASMutator<T> mutator = new CASMutator<>(memcachedClient, transcoder,MAX_CAS_RETRIES);
+
+		// This returns whatever value was successfully stored within the
+		// cache -- either the initial list as above, or a mutated existing
+		// one
+		try 
+		{
+			return mutator.cas(hashKey(key), value, expireSecs, mutation);
+		} 
+		catch (Exception e) 
+		{
+			logger.error("Failed up update hits in cache ",e);
+			return null;
+		}
+	}
 }
