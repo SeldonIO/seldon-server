@@ -147,8 +147,10 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	
 	@Override
 	public void configRemoved(String client, String configKey) {
-		predictionStore.remove(client);
-		logger.info("Removed client "+client);
+		if (configKey.equals(ALG_KEY)){
+			predictionStore.remove(client);
+			logger.info("Removed client "+client);
+		}
 	}
 
 	@Override

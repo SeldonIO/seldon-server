@@ -24,7 +24,7 @@
 package io.seldon.recommendation.filters.base;
 
 import io.seldon.api.Constants;
-import io.seldon.api.caching.ActionHistoryCache;
+import io.seldon.api.caching.ActionHistoryProvider;
 import io.seldon.clustering.recommender.RecommendationContext;
 import io.seldon.recommendation.ItemFilter;
 
@@ -47,7 +47,7 @@ public class RecentImpressionsFilter implements ItemFilter {
     private static Logger logger = Logger.getLogger(RecentImpressionsFilter.class.getName());
     
     @Autowired
-    ActionHistoryCache actionCache;
+    ActionHistoryProvider actionProvider;
     
     @Override
     public List<Long> produceExcludedItems(String client, Long user, String clientUserId, RecommendationContext.OptionsHolder optsHolder,
@@ -56,7 +56,7 @@ public class RecentImpressionsFilter implements ItemFilter {
         {
             // get recent actions for user
             int recentActionsNum = optsHolder.getIntegerOption(RECENT_ACTIONS_NUM);
-            List<Long> recentActions = actionCache.getRecentActions(client,user, recentActionsNum >0 ? recentActionsNum : numRecommendations);
+            List<Long> recentActions = actionProvider.getRecentActions(client,user, recentActionsNum >0 ? recentActionsNum : numRecommendations);
             if (logger.isDebugEnabled())
             	logger.debug("RecentActions for user with client "+client+" internal user id "+user+" num." + recentActions.size());
             return recentActions;

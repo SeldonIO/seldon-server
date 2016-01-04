@@ -100,8 +100,10 @@ public class PluginConfigStore implements ApplicationContextAware,ClientConfigUp
 	
 	@Override
 	public void configRemoved(String client, String configKey) {
-		pluginStore.remove(client);
-		logger.info("Removed client "+client);
+		if (configKey.equals(PLUGIN_KEY)){
+			pluginStore.remove(client);
+			logger.info("Removed client "+client);
+		}
 	}
 
 	@Override
