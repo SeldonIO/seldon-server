@@ -1,0 +1,34 @@
+<source>
+  type forward
+</source>
+
+<match restapi.**>
+  type copy  
+  <store>
+	  type                kafka
+	  brokers             127.0.0.1:9092
+	  default_topic       seldon_ctr
+	  output_data_type    json
+	  output_include_tag  true
+	  output_include_time true
+	  max_send_retries    3
+	  required_acks       0
+	  ack_timeout_ms      1500
+  </store>
+  <store>
+	  type s3
+
+	  aws_key_id AWS_KEY
+	  aws_sec_key AWS_SECRET
+	  s3_bucket MYBUCKET
+	  s3_endpoint s3-eu-west-1.amazonaws.com
+	  path fluentd/
+	  buffer_type file
+	  buffer_path /var/log/td-agent/s3.*.buffer
+	  time_slice_format %Y/%m%d/%H/%Y%m%d-%H
+	  s3_object_key_format %{path}%{time_slice}_%{index}_%{hostname}_misc.%{file_extension}
+	  flush_interval 60s
+	  utc
+  </store>
+
+</match>
