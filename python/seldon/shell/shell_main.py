@@ -48,6 +48,12 @@ def get_default_conf():
     return '''\
 {
     "default_algorithms": {
+        "assocRuleRecommender": {
+            "config": []
+        },
+        "dynamicClusterCountsRecommender": {
+            "config": []
+        },
         "externalItemRecommendationAlgorithm": {
             "config": [
                 {
@@ -67,7 +73,22 @@ def get_default_conf():
                 "recentItemsIncluder"
             ]
         },
+        "globalClusterCountsRecommender": {
+            "config": []
+        },
+        "itemCategoryClusterCountsRecommender": {
+            "config": []
+        },
+        "itemClusterCountsRecommender": {
+            "config": []
+        },
+        "itemSimilarityRecommender": {
+            "config": []
+        },
         "mfRecommender": {
+            "config": []
+        },
+        "mostPopularRecommender": {
             "config": []
         },
         "recentItemsRecommender": {
@@ -80,6 +101,12 @@ def get_default_conf():
                     "value": "1"
                 }
             ]
+        },
+        "semanticVectorsRecommender": {
+            "config": []
+        },
+        "userTagAffinityRecommender": {
+            "config": []
         }
     },
     "default_models": {
