@@ -1,0 +1,39 @@
+<source>
+  type tail
+  format /^(?<time>[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+)\,(?<retval>[0-9]+)\,(?<consumer>[^\,]+)\,(?<httpmethod>[^\,]+)\,(?<servlet>[^\,]+)\,(?<path>[^\,]+)\,(?<query>[^\,]+)\,(?<exectime>[^\,]+)\,(?<uuid>[^\,]+)(\,(?<bean>[^\,]+))?(\,(?<algorithm>[^\,]+))?$/
+  time_format %Y,%m,%d,%H,%M,%S
+  path <TOMCAT_HOME>/logs/seldon-server/base/restapi.log
+  tag restapi.calls
+  pos_file /var/log/td-agent/tailPos
+</source>
+
+<source>
+  type tail
+  format /^(?<time>[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+)\,(?<click>[^\,]+)\,(?<consumer>[^\,]+)\,(?<user>[^\,]+)\,(?<item>[^\,]+)\,(?<rectag>[^\,]+)$/
+  time_format %Y,%m,%d,%H,%M,%S
+  path <TOMCAT_HOME>/logs/seldon-server/base/ctr.log
+  tag restapi.ctr
+  pos_file /var/log/td-agent/ctrTailPos
+</source>
+
+
+<source>
+  type tail
+  format /^(?<time>[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+)\,(?<click>[^\,]+)\,(?<consumer>[^\,]+)\,(?<alg>[^\,]+)\,(?<pos>[^\,]+)\,(?<userid>[^\,]+)\,(?<useruuid>[^\,]+)\,(?<itemid>[^\,]+)\,(?<actions>[^\,]+),(?<recommendations>[^\,]+)?,(?<abkey>[^\,]+)?\,(?<rectag>[^\,]+)?$/
+  time_format %Y,%m,%d,%H,%M,%S
+  path <TOMCAT_HOME>/logs/seldon-server/base/ctr-alg.log
+  tag restapi.ctralg
+  pos_file /var/log/td-agent/ctrAlgTailPos
+</source>
+
+
+<source>
+  type tail
+  format /^(?<time>[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+\,[0-9]+)\,(?<client>[^\,]+)\,(?<rectag>[^\,]+)\,(?<userid>[0-9]+)\,(?<itemid>[0-9]+)\,(?<type>[0-9]+)\,(?<value>[0-9\.]+)\,\"(?<client_userid>[^(\")]+)\"\,\"(?<client_itemid>[^(\")]+)\"$/
+  time_format %Y,%m,%d,%H,%M,%S
+  types userid:integer,itemid:integer,type:integer
+  path <TOMCAT_HOME>/logs/seldon-server/actions/actions.log
+  tag actions.live
+  pos_file /var/log/td-agent/actionsAccessPos
+</source>
+

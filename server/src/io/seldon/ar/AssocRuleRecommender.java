@@ -21,7 +21,7 @@
 */
 package io.seldon.ar;
 
-import io.seldon.api.caching.ActionHistoryCache;
+import io.seldon.api.caching.ActionHistoryProvider;
 import io.seldon.ar.AssocRuleManager.AssocRuleRecommendation;
 import io.seldon.ar.AssocRuleManager.AssocRuleStore;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
@@ -60,13 +60,13 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 	final int[][] indices1 = {{0}};
 	
 	AssocRuleManager ruleManager;
-	ActionHistoryCache actionCache;
+	ActionHistoryProvider actionProvider;
 	
 	@Autowired
-	public AssocRuleRecommender(AssocRuleManager ruleManager,ActionHistoryCache actionCache) 
+	public AssocRuleRecommender(AssocRuleManager ruleManager,ActionHistoryProvider actionProvider) 
 	{
 		this.ruleManager = ruleManager;
-		this.actionCache = actionCache;
+		this.actionProvider = actionProvider;
 	}
 	
 	
@@ -94,7 +94,7 @@ public class AssocRuleRecommender implements ItemRecommendationAlgorithm {
 		 List<Long> basket = null;
 		 if (useActionTypes)
 		 {
-			 List<Action> actions = actionCache.getRecentFullActions(client, user, maxBasketSize*2);
+			 List<Action> actions = actionProvider.getRecentFullActions(client, user, maxBasketSize*2);
 			 Collections.reverse(actions);
 			 basket = new ArrayList<Long>();
 			 int addBasketType = optionsHolder.getIntegerOption(ADD_BASKET_ACTION_TYPE_OPTION);

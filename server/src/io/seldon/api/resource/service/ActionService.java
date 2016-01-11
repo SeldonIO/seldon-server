@@ -26,7 +26,7 @@ package io.seldon.api.resource.service;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
-import io.seldon.api.caching.ActionHistoryCache;
+import io.seldon.api.caching.ActionHistoryProvider;
 import io.seldon.api.logging.ActionLogger;
 import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.logging.CtrLogger;
@@ -97,14 +97,14 @@ public class ActionService {
     JdoCountRecommenderUtils cUtils;
     
     @Autowired
-    ActionHistoryCache actionCache;
+    ActionHistoryProvider actionProvider;
 	
     public ListBean getUserActions(ConsumerBean c, String userId, int limit, boolean full) throws APIException {
         ListBean bean = new ListBean();
         String clientName = c.getShort_name();
         int numActions = limit;
         long internalUserId = userService.getInternalUserId(c, userId);
-        List<Long> recentActionsItemIdList = actionCache.getRecentActions(clientName, internalUserId, numActions);
+        List<Long> recentActionsItemIdList = actionProvider.getRecentActions(clientName, internalUserId, numActions);
         for (Long internalItemId : recentActionsItemIdList) {
             String clientItemId = itemService.getClientItemId(c, internalItemId);
             ActionBean actionBean = new ActionBean(null, userId, clientItemId, 1, null, null, 0);
@@ -309,9 +309,9 @@ public class ActionService {
 				}
 				
 
-				actionCache.addAction(c.getShort_name(),userId, itemId);
+				actionProvider.addAction(c.getShort_name(),userId, itemId);
 				if (storeFullActions)
-					actionCache.addFullAction(c.getShort_name(), a);
+					actionProvider.addFullAction(c.getShort_name(), a);
 				
 			}
 		}

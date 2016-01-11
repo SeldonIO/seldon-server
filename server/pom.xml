@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.seldon</groupId>
         <artifactId>seldon-parent</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>seldon-server</artifactId>
@@ -444,6 +444,13 @@
     		<version>7.0.6</version>
 		</dependency>
 		
+		<dependency>
+   		 	<groupId>redis.clients</groupId>
+    	 	<artifactId>jedis</artifactId>
+    		<version>2.7.2</version>
+    		<type>jar</type>
+    		<scope>compile</scope>
+		</dependency>
 
     </dependencies>
 
