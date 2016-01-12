@@ -8,11 +8,10 @@ import seldon_utils
 gdata = {
     'all_clients_node_path': "/all_clients",
     'help_cmd_strs_list' : [
-        ("model", "todo"),
         ("model add <clientName>", "add a model for client"),
         ("model edit <clientName>", "edit a model for client"),
-        ("model show <clientName>", "show the model for client"),
-        ("model train <clientName> <modelName>", "todo")
+        ("model show <clientName>", "show the added models for client"),
+        ("model train <clientName> <modelName>", "run offline training")
     ],
 }
 
@@ -94,7 +93,7 @@ def subcmd_add(command_data):
         print "Model [{model_name}] already added".format(**locals())
 
 def subcmd_default(command_data):
-    print "todo default!"
+    pass
 
 def subcmd_edit(command_data):
     def have_client_name():
@@ -154,6 +153,34 @@ def subcmd_edit(command_data):
         node_path = "{all_clients_node_path}/{client_name}/offline/{model_name}".format(all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
         pp(node_path)
         zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
+
+def subcmd_show(command_data):
+    def have_client_name():
+        if client_name == None:
+            print "Need client name to edit model for"
+            return False
+        else:
+            return True
+
+    def have_valid_client_name():
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            return False
+        else:
+            return True
+
+    client_name = command_data["subcmd_args"][0] if len(command_data["subcmd_args"])>0 else None
+    if not have_client_name(): return
+    zk_client = command_data["zkdetails"]["zk_client"]
+    zkroot = command_data["zkdetails"]["zkroot"]
+    if not have_valid_client_name(): return
+
+    models_for_client_fpath = "{zkroot}{all_clients_node_path}/{client_name}/offline".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name)
+
+    models = os.listdir(models_for_client_fpath)
+
+    for idx,model in enumerate(models):
+        print "    {model}".format(**locals())
 
 def run_spark_job(command_data, job_info, client_name):
     conf_data = command_data["conf_data"]
@@ -264,5 +291,6 @@ subcmds = {
     "add" : subcmd_add,
     "edit" : subcmd_edit,
     "train" : subcmd_train,
+    "show" : subcmd_show,
 }
 
