@@ -11,7 +11,7 @@ gdata = {
         ("model add <clientName>", "add a model for client"),
         ("model edit <clientName>", "edit a model for client"),
         ("model show <clientName>", "show the added models for client"),
-        ("model train <clientName>", "choose model to run offline training")
+        ("model train <clientName>", "choose model and run offline training")
     ],
 }
 
