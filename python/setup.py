@@ -17,5 +17,5 @@ setup(name='seldon',
       packages=['seldon', 'seldon.pipeline', 'seldon.microservice', 'seldon.text', 'seldon.shell'],
       package_dir={'seldon.shell': 'seldon/shell'},
       package_data={'seldon.shell': ['dbschema/mysql/api.sql', 'dbschema/mysql/client.sql']},
-      scripts=['bin/seldon'],
+      scripts=['bin/seldon-shell'],
       )
