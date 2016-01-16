@@ -77,4 +77,5 @@ public abstract class ItemPeer {
 	public abstract Integer getDimensionForAttrName(long itemId,String name);
 
 	public abstract List<SqlItemPeer.ItemAndScore> retrieveMostPopularItems(int numItems, Set<Integer> dimensions);
+	public abstract Map<String,Integer> getDimensionIdsForItem(long itemId);
 }

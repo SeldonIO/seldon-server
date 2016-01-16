@@ -81,9 +81,11 @@ def subcmd_default(command_data):
         print "No clients found!"
     else:
         for client in os.listdir(zkroot + gdata["all_clients_node_path"]):
+            print client
             data_fpath = get_data_fpath(zkroot, client)
             f = open(data_fpath)
             json = f.read()
+            print json
             data = json_to_dict(json)
             f.close()
             print "client[{client}]:".format(**locals())

@@ -53,6 +53,7 @@ def import_actions(client_name, db_settings, data_file_fpath, out_file_fpath):
     userCache = {}
     itemCache = {}
     count = 0
+    print out_file_fpath
     with open(data_file_fpath) as csvfile, open(out_file_fpath,'w') as outfile:
         reader = unicodecsv.DictReader(csvfile,encoding='utf-8')
         for f in reader:

@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,8 +55,6 @@ import javax.jdo.Query;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
-import java.util.HashSet;
 
 public class SqlItemPeer extends ItemPeer {
 
@@ -682,6 +681,20 @@ public class SqlItemPeer extends ItemPeer {
 		query.setResultClass(Integer.class);
 		query.setUnique(true);
 		return (Integer) query.execute(name,itemId);
+	}
+	
+	@Override
+	public Map<String,Integer> getDimensionIdsForItem(long itemId){
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select ia.name,d.dim_id from item_map_enum ime join item_attr ia on (ia.attr_id=ime.attr_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where ime.item_id=?");
+		Collection<Object[]> results = (Collection<Object[]>) query.execute(itemId);
+		Map<String,Integer> toReturn = new HashMap<String,Integer>();
+		for(Object[] r : results)
+		{
+			String attr = (String) r[0];
+			Integer dim = (Integer) r[1];
+			toReturn.put(attr, dim);
+		}
+		return toReturn;
 	}
 
 	@Override
