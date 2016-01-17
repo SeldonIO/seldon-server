@@ -113,7 +113,7 @@ public class MostPopularInSessionFeaturesManager extends ModelManager<MostPopula
 		logger.info("Reloading most popular items by dimension for client: "+ client);
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					featuresFileHandler.getResourceStream(location + "/items.json")
+					featuresFileHandler.getResourceStream(location + "/part-00000")
 			));
 
 			DimPopularityStore store = createStore(reader, client);

@@ -79,7 +79,10 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 		int maxDepth = options.getIntegerOption(DEPTH_PROPERTY_NAME);
 		ConsumerBean c = new ConsumerBean(client);
 		String[] attrNames = attrs.split(",");
-
+		Set<Long> exclusions = Collections.emptySet();
+        if (ctxt.getMode() == RecommendationContext.MODE.EXCLUSION) {
+        	exclusions = ctxt.getContextItems();
+        }
 		Map<Long,Double> scores = new HashMap<>();
 		for(int depth=0;depth<maxDepth;depth++)
 		{
@@ -98,16 +101,19 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 					double lowScore = 1.0;
 					for(ItemCount ic : counts)
 					{
-						if (maxCount == 0)
-							maxCount = ic.count;
-						double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
-						if (scores.containsKey(ic.item))
-							scores.put(ic.item, scores.get(ic.item)+normCount);
-						else
-							scores.put(ic.item, normCount);
-						lowScore = normCount;
-						if (scores.size()>= maxRecsCount)
-							break;
+						if (!exclusions.contains(ic.item))
+						{
+							if (maxCount == 0)
+								maxCount = ic.count;
+							double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
+							if (scores.containsKey(ic.item))
+								scores.put(ic.item, scores.get(ic.item)+normCount);
+							else
+								scores.put(ic.item, normCount);
+							lowScore = normCount;
+							if (scores.size()>= maxRecsCount)
+								break;
+						}
 					}
 					lowestScore = lowScore;//update lowest from this loop
 				}
