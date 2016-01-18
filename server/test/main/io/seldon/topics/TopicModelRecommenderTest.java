@@ -71,14 +71,13 @@ public class TopicModelRecommenderTest {
 		dimensions.add(dimension);
 		expect(mockFeaturesManager.getClientStore(client, mockOptions)).andReturn(null);
 		replay(mockFeaturesManager);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
-
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.attrid")).andReturn(0);
 		expect(mockOptions.getStringOption("io.seldon.algorithm.tags.table")).andReturn("table");
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(3);
 
 		replay(mockCtxt, mockOptions);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		ItemRecommendationResultSet res = r.recommend(client, 1L, dimensions,50,mockCtxt,null);
 		
 		verify(mockFeaturesManager,mockCtxt, mockOptions);

@@ -489,4 +489,16 @@ public class ItemService {
         itemStorage.persistIgnoredItems(consumerBean.getShort_name(), actionBean.getUser(), resultingSet);
 
     }
+    
+    
+    public Map<String,Integer> getDimensionIdsForItem(ConsumerBean c,long itemId)
+    {
+    	final String key = MemCacheKeys.getItemAttrDims(c.getShort_name(), itemId);
+    	Map<String,Integer> res = (Map<String,Integer>)MemCachePeer.get(key);
+		if(res==null) {
+			res = Util.getItemPeer(c).getDimensionIdsForItem(itemId);
+			MemCachePeer.put(key, res,Constants.CACHING_TIME);
+		}
+		return res;
+    }
 }
