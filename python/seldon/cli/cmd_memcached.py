@@ -3,6 +3,7 @@ import argparse
 import os
 import sys
 import json
+import errno
 
 import zk_utils
 
@@ -36,14 +37,37 @@ def json_to_dict(json_data):
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli memcached', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--numClients', help="number of clients", required=False)
+    parser.add_argument('--servers', help="the server list", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
 
 def action_setup(command_data, opts):
-    print "Doing action setup"
-    pp(command_data)
-    pp(opts)
+    print "Setting up memcached"
+    zkroot = command_data["zkdetails"]["zkroot"]
+
+    data_fpath = zkroot + gdata['data_path']
+    zk_client=command_data["zkdetails"]["zk_client"]
+    ensure_local_data_file_exists(zk_client, zkroot)
+
+    f = open(data_fpath)
+    json = f.read()
+    data = json_to_dict(json)
+    f.close()
+
+    has_any_value_changed = False
+
+    if opts.numClients != None:
+        data["numClients"] = opts.numClients
+        has_any_value_changed = True
+
+    if opts.servers != None:
+        data["servers"] = opts.servers
+        has_any_value_changed = True
+
+    if has_any_value_changed:
+        write_data_to_file(data_fpath, data)
 
 def action_commit(command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
