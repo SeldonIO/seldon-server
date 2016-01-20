@@ -46,9 +46,17 @@ def action_setup(command_data, opts):
     pp(opts)
 
 def action_commit(command_data, opts):
-    print "Doing action commit"
-    pp(command_data)
-    pp(opts)
+    zkroot = command_data["zkdetails"]["zkroot"]
+    data_fpath = zkroot + gdata['data_path']
+    if not os.path.isfile(data_fpath):
+        write_data_to_file(data_fpath, gdata["default_data"])
+    f = open(data_fpath)
+    data_json = f.read()
+    f.close()
+
+    zk_client=command_data["zkdetails"]["zk_client"]
+    node_path=gdata["node_path"]
+    zk_utils.node_set(zk_client, node_path, data_json)
 
 def ensure_local_data_file_exists(zk_client, zkroot):
     data_fpath = zkroot + gdata['data_path']
