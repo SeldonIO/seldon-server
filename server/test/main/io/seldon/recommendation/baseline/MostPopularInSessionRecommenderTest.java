@@ -33,6 +33,7 @@ import io.seldon.recommendation.baseline.MostPopularInSessionFeaturesManager.Dim
 import io.seldon.recommendation.baseline.MostPopularInSessionFeaturesManager.ItemCount;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +71,8 @@ public class MostPopularInSessionRecommenderTest {
 		dimensions.add(dimension);
 
 		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
+		expect(mockCtxt.getMode()).andReturn(RecommendationContext.MODE.EXCLUSION);
+		expect(mockCtxt.getContextItems()).andReturn(Collections.singleton(1L));
 		expect(mockOptions.getStringOption("io.seldon.algorithm.popular.attrs")).andReturn("attr1");
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.popular.recent.depth")).andReturn(1);
 		replay(mockCtxt, mockOptions);

@@ -84,6 +84,10 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
         if (ctxt.getMode() == RecommendationContext.MODE.EXCLUSION) {
         	exclusions = ctxt.getContextItems();
         }
+        if (logger.isDebugEnabled())
+        {
+        	logger.debug("user "+user+" recentItems:"+recentItemInteractions.toString()+" depth:"+maxDepth+" attrs "+attrs);
+        }
 		Map<Long,Double> scores = new HashMap<>();
 		for(int depth=0;depth<maxDepth;depth++)
 		{
