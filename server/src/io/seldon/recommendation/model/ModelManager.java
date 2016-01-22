@@ -85,7 +85,7 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
                 T result = loadModel(location, client);
                 logger.info("Loaded with client:"+client+" location:"+location+" key:"+key+"finalPartOfNodeL"+finalPartOfNode+" result:"+result);
                 clientStores.putIfAbsent(key, new ConcurrentHashMap<String, T>());
-                clientStores.get(key).putIfAbsent(finalPartOfNode, result);
+                clientStores.get(key).put(finalPartOfNode, result);
                 for (Map<String, T> store : clientStores.values()) {
                     for (String t : store.keySet()) {
                         logger.info(t + " " + store.get(t));
