@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 public class MostPopularInSessionRecommender implements ItemRecommendationAlgorithm {
 
 	private static Logger logger = Logger.getLogger(MostPopularInSessionRecommender.class.getSimpleName());
+
 	private static final String name = MostPopularInSessionRecommender.class.getSimpleName();
 	private static final String ATTRS_PROPERTY_NAME ="io.seldon.algorithm.popular.attrs";
 	private static final String DEPTH_PROPERTY_NAME ="io.seldon.algorithm.popular.recent.depth";
@@ -139,8 +140,7 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 
 	@Override
 	public String name() {
-		// TODO Auto-generated method stub
-		return null;
+		return name;
 	}
 
 }
