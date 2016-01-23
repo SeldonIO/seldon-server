@@ -3,31 +3,29 @@ package io.seldon.spark.mllib
 /**
  * @author clive
  */
-import _root_.io.seldon.spark.rdd.FileUtils
+import io.seldon.spark.rdd.FileUtils
+import io.seldon.spark.rdd.DataSourceMode
 import io.seldon.spark.zookeeper.ZkCuratorHandler
 import java.io.File
 import java.text.SimpleDateFormat
 import org.apache.curator.utils.EnsurePath
 import org.apache.spark._
-import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkContext._
-import org.apache.spark.mllib.recommendation.{Rating, ALS, MatrixFactorizationModel}
+import org.apache.spark.mllib.recommendation.Rating
+import org.apache.spark.mllib.recommendation.ALS
+import org.apache.spark.mllib.recommendation.MatrixFactorizationModel
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.linalg.Matrices
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
-import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
+import org.apache.spark.mllib.clustering.KMeans
+import org.apache.spark.mllib.clustering.KMeansModel
 import org.apache.spark.rdd._
-import org.jets3t.service.S3Service
-import org.jets3t.service.impl.rest.httpclient.RestS3Service
-import org.jets3t.service.model.{S3Object, S3Bucket}
-import org.jets3t.service.security.AWSCredentials
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.{HashPartitioner, SparkContext, SparkConf}
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
 import scala.collection.mutable
 import scala.util.Random._
-import java.net.URLClassLoader
 
 case class UCActionWeightings (actionMapping: List[UCActionWeighting])
 
@@ -58,34 +56,7 @@ case class UCMfConfig(
 
 class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
 
-  object DataSourceMode extends Enumeration {
-    def fromString(s: String): DataSourceMode = {
-      if(s.startsWith("/"))
-        return LOCAL
-      if(s.startsWith("s3n://"))
-        return S3
-      return NONE
-    }
-    type DataSourceMode = Value
-    val S3, LOCAL, NONE = Value
-  }
-  import DataSourceMode._
-
-
-  def toSparkResource(location:String, mode:DataSourceMode): String = {
-    mode match {
-      case LOCAL => return location.replace("local:/","")
-      case S3 => return location
-    }
-
-  }
-
-  def toOutputResource(location:String, mode: DataSourceMode): String = {
-    mode match {
-      case LOCAL => return location.replace("local:/","")
-      case S3 => return location.replace("s3n://", "")
-    }
-  }
+ 
   
   def run() 
   {
@@ -99,13 +70,13 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
     val zkServer = config.zkHosts
     val inputFilesLocation = config.inputPath + "/" + config.client + "/actions/"
     val inputDataSourceMode = DataSourceMode.fromString(inputFilesLocation)
-    if (inputDataSourceMode == NONE) {
+    if (inputDataSourceMode == DataSourceMode.NONE) {
       println("input file location must start with local:// or s3n://")
       sys.exit(1)
     }
     val outputFilesLocation = config.outputPath + "/" + config.client +"/matrix-factorization/"
     val outputDataSourceMode = DataSourceMode.fromString(outputFilesLocation)
-    if (outputDataSourceMode == NONE) {
+    if (outputDataSourceMode == DataSourceMode.NONE) {
       println("output file location must start with local:// or s3n://")
       sys.exit(1)
     }
@@ -121,7 +92,7 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
     // set up environment
     val timeStart = System.currentTimeMillis()
-    val glob= toSparkResource(inputFilesLocation, inputDataSourceMode) + ((date - daysOfActions + 1) to date).mkString("{", ",", "}")
+    val glob= inputFilesLocation + ((date - daysOfActions + 1) to date).mkString("{", ",", "}")
     println("Looking at "+glob)
     val actions:RDD[((Int, Int), Int)] = sc.textFile(glob)
       .map { line =>
@@ -197,9 +168,33 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
     
     println("Creating predictions for archtype users")
     val predictions = modelNew.recommendProductsForUsers(200).flatMapValues{v => v}.map{case (user,rating) => (user,rating.product,rating.rating)}
+    val predictionsStr = predictions.map{case (user,product,rating) => 
+      var line = new StringBuilder()
+      line ++= user.toString()
+      line ++= ","
+      line ++= product.toString()
+      line ++= ","
+      line ++= rating.toString()
+      line.toString()
+      }
+    FileUtils.outputModelToFile(predictionsStr, outputFilesLocation, DataSourceMode.fromString(outputFilesLocation), "recommendations.csv")
     
-    predictions.saveAsTextFile(outputFilesLocation)
+    //create cluster assignments for users
+    println("Creating user cluster id map")
+    val bUserClusterModel = sc.broadcast(userClusterModel)
+    val dd = userEuclideanFeatures.rows.zip(model.userFeatures)// dp similar but get user ids and zip with eucidean features and then do below on that to get clusters
+    val userClusterMap = dd.map{case (euclideanFeats,(user,_)) => (user,bUserClusterModel.value.predict(euclideanFeats))}
+    val userClusterMapStr = userClusterMap.map{case (user,cluster) => 
+      var line = new StringBuilder()
+      line ++= user.toString()
+      line ++= ","
+      line ++= cluster.toString()
+      line.toString()
+      }
+   FileUtils.outputModelToFile(userClusterMapStr, outputFilesLocation, DataSourceMode.fromString(outputFilesLocation), "userclusters.csv")
 
+    
+    
     if (config.activate)
     {
       val curator = new ZkCuratorHandler(zkServer)
@@ -230,80 +225,12 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
     println("Time taken " + (System.currentTimeMillis() - startTime))
   }
 
-  def outputModelToLocalFile(model: MatrixFactorizationModel, outputFilesLocation: String, yesterdayUnix: Long) = {
-    new File(outputFilesLocation+yesterdayUnix).mkdirs()
-    val userFile = new File(outputFilesLocation+yesterdayUnix+"/userFeatures.txt");
-    userFile.createNewFile()
+  
+  
 
-    val productFile = new File(outputFilesLocation+yesterdayUnix+"/productFeatures.txt");
-    productFile.createNewFile()
+  
 
-    outputToFile(model, userFile, productFile)
-    val gzipUserFile:File = FileUtils.gzip(userFile.getAbsolutePath)
-    println(gzipUserFile.getAbsolutePath)
-    val gzipProdFile = FileUtils.gzip(productFile.getAbsolutePath)
-  }
-
-  def outputToFile(model: MatrixFactorizationModel, userFile: File, prodFile: File): Unit = {
-    printToFile(userFile) {
-      p => model.userFeatures.collect().foreach {
-        u => {
-          val strings = u._2.map(d => f"$d%.5g")
-          p.println(u._1.toString + "|" + strings.mkString(","))
-        }
-      }
-    }
-    printToFile(prodFile) {
-      p => model.productFeatures.collect().foreach {
-        u => {
-          val strings = u._2.map(d => f"$d%.5g")
-          p.println(u._1.toString + "|" + strings.mkString(","))
-        }
-
-      }
-    }
-
-  }
-
-  def outputModelToS3File(model: MatrixFactorizationModel, outputFilesLocation: String, yesterdayUnix: Long) = {
-    // write to temp file first
-    val tmpUserFile = File.createTempFile("mfmodelUser",".tmp");
-    tmpUserFile.deleteOnExit()
-    val tmpProdFile = File.createTempFile("mfModelProduct",".tmp")
-    tmpProdFile.deleteOnExit()
-    outputToFile(model, tmpUserFile, tmpProdFile)
-    val gzipUserFile:File = FileUtils.gzip(tmpUserFile.getAbsolutePath)
-    println(gzipUserFile.getAbsolutePath)
-    val gzipProdFile = FileUtils.gzip(tmpProdFile.getAbsolutePath)
-    val service: S3Service = new RestS3Service(new AWSCredentials(System.getenv("AWS_ACCESS_KEY_ID"), System.getenv("AWS_SECRET_ACCESS_KEY")))
-    val bucketString = outputFilesLocation.split("/")(0)
-    val bucket = service.getBucket(bucketString)
-    val s3Folder = outputFilesLocation.replace(bucketString+"/","")
-
-    val obj = new S3Object(tmpUserFile)
-    obj.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt")
-    service.putObject(bucket, obj)
-    val objZip = new S3Object(gzipUserFile)
-    objZip.setKey(s3Folder+yesterdayUnix+"/userFeatures.txt.gz")
-    service.putObject(bucket, objZip)
-    System.out.println("Uploading user features to " + bucketString + " bucket " + obj.getKey + " file")
-    val objProd = new S3Object(tmpProdFile)
-    objProd.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt")
-    service.putObject(bucket, objProd)
-    val objProdZip = new S3Object(gzipProdFile)
-    objProdZip.setKey(s3Folder+yesterdayUnix+"/productFeatures.txt.gz")
-    service.putObject(bucket, objProdZip)
-    System.out.println("Uploading product features to " + bucketString + " bucket " + objProd.getKey + " file")
-  }
-
-  def outputModelToFile(model: MatrixFactorizationModel,outputFilesLocation:String, outputType:DataSourceMode, client:String, yesterdayUnix: Long) {
-    outputType match {
-      case LOCAL => outputModelToLocalFile(model,outputFilesLocation,  yesterdayUnix)
-      case S3 => outputModelToS3File(model, outputFilesLocation, yesterdayUnix)
-    }
-
-
-  }
+  
 
   def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
     val p = new java.io.PrintWriter(f)
