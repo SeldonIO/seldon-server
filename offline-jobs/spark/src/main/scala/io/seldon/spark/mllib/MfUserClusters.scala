@@ -49,6 +49,8 @@ case class UCMfConfig(
     lambda : Double = 0.01,
     alpha : Double = 1,
     iterations : Int = 20,
+    kmeansIterations : Int = 200,
+    numRecommendations : Int = 200,
     actionWeightings: Option[List[UCActionWeighting]] = None,
     clusters : Int = 2
  )
@@ -74,7 +76,7 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
       println("input file location must start with local:// or s3n://")
       sys.exit(1)
     }
-    val outputFilesLocation = config.outputPath + "/" + config.client +"/matrix-factorization/"
+    val outputFilesLocation = config.outputPath + "/" + config.client +"/mfclusters/" + "/" + config.startDay
     val outputDataSourceMode = DataSourceMode.fromString(outputFilesLocation)
     if (outputDataSourceMode == DataSourceMode.NONE) {
       println("output file location must start with local:// or s3n://")
@@ -153,7 +155,7 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
 
    
     val numClusters = config.clusters
-    val numIterations = 200
+    val numIterations = config.kmeansIterations
     println("Running kmeans with "+numClusters+" clusters for "+numIterations+" iterations")
     val userClusterModel = KMeans.train(userEuclideanFeatures.rows.cache(), numClusters, numIterations)
     
@@ -167,7 +169,8 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
     val modelNew = new MatrixFactorizationModel(model.rank,userArchFactors,model.productFeatures)
     
     println("Creating predictions for archtype users")
-    val predictions = modelNew.recommendProductsForUsers(200).flatMapValues{v => v}.map{case (user,rating) => (user,rating.product,rating.rating)}
+    val numRecommendations = 200
+    val predictions = modelNew.recommendProductsForUsers(numRecommendations).flatMapValues{v => v}.map{case (user,rating) => (user,rating.product,rating.rating)}
     val predictionsStr = predictions.map{case (user,product,rating) => 
       var line = new StringBuilder()
       line ++= user.toString()
@@ -310,6 +313,8 @@ object MfUserClusters {
         opt[Double]('m', "alpha") foreach { x =>c = c.copy(alpha = x) } text("governs the baseline confidence in preference observations")        
         opt[Int]('u', "iterations") foreach { x =>c = c.copy(iterations = x) } text("the number of iterations to run the modelling")
         opt[Int]("clusters") foreach { x =>c = c.copy(clusters = x) } text("number of user clusters to create")
+        opt[Int]("kmeansIterations") foreach { x =>c = c.copy(kmeansIterations = x) } text("number of kmeans iterations to run")
+        opt[Int]("numRecommendations") foreach { x =>c = c.copy(numRecommendations = x) } text("number of recommendations per user to create")
     }
     
     
