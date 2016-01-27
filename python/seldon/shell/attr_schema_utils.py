@@ -12,8 +12,15 @@ valid_value_types = set(['double', 'string', 'date', 'text', 'int','boolean'])
 value_types_to_db_map = dict(double='DOUBLE', string='VARCHAR', date='DATETIME', int='INT', boolean='BOOLEAN',
 	text='TEXT', enum='ENUM')
 
+def hasAttr(attrs,name):
+    for attr in attrs:
+        if attr["name"] == name:
+            return True
+    return False
+
 def addAttrsToDb(db, attrs, item_type):
-	attrs.append({"name":"content_type", "value_type":["article"]})
+        if not hasAttr(attrs,"content_type"):
+            attrs.append({"name":"content_type", "value_type":["article"]})
 	for attr in attrs:
 		attrValType = attr['value_type']
 		if type(attrValType) is list:
