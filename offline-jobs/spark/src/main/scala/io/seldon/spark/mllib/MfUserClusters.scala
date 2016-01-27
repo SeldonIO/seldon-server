@@ -52,7 +52,7 @@ case class UCMfConfig(
     kmeansIterations : Int = 200,
     numRecommendations : Int = 200,
     actionWeightings: Option[List[UCActionWeighting]] = None,
-    clusters : Int = 2
+    clusters : Int = 20
  )
  
 
