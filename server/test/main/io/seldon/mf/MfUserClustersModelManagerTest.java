@@ -66,6 +66,6 @@ public class MfUserClustersModelManagerTest {
 		Integer cid = clusters.get(1L);
 		Assert.assertNotNull(clusters);
 		Assert.assertEquals(3, clusters.size());
-		Assert.assertEquals((Integer)1, clusters.get(1));
+		Assert.assertEquals((Integer)1, clusters.get(1L));
 	}
 }
