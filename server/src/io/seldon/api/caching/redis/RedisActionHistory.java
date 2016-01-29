@@ -71,7 +71,7 @@ public class RedisActionHistory implements ActionHistory {
 				String key = MemCacheKeys.getActionHistory(clientName, userId);
 				Set<String> itemSet = jedis.zrange(key, 0, -1);
 				for (String item : itemSet)
-					res.add(Long.parseLong(item));
+					res.add(0,Long.parseLong(item));
 			}
 			finally
 			{
@@ -104,7 +104,7 @@ public class RedisActionHistory implements ActionHistory {
 				for (String val : actionSet)
 				{
 	                ActionLogEntry ale = mapper.readValue(val, ActionLogEntry.class);
-	                actions.add(ale.toAction());
+	                actions.add(0,ale.toAction());
 				}
 			}
 			catch (IOException e) {
