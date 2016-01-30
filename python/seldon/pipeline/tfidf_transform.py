@@ -6,7 +6,7 @@ import logging
 import time
 import logging
 
-logger = logging.getLogger('seldon.pipeline.tfidf_transform')
+logger = logging.getLogger(__name__)
 
 class Tfidf_transform(BaseEstimator,TransformerMixin):
     """

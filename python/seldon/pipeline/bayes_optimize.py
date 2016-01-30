@@ -5,7 +5,7 @@ from sklearn.base import BaseEstimator
 import seldon.pipeline.cross_validation as cf
 import logging
 
-logger = logging.getLogger('seldon.pipeline.bayes_optimize')
+logger = logging.getLogger(__name__)
 
 class BayesOptimizer(BaseEstimator):
 

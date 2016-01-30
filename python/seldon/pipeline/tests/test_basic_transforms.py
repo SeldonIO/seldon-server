@@ -17,6 +17,16 @@ class Test_binary_transform(unittest.TestCase):
         self.assertEquals(df["abin"][0],1)
         self.assertEquals(df["abin"][1],0)
 
+    def test_sklearn_pipeline_numbers(self):
+        df = pd.DataFrame.from_dict([{"a":2},{"a":0}])
+        t = bt.Binary_transform(input_feature="a",output_feature="abin")
+        transformers = [("binary_transform",t)]
+        p = Pipeline(transformers)
+        df2 = p.fit_transform(df)
+        print df2
+        self.assertEquals(df["abin"][0],1)
+        self.assertEquals(df["abin"][1],0)
+
 class Test_exclude_transform(unittest.TestCase):
 
     def test_sklearn_pipeline(self):

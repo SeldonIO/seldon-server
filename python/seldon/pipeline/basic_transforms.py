@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
 import time
 
-logger = logging.getLogger('seldon.pipeline.basic_transforms')
+logger = logging.getLogger(__name__)
 
 class Binary_transform(BaseEstimator,TransformerMixin):
     """
@@ -31,6 +31,7 @@ class Binary_transform(BaseEstimator,TransformerMixin):
         return self
 
     def transform(self,df):
+        logger.info("Binary transform")
         """
         Transform a dataframe creating a new binary feature
 
@@ -46,7 +47,7 @@ class Binary_transform(BaseEstimator,TransformerMixin):
 
         """
 
-        df[self.output_feature] = df.apply(lambda row: 1 if not pd.isnull(row[self.input_feature]) and not row[self.input_feature] == 0 and not row[self.input_feature] == "" else 0,axis=1)
+        df[self.output_feature] = df.apply(lambda row: 1 if (not pd.isnull(row[self.input_feature])) and (not row[self.input_feature] == "0") and (not row[self.input_feature] == 0) and (not row[self.input_feature] == "") else 0,axis=1)
         return df
 
 ################

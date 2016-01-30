@@ -17,7 +17,7 @@ from keras.models import model_from_json
 import copy
 import logging
 
-logger = logging.getLogger('seldon.keras')
+logger = logging.getLogger(__name__)
 
 def default_classification_model(input_width,num_classes):
     """Default classification model

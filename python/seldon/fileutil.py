@@ -12,7 +12,7 @@ from filechunkio import FileChunkIO
 import logging
 import smart_open
 
-logger = logging.getLogger('seldon.fileutil')
+logger = logging.getLogger(__name__)
 
 class FileUtil:
     """utilities to input and output files. Locally or from AWS S3.

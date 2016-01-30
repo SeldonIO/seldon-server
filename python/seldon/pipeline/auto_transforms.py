@@ -9,7 +9,7 @@ import itertools
 from sklearn.base import BaseEstimator,TransformerMixin
 import logging
 
-logger = logging.getLogger('seldon.pipeline.auto_transforms')
+logger = logging.getLogger(__name__)
 
 class Auto_transform(BaseEstimator,TransformerMixin):
     """

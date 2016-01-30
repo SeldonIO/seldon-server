@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.base import BaseEstimator
 import logging
 
-logger = logging.getLogger('seldon.pipeline.cross_validation')
+logger = logging.getLogger(__name__)
 
 class Seldon_KFold(BaseEstimator):
     """
