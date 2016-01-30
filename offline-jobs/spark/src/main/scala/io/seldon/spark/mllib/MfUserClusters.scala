@@ -45,6 +45,7 @@ case class UCMfConfig(
     zkHosts : String = "",
     activate : Boolean = false,
     
+    minActionsPerUser : Int = 0,
     rank : Int = 30,
     lambda : Double = 0.01,
     alpha : Double = 1,
@@ -76,7 +77,7 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
       println("input file location must start with local:// or s3n://")
       sys.exit(1)
     }
-    val outputFilesLocation = config.outputPath + "/" + config.client +"/mfclusters/" + "/" + config.startDay
+    val outputFilesLocation = config.outputPath + "/" + config.client +"/mfclusters/" + config.startDay
     val outputDataSourceMode = DataSourceMode.fromString(outputFilesLocation)
     if (outputDataSourceMode == DataSourceMode.NONE) {
       println("output file location must start with local:// or s3n://")
@@ -96,6 +97,7 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
     val timeStart = System.currentTimeMillis()
     val glob= inputFilesLocation + ((date - daysOfActions + 1) to date).mkString("{", ",", "}")
     println("Looking at "+glob)
+    val minActions = config.minActionsPerUser
     val actions:RDD[((Int, Int), Int)] = sc.textFile(glob)
       .map { line =>
         val json = parse(line)
@@ -104,8 +106,9 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
         val user = (json \ "userid").extract[Int]
         val item = (json \ "itemid").extract[Int]
         val actionType = (json \"type").extract[Int]
-        ((item,user),actionType)
-      }.repartition(2).cache()
+        //((item,user),actionType)
+        (user,(item,actionType))
+      }.groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => ((v._2._1,v._1),v._2._2)).repartition(2).cache()
 
     // group actions by user-item key
     val actionsByType:RDD[((Int,Int),List[Int])] = actions.combineByKey((x:Int)=>List[Int](x),
