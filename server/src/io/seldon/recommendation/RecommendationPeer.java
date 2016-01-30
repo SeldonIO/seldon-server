@@ -156,7 +156,8 @@ public class RecommendationPeer {
 					algStr,user,clientUserId,currentItemId, dimensions, lastRecListUUID, numRecommendations,defaultOptions,explicitItems);
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimensions,
 					numRecommendations, ctxt, recentItemInteractions);
-
+			if (logger.isDebugEnabled())
+				logger.debug("Recommender "+algStr.name+" returned "+results.getResults().size()+" results ");
 		    resultSets.add(new RecResultContext(results, results.getRecommenderName()));
 			if(combiner.isEnoughResults(numRecommendationsAsked, resultSets))
 				break;

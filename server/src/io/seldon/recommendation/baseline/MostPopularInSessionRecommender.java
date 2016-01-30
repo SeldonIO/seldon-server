@@ -96,6 +96,8 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 			long recentItem = recentItemInteractions.get(depth);
 			Map<String,Integer> attrDims = itemService.getDimensionIdsForItem(c, recentItem);
 			double lowestScore = 1.0;
+			if (logger.isDebugEnabled())
+				logger.debug("Looking at item "+recentItem+" has attrDim size "+attrDims.size());
 			for(String attr : attrNames)
 			{
 				Integer dim = attrDims.get(attr);
@@ -108,6 +110,8 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 					{
 						if (!exclusions.contains(ic.item))
 						{
+							if (logger.isDebugEnabled())
+								logger.debug("Adding item "+ic.item+" from dimension "+attr);
 							if (maxCount == 0)
 								maxCount = ic.count;
 							double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
@@ -118,6 +122,11 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 							lowScore = normCount;
 							if (scores.size()>= maxRecsCount)
 								break;
+						}
+						else
+						{
+							if (logger.isDebugEnabled())
+								logger.debug("Excluding item "+ic.item);
 						}
 					}
 					lowestScore = lowScore;//update lowest from this loop
@@ -137,6 +146,8 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 		{
 			results.add(new ItemRecommendationResultSet.ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));
 		}
+		if (logger.isDebugEnabled())
+			logger.debug("Returning "+results.size()+" recommendations");
 		return new ItemRecommendationResultSet(results, name);
 	}
 	
