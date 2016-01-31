@@ -46,7 +46,6 @@ class Binary_transform(BaseEstimator,TransformerMixin):
         Transformed pandas dataframe
 
         """
-
         df[self.output_feature] = df.apply(lambda row: 1 if (not pd.isnull(row[self.input_feature])) and (not row[self.input_feature] == "0") and (not row[self.input_feature] == 0) and (not row[self.input_feature] == "") else 0,axis=1)
         return df
 
@@ -85,7 +84,8 @@ class Include_features_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
-        return df[list(set(self.included).intersection(df.columns))]
+        df =  df[list(set(self.included).intersection(df.columns))]
+        return df
 
 ################
 
@@ -266,6 +266,8 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         else:
             if self._is_number(v):
                 return set(col)
+            elif isinstance(v, basestring):
+                return set([col+"_"+v])
             else:
                 return set([col+"_"+str(v)])
 

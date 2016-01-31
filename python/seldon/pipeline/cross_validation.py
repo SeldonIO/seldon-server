@@ -3,6 +3,7 @@ from sklearn.cross_validation import KFold
 from sklearn.metrics import accuracy_score
 from sklearn.base import BaseEstimator
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +18,14 @@ class Seldon_KFold(BaseEstimator):
        Pandas compatible scikit learn Estimator to apply to data splits
     k : int, optional
        number of folds
+    save_folder_folder : str, optional
+       a folder to save prediction results from each fold
     """
-    def __init__(self,clf=None,k=5):
+    def __init__(self,clf=None,k=5,save_folds_folder=None):
         self.clf = clf
         self.k = k
         self.scores = []
+        self.save_folds_folder=save_folds_folder
 
     def get_scores(self):
         return self.scores
@@ -48,6 +52,7 @@ class Seldon_KFold(BaseEstimator):
         df_len = X.shape[0]
         kf = KFold(df_len, n_folds=self.k,shuffle=True)
         self.scores = []
+        idx = 1
         for train_index, test_index in kf:
             if isinstance(X,pd.DataFrame):
                 X_train = X.iloc[train_index]
@@ -60,6 +65,12 @@ class Seldon_KFold(BaseEstimator):
             self.clf.fit(X_train,y_train)
             y_pred = self.clf.predict(X_test)
             self.scores.append(accuracy_score(y_test, y_pred))
+            if not self.save_folds_folder is None:
+                np.savetxt(self.save_folds_folder+"/"+str(idx)+"_correct.txt",y_test,fmt='%1.3f')
+                np.savetxt(self.save_folds_folder+"/"+str(idx)+"_predictions.txt",y_pred,fmt='%1.3f')
+                y_pred_proba = self.clf.predict_proba(X_test)
+                np.savetxt(self.save_folds_folder+"/"+str(idx)+"_predictions_proba.txt",y_pred_proba,fmt='%1.3f')
+            idx += 1
         logger.info("accuracy scores %s",self.scores)
         self.clf.fit(X,y)
         return self

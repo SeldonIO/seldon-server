@@ -97,7 +97,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             return self.cat_missing_val
         else:
             if col in self.cat_percent and v in self.cat_percent[col] and self.cat_percent[col][v] >= self.min_cat_percent and self.cat_percent[col][v] <= self.max_cat_percent:
-                val = str(v)
+                val = unicode(str(v), "utf-8")
                 if self._is_number(v):
                     val = col + "_" + val.replace(" ","_").lower()
                 else:
