@@ -104,32 +104,40 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 				if (dim != null)
 				{
 					List<ItemCount> counts = store.getTopItemsForDimension(dim);
-					double maxCount = 0;
-					double lowScore = 1.0;
-					for(ItemCount ic : counts)
+					if (counts != null)
 					{
-						if (!exclusions.contains(ic.item))
+						double maxCount = 0;
+						double lowScore = 1.0;
+						for(ItemCount ic : counts)
 						{
-							if (logger.isDebugEnabled())
-								logger.debug("Adding item "+ic.item+" from dimension "+attr);
-							if (maxCount == 0)
-								maxCount = ic.count;
-							double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
-							if (scores.containsKey(ic.item))
-								scores.put(ic.item, scores.get(ic.item)+normCount);
+							if (!exclusions.contains(ic.item))
+							{
+								if (logger.isDebugEnabled())
+									logger.debug("Adding item "+ic.item+" from dimension "+attr);
+								if (maxCount == 0)
+									maxCount = ic.count;
+								double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
+								if (scores.containsKey(ic.item))
+									scores.put(ic.item, scores.get(ic.item)+normCount);
+								else
+									scores.put(ic.item, normCount);
+								lowScore = normCount;
+								if (scores.size()>= maxRecsCount)
+									break;
+							}
 							else
-								scores.put(ic.item, normCount);
-							lowScore = normCount;
-							if (scores.size()>= maxRecsCount)
-								break;
-						}
-						else
-						{
-							if (logger.isDebugEnabled())
-								logger.debug("Excluding item "+ic.item);
-						}
+							{
+								if (logger.isDebugEnabled())
+									logger.debug("Excluding item "+ic.item);
+							}
+						}	
+						lowestScore = lowScore;//update lowest from this loop
 					}
-					lowestScore = lowScore;//update lowest from this loop
+					else
+					{
+						if (logger.isDebugEnabled())
+							logger.debug("No counts for dimension "+dim+" attribute name "+attr);
+					}
 				}
 				else
 				{
