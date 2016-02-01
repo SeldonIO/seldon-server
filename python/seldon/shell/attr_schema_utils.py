@@ -156,7 +156,7 @@ def clearUp(db):
 		cur.execute("TRUNCATE TABLE ITEM_ATTR_ENUM")
 		cur.execute("TRUNCATE TABLE ITEM_ATTR")
 		cur.execute("TRUNCATE TABLE ITEM_TYPE")
-		cur.execute('truncate table users')
+		#cur.execute('truncate table users')
 		cur.execute('truncate table items')
 		cur.execute('truncate table item_map_varchar')
 		cur.execute('truncate table item_map_double')
