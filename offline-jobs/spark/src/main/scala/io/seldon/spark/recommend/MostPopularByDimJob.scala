@@ -37,7 +37,7 @@ case class MostPopularByDimConfig(
     jdbc : String = "",
     k : Int = 1000,
     minCount : Int = 0,
-    requiredDimension : Int = 1)
+    requiredDimensions : String = "")
 
 class MostPopularByDimJob(private val sc : SparkContext,config : MostPopularByDimConfig) {
  
@@ -114,8 +114,11 @@ class MostPopularByDimJob(private val sc : SparkContext,config : MostPopularByDi
     // get item_id -> dimension
     val itemDim = getDimsFromDb(config.jdbc)
     
-    val validDim = config.requiredDimension
-    val itemDimValid = itemDim.groupByKey().filter(_._2.toSet.contains(validDim)).flatMapValues(_.toList)
+    val validDims = if (config.requiredDimensions == "") { Set[Int]() } else {config.requiredDimensions.split(",").map { x => x.toInt }.toSet }
+
+    val itemDimValid = itemDim.groupByKey().filter(validDims.size == 0 || _._2.toSet.intersect(validDims).size > 0).flatMapValues(_.toList)  
+
+    
 
     val glob = config.inputPath + "/" + config.client+"/actions/"+SparkUtils.getS3UnixGlob(config.startDay,config.days)+"/*"
     println("loading from "+glob)
@@ -211,6 +214,7 @@ object MostPopularByDimJob
         opt[String]('j', "jdbc") valueName("<JDBC URL>") foreach { x => c = c.copy(jdbc = x) } text("jdbc url (to get dimension for all items)")
         opt[Int]('k', "k") foreach { x => c = c.copy(k = x) } text("top n for each dim to keep")
         opt[Int]('m', "minCount") foreach { x => c = c.copy(minCount = x) } text("min action count for item")
+        opt[String]("requiredDimensions") foreach { x => c = c.copy(requiredDimensions = x) } text("comma separated list of required dimensions for items")
     }
     
       if (parser.parse(args)) // Parse to check and get zookeeper if there

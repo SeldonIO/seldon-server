@@ -53,13 +53,45 @@ case class UCMfConfig(
     kmeansIterations : Int = 200,
     numRecommendations : Int = 200,
     actionWeightings: Option[List[UCActionWeighting]] = None,
-    clusters : Int = 20
+    clusters : Int = 20,
+    jdbc : String = "",
+    requiredDimensions : String = ""
  )
  
 
 class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
 
- 
+ /*
+   * Get the dimensions from the database
+   */
+  def getDimsFromDb(jdbc : String) = 
+  {
+    import java.sql.{DriverManager,ResultSet}
+    val rdd = new org.apache.spark.rdd.JdbcRDD(
+    sc,
+    () => {
+      Class.forName("com.mysql.jdbc.Driver")
+      java.sql.DriverManager.getConnection(jdbc)
+    },
+    "select item_id,d.dim_id from item_map_enum i join dimension d on (i.attr_id=d.attr_id and i.value_id=d.value_id) where d.dim_id<65535 and item_id > ? AND item_id <= ?",
+    0, 999999999, 1,
+    (row : ResultSet) => (row.getInt("item_id"),row.getInt("dim_id"))
+    )
+    rdd
+  }
+  
+  def getValidItems(jdbc : String) =
+  {
+     // get item_id -> dimension
+    val itemDim = getDimsFromDb(jdbc)
+    
+    val validDims = if (config.requiredDimensions == "") { Set[Int]() } else {config.requiredDimensions.split(",").map { x => x.toInt }.toSet }
+
+    val items = itemDim.groupByKey().filter(validDims.size == 0 || _._2.toSet.intersect(validDims).size > 0).map(x => (x._1,1))
+    
+    items
+
+  }
   
   def run() 
   {
@@ -89,6 +121,10 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
       aw => (aw.actionType, (aw.valuePerAction,aw.maxSum))
     ).toMap.withDefaultValue(.0,.0)
 
+    val validItems = getValidItems(config.jdbc)
+    println("valid items:")
+    validItems.take(10).foreach(println)
+    
     println("Using weightings map"+weightingsMap)
     val startTime = System.currentTimeMillis()
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
@@ -107,8 +143,10 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
         val item = (json \ "itemid").extract[Int]
         val actionType = (json \"type").extract[Int]
         //((item,user),actionType)
-        (user,(item,actionType))
-      }.groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => ((v._2._1,v._1),v._2._2)).repartition(2).cache()
+        // (user,(item,actionType))
+        (item, (user,actionType))
+      }.join(validItems).map{case (item, ((user,actionType),_)) => (user, (item,actionType))}
+    .groupBy(_._1).filter(_._2.size >= minActions).flatMap(_._2).map(v => ((v._2._1,v._1),v._2._2)).repartition(2).cache()
 
     // group actions by user-item key
     val actionsByType:RDD[((Int,Int),List[Int])] = actions.combineByKey((x:Int)=>List[Int](x),
@@ -318,6 +356,8 @@ object MfUserClusters {
         opt[Int]("clusters") foreach { x =>c = c.copy(clusters = x) } text("number of user clusters to create")
         opt[Int]("kmeansIterations") foreach { x =>c = c.copy(kmeansIterations = x) } text("number of kmeans iterations to run")
         opt[Int]("numRecommendations") foreach { x =>c = c.copy(numRecommendations = x) } text("number of recommendations per user to create")
+        opt[String]('j', "jdbc") valueName("<JDBC URL>") foreach { x => c = c.copy(jdbc = x) } text("jdbc url (to get dimension for all items)")
+        opt[String]("requiredDimensions") foreach { x => c = c.copy(requiredDimensions = x) } text("comma separated list of required dimensions for items")
     }
     
     
