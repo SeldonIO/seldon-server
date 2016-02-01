@@ -134,7 +134,7 @@ public class JsClientController {
         ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
 
-        boolean clickOnly = ((click_only != null) && (click_only == true)) ? true : false;
+        boolean clickOnly = (isCTR && (click_only != null) && (click_only == true)) ? true : false;
 
         int clickPos = -1;
         if (pos != null)
