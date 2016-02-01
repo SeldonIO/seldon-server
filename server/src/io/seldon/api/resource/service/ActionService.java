@@ -262,9 +262,7 @@ public class ActionService {
 			if (logger.isDebugEnabled())
 				logger.debug("Action created with Async "+doAsyncAction+" for client "+c.getShort_name()+" userId:"+userId+" itemId:"+itemId+" clientUserId:"+a.getClientUserId()+" clientItemId:"+a.getClientItemId());
 			
-			if (!bean.getClickOnly()) { // Only log action if "clickOnly" param was not set to true
-			    ActionLogger.log(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag());
-			}
+			ActionLogger.log(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag());
 			
 			if(doAsyncAction)
 			{
@@ -359,7 +357,7 @@ public class ActionService {
 	}
 
 
-    public void logAction(ConsumerBean consumerBean, ActionBean actionBean, LastRecommendationBean lastRecs, int clickIndex,
+    public void logClickAction(ConsumerBean consumerBean, ActionBean actionBean, LastRecommendationBean lastRecs, int clickIndex,
                           String recTag, String recsCounter) {
         StatsdPeer.logClick(consumerBean.getShort_name(), recTag);
         String stratName = clientAlgorithmStore.retrieveStrategy(consumerBean.getShort_name()).getName(actionBean.getUser(), recTag);

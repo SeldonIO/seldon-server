@@ -134,14 +134,12 @@ public class JsClientController {
         ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
 
-        if ((click_only != null) && (click_only == true)) {
-            actionBean.setClickOnly(true);
-        }
+        boolean clickOnly = ((click_only != null) && (click_only == true)) ? true : false;
 
         int clickPos = -1;
         if (pos != null)
         	clickPos = pos.intValue();
-        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag,clickPos));
+        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag,clickPos, clickOnly));
     }
     
     @RequestMapping("/user/new")

@@ -56,7 +56,6 @@ public class ActionBean extends ResourceBean {
 	List<String> tags;
 	String recTag;
 	String referrer;
-	boolean clickOnly = false;
 	
 	ActionBean() {}
 	
@@ -182,13 +181,6 @@ public class ActionBean extends ResourceBean {
 		this.recTag = recTag;
 	}
 
-	public boolean getClickOnly() {
-	    return clickOnly;
-	}
-	
-	public void setClickOnly(boolean clickOnly) {
-	    this.clickOnly = clickOnly;
-	}
 	
 	public Action createAction(ConsumerBean c,Long userId,Long itemId)
 	{
