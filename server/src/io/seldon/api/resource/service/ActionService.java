@@ -262,7 +262,9 @@ public class ActionService {
 			if (logger.isDebugEnabled())
 				logger.debug("Action created with Async "+doAsyncAction+" for client "+c.getShort_name()+" userId:"+userId+" itemId:"+itemId+" clientUserId:"+a.getClientUserId()+" clientItemId:"+a.getClientItemId());
 			
-			ActionLogger.log(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag());
+			if (!bean.getClickOnly()) { // Only log action if "clickOnly" param was not set to true
+			    ActionLogger.log(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag());
+			}
 			
 			if(doAsyncAction)
 			{

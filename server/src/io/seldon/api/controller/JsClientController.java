@@ -123,6 +123,7 @@ public class JsClientController {
                              @RequestParam(value = "rectag", required = false) String recTag,                             
                              @RequestParam(value = "pos", required = false) Integer pos,                             
                              @RequestParam(value = "rlabs", required = false) String rlabs,
+                             @RequestParam(value = "click_only", required = false) Boolean click_only,
                              @RequestParam(value = "zehtg", required = false) String req) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
         MDCKeys.addKeys(consumerBean, userId, itemId,recTag);
@@ -132,6 +133,11 @@ public class JsClientController {
         	logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
         ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
+
+        if ((click_only != null) && (click_only == true)) {
+            actionBean.setClickOnly(true);
+        }
+
         int clickPos = -1;
         if (pos != null)
         	clickPos = pos.intValue();
