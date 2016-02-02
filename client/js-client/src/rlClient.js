@@ -129,7 +129,7 @@ var rlClient = (function () {
         return params.endpoint + path + "?consumer_key=" + params.consumer;
     }
 
-    function actionUrl(type, user_id, item_id, rlabs, source, rectag, position) {
+    function actionUrl(type, user_id, item_id, rlabs, source, rectag, position, click_only) {
         return fullEndpoint("/js/action/new") +
             "&type=" + type +
             "&user=" + user_id +
@@ -137,7 +137,8 @@ var rlClient = (function () {
             (rlabs ? ("&" + params.track_par + "=" + rlabs) : "") +
             (rectag ? ("&rectag=" + rectag) : "") +
             (source ? ("&source=" + encodeURIComponent(normalise(source))) : "") +
-            (position ? ("&pos=" + position) : "");
+            (position ? ("&pos=" + position) : "") +
+            (click_only ? ("&click_only=" + click_only) : "");
     }
 
     function userUrl(user_id, facebook_opts) {
@@ -198,7 +199,7 @@ var rlClient = (function () {
         return { fired: true };
     }
 
-    function addAction(type, callback, user_id, item_id, rlabs, source, rectag, pos) {
+    function addAction(type, callback, user_id, item_id, rlabs, source, rectag, pos, click_only) {
         return withMandatory("user_id", user_id, function () {
             var urlparams = retrieveSeldonParamsFromURL(),
                 id = item_id || currentPageId(params.retain),
@@ -207,7 +208,7 @@ var rlClient = (function () {
                 position = pos || extractExtraSeldonParams(urlparams).p,
                 url;
 
-            url = actionUrl(type, user_id, id, recId, source, tag, position);
+            url = actionUrl(type, user_id, id, recId, source, tag, position, click_only);
             jsonpCall(url, callback);
         });
     }
