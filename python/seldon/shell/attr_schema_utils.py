@@ -19,34 +19,34 @@ def hasAttr(attrs,name):
     return False
 
 def addAttrsToDb(db, attrs, item_type):
-        if not hasAttr(attrs,"content_type"):
-            attrs.append({"name":"content_type", "value_type":["article"]})
-	for attr in attrs:
-		attrValType = attr['value_type']
-		if type(attrValType) is list:
-			attrValType = 'enum'
-		cur = db.cursor()
-		cur.execute("INSERT INTO ITEM_ATTR (name, type, item_type) "
-			+ " VALUES (%s, %s, %s)", (attr['name'], value_types_to_db_map[attrValType], item_type))
-		if attrValType is 'enum':
-			for index,enum in enumerate(attr['value_type'], start=1):
-				cur = db.cursor()
-				cur.execute("SELECT attr_id FROM ITEM_ATTR WHERE NAME = %s and ITEM_TYPE = %s", (attr['name'],item_type))
-				rows = cur.fetchall()
-				attrId = rows[0][0]
-				cur = db.cursor()
-				cur.execute("INSERT INTO ITEM_ATTR_ENUM (attr_id, value_id, value_name) VALUES (%s, %s, %s)",(attrId, index, enum))
-	cur = db.cursor()
-
-	cur.execute("SELECT attr_id, value_id, value_name FROM ITEM_ATTR_ENUM")
-	rows = cur.fetchall()
-	for row in rows:
-		enum_attr_id = row[0]
-		enum_value_id = row[1]
-		enum_value_name = row[2]
-		cur = db.cursor()
-		cur.execute("INSERT INTO DIMENSION (item_type, attr_id, value_id) VALUES"
-			+ " (%s, %s, %s)", (item_type, enum_attr_id, enum_value_id))
+    if not hasAttr(attrs,"content_type"):
+        attrs.append({"name":"content_type", "value_type":["article"]})
+    for attr in attrs:
+        print "adding item type",item_type,"attribute ",attr['name']
+        attrValType = attr['value_type']
+        if type(attrValType) is list:
+            attrValType = 'enum'
+        cur = db.cursor()
+        cur.execute("INSERT INTO ITEM_ATTR (name, type, item_type) "
+                    + " VALUES (%s, %s, %s)", (attr['name'], value_types_to_db_map[attrValType], item_type))
+        if attrValType is 'enum':
+            for index,enum in enumerate(attr['value_type'], start=1):
+                cur = db.cursor()
+                cur.execute("SELECT attr_id FROM ITEM_ATTR WHERE NAME = %s and ITEM_TYPE = %s", (attr['name'],item_type))
+                rows = cur.fetchall()
+                attrId = rows[0][0]
+                cur = db.cursor()
+                cur.execute("INSERT INTO ITEM_ATTR_ENUM (attr_id, value_id, value_name) VALUES (%s, %s, %s)",(attrId, index, enum))
+    cur = db.cursor()
+    cur.execute("SELECT e.attr_id, e.value_id, e.value_name FROM ITEM_ATTR_ENUM e join item_attr a on (a.attr_id=e.attr_id and a.item_type=%s)",(item_type,))
+    rows = cur.fetchall()
+    for row in rows:
+            enum_attr_id = row[0]
+            enum_value_id = row[1]
+            enum_value_name = row[2]
+            cur = db.cursor()
+            cur.execute("INSERT INTO DIMENSION (item_type, attr_id, value_id) VALUES"
+                    + " (%s, %s, %s)", (item_type, enum_attr_id, enum_value_id))
 
 def doDbChecks(db):
 	cur = db.cursor()
