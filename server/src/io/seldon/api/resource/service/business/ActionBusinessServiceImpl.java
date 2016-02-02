@@ -54,19 +54,21 @@ public class ActionBusinessServiceImpl implements ActionBusinessService {
 
     @Override
     public ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean,
-                                  boolean isClickThrough, String recsCounter, String recTag,int clickPos) {
+                                  boolean isClickThrough, String recsCounter, String recTag,int clickPos, boolean clickOnly) {
         ResourceBean responseBean;
         try {
             // add the action to storage
-            actionService.addAction(consumerBean, actionBean);
-
+            if (!clickOnly) {
+                actionService.addAction(consumerBean, actionBean);
+            }
+            
             if(isClickThrough) {
                 // register which recs were ignored for algorithm use
                 LastRecommendationBean lastRecs = recService.retrieveLastRecs(consumerBean, actionBean, recsCounter, recTag);
                 //List<Long> ignoredItems = recService.findIgnoredItemsFromLastRecs(consumerBean, actionBean, lastRecs);
                 //itemService.updateIgnoredItems(consumerBean, actionBean, ignoredItems);
                 // do logging
-                actionService.logAction(consumerBean, actionBean, lastRecs, clickPos, recTag, recsCounter);
+                actionService.logClickAction(consumerBean, actionBean, lastRecs, clickPos, recTag, recsCounter);
             }
 
             responseBean = actionBean;

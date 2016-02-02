@@ -32,7 +32,7 @@ import io.seldon.api.resource.ResourceBean;
  */
 public interface ActionBusinessService {
     ResourceBean addAction(ConsumerBean consumerBean, ActionBean actionBean,
-                           boolean isClickThrough, String recsCounter, String recTag,int clickPos);
+                           boolean isClickThrough, String recsCounter, String recTag,int clickPos, boolean clickOnly);
 
     
 }
