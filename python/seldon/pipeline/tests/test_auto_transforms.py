@@ -104,6 +104,14 @@ class Test_auto_transforms(unittest.TestCase):
         df2 = t.transform(df)
         self.assertAlmostEqual(df2["a_h1"][0],-0.707,places=2)
 
+    def test_dates2(self):
+        df = pd.DataFrame([{"a":"28-09-15"},{"a":"22-03-15"}])
+        t = at.Auto_transform(custom_date_formats=["%d-%m-%y"],date_cols=["a"],date_transforms=[False,True,True,True])
+        t.fit(df)
+        df2 = t.transform(df)
+        print df2
+        #self.assertAlmostEqual(df2["a_h1"][0],-0.707,places=2)
+
         
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)

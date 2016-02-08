@@ -238,17 +238,14 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
     excluded : list str
        set of features to exclude
     """
-    def __init__(self,included=None,zero_based=False,excluded=[],id_map={},output_feature=None):
+    def __init__(self,included=None,zero_based=False,excluded=[],id_map={},output_feature=None,id_map_file=None):
         super(Svmlight_transform, self).__init__()
         self.included = included
         self.excluded = excluded
         self.id_map = id_map
-        self.zero_based = False
-        if self.zero_based:
-            self.lastId = 0
-        else:
-            self.lastId = 1
+        self.zero_based = zero_based
         self.output_feature=output_feature
+        self.id_map_file = id_map_file
 
     @staticmethod
     def _is_number(s):
@@ -295,6 +292,13 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
             s = s.union(v)
         return s
 
+    def _save_id_map(self):
+        import unicodecsv
+        writer = unicodecsv.writer(open(self.id_map_file, 'wb'))
+        for key, value in self.id_map.items():
+            writer.writerow([value, key])
+
+
 
     def fit(self,df):
         """
@@ -323,7 +327,12 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
             if (not self.included or col in self.included) and (not col in self.excluded):
                 logger.info("SVM transform - Fitting numerical feature %s" % col)
                 features.add(col)
-        self.id_map = dict([(v,i+1) for i,v in enumerate(features)])
+        inc = 1
+        if self.zero_based:
+            inc = 0
+        self.id_map = dict([(v,i+inc) for i,v in enumerate(features)])
+        if not self.id_map_file is None:
+            self._save_id_map()
         return self
 
     def transform(self,df):

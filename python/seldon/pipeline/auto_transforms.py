@@ -39,7 +39,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
     cat_missing_value : str, optional
        string to use for missing categorical values
     date_transforms : list bool, optional
-       which date transforms to apply [hour,day_of_week,month,year], default is all
+       which date transforms to apply [hour,month,day_of_week,year], default is all
     create_date_differences : bool, optional
        whether to create differences between all date variables
     nan_threshold : float, optional
