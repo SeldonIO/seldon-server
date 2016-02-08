@@ -263,9 +263,8 @@ public class ActionService {
 			if (logger.isDebugEnabled())
 				logger.debug("Action created with Async "+doAsyncAction+" for client "+c.getShort_name()+" userId:"+userId+" itemId:"+itemId+" clientUserId:"+a.getClientUserId()+" clientItemId:"+a.getClientItemId());
 		
-			String extra_data = null;
 			try {
-                ActionLogger.logAsJson(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag(), extra_data);
+                ActionLogger.logAsJson(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag(), bean.getExtraData());
             } catch (IOException e) {
                 final String message = "Unable to log action as json";
                 logger.error(message, e);

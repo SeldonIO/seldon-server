@@ -56,6 +56,7 @@ public class ActionBean extends ResourceBean {
 	List<String> tags;
 	String recTag;
 	String referrer;
+	String extraData = null;
 	
 	ActionBean() {}
 	
@@ -170,8 +171,14 @@ public class ActionBean extends ResourceBean {
 	public void setReferrer(String referrer) {
 		this.referrer = referrer;
 	}
+
+	public String getExtraData() {
+	    return this.extraData;
+	}
 	
-	
+	public void setExtraData(String extraData) {
+	    this.extraData = extraData;
+	}
 
 	public String getRecTag() {
 		return recTag;
