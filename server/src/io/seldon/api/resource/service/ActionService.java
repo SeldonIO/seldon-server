@@ -56,6 +56,7 @@ import io.seldon.memcache.MemCachePeer;
 import io.seldon.recommendation.AlgorithmStrategy;
 import io.seldon.recommendation.LastRecommendationBean;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -261,8 +262,13 @@ public class ActionService {
 			Action a = bean.createAction(c,userId,itemId);
 			if (logger.isDebugEnabled())
 				logger.debug("Action created with Async "+doAsyncAction+" for client "+c.getShort_name()+" userId:"+userId+" itemId:"+itemId+" clientUserId:"+a.getClientUserId()+" clientItemId:"+a.getClientItemId());
-			
-			ActionLogger.log(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag());
+		
+			try {
+                ActionLogger.logAsJson(c.getShort_name(), userId, itemId, a.getType(), a.getValue(), a.getClientUserId(), a.getClientItemId(), bean.getRecTag(), bean.getExtraData());
+            } catch (IOException e) {
+                final String message = "Unable to log action as json";
+                logger.error(message, e);
+            }
 			
 			if(doAsyncAction)
 			{

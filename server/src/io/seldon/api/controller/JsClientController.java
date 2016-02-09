@@ -123,6 +123,7 @@ public class JsClientController {
                              @RequestParam(value = "rectag", required = false) String recTag,                             
                              @RequestParam(value = "pos", required = false) Integer pos,                             
                              @RequestParam(value = "rlabs", required = false) String rlabs,
+                             @RequestParam(value = "extra_data", required = false) String extraData,
                              @RequestParam(value = "click_only", required = false) Boolean click_only,
                              @RequestParam(value = "zehtg", required = false) String req) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
@@ -131,7 +132,7 @@ public class JsClientController {
         if(StringUtils.isNotBlank(req)) { rlabs=req; }
         if (logger.isDebugEnabled())
         	logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
-        ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
+        ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag,extraData);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
 
         boolean clickOnly = (isCTR && (click_only != null) && (click_only == true)) ? true : false;
@@ -353,11 +354,12 @@ public class JsClientController {
         }
     }
 
-    private ActionBean createAction(String userId, String itemId, Integer type,String referrer,String recTag) {
+    private ActionBean createAction(String userId, String itemId, Integer type,String referrer,String recTag,String extraData) {
         int safeType = type == null ? 0 : type;
         ActionBean a = new ActionBean(null, userId, itemId, safeType, new Date(), 0.0, 1);
         a.setReferrer(referrer);
         a.setRecTag(recTag);
+        a.setExtraData(extraData);
         return a;
     }
 
