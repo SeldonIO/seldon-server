@@ -106,7 +106,9 @@ public class RecommendationController {
 				}
 			}
 			
-			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems);
+			String attributes = Util.getAttributes(req);
+			
+			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems,attributes);
 			CtrFullLogger.log(false, ((ConsumerBean)con).getShort_name(), userId, null,null);
         }
 		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req);

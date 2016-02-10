@@ -42,8 +42,8 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
     private RecommendationService recommendationService;
 
     @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit,Set<Long> scoreItems) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimensions, null, limit, null,null,null,null,false,scoreItems);
+    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit,Set<Long> scoreItems,String attributes) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimensions, null, limit, attributes,null,null,null,false,scoreItems);
     }
 
 
