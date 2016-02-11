@@ -67,52 +67,7 @@ public class JobUtils {
         return (date.getTime() / 1000);
     }
 
-    public static ActionData getActionDataFromActionLogLine(String actionLogLine) {
-        ActionData actionData = new ActionData();
-
-        String[] parts = actionLogLine.split("\\s+", 3);
-        String json = parts[2];
-        actionData.timestamp_utc = parts[0];
-
-        JsonFactory jsonF = new JsonFactory();
-        try {
-            JsonParser jp = jsonF.createParser(json);
-            if (jp.nextToken() != JsonToken.START_OBJECT) {
-                throw new IOException("Expected data to start with an Object");
-            }
-            while (jp.nextToken() != JsonToken.END_OBJECT) {
-                String fieldName = jp.getCurrentName();
-                // Let's move to value
-                jp.nextToken();
-                if (fieldName.equals("client")) {
-                    actionData.client = jp.getText();
-                } else if (fieldName.equals("client_userid")) {
-                    actionData.client_userid = jp.getText();
-                } else if (fieldName.equals("userid")) {
-                    actionData.userid = jp.getValueAsInt();
-                } else if (fieldName.equals("itemid")) {
-                    actionData.itemid = jp.getValueAsInt();
-                } else if (fieldName.equals("client_itemid")) {
-                    actionData.client_itemid = jp.getText();
-                } else if (fieldName.equals("rectag")) {
-                    actionData.rectag = jp.getText();
-                } else if (fieldName.equals("type")) {
-                    actionData.type = jp.getValueAsInt();
-                } else if (fieldName.equals("value")) {
-                    actionData.value = jp.getValueAsDouble();
-                }
-            }
-            jp.close();
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return actionData;
-    }
-
-    public static ActionData getActionDataFromActionLogLineUsingObjectMapper(ObjectMapper objectMapper, String actionLogLine) {
+    public static ActionData getActionDataFromActionLogLine(ObjectMapper objectMapper, String actionLogLine) {
     	ActionData actionData = null;
     	
         String[] parts = actionLogLine.split("\\s+", 3);
