@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JobUtils {
 
@@ -110,6 +112,24 @@ public class JobUtils {
         return actionData;
     }
 
+    public static ActionData getActionDataFromActionLogLineUsingObjectMapper(ObjectMapper objectMapper, String actionLogLine) {
+    	ActionData actionData = null;
+    	
+        String[] parts = actionLogLine.split("\\s+", 3);
+        String json = parts[2];
+    	
+    	try {
+			actionData = objectMapper.readValue(json, ActionData.class);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+    	if (actionData != null) {
+            actionData.timestamp_utc = parts[0];    	
+    	}
+    	return actionData;
+    }
+    
     public static String getJsonFromActionData(ActionData actionData) {
         JsonFactory jsonFactory = new JsonFactory();
         StringWriter sw = new StringWriter();
@@ -125,6 +145,21 @@ public class JobUtils {
             jg.writeStringField("rectag", actionData.rectag);
             jg.writeNumberField("type", actionData.type);
             jg.writeNumberField("value", actionData.value);
+            if (actionData.extra_data != null) {
+            	jg.writeFieldName("extra_data");
+            	if (actionData.extra_data instanceof LinkedHashMap) {
+                	jg.writeStartObject();
+            		Map<String, String> extra_data_map = (LinkedHashMap<String,String>)actionData.extra_data;
+            		for (Map.Entry<String, String> entry: extra_data_map.entrySet()) {
+            			jg.writeStringField(entry.getKey(), entry.getValue());
+            		}
+                	jg.writeEndObject();
+            	} else if (actionData.extra_data instanceof String) {
+        			jg.writeString((String)actionData.extra_data);
+            	} else {
+        			jg.writeNull();
+            	}
+            }
             jg.writeEndObject();
             jg.close();
         } catch (IOException e) {
