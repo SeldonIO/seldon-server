@@ -45,6 +45,8 @@ import scala.Tuple2;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GroupActionsJob {
 
@@ -79,6 +81,9 @@ public class GroupActionsJob {
 
         @Parameter(names = "--gzip-output", required = false)
         private boolean gzip_output = false;
+
+        @Parameter(names = "--single-client", required = false)
+        private String single_client;
 
         @Override
 		public String toString() {
@@ -135,11 +140,27 @@ public class GroupActionsJob {
 
         JavaRDD<String> dataSet = jsc.textFile(JobUtils.getSourceDirFromDate(cmdLineArgs.input_path_pattern, cmdLineArgs.input_date_string)).repartition(4);
 
+    	final ObjectMapper objectMapper = new ObjectMapper();
+    	objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    	final String single_client = cmdLineArgs.single_client;
+        if (single_client != null) {
+	        Function<String, Boolean> clientFilter = new Function<String, Boolean>() {
+				
+				@Override
+				public Boolean call(String t) throws Exception {
+					ActionData actionData = JobUtils.getActionDataFromActionLogLine(objectMapper, t);
+					return ((actionData.client != null) && (actionData.client.equals(single_client)));
+				}
+			};
+	        dataSet = dataSet.filter(clientFilter);
+        }
+        
         JavaPairRDD<String, ActionData> pairs = dataSet.mapToPair(new PairFunction<String, String, ActionData>() {
 
             @Override
             public Tuple2<String, ActionData> call(String t) throws Exception {
-                ActionData actionData = JobUtils.getActionDataFromActionLogLine(t);
+                ActionData actionData = JobUtils.getActionDataFromActionLogLine(objectMapper, t);
                 // String key = (actionData.userid == 0) ? "__no_userid__" : actionData.client;
                 String key = actionData.client;
                 return new Tuple2<String, ActionData>(key, actionData);

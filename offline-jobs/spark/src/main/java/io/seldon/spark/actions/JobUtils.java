@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JobUtils {
 
@@ -65,51 +67,24 @@ public class JobUtils {
         return (date.getTime() / 1000);
     }
 
-    public static ActionData getActionDataFromActionLogLine(String actionLogLine) {
-        ActionData actionData = new ActionData();
-
+    public static ActionData getActionDataFromActionLogLine(ObjectMapper objectMapper, String actionLogLine) {
+    	ActionData actionData = null;
+    	
         String[] parts = actionLogLine.split("\\s+", 3);
         String json = parts[2];
-        actionData.timestamp_utc = parts[0];
+    	
+    	try {
+			actionData = objectMapper.readValue(json, ActionData.class);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-        JsonFactory jsonF = new JsonFactory();
-        try {
-            JsonParser jp = jsonF.createParser(json);
-            if (jp.nextToken() != JsonToken.START_OBJECT) {
-                throw new IOException("Expected data to start with an Object");
-            }
-            while (jp.nextToken() != JsonToken.END_OBJECT) {
-                String fieldName = jp.getCurrentName();
-                // Let's move to value
-                jp.nextToken();
-                if (fieldName.equals("client")) {
-                    actionData.client = jp.getText();
-                } else if (fieldName.equals("client_userid")) {
-                    actionData.client_userid = jp.getText();
-                } else if (fieldName.equals("userid")) {
-                    actionData.userid = jp.getValueAsInt();
-                } else if (fieldName.equals("itemid")) {
-                    actionData.itemid = jp.getValueAsInt();
-                } else if (fieldName.equals("client_itemid")) {
-                    actionData.client_itemid = jp.getText();
-                } else if (fieldName.equals("rectag")) {
-                    actionData.rectag = jp.getText();
-                } else if (fieldName.equals("type")) {
-                    actionData.type = jp.getValueAsInt();
-                } else if (fieldName.equals("value")) {
-                    actionData.value = jp.getValueAsDouble();
-                }
-            }
-            jp.close();
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return actionData;
+    	if (actionData != null) {
+            actionData.timestamp_utc = parts[0];    	
+    	}
+    	return actionData;
     }
-
+    
     public static String getJsonFromActionData(ActionData actionData) {
         JsonFactory jsonFactory = new JsonFactory();
         StringWriter sw = new StringWriter();
@@ -125,6 +100,21 @@ public class JobUtils {
             jg.writeStringField("rectag", actionData.rectag);
             jg.writeNumberField("type", actionData.type);
             jg.writeNumberField("value", actionData.value);
+            if (actionData.extra_data != null) {
+            	jg.writeFieldName("extra_data");
+            	if (actionData.extra_data instanceof LinkedHashMap) {
+                	jg.writeStartObject();
+            		Map<String, Object> extra_data_map = (LinkedHashMap<String,Object>)actionData.extra_data;
+            		for (Map.Entry<String, Object> entry: extra_data_map.entrySet()) {
+            			jg.writeObjectField(entry.getKey(), entry.getValue());
+            		}
+                	jg.writeEndObject();
+            	} else if (actionData.extra_data instanceof String) {
+        			jg.writeString((String)actionData.extra_data);
+            	} else {
+        			jg.writeNull();
+            	}
+            }
             jg.writeEndObject();
             jg.close();
         } catch (IOException e) {
