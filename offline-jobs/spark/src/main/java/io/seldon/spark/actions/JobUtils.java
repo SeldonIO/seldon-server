@@ -104,9 +104,9 @@ public class JobUtils {
             	jg.writeFieldName("extra_data");
             	if (actionData.extra_data instanceof LinkedHashMap) {
                 	jg.writeStartObject();
-            		Map<String, String> extra_data_map = (LinkedHashMap<String,String>)actionData.extra_data;
-            		for (Map.Entry<String, String> entry: extra_data_map.entrySet()) {
-            			jg.writeStringField(entry.getKey(), entry.getValue());
+            		Map<String, Object> extra_data_map = (LinkedHashMap<String,Object>)actionData.extra_data;
+            		for (Map.Entry<String, Object> entry: extra_data_map.entrySet()) {
+            			jg.writeObjectField(entry.getKey(), entry.getValue());
             		}
                 	jg.writeEndObject();
             	} else if (actionData.extra_data instanceof String) {
