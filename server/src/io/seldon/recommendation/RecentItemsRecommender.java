@@ -69,6 +69,8 @@ public class RecentItemsRecommender implements ItemRecommendationAlgorithm {
         } else {
             exclusions = ctxt.getContextItems();
         }
+        if (logger.isDebugEnabled())
+        	logger.debug("Running with dimension "+dimensions.toString());
         Collection<Long> recList = itemStorage.retrieveRecentlyAddedItems(client,maxRecsCount+exclusions.size(),dimensions).getItems();
         if (recList.size() > 0)
         {
