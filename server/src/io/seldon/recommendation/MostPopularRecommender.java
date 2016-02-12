@@ -30,7 +30,9 @@ import io.seldon.general.ItemStorage;
 import io.seldon.general.jdo.SqlItemPeer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -65,17 +67,22 @@ public class MostPopularRecommender implements ItemRecommendationAlgorithm {
         }
 
         List<SqlItemPeer.ItemAndScore> itemsToConsider = itemStorage.retrieveMostPopularItemsWithScore(client,maxRecsCount + exclusions.size(),dimensions);
-        List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
+        Map<Long,Double> scores = new HashMap<>();
+        
         for (SqlItemPeer.ItemAndScore itemAndScore : itemsToConsider){
             if(!exclusions.contains(itemAndScore.item))
-                results.add(new ItemRecommendationResultSet.ItemRecommendationResult(itemAndScore.item, itemAndScore.score.floatValue()));
+                scores.put(itemAndScore.item, itemAndScore.score);
         }
 
-        return new ItemRecommendationResultSet(
-                itemsToConsider.size() >= maxRecsCount ?
-                        new ArrayList<>(results).subList(0,maxRecsCount) :
-                        new ArrayList<>(results), name);
-
+        Map<Long,Double> scaledScores = RecommendationUtils.rescaleScoresToOne(scores, maxRecsCount);
+		List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>();
+		for(Map.Entry<Long, Double> e : scaledScores.entrySet())
+		{
+			results.add(new ItemRecommendationResultSet.ItemRecommendationResult(e.getKey(), e.getValue().floatValue()));
+		}
+		if (logger.isDebugEnabled())
+			logger.debug("Returning "+results.size()+" recommendations");
+		return new ItemRecommendationResultSet(results, name);
 
     }
 
