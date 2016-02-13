@@ -51,6 +51,9 @@ RUN pip install pandas --upgrade
 
 RUN pip install cmd2 MySQL-python
 
+# for ngram prediction
+RUN pip install DAWG
+
 ADD ./python-modules /python-modules/seldon
 
 ENV PYTHONPATH $PYTHONPATH:/python-modules

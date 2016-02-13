@@ -1,16 +1,12 @@
-VERSION=1.5
-IMAGE=seldonio/pyseldon
+VERSION=1.0
+IMAGE=seldonio/ngram
 
 build:
-	rm -fr python-modules
-	cp -R ../../seldon python-modules
 	docker build -t ${IMAGE} .
 
 shell:
-	docker run -it --rm seldonio/pyseldon bash
+	docker run -it --rm ${IMAGE} bash
 
-clean:
-	rm -rf ./python-modules
 tag:
 	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
 
@@ -19,5 +15,8 @@ push_to_dockerhub:
 		docker push $(IMAGE)
 	@docker login -u seldonio && \
 		docker push $(IMAGE):$(VERSION)
+
+
+
 
 

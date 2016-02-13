@@ -13,7 +13,6 @@ import java.sql.ResultSet
 import scala.collection.mutable.ListBuffer
 import org.apache.spark.mllib.feature.IDF
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.columnar.BOOLEAN
 import org.apache.hadoop.io.compress.GzipCodec
 import org.apache.spark.storage.StorageLevel
 
