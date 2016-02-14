@@ -3,6 +3,7 @@ import sys, getopt, argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='upload model')
     parser.add_argument('--src', help='arpa file', required=True)
+    parser.add_argument('--port', help='port to run microservice', default=5000, type=int)
     parser.add_argument('--aws_key', help='aws key - needed if input or output is on AWS and no IAM')
     parser.add_argument('--aws_secret', help='aws secret - needed if input or output on AWS  and no IAM')
 
@@ -16,4 +17,4 @@ if __name__ == '__main__':
     else:
         m = Microservices()
     app = m.create_recommendation_microservice(args.src)
-    app.run(host="0.0.0.0",port=5000,debug=True)
+    app.run(host="0.0.0.0",port=args.port,debug=True)
