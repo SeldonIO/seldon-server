@@ -1,5 +1,4 @@
 pushd pyseldon ; make push_to_dockerhub ; popd
 pushd examples/iris ; make push_to_dockerhub ; popd
 pushd ngram ; make push_to_dockerhub ; popd
-pushd microservices ; make push_to_dockerhub ; popd
 

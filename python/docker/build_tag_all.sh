@@ -2,4 +2,3 @@
 pushd pyseldon ; make build ; make tag ; popd
 pushd examples/iris ; make build_pipeline ; make tag ; popd
 pushd ngram ; make build ; make tag ; popd
-pushd microservices ; make build ; make tag ; popd
