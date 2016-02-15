@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 
 class NgramModel:
     
-    def __init__(self,key="",secret=""):
+    def __init__(self,key=None,secret=None):
         self.userItems = {}
         self.count = 0
         self.fu = FileUtil(aws_key=key,aws_secret=secret)
@@ -78,8 +78,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     opts = vars(args)
-               
-    model = NgramModel(key=args.aws_key,secret=args.aws_secret)
+
+    if 'aws_key' in opts:
+        model = NgramModel(key=args.aws_key,secret=args.aws_secret)
+    else:
+        model = NgramModel()
     for day in range(args.startDay-args.numDays+1,args.startDay+1):
         print "streaming day ",day
         model.stream(args.bucket,day)
