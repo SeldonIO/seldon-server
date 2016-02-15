@@ -73,8 +73,8 @@ if __name__ == '__main__':
     parser.add_argument('--bucket', help='bucket', required=True)
     parser.add_argument('--startDay', help='day to start' , type=int, required=True)
     parser.add_argument('--numDays', help='number of days to get data for' , type=int, default=1)
-    parser.add_argument('--aws_key', help='aws key - needed if input or output is on AWS and no IAM', required=True)
-    parser.add_argument('--aws_secret', help='aws secret - needed if input or output on AWS  and no IAM', required=True)
+    parser.add_argument('--aws_key', help='aws key - needed if input or output is on AWS and no IAM')
+    parser.add_argument('--aws_secret', help='aws secret - needed if input or output on AWS  and no IAM')
 
     args = parser.parse_args()
     opts = vars(args)
