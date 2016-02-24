@@ -71,7 +71,10 @@ public class RedisActionHistory implements ActionHistory {
 				String key = MemCacheKeys.getActionHistory(clientName, userId);
 				Set<String> itemSet = jedis.zrange(key, 0, -1);
 				for (String item : itemSet)
+				{
+					item = item.replaceAll("\"", "");
 					res.add(0,Long.parseLong(item));
+				}
 			}
 			finally
 			{

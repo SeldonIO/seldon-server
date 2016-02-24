@@ -222,8 +222,8 @@ class FileUtil:
         parts = noSchemePath.split('/')
         bucket = parts[0]
         s3path = noSchemePath[len(bucket)+1:]
-        if self.key:
-            self.conn = boto.connect_s3(self.key,self.secret)
+        if self.aws_key:
+            self.conn = boto.connect_s3(self.aws_key,self.aws_secret)
         else:
             self.conn = boto.connect_s3()
         b = self.conn.get_bucket(bucket)

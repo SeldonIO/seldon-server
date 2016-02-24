@@ -13,7 +13,7 @@
   <name>Offline Spark jobs</name>
   <properties>
         <scala.version>2.10</scala.version>
-        <spark.version>1.5.0</spark.version>
+        <spark.version>1.6.0</spark.version>
         <curator.version>2.7.1</curator.version>
     </properties>
 

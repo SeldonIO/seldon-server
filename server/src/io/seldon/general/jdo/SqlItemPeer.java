@@ -729,13 +729,33 @@ public class SqlItemPeer extends ItemPeer {
 
 
 	public static class ItemAndScore implements Serializable {
-		public final Long item;
-		public final Double score;
+		public Long item;
+		public Double score;
 
 		public ItemAndScore(Long item, Double score) {
 			this.item = item;
 			this.score = score;
 		}
+		
+		public ItemAndScore(){}
+
+		public Long getItem() {
+			return item;
+		}
+
+		public void setItem(Long item) {
+			this.item = item;
+		}
+
+		public Double getScore() {
+			return score;
+		}
+
+		public void setScore(Double score) {
+			this.score = score;
+		}
+		
+		
 	}
 
 	// A set set of unicode characters that should be removed from text data

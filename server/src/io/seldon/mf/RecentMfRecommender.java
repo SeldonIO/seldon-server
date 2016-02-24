@@ -80,6 +80,8 @@ public class RecentMfRecommender implements ItemRecommendationAlgorithm {
 		}
 		else
 			itemsToScore = new ArrayList<>(recentItemInteractions);
+		if (logger.isDebugEnabled())
+			logger.debug("Recent items of size "+itemsToScore.size()+" -> "+itemsToScore.toString());
 
         double[] userVector;
         if (clientStore.productFeaturesInverse != null)
