@@ -49,7 +49,7 @@ public class DimensionsMappingManager implements ClientConfigUpdateListener {
             client_dimensions_mappings.put(client, dimensionsMappingConfig);
             logger.info(String.format("Updated client_dimensions_mappings for client[%s] value[%s]", client, dimensionsMappingConfig));
         } catch (Exception e) {
-            logger.error("Failed update json config!", e);
+            logger.error(String.format("Failed to update dimensions mapping using json[%s]", json), e);
         }
     }
 
