@@ -7,10 +7,13 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DimensionsMappingManager {
+
+    private static Logger logger = Logger.getLogger(DimensionsMappingManager.class.getName());
 
     public static class DimensionsMappingConfig {
         public Map<String, Object> mappings_by_locale;
@@ -25,14 +28,19 @@ public class DimensionsMappingManager {
     private DimensionsMappingConfig dimensionsMappingConfig = null;
 
     public void updateDimensionsMappingConfig(String json) {
-        dimensionsMappingConfig = getDimensionsMappingConfigFromJson(json);
+
+        try {
+            dimensionsMappingConfig = getDimensionsMappingConfigFromJson(json);
+        } catch (Exception e) {
+            logger.error("DimensionsMappingManager failed update json config!", e);
+        }
     }
 
     public Set<Integer> getMappedDimensionsByLocale(Set<Integer> dimensions, String locale) {
 
         Set<Integer> mapped_dimensions = dimensions;
 
-        if (locale != null) {
+        if ((locale != null) && (dimensionsMappingConfig != null)) {
             Map<String, Object> mappings_for_the_locale = (Map<String, Object>) dimensionsMappingConfig.mappings_by_locale.get(locale);
             if (mappings_for_the_locale != null) {
                 mapped_dimensions = new HashSet<Integer>();
@@ -54,14 +62,10 @@ public class DimensionsMappingManager {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 
-    private DimensionsMappingConfig getDimensionsMappingConfigFromJson(String json) {
+    private DimensionsMappingConfig getDimensionsMappingConfigFromJson(String json) throws IOException {
         DimensionsMappingConfig dmc = null;
 
-        try {
-            dmc = objMapper.readValue(json, DimensionsMappingConfig.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        dmc = objMapper.readValue(json, DimensionsMappingConfig.class);
 
         return dmc;
     }
