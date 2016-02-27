@@ -87,7 +87,12 @@ public class ItemBean extends ResourceBean {
 		this(i,false,null);
 	}
 	
-	public ItemBean(Item i,boolean full, ConsumerBean c) throws APIException {
+	public ItemBean(Item i,boolean full, ConsumerBean c)
+	{
+		this(i,full,c,null);
+	}
+	
+	public ItemBean(Item i,boolean full, ConsumerBean c,String locale) throws APIException {
 		id = i.getClientItemId();
 		name = i.getName();
 		type = i.getType();
@@ -97,6 +102,8 @@ public class ItemBean extends ResourceBean {
 		if(full) {
 			attributes = Util.getItemPeer(c).getItemAttributes(i.getItemId());
 			attributesName = Util.getItemPeer(c).getItemAttributesName(i.getItemId());
+			if (locale != null)
+				attributesName.putAll(Util.getItemPeer(c).getItemAttributesNameLocale(i.getItemId(), locale));
 			//Demographic
 			demographics = new ArrayList<>();
 			Collection<ItemDemographic> demos = Util.getItemPeer(c).getItemDemographics(i.getItemId());

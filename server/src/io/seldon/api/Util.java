@@ -204,6 +204,11 @@ public class Util {
 			return null;
 	}
 	
+	public static String getLocale(HttpServletRequest req)
+	{
+		return req.getParameter(Constants.URL_ATTR_LOCALE);
+	}
+	
 	public static ListBean getLimitedBean(ListBean bean, int limit) {
 		if(bean != null && bean.getSize() == limit) { 
 			bean.setRequested(limit); 

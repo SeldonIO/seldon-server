@@ -92,24 +92,27 @@ public class ItemService {
                 throw new APIException(APIException.ITEM_NOT_FOUND);
             }
             bean = new ItemBean(i,full,c);
-            if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getItemBeanKey(c.getShort_name(), iid,full),bean,Constants.CACHING_TIME);
+            if(Constants.CACHING) MemCachePeer.put(memKey,bean,Constants.CACHING_TIME);
         }
         return bean;
     }
     
-    public static ItemBean getItemOld(ConsumerBean c, String iid, boolean full) throws APIException {
-		ItemBean bean = (ItemBean)MemCachePeer.get(MemCacheKeys.getItemBeanKey(c.getShort_name(), iid,full));
-		if(bean == null) {
-			Item i = Util.getItemPeer(c).getItem(iid);
+    public ItemBean getItemLocalized(final ConsumerBean c, final String iid, final boolean full,String locale) throws APIException
+    {
+    	String memKey = MemCacheKeys.getItemBeanKeyWithLocale(c.getShort_name(), iid,full,locale);
+    	ItemBean bean =  (ItemBean) MemCachePeer.get(memKey);
+        if(bean == null) {
+            Item i = Util.getItemPeer(c).getItem(iid);
             if ( i == null ) {
                 // TODO We should throw a checked exception (using APIException for now; minimal surprises).
                 throw new APIException(APIException.ITEM_NOT_FOUND);
             }
-			bean = new ItemBean(i,full,c);
-			if(Constants.CACHING) MemCachePeer.put(MemCacheKeys.getItemBeanKey(c.getShort_name(), iid,full),bean,Constants.CACHING_TIME);
-		}
-		return bean;
-	}
+            bean = new ItemBean(i,full,c,locale);
+            if(Constants.CACHING) MemCachePeer.put(memKey,bean,Constants.CACHING_TIME);
+        }
+        return bean;
+    }
+    
 	
 	public static ListBean getItems(ConsumerBean c, int limit, boolean full, String sort,int dimension) throws APIException {
 		ListBean bean = (ListBean)MemCachePeer.get(MemCacheKeys.getItemsBeanKey(c.getShort_name(),full,sort,dimension));

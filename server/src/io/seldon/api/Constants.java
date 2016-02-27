@@ -94,6 +94,8 @@ public class Constants {
 	public static final String URL_TYPE = "type";
 	public static final String URL_ALGORITHMS = "algorithms";
 	public static final String URL_ATTRIBUTES = "attributes";
+	public static final String URL_ATTR_LOCALE = "rec_locale";
+	
 	//SORT FIELDs
 	public final static String SORT_ID = "id";
 	public final static String SORT_NAME = "name";

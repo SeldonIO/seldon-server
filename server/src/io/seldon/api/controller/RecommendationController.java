@@ -107,8 +107,8 @@ public class RecommendationController {
 			}
 			
 			String attributes = Util.getAttributes(req);
-			
-			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems,attributes);
+			String locale = Util.getLocale(req);
+			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems,attributes,locale);
 			CtrFullLogger.log(false, ((ConsumerBean)con).getShort_name(), userId, null,null);
         }
 		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req);

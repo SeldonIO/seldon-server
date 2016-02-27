@@ -50,7 +50,7 @@ public class MemCacheKeys {
 			RecentRecsForUsers, RecentItemsJSON, RecentItemsDimJSON, RecentItemsWithTagsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
             FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder,
-            ItemAttrAndDims
+            ItemAttrAndDims, ItemBeanLocale
 			};
 
 	
@@ -91,6 +91,10 @@ public class MemCacheKeys {
 
     public static String getItemBeanKey(String client, String id, boolean full) {
     	return "" + keys.ItemsBeanNew + ":" + client + ":" + id + ":" + full;
+    }
+
+    public static String getItemBeanKeyWithLocale(String client, String id, boolean full,String locale) {
+    	return "" + keys.ItemBeanLocale + ":" + client + ":" + id + ":" + full+":"+locale;
     }
     
     public static String getItemSimilarityGraphBeanKey(String client, String id) {

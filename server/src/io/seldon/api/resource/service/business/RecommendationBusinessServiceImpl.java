@@ -42,16 +42,16 @@ public class RecommendationBusinessServiceImpl implements RecommendationBusiness
     private RecommendationService recommendationService;
 
     @Override
-    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit,Set<Long> scoreItems,String attributes) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimensions, null, limit, attributes,null,null,null,false,scoreItems);
+    public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit,Set<Long> scoreItems,String attributes,String locale) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, null, dimensions, null, limit, attributes,null,null,null,false,scoreItems,locale);
     }
 
 
     @Override
     public ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,
                                                 Set<Integer> dimensions, String uuid, int limit, String attributes,List<String> algorithms,
-                                                String referrer,String recTag, boolean includeCohort,Set<Long> scoreItems) {
-        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensions, uuid, limit, attributes,algorithms,referrer,recTag, includeCohort,scoreItems);
+                                                String referrer,String recTag, boolean includeCohort,Set<Long> scoreItems,String locale) {
+        return recommendationService.getRecommendedItems(consumerBean, userId, internalItemId, dimensions, uuid, limit, attributes,algorithms,referrer,recTag, includeCohort,scoreItems,locale);
     }
 
   
