@@ -21,6 +21,7 @@
 */
 package io.seldon.recommendation.baseline;
 
+import io.seldon.api.Constants;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -112,18 +114,27 @@ public class MostPopularInSessionRecommender implements ItemRecommendationAlgori
 						{
 							if (!exclusions.contains(ic.item))
 							{
-								if (logger.isDebugEnabled())
-									logger.debug("Adding item "+ic.item+" from dimension "+attr);
-								if (maxCount == 0)
-									maxCount = ic.count;
-								double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
-								if (scores.containsKey(ic.item))
-									scores.put(ic.item, scores.get(ic.item)+normCount);
+								Map<String,Integer> attrDimsCandidate = itemService.getDimensionIdsForItem(c, ic.item);
+								if (CollectionUtils.containsAny(dimensions, attrDimsCandidate.values()) || dimensions.contains(Constants.DEFAULT_DIMENSION))
+								{
+									if (logger.isDebugEnabled())
+										logger.debug("Adding item "+ic.item+" from dimension "+attr);
+									if (maxCount == 0)
+										maxCount = ic.count;
+									double normCount = (ic.count/maxCount) * lowestScore; //scale to be a score lower than previous values if any
+									if (scores.containsKey(ic.item))
+										scores.put(ic.item, scores.get(ic.item)+normCount);
+									else
+										scores.put(ic.item, normCount);
+									lowScore = normCount;
+									if (scores.size()>= maxRecsCount)
+										break;
+								}
 								else
-									scores.put(ic.item, normCount);
-								lowScore = normCount;
-								if (scores.size()>= maxRecsCount)
-									break;
+								{
+									if (logger.isDebugEnabled())
+										logger.debug("Ignoring prospective item "+ic.item+" as not in dimensions "+dimensions.toString());
+								}
 							}
 							else
 							{
