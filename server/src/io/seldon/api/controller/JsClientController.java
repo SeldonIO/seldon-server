@@ -26,6 +26,7 @@ package io.seldon.api.controller;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
+import io.seldon.api.locale.DimensionsMappingManager;
 import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ActionBean;
@@ -96,6 +97,9 @@ public class JsClientController {
     
     @Autowired
     private UserProfileService userProfileService;
+
+    @Autowired
+    private DimensionsMappingManager dimensionsMappingManager;
 
     private ConsumerBean retrieveConsumer(HttpSession session) {
         return (ConsumerBean) session.getAttribute("consumer");
@@ -209,6 +213,12 @@ public class JsClientController {
         	dimensions = new HashSet<Integer>(1);
         	dimensions.add(dimensionId);
         }
+        
+        if (locale != null)  { // map dimensions based on locale
+            String client = consumerBean.getShort_name();
+            dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(client, dimensions, locale);
+        }
+        
         final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort,scoreItems,locale);
         //tracking recommendations impression
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
