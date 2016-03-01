@@ -146,7 +146,7 @@ public class SqlItemPeer extends ItemPeer {
 			if(array!=null && array[1]!=null) {
 				String newValue = (String)array[1];
 				attributes.put((String)array[0],newValue);
-				attributes.put("_"+((String)array[0])+"_"+locale,newValue);				
+				attributes.put("_locale_"+((String)array[0]),locale);				
 			}
 		}
 		return attributes;
