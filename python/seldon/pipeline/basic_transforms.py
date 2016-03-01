@@ -283,6 +283,9 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
                             lvals += [(self.id_map[col],v)]
                     else:
                         lvals += [(self.id_map[col+"_"+v],1)]
+        self.progress += 1
+        if self.progress % 100 == 0:
+            logger.info("processed %d/%d",self.progress,self.size)
         return pd.Series([sorted(lvals)])
 
 
@@ -349,6 +352,8 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
+        self.progress = 0
+        self.size = df.shape[0]
         df[self.output_feature] = df.apply(self._set_id,axis=1,reduce=True)
         return df
 

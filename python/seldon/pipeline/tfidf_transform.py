@@ -101,6 +101,9 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
                     doc_tfidf[fname] = val
             else:
                 doc_tfidf[fname] = val
+        self.progress += 1
+        if self.progress % 100 == 0:
+            logger.info("processed %d/%d",self.progress,self.size)
         return doc_tfidf
         
 
@@ -118,6 +121,8 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
+        self.progress = 0
+        self.size = df.shape[0]
         df[self.output_feature] = df[self.input_feature].apply(self._create_tfidf)
         return df
 
