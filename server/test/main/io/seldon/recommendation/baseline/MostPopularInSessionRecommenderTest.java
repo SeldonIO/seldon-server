@@ -79,7 +79,7 @@ public class MostPopularInSessionRecommenderTest {
 		
 		Map<String,Integer> attrDims = new HashMap<>();
 		attrDims.put("attr1", 1);
-		expect(mockItemService.getDimensionIdsForItem((ConsumerBean)EasyMock.anyObject(),EasyMock.anyInt())).andReturn(attrDims);
+		expect(mockItemService.getDimensionIdsForItem((ConsumerBean)EasyMock.anyObject(),EasyMock.anyInt())).andReturn(attrDims).anyTimes();
 		replay(mockItemService);
 		
 		Map<Integer, List<ItemCount>> dimToPopularItems = new HashMap<>();
