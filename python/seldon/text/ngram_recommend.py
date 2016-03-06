@@ -5,6 +5,9 @@ import math
 from seldon import Recommender
 import operator
 from collections import defaultdict
+import logging
+
+logger = logging.getLogger(__name__)
 
 def find_ngrams(input_list, n):
   return zip(*[input_list[i:] for i in range(n)])
@@ -36,7 +39,7 @@ class NgramModel(Recommender):
                 elif line.endswith("-grams:"):
                     in_preamble = False
                     ngram_size = int(line[1:line.index("-")])
-                    print "Loading ngrams of length ",ngram_size
+                    logger.info("Loading ngrams of length %d",ngram_size)
                 elif line == "\\end\\":
                     pass
                 else:
@@ -83,7 +86,7 @@ class NgramModel(Recommender):
             for ngram in ngrams:
                 prefix = " ".join(map(str, ngram))
                 prefix = unicode(prefix+" ",'utf8')
-                print "searching for ",prefix
+                logger.info("searching for %s",prefix)
                 tot_proba = 0
                 ngram_found = 0
                 for key in self.dawg.iterkeys(prefix):
@@ -91,7 +94,7 @@ class NgramModel(Recommender):
                     if len(tokens) == ngram_size+1:
                         proba = self.probas[self.dawg[key]]
                         proba = math.pow(10,proba)
-                        print key,"->",proba
+                        logger.info("%s --> %f",key,proba)
                         tot_proba += proba
                         found += 1
                         ngram_found += 1
@@ -101,8 +104,8 @@ class NgramModel(Recommender):
                     proba = self.backoffs[self.dawg[prefix[0:-1]]]
                     proba = math.pow(10,proba)
                     tot_proba += proba
-                    print "backoff proba for ",prefix,proba
-                    print "total proba",tot_proba
+                    logger.info("backoff proba for %s %f ",prefix,proba)
+                    logger.info("total proba %f",tot_proba)
         if found > 0:
             recs_sorted = sorted(recs.items(), key=operator.itemgetter(0),reverse=True)
             return recs_sorted[0:k]
@@ -135,7 +138,9 @@ class NgramModel(Recommender):
         recommendations = []
         scores = self.score(recent_interactions[::-1],limit)
         for (key,score) in scores:
-            recommendations.append((int(key),score))
+          ikey = int(key)
+          if not ikey in recent_interactions:
+            recommendations.append((ikey,score))
         return recommendations
 
                 
