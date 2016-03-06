@@ -85,7 +85,7 @@ class MostPopularByDimJob(private val sc : SparkContext,config : MostPopularByDi
       val json = parse(line)
       val item = (json \ "itemid").extract[Int]
       val value = (json \ "value").extract[Float]
-      (item,value)
+      (item,value+1)
       }
     
     rdd
