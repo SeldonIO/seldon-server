@@ -7,6 +7,7 @@ from kazoo.client import KazooClient
 import errno
 
 import cmd_memcached
+import cmd_db
 
 gdata = {
     'zk_client': None,
@@ -14,6 +15,7 @@ gdata = {
     'conf_path': os.path.expanduser("~/.seldon/seldon.conf"),
     'cmds': {
         'memcached' : cmd_memcached.cmd_memcached,
+        'db' : cmd_db.cmd_db,
     }
 }
 
