@@ -54,14 +54,16 @@ RUN pip install cmd2 MySQL-python
 # for ngram prediction
 RUN pip install DAWG
 
-ADD ./python-modules /python-modules/seldon
+RUN pip install -e git+git://github.com/SeldonIO/wabbit_wappa#egg=wabbit-wappa-3.0.2
 
-ENV PYTHONPATH $PYTHONPATH:/python-modules
+RUN pip install -e git+git://github.com/fmfn/BayesianOptimization#egg=bayes_opt
+
+RUN pip install seldon
+
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
 
-ADD ./python-modules /python-modules/seldon
-
-ADD ./scripts /scripts
+ENV SELDON_HOME /home/seldon
+ADD ./scripts $SELDON_HOME/scripts
 
 # Define default command.
 CMD ["bash"]

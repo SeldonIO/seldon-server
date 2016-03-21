@@ -1,6 +1,6 @@
 FROM seldonio/pyseldon
 
-ADD ./pipeline /pipeline
+ADD ./pipeline /home/seldon/pipeline
 
 
 

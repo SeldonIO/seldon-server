@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 IMAGE=seldonio/iris_pipeline
-VERSION=1.2
+VERSION=1.3
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -44,10 +44,10 @@ push_to_dockerhub:
 #
 
 data/iris/xgb_models/1:data/iris/events/1/iris.json
-	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/xgb_pipeline.py --events /data/iris/events/1 --models /data/iris/xgb_models/1"
+	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.3 bash -c "python /home/seldon/pipeline/xgb_pipeline.py --events /data/iris/events/1 --models /data/iris/xgb_models/1"
 
 xgboost_runtime:data/iris/xgb_models/1
-	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/pyseldon:1.3 bash -c "python /scripts/start_prediction_microservice.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb"
+	docker run --name="xgboost_runtime" -d -p 5001:5000  -v ${PWD}/data:/data seldonio/iris_pipeline:1.3 bash -c "python /home/seldon/scripts/start_prediction_microservice.py --pipeline /data/iris/xgb_models/1 --model_name model_xgb"
 	touch xgboost_runtime
 
 test_xgboost_runtime:xgboost_runtime
@@ -63,10 +63,10 @@ stop_xgboost_runtime:
 #
 
 data/iris/vw_models/1:data/iris/events/1/iris.json
-	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/vw_pipeline.py --events /data/iris/events/1 --models /data/iris/vw_models/1"
+	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.3 bash -c "python /home/seldon/pipeline/vw_pipeline.py --events /data/iris/events/1 --models /data/iris/vw_models/1"
 
 vw_runtime:data/iris/vw_models/1
-	docker run --name="vw_runtime" -d -p 5000:5000  -v ${PWD}/data:/data seldonio/pyseldon:1.3 bash -c "python /scripts/start_prediction_microservice.py --pipeline /data/iris/vw_models/1 --model_name model_vw"
+	docker run --name="vw_runtime" -d -p 5000:5000  -v ${PWD}/data:/data seldonio/iris_pipeline:1.3 bash -c "python /home/seldon/scripts/start_prediction_microservice.py --pipeline /data/iris/vw_models/1 --model_name model_vw"
 	touch vw_runtime
 
 # send test JSON for prediction against vw microservice
@@ -85,11 +85,11 @@ stop_vw_runtime:
 #
 
 data/iris/keras_models/1:data/iris/events/1/iris.json
-	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.2 bash -c "python /pipeline/keras_pipeline.py --events /data/iris/events/1 --models /data/iris/keras_models/1"
+	docker run --rm -t -v ${PWD}/data:/data seldonio/iris_pipeline:1.3 bash -c "python /home/seldon/pipeline/keras_pipeline.py --events /data/iris/events/1 --models /data/iris/keras_models/1"
 
 
 keras_runtime:data/iris/keras_models/1
-	docker run --name="keras_runtime" -d -p 5002:5000  -v ${PWD}/data:/data seldonio/pyseldon:1.3 bash -c "python /scripts/start_prediction_microservice.py --pipeline /data/iris/keras_models/1 --model_name model_keras"
+	docker run --name="keras_runtime" -d -p 5002:5000  -v ${PWD}/data:/data seldonio/iris_pipeline:1.3 bash -c "python /home/seldon/scripts/start_prediction_microservice.py --pipeline /data/iris/keras_models/1 --model_name model_keras"
 	touch keras_runtime
 
 test_keras_runtime:keras_runtime
