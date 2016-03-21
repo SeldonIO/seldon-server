@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memcached
+  labels:
+    name: memcached
+spec:
+  containers:
+    - name: memcached
+      image: seldonio/memcached:0.1
+      ports:
+        - containerPort: 11211
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memcached
+  labels:
+    name: memcached
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 11211
+      targetPort: 11211
+      protocol: TCP
+  selector:
+    name: memcached

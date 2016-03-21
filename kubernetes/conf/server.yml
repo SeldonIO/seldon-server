@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: seldon-server
+spec:
+  containers:
+  - image: seldon-server:0.1
+    name: seldon-server
+    command: [ "catalina.sh", "run" ]
+    volumeMounts:
+      - name: base-logs
+        mountPath: /seldon/logs/base
+      - name: action-logs
+        mountPath: /seldon/logs/actions
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080
+      initialDelaySeconds: 60
+      timeoutSeconds: 1
+    ports:
+      - containerPort : 8080
+  - image: seldonio/td-agent:0.2
+    name: td-agent
+    command: [ "td-agent" ]
+    volumeMounts:
+      - name: base-logs
+        mountPath: /home/seldon/logs/base
+      - name: action-logs
+        mountPath: /home/seldon/logs/actions
+  volumes:
+    - name: base-logs
+      emptyDir: {}
+    - name: action-logs
+      emptyDir: {}
