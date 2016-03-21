@@ -8,6 +8,7 @@ import errno
 
 import cmd_memcached
 import cmd_db
+import cmd_client
 
 gdata = {
     'zk_client': None,
@@ -16,6 +17,7 @@ gdata = {
     'cmds': {
         'memcached' : cmd_memcached.cmd_memcached,
         'db' : cmd_db.cmd_db,
+        'client' : cmd_client.cmd_client,
     }
 }
 
