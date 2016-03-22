@@ -10,6 +10,7 @@ import cmd_memcached
 import cmd_db
 import cmd_client
 import cmd_attr
+import cmd_import
 
 gdata = {
     'zk_client': None,
@@ -20,6 +21,7 @@ gdata = {
         'db' : cmd_db.cmd_db,
         'client' : cmd_client.cmd_client,
         'attr' : cmd_attr.cmd_attr,
+        'import' : cmd_import.cmd_import,
     }
 }
 
