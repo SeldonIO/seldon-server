@@ -7,13 +7,13 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--action', help="the action to use", required=True)
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
 
-def action_default(command_data, opts):
+def action_list(command_data, opts):
     print "Default recommenders:"
     default_algorithms = command_data["conf_data"]["default_algorithms"]
     for recommender in default_algorithms:
@@ -21,7 +21,7 @@ def action_default(command_data, opts):
 
 def cmd_alg(command_data, command_args):
     actions = {
-        "default" : action_default,
+        "list" : action_list,
     }
 
     opts = getOpts(command_args)
