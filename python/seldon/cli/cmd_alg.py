@@ -153,6 +153,52 @@ def action_add(command_data, opts):
     print "Added [{recommender_name}]".format(**locals())
     show_algs(data)
 
+def action_delete(command_data, opts):
+    client_name = opts.client_name
+    if client_name == None:
+        print "Need client name to add algs for"
+        sys.exit(1)
+
+    recommender_name = opts.recommender_name
+    if recommender_name == None:
+        print "Need recommender name"
+        sys.exit(1)
+
+    zkroot = command_data["zkdetails"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        sys.exit(1)
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+    ensure_client_has_algs(zkroot, zk_client, client_name)
+
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/algs/_data_"
+    f = open(data_fpath)
+    json = f.read()
+    f.close()
+    data = json_to_dict(json)
+
+    default_algorithms = command_data["conf_data"]["default_algorithms"]
+    recommenders = default_algorithms.keys()
+
+    if recommender_name not in recommenders:
+        print "Invalid recommender[{recommender_name}]".format(**locals())
+        sys.exit(1)
+
+    algorithms = data["algorithms"]
+    
+    length_before_removal = len(algorithms)
+    def recommender_filter(item):
+        if item["name"] == recommender_name:
+            return False
+        else:
+            return True
+    filtered_algorithms = filter(recommender_filter, algorithms)
+    length_after_removal = len(filtered_algorithms)
+    data["algorithms"] = filtered_algorithms
+    write_data_to_file(data_fpath, data)
+    if length_after_removal < length_before_removal:
+        print "Removed [{recommender_name}]".format(**locals())
 
 def action_list(command_data, opts):
     print "Default recommenders:"
@@ -189,6 +235,7 @@ def cmd_alg(command_data, command_args):
         "list" : action_list,
         "show" : action_show,
         "add" : action_add,
+        "delete" : action_delete,
         "commit" : action_commit,
     }
 
