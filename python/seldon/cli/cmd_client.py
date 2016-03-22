@@ -2,8 +2,11 @@ import pprint
 import argparse
 import os
 import json
+import sys
+import re
 
 import zk_utils
+import seldon_utils
 
 gdata = {
     'all_clients_node_path': "/all_clients",
@@ -16,6 +19,8 @@ def pp(o):
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--db-name', help="the name of the db", required=False)
+    parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -45,6 +50,38 @@ def write_data_to_file(data_fpath, data):
     f.write('\n')
     f.close()
     print "Writing data to file[{data_fpath}]".format(**locals())
+
+def add_client(zk_client, zkroot, client_name, db_name, consumer_details=None):
+    data_fpath = zkroot + "/config/dbcp/_data_"
+    f = open(data_fpath)
+    json = f.read()
+    data = json_to_dict(json)
+    f.close()
+
+    db_info = None
+    for db_info_entry in data['dbs']:
+        if db_info_entry['name'] == db_name:
+            db_info = db_info_entry
+            break
+
+    if db_info == None:
+        print "Invalid db name[{db_name}]".format(**locals())
+        sys.exit(1)
+
+    dbSettings = {}
+    dbSettings["host"]=re.search('://(.*?):(.*?),',db_info["jdbc"]).groups()[0]
+    dbSettings["user"]=db_info["user"]
+    dbSettings["password"]=db_info["password"]
+    seldon_utils.addApiDb(db_name, dbSettings)
+    seldon_utils.addClientDb(client_name, dbSettings, consumer_details=None)
+    # write to local file
+    data_fpath = get_data_fpath(zkroot, client_name)
+    data = {'DB_JNDI_NAME': db_name}
+    write_data_to_file(data_fpath, data)
+    # write to zookeeper
+    node_path=gdata["all_clients_node_path"]+"/"+client_name
+    data_json = dict_to_json(data)
+    zk_utils.node_set(zk_client, node_path, data_json)
 
 def action_list(command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
@@ -85,10 +122,29 @@ def action_list(command_data, opts):
             DB_JNDI_NAME = data["DB_JNDI_NAME"] if isinstance(data, dict) and data.has_key("DB_JNDI_NAME") else ""
             print "    DB_JNDI_NAME: "+DB_JNDI_NAME
 
+def action_setup(command_data, opts):
+    db_name_to_use = opts.db_name
+    client_name_to_setup = opts.client_name
+    if db_name_to_use == None:
+        print "Need db name to use"
+        sys.exit(1)
+    if client_name_to_setup == None:
+        print "Need client name to setup"
+        sys.exit(1)
+
+    # check if this client exists
+    zkroot = command_data["zkdetails"]["zkroot"]
+    zk_client = command_data["zkdetails"]["zk_client"]
+    data_fpath = get_data_fpath(zkroot, client_name_to_setup)
+    if not os.path.isfile(data_fpath):
+        print "Trying to create the client"
+        add_client(zk_client, zkroot, client_name_to_setup, db_name_to_use)
+
 def cmd_client(command_data, command_args):
     actions = {
         "default" : action_list,
         "list" : action_list,
+        "setup" : action_setup,
     }
 
     opts = getOpts(command_args)
