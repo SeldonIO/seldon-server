@@ -4,14 +4,14 @@ metadata:
   name: seldon-server
 spec:
   containers:
-  - image: seldon-server:0.1
+  - image: seldonio/seldon-server:0.1
     name: seldon-server
     command: [ "catalina.sh", "run" ]
     volumeMounts:
       - name: base-logs
-        mountPath: /seldon/logs/base
+        mountPath: /home/seldon/logs/base
       - name: action-logs
-        mountPath: /seldon/logs/actions
+        mountPath: /home/seldon/logs/actions
     livenessProbe:
       httpGet:
         path: /
@@ -20,7 +20,7 @@ spec:
       timeoutSeconds: 1
     ports:
       - containerPort : 8080
-  - image: seldonio/td-agent:0.2
+  - image: seldonio/td-agent-node:0.1
     name: td-agent
     command: [ "td-agent" ]
     volumeMounts:

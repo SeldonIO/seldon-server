@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: seldon-shell
+  name: seldon-control
 spec:
   containers:
-  - image: seldonio/pyseldon
+  - image: seldonio/seldon-control:0.1
     name: seldon-shell
     command: [ "sleep", "infinity" ]
     volumeMounts:

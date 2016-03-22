@@ -1,10 +1,11 @@
 
+IMAGE_VERSION=`grep '\#VERSION' Dockerfile | cut -d= -f2`
 
 build_image:
-	cd ${IMAGE_NAME} ; docker build --force-rm=true -t $(IMAGE_NAME):$(IMAGE_VERSION) .
+	cd ${IMAGE_FOLDER} ; docker build --force-rm=true -t seldonio/$(IMAGE_FOLDER):$(IMAGE_VERSION) .
 
 push_to_dockerhub:
 	@docker login -u seldonio && \
-		docker push $(IMAGE_NAME):$(IMAGE_VERSION)
+		docker push seldonio/$(IMAGE_FOLDER):$(IMAGE_VERSION)
 
 

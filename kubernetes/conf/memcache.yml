@@ -27,7 +27,7 @@ metadata:
     name: memcached1
     app: memcache
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - port: 11211
       targetPort: 11211
@@ -64,7 +64,7 @@ metadata:
     name: memcached2
     app: memcache
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - port: 11211
       targetPort: 11211

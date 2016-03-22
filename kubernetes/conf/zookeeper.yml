@@ -18,7 +18,7 @@ metadata:
   labels:
     name: zookeeper
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - port: 2181
   selector:
