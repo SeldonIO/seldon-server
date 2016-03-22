@@ -14,8 +14,8 @@ setup(name='seldon',
       dependency_links = [
           'https://github.com/SeldonIO/wabbit_wappa/archive/3.0.2.zip#egg=wabbit-wappa-3.0.2'
       ],
-      packages=['seldon', 'seldon.pipeline', 'seldon.microservice', 'seldon.text', 'seldon.shell'],
-      package_dir={'seldon.shell': 'seldon/shell'},
-      package_data={'seldon.shell': ['dbschema/mysql/api.sql', 'dbschema/mysql/client.sql']},
-      scripts=['bin/seldon-shell'],
+      packages=['seldon', 'seldon.pipeline', 'seldon.microservice', 'seldon.text', 'seldon.shell', 'seldon.cli'],
+      package_dir={'seldon.shell': 'seldon/shell', 'seldon.cli': 'seldon/cli'},
+      package_data={'seldon.shell': ['dbschema/mysql/api.sql', 'dbschema/mysql/client.sql'], 'seldon.cli': ['dbschema/mysql/api.sql', 'dbschema/mysql/client.sql']},
+      scripts=['bin/seldon-shell','bin/seldon-cli'],
       )
