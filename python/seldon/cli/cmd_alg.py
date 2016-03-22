@@ -3,6 +3,7 @@ import argparse
 import sys
 import os
 import json
+import errno
 
 import zk_utils
 
@@ -18,6 +19,7 @@ def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=True)
     parser.add_argument('--client-name', help="the name of the client", required=False)
+    parser.add_argument('--recommender-name', help="the name of recommender", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -83,7 +85,7 @@ def action_show(command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
     if not is_existing_client(zkroot, client_name):
         print "Invalid client[{client_name}]".format(**locals())
-        return
+        sys.exit(1)
 
     zk_client = command_data["zkdetails"]["zk_client"]
     ensure_client_has_algs(zkroot, zk_client, client_name)
@@ -96,7 +98,50 @@ def action_show(command_data, opts):
     show_algs(data)
 
 def action_add(command_data, opts):
-    pp("TODO add")
+    client_name = opts.client_name
+    if client_name == None:
+        print "Need client name to add algs for"
+        sys.exit(1)
+
+    recommender_name = opts.recommender_name
+    if recommender_name == None:
+        print "Need recommender name"
+        sys.exit(1)
+
+    zkroot = command_data["zkdetails"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        sys.exit(1)
+
+    default_algorithms = command_data["conf_data"]["default_algorithms"]
+    recommenders = default_algorithms.keys()
+
+    if recommender_name not in recommenders:
+        print "Invalid recommender[{recommender_name}]".format(**locals())
+        sys.exit(1)
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+    ensure_client_has_algs(zkroot, zk_client, client_name)
+
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/algs/_data_"
+    f = open(data_fpath)
+    json = f.read()
+    f.close()
+    data = json_to_dict(json)
+
+    algorithms = data["algorithms"]
+    includers = default_algorithms[recommender_name]["includers"] if default_algorithms[recommender_name].has_key("includers") else []
+    recommender_data = {
+            'filters':[],
+            'includers': includers,
+            'name': recommender_name,
+            'config': default_algorithms[recommender_name]["config"]
+    }
+    algorithms.append(recommender_data)
+    write_data_to_file(data_fpath, data)
+    print "Added [{recommender_name}]".format(**locals())
+    show_algs(data)
+
 
 def action_list(command_data, opts):
     print "Default recommenders:"
