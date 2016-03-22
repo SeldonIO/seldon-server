@@ -139,6 +139,8 @@ def action_setup(command_data, opts):
     if not os.path.isfile(data_fpath):
         print "Trying to create the client"
         add_client(zk_client, zkroot, client_name_to_setup, db_name_to_use)
+    else:
+        print "Client already exists!"
 
 def cmd_client(command_data, command_args):
     actions = {
