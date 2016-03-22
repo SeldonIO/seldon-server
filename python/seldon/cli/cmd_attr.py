@@ -2,9 +2,11 @@ import pprint
 import argparse
 import sys
 import os
+import re
 
 import seldon_utils
 import zk_utils
+import attr_schema_utils
 
 gdata = {
     'all_clients_node_path': "/all_clients",
@@ -131,11 +133,71 @@ def action_edit(command_data, opts):
         zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
         show_attr(data)
 
+def action_apply(command_data, opts):
+    client_name = opts.client_name
+    if client_name == None:
+        print "Need client name to show the attr for"
+        sys.exit(1)
+
+    zkroot = command_data["zkdetails"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        sys.exit(1)
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+    ensure_client_has_attr(zkroot, zk_client, client_name)
+
+    def get_db_jndi_name():
+        data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/_data_"
+        f = open(data_fpath)
+        json = f.read()
+        data = seldon_utils.json_to_dict(json)
+        f.close()
+        DB_JNDI_NAME = data["DB_JNDI_NAME"] if isinstance(data, dict) and data.has_key("DB_JNDI_NAME") else ""
+        return DB_JNDI_NAME
+
+    def get_db_info(db_name):
+        data_fpath = zkroot + "/config/dbcp/_data_"
+        f = open(data_fpath)
+        json = f.read()
+        data = seldon_utils.json_to_dict(json)
+        f.close()
+
+        db_info = None
+        for db_info_entry in data['dbs']:
+            if db_info_entry['name'] == db_name:
+                db_info = db_info_entry
+                break
+        return db_info
+
+    def get_db_settings():
+        dbSettings = {}
+        dbSettings["host"]=re.search('://(.*?):(.*?),',db_info["jdbc"]).groups()[0]
+        dbSettings["user"]=db_info["user"]
+        dbSettings["password"]=db_info["password"]
+        return dbSettings
+
+    db_name = get_db_jndi_name()
+    db_info = get_db_info(db_name)
+
+    if db_info == None:
+        print "Invalid db name[{db_name}]".format(**locals())
+        return
+
+    dbSettings = get_db_settings()
+
+    scheme_file_path = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/attr/_data_"
+    clean = True
+    attr_schema_utils.create_schema(client_name, dbSettings, scheme_file_path, clean)
+    clean = False
+    attr_schema_utils.create_schema(client_name, dbSettings, scheme_file_path, clean)
+
 def cmd_attr(command_data, command_args):
     actions = {
         "default" : action_show,
         "show" : action_show,
         "edit" : action_edit,
+        "apply" : action_apply,
     }
 
     opts = getOpts(command_args)
