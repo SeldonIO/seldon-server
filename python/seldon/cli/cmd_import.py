@@ -6,6 +6,7 @@ import re
 
 import seldon_utils
 import import_items_utils
+import import_users_utils
 
 gdata = {
     'all_clients_node_path': "/all_clients",
@@ -85,9 +86,27 @@ def action_items(command_data, opts):
 
     import_items_utils.import_items(client_name, db_settings, data_file_fpath)
 
+def action_users(command_data, opts):
+    client_name = opts.client_name
+    data_file_fpath = opts.file_path
+
+    zkroot = command_data["conf_data"]["zkroot"]
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        sys.exit(1)
+
+    if not os.path.isfile(data_file_fpath):
+        print "Invalid file[{data_file_fpath}]".format(**locals())
+        sys.exit(1)
+
+    db_settings = get_db_settings(zkroot, client_name)
+
+    import_users_utils.import_users(client_name, db_settings, data_file_fpath)
+
 def cmd_import(command_data, command_args):
     actions = {
         "items" : action_items,
+        "users" : action_users,
     }
 
     opts = getOpts(command_args)
