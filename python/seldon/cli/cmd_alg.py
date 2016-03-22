@@ -47,6 +47,17 @@ def write_data_to_file(data_fpath, data):
     f.close()
     print "Writing data to file[{data_fpath}]".format(**locals())
 
+def write_node_value_to_file(zk_client, zkroot, node_path):
+    node_value = zk_utils.node_get(zk_client, node_path)
+    node_value = node_value.strip()
+    if zk_utils.is_json_data(node_value):
+        data = json_to_dict(node_value) if node_value != None and len(node_value)>0 else ""
+    else:
+        data = str(node_value)
+    data_fpath = zkroot + node_path + "/_data_"
+    write_data_to_file(data_fpath, data)
+
+
 def is_existing_client(zkroot, client_name):
     client_names = os.listdir(zkroot + gdata["all_clients_node_path"])
     if client_name in client_names:
