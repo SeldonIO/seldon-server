@@ -186,7 +186,7 @@ def action_delete(command_data, opts):
         sys.exit(1)
 
     algorithms = data["algorithms"]
-    
+
     length_before_removal = len(algorithms)
     def recommender_filter(item):
         if item["name"] == recommender_name:
@@ -196,8 +196,8 @@ def action_delete(command_data, opts):
     filtered_algorithms = filter(recommender_filter, algorithms)
     length_after_removal = len(filtered_algorithms)
     data["algorithms"] = filtered_algorithms
-    write_data_to_file(data_fpath, data)
     if length_after_removal < length_before_removal:
+        write_data_to_file(data_fpath, data)
         print "Removed [{recommender_name}]".format(**locals())
 
 def action_list(command_data, opts):
