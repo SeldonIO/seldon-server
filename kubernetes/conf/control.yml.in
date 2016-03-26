@@ -9,7 +9,8 @@ spec:
     command: [ "sleep", "infinity" ]
     volumeMounts:
     - mountPath: /root/.seldon
-      name: data-volume
+      name: conf-volume
   volumes:
-    - name: data-volume
-      emptyDir: {}
+    - name: conf-volume
+      hostPath:
+        path: $(DATA_PATH)

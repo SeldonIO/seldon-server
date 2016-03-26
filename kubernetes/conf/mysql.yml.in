@@ -24,8 +24,9 @@ spec:
           # mount path within the container
           mountPath: /var/lib/mysql
   volumes:
-    - name: mysql-persistent-storage
-      emptyDir: {}
+    - hostPath:
+        path: $(DATA_PATH)
+      name: mysql-persistent-storage
 ---
 apiVersion: v1
 kind: Service

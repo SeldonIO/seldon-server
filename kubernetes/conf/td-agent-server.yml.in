@@ -10,6 +10,13 @@ spec:
       image: seldonio/td-agent-server:0.1
       ports:
         - containerPort: 24224
+      volumeMounts:
+        - name: logs
+          mountPath: /home/seldon-data
+  volumes:
+    - hostPath:
+        path: $(DATA_PATH)
+      name: logs
 ---
 apiVersion: v1
 kind: Service

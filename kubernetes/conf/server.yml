@@ -1,35 +1,62 @@
 apiVersion: v1
-kind: Pod
+kind: ReplicationController
 metadata:
   name: seldon-server
 spec:
-  containers:
-  - image: seldonio/seldon-server:0.1
+  replicas: 1
+  selector:
     name: seldon-server
-    command: [ "catalina.sh", "run" ]
-    volumeMounts:
-      - name: base-logs
-        mountPath: /home/seldon/logs/base
-      - name: action-logs
-        mountPath: /home/seldon/logs/actions
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 8080
-      initialDelaySeconds: 60
-      timeoutSeconds: 1
-    ports:
-      - containerPort : 8080
-  - image: seldonio/td-agent-node:0.1
-    name: td-agent
-    command: [ "td-agent" ]
-    volumeMounts:
-      - name: base-logs
-        mountPath: /home/seldon/logs/base
-      - name: action-logs
-        mountPath: /home/seldon/logs/actions
-  volumes:
-    - name: base-logs
-      emptyDir: {}
-    - name: action-logs
-      emptyDir: {}
+  template:
+    metadata:
+      name: seldon-server
+      labels:
+        name: seldon-server
+    spec:
+      containers:
+      - image: seldonio/seldon-server:0.1
+        name: seldon-server
+        env:
+          - name: SELDON_ZKSERVERS
+            value: zookeeper-1,zookeeper-2,zookeeper-3
+        command: [ "catalina.sh", "run" ]
+        volumeMounts:
+          - name: base-logs
+            mountPath: /home/seldon/logs/base
+          - name: action-logs
+            mountPath: /home/seldon/logs/actions
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          timeoutSeconds: 1
+        ports:
+          - containerPort : 8080
+      - image: seldonio/td-agent-node:0.1
+        name: td-agent
+        command: [ "td-agent" ]
+        volumeMounts:
+          - name: base-logs
+            mountPath: /home/seldon/logs/base
+          - name: action-logs
+            mountPath: /home/seldon/logs/actions
+      volumes:
+        - name: base-logs
+          emptyDir: {}
+        - name: action-logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seldon-server
+  labels:
+    name: seldon-server
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    name: seldon-server
