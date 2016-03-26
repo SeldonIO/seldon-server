@@ -1,5 +1,10 @@
 SHELL=/bin/bash
 
+#
+# Simple config for hostPath setting for demo cluster
+# Will change to more complex config if we allow alternate storage volumes for demo
+#
+
 BASE_PATH=/data
 MYSQL_DATA_PATH=${BASE_PATH}/mysql
 CONF_DATA_PATH=${BASE_PATH}/conf
