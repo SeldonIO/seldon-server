@@ -3,7 +3,7 @@ FROM seldonio/pyseldon
 
 RUN \
     apt-get update && \
-    apt-get -y -q install netcat dnsutils emacs vim
+    apt-get -y -q install netcat dnsutils emacs vim mysql-client
 
 RUN pip install memcache-cli
 
