@@ -1,4 +1,3 @@
-#VERSION=0.1
 FROM seldonio/pyseldon
 
 RUN \
@@ -14,7 +13,9 @@ WORKDIR $SELDON_HOME
 COPY ./*.jar $SELDON_HOME/libs/
 
 ENV SELDON_TAG v1.1
-RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
+#FIXME use TAG
+#RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
+RUN git clone https://github.com/SeldonIO/seldon-server
 
 RUN \
   apt-get update && \
@@ -47,3 +48,5 @@ RUN mkdir -p /opt && \
 
 ENV PATH $PATH:/opt/spark/bin
 
+COPY seldon.conf /home/seldon
+RUN (mkdir /root/.seldon && ln -s /home/seldon/seldon.conf /root/.seldon/seldon.conf)
