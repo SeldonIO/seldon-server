@@ -1,5 +1,5 @@
 #VERSION=0.1
-FROM jamesdbloom/docker-java8-maven
+FROM maven:3.3.3-jdk-8
 
 ENV CATALINA_HOME /usr/local/tomcat
 ENV PATH $CATALINA_HOME/bin:$PATH
