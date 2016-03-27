@@ -1,4 +1,4 @@
-#VERSION=0.1
+#VERSION=1.1
 FROM maven:3.3.3-jdk-8
 
 ENV CATALINA_HOME /usr/local/tomcat
@@ -44,9 +44,10 @@ RUN apt-get update && \
     apt-get install -y less telnet emacs 
 
 ENV SELDON_HOME /home/seldon
+ENV SELDON_TAG V1.1
 RUN mkdir -p  "$SELDON_HOME"
 WORKDIR $SELDON_HOME
-RUN (git clone https://github.com/SeldonIO/seldon-server && \
+RUN (git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG} && \
     cd seldon-server/server && \
     mvn package)
 
