@@ -1,0 +1,32 @@
+
+1. Create yml files from templates
+
+For a basic cluster in which the persistent storage is presently handled by hostPath entried run:
+
+make clean td-agent-server.yml mysql.yml control.yml spark-master.yml spark-workers.yml  BASE_PATH=<some base path>
+
+This will create hostPath entries which need to exist on all hosts. In particular:
+
+Assuming (for example) :
+BASE_PATH=/data
+
+mysql data: ${BASE_PATH}/mysql
+
+seldon cli/shell configuration data:
+CONF_DATA_PATH=${BASE_PATH}/conf
+
+td-agent logs store:
+${BASE_PATH}/seldon-data
+
+Spark seldon models data:
+${BASE_PATH}/seldon-models
+
+These Volumes can be edited manually for custom cluster setups.
+
+2. Create Kubernetes cluster and ensure appropriate Volumes exist
+
+3. Start services : <TO BE FINISHED>
+(a) start core services
+(b) setup conf with seldon-cli if needed for example client
+(c) start seldon-servers
+
