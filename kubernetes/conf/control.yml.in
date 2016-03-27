@@ -8,9 +8,14 @@ spec:
     name: seldon-shell
     command: [ "sleep", "infinity" ]
     volumeMounts:
-    - mountPath: /root/.seldon
+    - mountPath: /home/seldon/conf
       name: conf-volume
+    - mountPath: /seldon-models
+      name: models-volume
   volumes:
     - name: conf-volume
       hostPath:
-        path: $(DATA_PATH)
+        path: $(CONF_PATH)
+    - name: models-volume
+      hostPath:
+        path: $(MODELS_PATH)
