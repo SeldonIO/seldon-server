@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import seldon.cli
+
+seldon.cli.start_seldoncli()
+
