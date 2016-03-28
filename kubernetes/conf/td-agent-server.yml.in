@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
     - name: td-agent-server
-      image: seldonio/td-agent-server:0.1
+      image: seldonio/td-agent-server:1.0
       ports:
         - containerPort: 24224
       volumeMounts:

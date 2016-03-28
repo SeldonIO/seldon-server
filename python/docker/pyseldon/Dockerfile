@@ -1,4 +1,4 @@
-FROM continuumio/anaconda
+FROM continuumio/anaconda:2.4.1
 
 ENV HOME /root
 ENV DEBIAN_FRONTEND noninteractive
@@ -58,7 +58,7 @@ RUN pip install -e git+git://github.com/SeldonIO/wabbit_wappa#egg=wabbit-wappa-3
 
 RUN pip install -e git+git://github.com/fmfn/BayesianOptimization#egg=bayes_opt
 
-RUN pip install seldon
+RUN pip install seldon==1.4.12
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
 

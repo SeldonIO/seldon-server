@@ -1,5 +1,5 @@
-VERSION=1.7
-IMAGE=seldonio/pyseldon
+VERSION=1.0
+IMAGE=seldonio/reuters-example
 
 build:
 	docker build -t ${IMAGE} .

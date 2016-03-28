@@ -1,5 +1,5 @@
-#VERSION=0.1
-FROM seldonio/td-agent:0.2
+#VERSION=1.0
+FROM seldonio/td-agent:1.0
 
 EXPOSE 24224
 

@@ -1,4 +1,4 @@
-#VERSION=0.2
+#VERSION=1.0
 FROM ubuntu:trusty
 
 ENV HOME /root
