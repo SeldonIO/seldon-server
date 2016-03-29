@@ -12,10 +12,8 @@ WORKDIR $SELDON_HOME
 
 COPY ./*.jar $SELDON_HOME/libs/
 
-ENV SELDON_TAG v1.1
-#FIXME use TAG
-#RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
-RUN git clone https://github.com/SeldonIO/seldon-server
+ENV SELDON_TAG v1.2.3
+RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
 
 RUN \
   apt-get update && \
