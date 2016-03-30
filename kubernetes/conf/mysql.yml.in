@@ -6,10 +6,7 @@ metadata:
     name: mysql
 spec: 
   containers: 
-    - resources:
-        limits :
-          cpu: 0.5
-      image: seldonio/mysql:0.1
+    - image: seldonio/mysql:0.1
       name: mysql
       env:
         - name: MYSQL_ROOT_PASSWORD

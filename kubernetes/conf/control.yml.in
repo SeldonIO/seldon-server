@@ -4,7 +4,7 @@ metadata:
   name: seldon-control
 spec:
   containers:
-  - image: seldonio/seldon-control:1.1
+  - image: seldonio/seldon-control:1.2.3
     name: seldon-shell
     command: [ "sleep", "infinity" ]
     volumeMounts:
