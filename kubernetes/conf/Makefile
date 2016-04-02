@@ -5,40 +5,42 @@ SHELL=/bin/bash
 # Will change to more complex config if we allow alternate storage volumes for demo
 #
 
-.PHONY: microservice
+.PHONY: microservice conf
 
-BASE_PATH=/data
-MYSQL_DATA_PATH=${BASE_PATH}/mysql
-CONF_DATA_PATH=${BASE_PATH}/conf
-TDAGENT_DATA_PATH=${BASE_PATH}/seldon-data
-SPARK_DATA_PATH=${BASE_PATH}/seldon-models
+DATA_VOLUME="hostPath": {"path": "/seldon-data"}
+#DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
+
 MICROSERVICE_NAME=reuters-example
 MICROSERVICE_IMAGE=seldonio/reuters-example
 MICROSERVICE_VERSION=1.0
 
-mysql.yml: mysql.yml.in
-	cat mysql.yml.in | sed 's=$$(DATA_PATH)=${MYSQL_DATA_PATH}=g' > mysql.yml
 
-control.yml: control.yml.in
-	cat control.yml.in | sed 's=$$(CONF_PATH)=${CONF_DATA_PATH}=g' | sed 's=$$(MODELS_PATH)=${SPARK_DATA_PATH}=g' > control.yml
+control.json:control.json.in
+	cat control.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst  > control.json
 
-td-agent-server.yml: td-agent-server.yml.in
-	cat td-agent-server.yml.in | sed 's=$$(DATA_PATH)=${TDAGENT_DATA_PATH}=g' > td-agent-server.yml
+mysql.json:mysql.json.in
+	cat mysql.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst  > mysql.json
 
-spark-master.yml: spark-master.yml.in
-	cat spark-master.yml.in | sed 's=$$(DATA_PATH)=${SPARK_DATA_PATH}=g' > spark-master.yml
+td-agent-server.json:td-agent-server.json.in
+	cat td-agent-server.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst  > td-agent-server.json
 
-spark-workers.yml: spark-workers.yml.in
-	cat spark-workers.yml.in | sed 's=$$(DATA_PATH)=${SPARK_DATA_PATH}=g' > spark-workers.yml
+spark-master.json: spark-master.json.in
+	cat spark-master.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst > spark-master.json
 
-microservice-${MICROSERVICE_NAME}.yml:microservice.yml.in
-	cat microservice.yml.in | sed 's=$$(NAME)=${MICROSERVICE_NAME}=g' | sed 's=$$(IMAGE)=${MICROSERVICE_IMAGE}=g' | sed 's=$$(VERSION)=${MICROSERVICE_VERSION}=g' > microservice-${MICROSERVICE_NAME}.yml
+spark-workers.json: spark-workers.json.in
+	cat spark-workers.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst > spark-workers.json
 
-microservice:microservice-${MICROSERVICE_NAME}.yml
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json
+
+microservice-${MICROSERVICE_NAME}.json:microservice.json.in
+	cat microservice.json.in | MICROSERVICE_NAME=${MICROSERVICE_NAME} MICROSERVICE_IMAGE=${MICROSERVICE_IMAGE} MICROSERVICE_VERSION=${MICROSERVICE_VERSION} envsubst > microservice-${MICROSERVICE_NAME}.json
+
+microservice:microservice-${MICROSERVICE_NAME}.json
 
 clean:
-	rm -f mysql.yml
-	rm -f control.yml
-	rm -f td-agent-server.yml
-	rm -f spark-master.yml
-	rm -f spark-workers.yml
+	rm -f mysql.json
+	rm -f control.json
+	rm -f td-agent-server.json
+	rm -f spark-master.json
+	rm -f spark-workers.json
+	rm -f microservice-${MICROSERVICE_NAME}.json

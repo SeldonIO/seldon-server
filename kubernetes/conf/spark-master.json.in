@@ -1,0 +1,107 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "items": [
+        {
+            "kind": "ReplicationController",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "spark-master-controller",
+                "labels": {
+                    "component": "spark-master"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "component": "spark-master"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "component": "spark-master"
+                        }
+                    },
+                    "spec": {
+                        "volumes": [
+                            {
+                                "name": "data-volume",
+				${DATA_VOLUME}
+                            }
+                        ],
+                        "containers": [
+                            {
+                                "name": "spark-master",
+                                "image": "gcr.io/google_containers/spark:1.5.2_v1",
+                                "command": [
+                                    "/start-master"
+                                ],
+                                "ports": [
+                                    {
+                                        "containerPort": 7077,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "data-volume",
+                                        "mountPath": "/seldon-models"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "spark-master",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 7077,
+                        "targetPort": 7077
+                    }
+                ],
+                "selector": {
+                    "component": "spark-master"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "spark-webui",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "component": "spark-master"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            }
+        }
+    ]
+}

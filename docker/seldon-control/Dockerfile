@@ -1,10 +1,10 @@
-FROM seldonio/pyseldon:1.7
+FROM seldonio/pyseldon:1.8
 
 RUN \
     apt-get update && \
     apt-get -y -q install netcat dnsutils emacs vim mysql-client
 
-RUN pip install memcache-cli
+RUN pip install memcache-cli awscli
 
 ENV SELDON_HOME /home/seldon
 RUN mkdir -p  "$SELDON_HOME"

@@ -98,10 +98,10 @@
         "tagaffinity": {},
         "tagcluster": {}
     },
-    "seldon_models": "/home/seldon/seldon-models",
+    "seldon_models": "/seldon-data/seldon-models",
     "seldon_spark_home": "/home/seldon/libs",
     "seldon_version": "__SELDON_VERSION__",
     "spark_home": "/opt/spark",
     "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
-    "zkroot": "/home/seldon/conf/zkroot"
+    "zkroot": "/seldon-data/conf/zkroot"
 }

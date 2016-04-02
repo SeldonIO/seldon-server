@@ -1,0 +1,94 @@
+running in local mode...
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+        {
+            "kind": "Deployment",
+            "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "${MICROSERVICE_NAME}",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "${MICROSERVICE_NAME}"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "name": "${MICROSERVICE_NAME}"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "name": "${MICROSERVICE_NAME}",
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "${MICROSERVICE_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "${MICROSERVICE_NAME}",
+                                "image": "${MICROSERVICE_IMAGE}:${MICROSERVICE_VERSION}",
+                                "ports": [
+                                    {
+                                        "containerPort": 5000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "imagePullPolicy": "IfNotPresent"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {}
+                    }
+                },
+                "strategy": {
+                    "type": "RollingUpdate",
+                    "rollingUpdate": {
+                        "maxUnavailable": 1,
+                        "maxSurge": 1
+                    }
+                }
+            },
+            "status": {}
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${MICROSERVICE_NAME}",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "${MICROSERVICE_NAME}",
+                    "type": "microservice"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 5000,
+                        "targetPort": 5000
+                    }
+                ],
+                "selector": {
+                    "name": "${MICROSERVICE_NAME}"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}
