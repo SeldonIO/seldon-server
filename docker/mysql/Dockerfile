@@ -1,0 +1,10 @@
+#VERSION=1.0
+FROM mysql:5.6.29
+
+ENV HOME /root
+ENV DEBIAN_FRONTEND noninteractive
+RUN mkdir -p /etc/mysql
+ADD my.cnf /etc/mysql/my.cnf
+
+RUN usermod -u 1000 mysql
+
