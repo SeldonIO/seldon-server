@@ -1,0 +1,138 @@
+        {
+            "kind": "Deployment",
+	    "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "seldon-server",
+                "labels": {
+                    "name": "seldon-server"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "name": "seldon-server"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "name": "seldon-server",
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "seldon-server"
+                        }
+                    },
+                    "spec": {
+                        "volumes": [
+                            {
+                                "name": "base-logs",
+                                "emptyDir": {}
+                            },
+                            {
+                                "name": "action-logs",
+                                "emptyDir": {}
+                            }
+                        ],
+                        "containers": [
+                            {
+                                "name": "seldon-server",
+                                "image": "seldonio/seldon-server:1.2.3",
+                                "command": [
+                                    "catalina.sh",
+                                    "run"
+                                ],
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "SELDON_ZKSERVERS",
+                                        "value": "zookeeper-1,zookeeper-2,zookeeper-3"
+                                    }
+                                ],
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "base-logs",
+                                        "mountPath": "/home/seldon/logs/base"
+                                    },
+                                    {
+                                        "name": "action-logs",
+                                        "mountPath": "/home/seldon/logs/actions"
+                                    }
+                                ],
+                                "livenessProbe": {
+                                    "httpGet": {
+                                        "path": "/",
+                                        "port": 8080,
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 60,
+                                    "timeoutSeconds": 1,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "failureThreshold": 3
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "imagePullPolicy": "IfNotPresent"
+                            },
+                            {
+                                "name": "td-agent",
+                                "image": "seldonio/td-agent-node:1.0",
+                                "command": [
+                                    "td-agent"
+                                ],
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "base-logs",
+                                        "mountPath": "/home/seldon/logs/base"
+                                    },
+                                    {
+                                        "name": "action-logs",
+                                        "mountPath": "/home/seldon/logs/actions"
+                                    }
+                                ],
+                                "terminationMessagePath": "/dev/termination-log",
+                                "imagePullPolicy": "IfNotPresent"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {}
+                    }
+                }
+            },
+            "status": {}
+        }
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "seldon-server",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "seldon-server"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 80,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "name": "seldon-server"
+                },
+                "type": "LoadBalancer",
+                "sessionAffinity": "None"
+            }
+        }
+
+

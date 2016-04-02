@@ -2,6 +2,7 @@ SHELL=/bin/bash
 
 .PHONY: build push
 
+VERSION=1.2.3_v2
 SELDON_VERSION=1.2.3
 
 seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar:
@@ -12,11 +13,11 @@ seldon.conf:seldon.conf.in
 	cat seldon.conf.in | sed 's/__SELDON_VERSION__/${SELDON_VERSION}/' > seldon.conf
 
 build:seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar seldon.conf
-	docker build --force-rm=true -t seldonio/seldon-control:${SELDON_VERSION} .
+	docker build --force-rm=true -t seldonio/seldon-control:${VERSION} .
 
 push:
 	docker login -u seldonio && \
-		docker push seldonio/seldon-control:$(SELDON_VERSION)
+		docker push seldonio/seldon-control:$(VERSION)
 
 
 clean:

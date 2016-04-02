@@ -7,8 +7,8 @@ SHELL=/bin/bash
 
 .PHONY: microservice conf
 
-DATA_VOLUME="hostPath": {"path": "/seldon-data"}
-#DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
+#DATA_VOLUME="hostPath": {"path": "/seldon-data"}
+DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
 
 MICROSERVICE_NAME=reuters-example
 MICROSERVICE_IMAGE=seldonio/reuters-example

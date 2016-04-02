@@ -1,0 +1,136 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "items": [
+        {
+            "kind": "ReplicationController",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "memcached1",
+                "labels": {
+                    "name": "memcached1"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "name": "memcached1"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "memcached1",
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "memcached1"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "memcached1",
+                                "image": "seldonio/memcached:0.1",
+                                "ports": [
+                                    {
+                                        "containerPort": 11211,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "memcached1",
+                "labels": {
+                    "app": "memcache",
+                    "name": "memcached1"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 11211,
+                        "targetPort": 11211
+                    }
+                ],
+                "selector": {
+                    "name": "memcached1"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            }
+        },
+        {
+            "kind": "ReplicationController",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "memcached2",
+                "labels": {
+                    "name": "memcached2"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "name": "memcached2"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "memcached2",
+                        "labels": {
+                            "name": "memcached2"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "memcached2",
+                                "image": "seldonio/memcached:0.1",
+                                "ports": [
+                                    {
+                                        "containerPort": 11211,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "memcached2",
+                "labels": {
+                    "app": "memcache",
+                    "name": "memcached2"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 11211,
+                        "targetPort": 11211
+                    }
+                ],
+                "selector": {
+                    "name": "memcached2"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}
