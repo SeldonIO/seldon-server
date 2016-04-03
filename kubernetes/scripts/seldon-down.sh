@@ -27,6 +27,14 @@ function stop_spark {
     fi
 }
 
+function stop_glusterfs_service {
+    gluster_running=$(kubectl get pod --selector=component=glusterfs --no-headers=true | wc -l)
+    if [ "$gluster_running" -ne "0" ]; then
+	echo 'Stopping Glusterfs Cluster'
+	kubectl delete -f ${STARTUP_DIR}/../conf/glusterfs.json
+    fi
+}
+
 
 function seldon_down {
 
@@ -34,6 +42,7 @@ function seldon_down {
 
     stop_spark
 
+    stop_glusterfs_service
 }
 
 

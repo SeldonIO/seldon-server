@@ -65,7 +65,7 @@ function start_spark {
     fi
 }
 
-function start_gluster_service {
+function start_glusterfs_service {
     if $SELDON_WITH_GLUSTERFS ; then
 	echo 'Creating Glusterfs service'
 	kubectl create -f ${STARTUP_DIR}/../conf/glusterfs.json
@@ -75,7 +75,7 @@ function start_gluster_service {
 
 function seldon_up {
 
-    start_gluster_service
+    start_glusterfs_service
 
     start_core_services
 

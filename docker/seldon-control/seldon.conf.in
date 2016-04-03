@@ -1,4 +1,9 @@
 {
+    "default_predictors": {
+        "externalPredictionServer": {
+            "config": []
+        }
+    },
     "default_algorithms": {
         "assocRuleRecommender": {
             "config": []
@@ -10,15 +15,7 @@
             "config": [
                 {
                     "name": "io.seldon.algorithm.inclusion.itemsperincluder",
-                    "value": 100000
-                },
-                {
-                    "name": "io.seldon.algorithm.external.url",
-                    "value": "http://127.0.0.1:5000/recommend"
-                },
-                {
-                    "name": "io.seldon.algorithm.external.name",
-                    "value": "example_alg"
+                    "value": 1000
                 }
             ],
             "includers": [

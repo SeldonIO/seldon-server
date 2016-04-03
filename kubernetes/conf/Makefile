@@ -14,8 +14,8 @@ SHELL=/bin/bash
 #
 # Example data volume conf for hostPath and glusterfs
 #
-#DATA_VOLUME="hostPath": {"path": "/seldon-data"}
-DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
+DATA_VOLUME="hostPath": {"path": "/seldon-data"}
+#DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
 
 
 control.json:control.json.in
