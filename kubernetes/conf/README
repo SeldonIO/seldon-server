@@ -1,6 +1,24 @@
 
 1. If you plan to use glusterfs. You need a glusterfs cluster. It is assumed you have 2 endpoint IP addresses for it. From these create the glusterfs.json conf, example:
-  make glusterfs.json GLUSTERFS_IP1=192.168.0.149 GLUSTERFS_IP2=192.168.0.248
+
+   make glusterfs.json GLUSTERFS_IP1=192.168.0.149 GLUSTERFS_IP2=192.168.0.248
 
 2. Choose persistent volume method. Makefile provide 2 examples for hostPath and glusterfs.
+Generate conf files.
+
+   make conf
+
+3. Run seldon-up.sh from scripts folder. If you need spark or glusterfs you need to add env vars, e.g.
+one of:
+
+   seldon-up.sh 
+   SELDON_WITH_GLUSTERFS=true seldon-up.sh 
+   SELDON_WITH_SPARK=true seldon-up.sh 
+   SELDON_WITH_SPARK=true SELDON_WITH_GLUSTERFS=true seldon-up.sh 
+
+4. To add a microservce (TODO)
+
+5. To shut down run seldon-down.sh from scripts folder
+
+
 
