@@ -45,7 +45,7 @@ MICROSERVICE_VERSION=1.0
 
 
 microservice-${MICROSERVICE_NAME}.json:microservice.json.in
-	cat microservice.json.in | MICROSERVICE_NAME=${MICROSERVICE_NAME} MICROSERVICE_IMAGE=${MICROSERVICE_IMAGE} MICROSERVICE_VERSION=${MICROSERVICE_VERSION} envsubst > microservice-${MICROSERVICE_NAME}.json
+	cat microservice.json.in | sed -e 's|%NAME%|${MICROSERVICE_NAME}|' | sed -e 's|%IMAGE%|${MICROSERVICE_IMAGE}|' | sed -e 's|%VERSION%|${MICROSERVICE_VERSION}|' > microservice-${MICROSERVICE_NAME}.json
 
 microservice:microservice-${MICROSERVICE_NAME}.json
 
