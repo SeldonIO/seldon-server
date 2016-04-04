@@ -18,14 +18,14 @@ function start_core_services {
     kubectl create -f ${STARTUP_DIR}/../conf/td-agent-server.json
 
     while true; do
-	non_running_states=$(kubectl get -o json pods  | jq -r '.items[].status.phase' | grep -v Running | wc -l)
-	if [[ "$non_running_states" == "0" ]]; then
-	    break
-	else
-	    echo "Waiting for pods to be running as found $non_running_states in non-running state"
-	    echo "Sleeping for 3 seconds..."
-	    sleep 3
-	fi
+        non_running_states=$(kubectl get -o json pods  | jq -r '.items[].status.phase' | grep -v Running | wc -l | sed -e 's/^[ \t]*//')
+        if [[ "$non_running_states" == "0" ]]; then
+            break
+        else
+            echo "Waiting for pods to be running as found $non_running_states in non-running state"
+            echo "Sleeping for 3 seconds..."
+            sleep 3
+        fi
     done
 }
 
