@@ -31,7 +31,7 @@ spark-master.json: spark-master.json.in
 	cat spark-master.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-master.json
 
 spark-workers.json: spark-workers.json.in
-	cat spark-workers.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst > spark-workers.json
+	cat spark-workers.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-workers.json
 
 conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json
 
