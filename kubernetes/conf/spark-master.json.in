@@ -26,7 +26,7 @@
                         "volumes": [
                             {
                                 "name": "data-volume",
-				${DATA_VOLUME}
+                                %DATA_VOLUME%
                             }
                         ],
                         "containers": [
