@@ -25,7 +25,7 @@ mysql.json:mysql.json.in
 	cat mysql.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > mysql.json
 
 td-agent-server.json:td-agent-server.json.in
-	cat td-agent-server.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst  > td-agent-server.json
+	cat td-agent-server.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > td-agent-server.json
 
 spark-master.json: spark-master.json.in
 	cat spark-master.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst > spark-master.json
