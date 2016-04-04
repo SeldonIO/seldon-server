@@ -49,19 +49,19 @@ function setup_basic_conf {
 
 function start_spark {
     if $SELDON_WITH_SPARK ; then
-	echo 'Creating Spark Cluster'
-	kubectl create -f ${STARTUP_DIR}/../conf/spark-master.json
-	while true; do
-	    non_running_states=$(kubectl get -o json pods  | jq -r '.items[].status.phase' | grep -v Running | wc -l)
-	    if [[ "$non_running_states" == "0" ]]; then
-		break
-	    else
-		echo "Waiting for pods to be running as found $non_running_states in non-running state"
-		echo "Sleeping for 3 seconds..."
-		sleep 3
-	    fi
-	done
-	kubectl create -f ${STARTUP_DIR}/../conf/spark-workers.json
+        echo 'Creating Spark Cluster'
+        kubectl create -f ${STARTUP_DIR}/../conf/spark-master.json
+        while true; do
+            non_running_states=$(kubectl get -o json pods  | jq -r '.items[].status.phase' | grep -v Running | wc -l | sed -e 's/^[ \t]*//')
+            if [[ "$non_running_states" == "0" ]]; then
+                break
+            else
+                echo "Waiting for pods to be running as found $non_running_states in non-running state"
+                echo "Sleeping for 3 seconds..."
+                sleep 3
+            fi
+        done
+        kubectl create -f ${STARTUP_DIR}/../conf/spark-workers.json
     fi
 }
 
