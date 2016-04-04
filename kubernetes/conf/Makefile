@@ -19,7 +19,7 @@ DATA_VOLUME="hostPath": {"path": "/seldon-data"}
 
 
 control.json:control.json.in
-	cat control.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst  > control.json
+	cat control.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > control.json
 
 mysql.json:mysql.json.in
 	cat mysql.json.in | DATA_VOLUME='${DATA_VOLUME}' envsubst  > mysql.json
