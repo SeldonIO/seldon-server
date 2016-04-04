@@ -49,3 +49,8 @@ ENV PATH $PATH:/opt/spark/bin
 COPY seldon.conf /home/seldon
 RUN (mkdir /root/.seldon && ln -s /home/seldon/seldon.conf /root/.seldon/seldon.conf)
 
+RUN mkdir -p /seldon-data/conf
+RUN mkdir -p /seldon-data/seldon-models
+VOLUME /seldon-data
+
+
