@@ -13,6 +13,7 @@ import cmd_attr
 import cmd_import
 import cmd_alg
 import cmd_pred
+import cmd_keys
 
 gdata = {
     'zk_client': None,
@@ -26,6 +27,7 @@ gdata = {
         'import' : cmd_import.cmd_import,
         'rec_alg' : cmd_alg.cmd_alg,
         'predict_alg' : cmd_pred.cmd_pred,
+        'keys' : cmd_keys.cmd_keys,
     }
 }
 

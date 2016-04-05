@@ -16,6 +16,7 @@ def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=False)
     parser.add_argument('--client-name', help="the name of the client", required=False)
+    parser.add_argument('--json', help="the file containing attr json", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -100,6 +101,22 @@ def action_show(command_data, opts):
     data = seldon_utils.json_to_dict(json)
     show_attr(data)
 
+
+def store_json(command_data,opts):
+    f = open(opts.json)
+    json = f.read()
+    f.close()
+    data = seldon_utils.json_to_dict(json)
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+
+    if data is None:
+        print "Invalid attr json!"
+        sys.exit(1)
+    else:
+        node_path = gdata["all_clients_node_path"]+"/"+opts.client_name+"/attr"
+        zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
+
 def action_edit(command_data, opts):
     client_name = opts.client_name
     if client_name == None:
@@ -147,6 +164,10 @@ def action_apply(command_data, opts):
     zk_client = command_data["zkdetails"]["zk_client"]
     ensure_client_has_attr(zkroot, zk_client, client_name)
 
+
+    if not opts.json is None:
+        store_json(command_data,opts)
+    
     def get_db_jndi_name():
         data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/_data_"
         f = open(data_fpath)
