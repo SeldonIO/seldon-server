@@ -7,7 +7,7 @@ import logging
 import random
 from sklearn.base import BaseEstimator
 
-logger = logging.getLogger('seldon.util')
+logger = logging.getLogger(__name__)
 
 
 class Recommender(BaseEstimator):

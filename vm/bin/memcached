@@ -33,7 +33,7 @@ do_stop() {
     local IS_RUNNING=$(${DOCKER_CMD} inspect -f {{.State.Running}} ${CONTAINER_NAME} 2> /dev/null)
 
     if [ "${IS_RUNNING}" == "true" ]; then
-        ${DOCKER_CMD} rm -f ${CONTAINER_NAME}
+        ${DOCKER_CMD} rm -fv ${CONTAINER_NAME}
     fi
 
     EXITED_CONTAINER_NAME=$(docker ps -a|grep ' Exited '|grep "${CONTAINER_NAME}"|awk '{print $1}')

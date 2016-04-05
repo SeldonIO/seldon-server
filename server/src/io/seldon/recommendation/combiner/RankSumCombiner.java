@@ -25,12 +25,16 @@ package io.seldon.recommendation.combiner;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.recommendation.RecommendationPeer;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  *
@@ -44,10 +48,12 @@ import java.util.*;
 public class RankSumCombiner implements AlgorithmResultsCombiner{
 
     private final int numResultSetsToUse;
+    private final boolean strict;
 
     @Autowired
-    public RankSumCombiner(@Value("${combiner.maxResultSets:2}") int numResultSetsToUse){
+    public RankSumCombiner(@Value("${combiner.ranksum.maxResultSets:2}") int numResultSetsToUse, @Value("${combiner.ranksum.strict:false}") boolean strict ){
         this.numResultSetsToUse = numResultSetsToUse;
+        this.strict = strict;
     }
 
 
@@ -68,7 +74,7 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
         List<RecommendationPeer.RecResultContext> validResultSets = new ArrayList<>();
         List<String> validResultsAlgKeys = new ArrayList<>();
         for (RecommendationPeer.RecResultContext set : resultsSets){
-            if(set.resultSet.getResults().size() >= numRecsRequired) {
+            if((strict && set.resultSet.getResults().size() >= numRecsRequired) || (!strict && set.resultSet.getResults().size()>0)) {
                 validResultSets.add(set);
                 validResultsAlgKeys.add(set.algKey);
             }
@@ -78,10 +84,13 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
             for (RecommendationPeer.RecResultContext validResultSet : validResultSets) {
                 List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = validResultSet.resultSet.getResults();
                 Collections.sort(ordered, Collections.reverseOrder());
-                Integer rankSum = rankSumMap.get(ordered.get(i));
-                if(rankSum == null) rankSum = 0;
-                rankSum += (numRecsRequired -i);
-                rankSumMap.put(ordered.get(i), rankSum);
+                if (i<ordered.size())
+                {
+                	Integer rankSum = rankSumMap.get(ordered.get(i));
+                	if(rankSum == null) rankSum = 0;
+                	rankSum += (numRecsRequired -i);
+                	rankSumMap.put(ordered.get(i), rankSum);
+                }
             }
         }
 

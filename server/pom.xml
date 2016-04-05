@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.seldon</groupId>
         <artifactId>seldon-parent</artifactId>
-        <version>1.1</version>
+        <version>1.2.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>seldon-server</artifactId>
@@ -30,13 +30,7 @@
         <!-- Custom source directory (move to conventional layout in phase 2) -->
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>test/main</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>
-                    ${project.basedir}/test/resources
-                </directory>
-            </testResource>
-        </testResources>
+        
 
         <resources>
             <resource>
@@ -50,6 +44,8 @@
                 </includes>
             </resource>
         </resources>
+
+		
 
         <pluginManagement>
             <plugins>
@@ -225,7 +221,7 @@
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
-            <version>3.2.1</version>
+            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

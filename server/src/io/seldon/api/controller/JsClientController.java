@@ -26,6 +26,7 @@ package io.seldon.api.controller;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
+import io.seldon.api.locale.DimensionsMappingManager;
 import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ActionBean;
@@ -97,6 +98,9 @@ public class JsClientController {
     @Autowired
     private UserProfileService userProfileService;
 
+    @Autowired
+    private DimensionsMappingManager dimensionsMappingManager;
+
     private ConsumerBean retrieveConsumer(HttpSession session) {
         return (ConsumerBean) session.getAttribute("consumer");
     }
@@ -123,6 +127,8 @@ public class JsClientController {
                              @RequestParam(value = "rectag", required = false) String recTag,                             
                              @RequestParam(value = "pos", required = false) Integer pos,                             
                              @RequestParam(value = "rlabs", required = false) String rlabs,
+                             @RequestParam(value = "extra_data", required = false) String extraData,
+                             @RequestParam(value = "click_only", required = false) Boolean click_only,
                              @RequestParam(value = "zehtg", required = false) String req) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
         MDCKeys.addKeys(consumerBean, userId, itemId,recTag);
@@ -130,12 +136,15 @@ public class JsClientController {
         if(StringUtils.isNotBlank(req)) { rlabs=req; }
         if (logger.isDebugEnabled())
         	logger.debug("Creating action for consumer: " + consumerBean.getShort_name());
-        ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag);
+        ActionBean actionBean = createAction(userId, itemId, type, referrer,recTag,extraData);
         boolean isCTR = StringUtils.isNotBlank(rlabs);
+
+        boolean clickOnly = (isCTR && (click_only != null) && (click_only == true)) ? true : false;
+
         int clickPos = -1;
         if (pos != null)
         	clickPos = pos.intValue();
-        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag,clickPos));
+        return asCallback(callback, actionBusinessService.addAction(consumerBean, actionBean, isCTR, rlabs,recTag,clickPos, clickOnly));
     }
     
     @RequestMapping("/user/new")
@@ -182,6 +191,7 @@ public class JsClientController {
                                     @RequestParam(value = "rectag", required = false) String recTag,
                                     @RequestParam(value = "cohort", required = false, defaultValue = "false") Boolean includeCohort,
                                     @RequestParam(value = "sort", required = false) String scoreItems,
+                                    @RequestParam(value = "rec_locale", required = false) String locale,
                                     @RequestParam("user") String userId,
                                     @RequestParam("jsonpCallback") String callback) {
         final ConsumerBean consumerBean = retrieveConsumer(session);
@@ -203,7 +213,13 @@ public class JsClientController {
         	dimensions = new HashSet<Integer>(1);
         	dimensions.add(dimensionId);
         }
-        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort,scoreItems);
+        
+        if (locale != null)  { // map dimensions based on locale
+            String client = consumerBean.getShort_name();
+            dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(client, dimensions, locale);
+        }
+        
+        final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort,scoreItems,locale);
         //tracking recommendations impression
         StatsdPeer.logImpression(consumerBean.getShort_name(),recTag);
         CtrFullLogger.log(false, consumerBean.getShort_name(), userId, itemId,recTag);
@@ -242,7 +258,7 @@ public class JsClientController {
 
     private ResourceBean getRecommendations(ConsumerBean consumerBean, String userId, String itemId, Set<Integer> dimensions,
                                             String lastRecommendationListUuid, Integer recommendationsLimit, String attributes,
-                                            String algorithms,String referrer,String recTag, boolean includeCohort, String scoreItems) {
+                                            String algorithms,String referrer,String recTag, boolean includeCohort, String scoreItems,String locale) {
         Long internalItemId = null;
         if (itemId != null) {
             try {
@@ -281,7 +297,7 @@ public class JsClientController {
         	logger.debug("JsClientController#getRecommendations: internal ID => " + internalItemId);
         	logger.debug("JsClientController#getRecommendations: last recommendation list uuid => " + lastRecommendationListUuid);
         }
-        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort,scoreItemsInternal);
+        return recommendationBusinessService.recommendedItemsForUser(consumerBean, userId, internalItemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algList,referrer,recTag, includeCohort,scoreItemsInternal,locale);
     }
 
     // TODO category, tags
@@ -349,11 +365,12 @@ public class JsClientController {
         }
     }
 
-    private ActionBean createAction(String userId, String itemId, Integer type,String referrer,String recTag) {
+    private ActionBean createAction(String userId, String itemId, Integer type,String referrer,String recTag,String extraData) {
         int safeType = type == null ? 0 : type;
         ActionBean a = new ActionBean(null, userId, itemId, safeType, new Date(), 0.0, 1);
         a.setReferrer(referrer);
         a.setRecTag(recTag);
+        a.setExtraData(extraData);
         return a;
     }
 

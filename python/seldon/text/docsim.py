@@ -19,7 +19,7 @@ import operator
 from collections import defaultdict
 import copy
 
-logger = logging.getLogger('seldon.text')
+logger = logging.getLogger(__name__)
 
 def jaccard(s1,s2):
     return len(s1.intersection(s2))/float(len(s1.union(s2)))

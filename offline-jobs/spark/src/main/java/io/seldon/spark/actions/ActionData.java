@@ -28,7 +28,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 // @formatter:off
 public class ActionData implements Serializable {
-    public String timestamp_utc;
+	
+	private static final long serialVersionUID = 1L;
+	
+	public String timestamp_utc;
     public String client;
     public String client_userid; // This will always exits and can be used for fixing userid
     public int userid; // This may be "0", in which case it needs to be replaced with actual using a lookup based on client_userid
@@ -37,6 +40,7 @@ public class ActionData implements Serializable {
     public String rectag;
     public int type;
     public double value;
+    public Object extra_data;
     
     @Override
 	public String toString() {

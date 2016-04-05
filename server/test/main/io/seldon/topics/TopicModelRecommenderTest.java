@@ -71,14 +71,13 @@ public class TopicModelRecommenderTest {
 		dimensions.add(dimension);
 		expect(mockFeaturesManager.getClientStore(client, mockOptions)).andReturn(null);
 		replay(mockFeaturesManager);
-		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
-
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.attrid")).andReturn(0);
 		expect(mockOptions.getStringOption("io.seldon.algorithm.tags.table")).andReturn("table");
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.minnumtagsfortopicweights")).andReturn(3);
 
 		replay(mockCtxt, mockOptions);
+		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 		ItemRecommendationResultSet res = r.recommend(client, 1L, dimensions,50,mockCtxt,null);
 		
 		verify(mockFeaturesManager,mockCtxt, mockOptions);
@@ -101,7 +100,6 @@ public class TopicModelRecommenderTest {
 		final String table = "varchar";
 		Set<Long> recentItems = new HashSet<>();
 		recentItems.add(1L);
-		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions);
 
 //		expect(mockOptions.getIntegerOption("io.seldon.algorithm.general.numrecentactionstouse")).andReturn(numRecentItems);
 		expect(mockOptions.getIntegerOption("io.seldon.algorithm.tags.attrid")).andReturn(attrId);
@@ -114,6 +112,7 @@ public class TopicModelRecommenderTest {
 		expect(mockFeaturesManager.getClientStore(client,mockOptions)).andReturn(tfs);
 		replay(mockFeaturesManager);
 		expect(mockCtxt.getContextItems()).andReturn(Collections.singleton(1L)).times(3);
+		expect(mockCtxt.getOptsHolder()).andReturn(mockOptions).times(1);
 		replay(mockCtxt);
 		TopicModelRecommender r = new TopicModelRecommender(mockFeaturesManager, mockTagsManager);
 

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -60,6 +61,10 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     private CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
     
+    private static final int DEFAULT_REQ_TIMEOUT = 200;
+    private static final int DEFAULT_CON_TIMEOUT = 500;
+    private static final int DEFAULT_SOCKET_TIMEOUT = 2000;
+    
     public String getName()
     {
     	return name;
@@ -74,8 +79,15 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(150);
         cm.setDefaultMaxPerRoute(150);
+        
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(DEFAULT_REQ_TIMEOUT)
+                .setConnectTimeout(DEFAULT_CON_TIMEOUT)
+                .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT).build();
+        
         httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
+                .setDefaultRequestConfig(requestConfig)
                 .build();
         globalConfigHandler.addSubscriber(ZK_CONFIG_TEMP, this);
     }
@@ -91,8 +103,16 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
             	cm = new PoolingHttpClientConnectionManager();
                 cm.setMaxTotal(config.maxConnections);
                 cm.setDefaultMaxPerRoute(config.maxConnections);
+                
+                RequestConfig requestConfig = RequestConfig.custom()
+                        .setConnectionRequestTimeout(DEFAULT_REQ_TIMEOUT)
+                        .setConnectTimeout(DEFAULT_CON_TIMEOUT)
+                        .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT).build();
+                
+
                 httpClient = HttpClients.custom()
                         .setConnectionManager(cm)
+                        .setDefaultRequestConfig(requestConfig)
                         .build();
                 logger.info("Updated httpclient to use "+config.maxConnections+" max connections");
             } catch (Exception e) {
@@ -127,25 +147,42 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     			if (logger.isDebugEnabled())
     				logger.debug("Requesting " + httpGet.getURI().toString());
     			CloseableHttpResponse resp = httpClient.execute(httpGet, context);
-    			if(resp.getStatusLine().getStatusCode() == 200) 
+    			try
     			{
-    				ObjectReader reader = mapper.reader(PredictionsResult.class);
-    				PredictionsResult res = reader.readValue(resp.getEntity().getContent());
-    				if (logger.isDebugEnabled())
-    					logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
-    				PredictLogger.log(name, jsonNode, res);
-    				return res;
-    			} 
-    			else 
+    				if(resp.getStatusLine().getStatusCode() == 200) 
+    				{
+    					ObjectReader reader = mapper.reader(PredictionsResult.class);
+    					PredictionsResult res = reader.readValue(resp.getEntity().getContent());
+    					if (logger.isDebugEnabled())
+    						logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
+    					PredictLogger.log(name, jsonNode, res);
+    					return res;
+    				} 
+    				else 
+    				{
+    					logger.error("Couldn't retrieve prediction from external prediction server -- bad http return code: " + resp.getStatusLine().getStatusCode());
+    					throw new APIException(APIException.GENERIC_ERROR);
+    				}
+    			}
+    			finally
     			{
-    				logger.error("Couldn't retrieve prediction from external prediction server -- bad http return code: " + resp.getStatusLine().getStatusCode());
-    				throw new APIException(APIException.GENERIC_ERROR);
+    				if (resp != null)
+    					resp.close();
     			}
     		} 
     		catch (IOException e) 
     		{
     			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
     			throw new APIException(APIException.GENERIC_ERROR);
+    		}
+    		catch (Exception e)
+            {
+    			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
+    			throw new APIException(APIException.GENERIC_ERROR);
+            }
+    		finally
+    		{
+    			
     		}
 
     }

@@ -6,7 +6,7 @@ import logging
 import time
 import logging
 
-logger = logging.getLogger('seldon.pipeline.tfidf_transform')
+logger = logging.getLogger(__name__)
 
 class Tfidf_transform(BaseEstimator,TransformerMixin):
     """
@@ -31,7 +31,7 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
     target_feature : str, optional
        target feature for chi-squared test
     """
-    def __init__(self,input_feature=None,output_feature=None,min_df=0,max_df=1.0,select_features=False,topn_features=50000,stop_words=None,target_feature=None,vectorizer=None,tfidf_transformer=None,ch2=None,fnames=None,feature_names_support=[]):
+    def __init__(self,input_feature=None,output_feature=None,min_df=0,max_df=1.0,select_features=False,topn_features=50000,stop_words=None,target_feature=None,vectorizer=None,tfidf_transformer=None,ch2=None,fnames=None,feature_names_support=[],ngram_range=[1,1]):
         self.input_feature=input_feature
         self.output_feature=output_feature
         self.min_df=min_df
@@ -45,6 +45,7 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         self.ch2 = ch2
         self.fnames = fnames
         self.feature_names_support = feature_names_support
+        self.ngram_range = ngram_range
 
 
     def get_tokens(self,v):
@@ -71,7 +72,7 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         -------
         self: object
         """
-        self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words)
+        self.vectorizer = CountVectorizer(min_df=self.min_df,max_df=self.max_df,stop_words=self.stop_words,ngram_range=self.ngram_range)
         self.tfidf_transformer = TfidfTransformer()
         logger.info("getting docs")
         docs = df[self.input_feature].apply(self.get_tokens)
@@ -100,6 +101,9 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
                     doc_tfidf[fname] = val
             else:
                 doc_tfidf[fname] = val
+        self.progress += 1
+        if self.progress % 100 == 0:
+            logger.info("processed %d/%d",self.progress,self.size)
         return doc_tfidf
         
 
@@ -117,6 +121,8 @@ class Tfidf_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
+        self.progress = 0
+        self.size = df.shape[0]
         df[self.output_feature] = df[self.input_feature].apply(self._create_tfidf)
         return df
 

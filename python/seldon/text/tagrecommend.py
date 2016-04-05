@@ -4,7 +4,7 @@ from sklearn.base import BaseEstimator,ClassifierMixin
 import logging
 import operator
 
-logger = logging.getLogger('seldon.text.tagrecommed')
+logger = logging.getLogger(__name__)
 
 
 class Tag_Recommender(BaseEstimator):

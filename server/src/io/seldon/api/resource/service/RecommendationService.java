@@ -126,7 +126,7 @@ public class RecommendationService {
 
     public ResourceBean getRecommendedItems(ConsumerBean consumerBean, String userId, Long currentItemId,
                                             Set<Integer> dimensions, String lastRecommendationListUuid, int limit,
-                                            String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort,Set<Long> scoreItems) {
+                                            String attributes,List<String> algorithms,String referrer,String recTag, boolean includeCohort,Set<Long> scoreItems,String locale) {
         List<String> actualAlgorithms = new ArrayList<>();
         if(algorithms!=null) {
             for (String alg : algorithms) {
@@ -181,7 +181,7 @@ public class RecommendationService {
                     logger.info("Item with internal ID " + internalId + " not found; ignoring..." , e);
                 }
                 if (recommendedItemId != null) {
-                    final ItemBean itemBean = itemService.getItem(consumerBean, recommendedItemId, full);
+                    final ItemBean itemBean = itemService.getItemLocalized(consumerBean, recommendedItemId, full,locale);
                     //filter the item
                     ItemBean resItem = ItemService.filter(itemBean, attributeList);
                     addUuidAttribute(resItem, recResult);

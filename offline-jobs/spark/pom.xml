@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.seldon</groupId>
         <artifactId>seldon-parent</artifactId>
-        <version>1.1</version>
+        <version>1.2.3</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
   
@@ -13,7 +13,8 @@
   <name>Offline Spark jobs</name>
   <properties>
         <scala.version>2.10</scala.version>
-        <spark.version>1.5.0</spark.version>
+        <spark.version>1.6.0</spark.version>
+        <curator.version>2.7.1</curator.version>
     </properties>
 
    <pluginRepositories>
@@ -208,6 +209,12 @@
    		<artifactId>scala-uri_2.10</artifactId>
    		<version>0.4.8</version>
 	</dependency>
+	
+	<dependency>
+   			<groupId>org.apache.curator</groupId>
+    		<artifactId>curator-framework</artifactId>
+    		<version>${curator.version}</version>
+		</dependency>
   </dependencies>
   
   

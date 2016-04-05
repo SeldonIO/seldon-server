@@ -26,7 +26,9 @@ package io.seldon.api.controller;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.Util;
+import io.seldon.api.locale.DimensionsMappingManager;
 import io.seldon.api.logging.ApiLogger;
+import io.seldon.api.logging.CtrFullLogger;
 import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
@@ -65,6 +67,9 @@ public class RecommendationController {
 
     @Autowired
     private RecommendationService recommendationService;
+
+    @Autowired
+    private DimensionsMappingManager dimensionsMappingManager;
 
     @RequestMapping(value="/users/{userId}/recommendations", method = RequestMethod.GET)
 	public @ResponseBody
@@ -105,7 +110,16 @@ public class RecommendationController {
 				}
 			}
 			
-			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems);
+			String attributes = Util.getAttributes(req);
+			String locale = Util.getLocale(req);
+			
+	        if (locale != null)  { // map dimensions based on locale
+	            String client = ((ConsumerBean) con).getShort_name();
+	            dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(client, dimensions, locale);
+	        }
+
+			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems,attributes,locale);
+			CtrFullLogger.log(false, ((ConsumerBean)con).getShort_name(), userId, null,null);
         }
 		ApiLogger.log("users.user_id.recommendations",start,new Date(),con,res,req);
 		return res;

@@ -34,10 +34,10 @@ import java.util.Set;
  */
 public interface RecommendationBusinessService {
 
-    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit,Set<Long> scoreItems);
+    ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Set<Integer> dimensions, int limit,Set<Long> scoreItems,String attributes,String locale);
 
     ResourceBean recommendedItemsForUser(ConsumerBean consumerBean, String userId, Long internalItemId,
                                          Set<Integer> dimensions, String uuid, int limit, String attributes,
-                                         List<String> algorithms, String referrer,String recTag, boolean includeCohort, Set<Long> scoreItems);
+                                         List<String> algorithms, String referrer,String recTag, boolean includeCohort, Set<Long> scoreItems,String locale);
 
 }

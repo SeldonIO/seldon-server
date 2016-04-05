@@ -81,9 +81,11 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
             @Override
             public void run() {
                 String key = getKey(client,nodePattern);
+                logger.info("Loading with client:"+client+" location:"+location+" key:"+key+" finalPartOfNode:"+finalPartOfNode);
                 T result = loadModel(location, client);
+                logger.info("Loaded with client:"+client+" location:"+location+" key:"+key+"finalPartOfNodeL"+finalPartOfNode+" result:"+result);
                 clientStores.putIfAbsent(key, new ConcurrentHashMap<String, T>());
-                clientStores.get(key).putIfAbsent(finalPartOfNode, result);
+                clientStores.get(key).put(finalPartOfNode, result);
                 for (Map<String, T> store : clientStores.values()) {
                     for (String t : store.keySet()) {
                         logger.info(t + " " + store.get(t));
@@ -102,11 +104,18 @@ public abstract class ModelManager<T> implements PerClientExternalLocationListen
     public T getClientStore(String client, String type, RecommendationContext.OptionsHolder options){
         String modelName = options.getStringOption(MODEL_PROPERTY_NAME);
         String key = getKey(client, type);
+        if (logger.isDebugEnabled())
+        	logger.debug("Get client store for client "+client+" type "+type+" modelName "+modelName+" key:"+key);
         if (!clientStores.containsKey(key))
+        {
+        	if (logger.isDebugEnabled())
+        		logger.debug("Failed to find store with key:"+key+" for client "+client);
         	return null;
+        }
         // check whether we are testing or not and get relevant model.
         switch (modelName) {
             case ClientStrategy.DEFAULT_NAME:
+            	logger.debug("Returning default store for client "+modelName);
                 return clientStores.get(key).get("");
 
             default:

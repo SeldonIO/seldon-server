@@ -158,7 +158,7 @@ public class ItemStorage {
     		{
     			retrievedItems = mapper.readValue(json,typeRetriever);
     		} catch (Exception e1) {
-    			logger.error("Failed to parae json "+json,e1);
+    			logger.error("Failed to parse json "+json,e1);
     		}
     	}
         if (retrievedItems==null || retrievedItems.size() < numItemsRequired) retrievedItems = null;

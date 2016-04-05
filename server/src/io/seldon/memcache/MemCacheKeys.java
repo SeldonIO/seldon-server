@@ -49,7 +49,8 @@ public class MemCacheKeys {
 			SharingRecommendationsForItemSet, RecommendedItems, ExcludedItemsForRecommendations, RecommendationUUIDNew, RecommendationUUIDDim,
 			RecentRecsForUsers, RecentItemsJSON, RecentItemsDimJSON, RecentItemsWithTagsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
-            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder
+            FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder,
+            ItemAttrAndDims, ItemBeanLocale
 			};
 
 	
@@ -90,6 +91,10 @@ public class MemCacheKeys {
 
     public static String getItemBeanKey(String client, String id, boolean full) {
     	return "" + keys.ItemsBeanNew + ":" + client + ":" + id + ":" + full;
+    }
+
+    public static String getItemBeanKeyWithLocale(String client, String id, boolean full,String locale) {
+    	return "" + keys.ItemBeanLocale + ":" + client + ":" + id + ":" + full+":"+locale;
     }
     
     public static String getItemSimilarityGraphBeanKey(String client, String id) {
@@ -555,6 +560,11 @@ public class MemCacheKeys {
     public static String getExplicitItemsIncluderKey(String client,Set<Long> items)
     {
     	return ""+keys.ExplicitItemsIncluder+":"+client+":"+items.hashCode();
+    }
+    
+    public static String getItemAttrDims(String client,long itemId)
+    {
+    	return ""+keys.ItemAttrAndDims+":"+client+":"+itemId;
     }
     
 }

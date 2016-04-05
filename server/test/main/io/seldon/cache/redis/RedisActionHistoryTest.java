@@ -112,8 +112,8 @@ public class RedisActionHistoryTest {
 		RedisActionHistory rah = new RedisActionHistory(mockRedisPoolManager);
 		List<Long> actions = rah.getRecentActions("client", 1L, 1);
 		Assert.assertTrue(actions.size() == 2);
-		Assert.assertEquals(1L, (long)actions.get(0));
-		Assert.assertEquals(2L, (long)actions.get(1));
+		Assert.assertEquals(2L, (long)actions.get(0));
+		Assert.assertEquals(1L, (long)actions.get(1));
 		verify(mockJedis);
 		
 	}

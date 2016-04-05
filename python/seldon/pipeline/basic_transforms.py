@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
 import time
 
-logger = logging.getLogger('seldon.pipeline.basic_transforms')
+logger = logging.getLogger(__name__)
 
 class Binary_transform(BaseEstimator,TransformerMixin):
     """
@@ -31,6 +31,7 @@ class Binary_transform(BaseEstimator,TransformerMixin):
         return self
 
     def transform(self,df):
+        logger.info("Binary transform")
         """
         Transform a dataframe creating a new binary feature
 
@@ -45,8 +46,7 @@ class Binary_transform(BaseEstimator,TransformerMixin):
         Transformed pandas dataframe
 
         """
-
-        df[self.output_feature] = df.apply(lambda row: 1 if not pd.isnull(row[self.input_feature]) and not row[self.input_feature] == 0 and not row[self.input_feature] == "" else 0,axis=1)
+        df[self.output_feature] = df.apply(lambda row: 1 if (not pd.isnull(row[self.input_feature])) and (not row[self.input_feature] == "0") and (not row[self.input_feature] == 0) and (not row[self.input_feature] == "") else 0,axis=1)
         return df
 
 ################
@@ -84,7 +84,8 @@ class Include_features_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
-        return df[list(set(self.included).intersection(df.columns))]
+        df =  df[list(set(self.included).intersection(df.columns))]
+        return df
 
 ################
 
@@ -237,17 +238,14 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
     excluded : list str
        set of features to exclude
     """
-    def __init__(self,included=None,zero_based=False,excluded=[],id_map={},output_feature=None):
+    def __init__(self,included=None,zero_based=False,excluded=[],id_map={},output_feature=None,id_map_file=None):
         super(Svmlight_transform, self).__init__()
         self.included = included
         self.excluded = excluded
         self.id_map = id_map
-        self.zero_based = False
-        if self.zero_based:
-            self.lastId = 0
-        else:
-            self.lastId = 1
+        self.zero_based = zero_based
         self.output_feature=output_feature
+        self.id_map_file = id_map_file
 
     @staticmethod
     def _is_number(s):
@@ -265,6 +263,8 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         else:
             if self._is_number(v):
                 return set(col)
+            elif isinstance(v, basestring):
+                return set([col+"_"+v])
             else:
                 return set([col+"_"+str(v)])
 
@@ -283,6 +283,9 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
                             lvals += [(self.id_map[col],v)]
                     else:
                         lvals += [(self.id_map[col+"_"+v],1)]
+        self.progress += 1
+        if self.progress % 100 == 0:
+            logger.info("processed %d/%d",self.progress,self.size)
         return pd.Series([sorted(lvals)])
 
 
@@ -291,6 +294,13 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         for v in vals:
             s = s.union(v)
         return s
+
+    def _save_id_map(self):
+        import unicodecsv
+        writer = unicodecsv.writer(open(self.id_map_file, 'wb'))
+        for key, value in self.id_map.items():
+            writer.writerow([value, key])
+
 
 
     def fit(self,df):
@@ -320,7 +330,12 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
             if (not self.included or col in self.included) and (not col in self.excluded):
                 logger.info("SVM transform - Fitting numerical feature %s" % col)
                 features.add(col)
-        self.id_map = dict([(v,i+1) for i,v in enumerate(features)])
+        inc = 1
+        if self.zero_based:
+            inc = 0
+        self.id_map = dict([(v,i+inc) for i,v in enumerate(features)])
+        if not self.id_map_file is None:
+            self._save_id_map()
         return self
 
     def transform(self,df):
@@ -337,6 +352,8 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
         
         Transformed pandas dataframe
         """
+        self.progress = 0
+        self.size = df.shape[0]
         df[self.output_feature] = df.apply(self._set_id,axis=1,reduce=True)
         return df
 

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -65,12 +66,23 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
     private final CloseableHttpClient httpClient;
     ObjectMapper mapper = new ObjectMapper();
 
+    private static final int DEFAULT_REQ_TIMEOUT = 200;
+    private static final int DEFAULT_CON_TIMEOUT = 500;
+    private static final int DEFAULT_SOCKET_TIMEOUT = 2000;
+    
     public ExternalItemRecommendationAlgorithm(){
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
         cm.setDefaultMaxPerRoute(20);
+        
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(DEFAULT_REQ_TIMEOUT)
+                .setConnectTimeout(DEFAULT_CON_TIMEOUT)
+                .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT).build();
+        
         httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
+                .setDefaultRequestConfig(requestConfig)
                 .build();
     }
 
@@ -111,21 +123,34 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
         	if (logger.isDebugEnabled())
         		logger.debug("Requesting " + httpGet.getURI().toString());
             CloseableHttpResponse resp = httpClient.execute(httpGet, context);
-            if(resp.getStatusLine().getStatusCode() == 200) {
-                ObjectReader reader = mapper.reader(AlgsResult.class);
-                AlgsResult recs = reader.readValue(resp.getEntity().getContent());
-                List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>(recs.recommended.size());
-                for (AlgResult rec : recs.recommended) {
-                    results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
-                }
-                if (logger.isDebugEnabled())
-                	logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
-                return new ItemRecommendationResultSet(results,recommenderName);
-            } else {
-                logger.error("Couldn't retrieve recommendations from external recommender -- bad http return code: " + resp.getStatusLine().getStatusCode());
+            try
+            {
+            	if(resp.getStatusLine().getStatusCode() == 200) 
+            	{
+            		ObjectReader reader = mapper.reader(AlgsResult.class);
+            		AlgsResult recs = reader.readValue(resp.getEntity().getContent());
+            		List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>(recs.recommended.size());
+            		for (AlgResult rec : recs.recommended) {
+            			results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
+            		}
+            		if (logger.isDebugEnabled())
+            			logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");
+            		return new ItemRecommendationResultSet(results,recommenderName);
+            	} else {
+            		logger.error("Couldn't retrieve recommendations from external recommender -- bad http return code: " + resp.getStatusLine().getStatusCode());
+            	}
+            }
+            finally
+            {
+            	if (resp != null)
+					resp.close();
             }
         } catch (IOException e) {
             logger.error("Couldn't retrieve recommendations from external recommender - ", e);
+        }
+        catch (Exception e)
+        {
+        	 logger.error("Couldn't retrieve recommendations from external recommender - ", e);
         }
         return new ItemRecommendationResultSet(recommenderName);
     }

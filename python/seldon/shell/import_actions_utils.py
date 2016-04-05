@@ -53,6 +53,7 @@ def import_actions(client_name, db_settings, data_file_fpath, out_file_fpath):
     userCache = {}
     itemCache = {}
     count = 0
+    print out_file_fpath
     with open(data_file_fpath) as csvfile, open(out_file_fpath,'w') as outfile:
         reader = unicodecsv.DictReader(csvfile,encoding='utf-8')
         for f in reader:
@@ -61,9 +62,9 @@ def import_actions(client_name, db_settings, data_file_fpath, out_file_fpath):
             action_type = 1
             action = {}
             action["userid"] = int(user)
-            action["client_userid"] = f["item_id"]
+            action["client_userid"] = f["user_id"]
             action["itemid"] = int(item)
-            action["client_itemid"] = f["user_id"]
+            action["client_itemid"] = f["item_id"]
             action["value"] = float(f["value"])
             utc = datetime.datetime.fromtimestamp(int(f["time"])).strftime('%Y-%m-%dT%H:%M:%SZ')
             action["timestamp_utc"] = utc

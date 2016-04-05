@@ -30,19 +30,6 @@ public class Recommendation implements Comparable<Recommendation>, Serializable{
 	long content;
 	int type;
 	Double prediction;
-	Double baseline; // baseline against which predictive part was derived from (may be null - could be user avg rating)
-	Long mostTrustedUser;
-	Double confidence; // could be the trust or general confidence
-	
-	public Recommendation(long content, int type, Double prediction,
-			Double baseline, Long mostTrustedUser, Double confidence) {
-		this.content = content;
-		this.type = type;
-		this.prediction = prediction;
-		this.baseline = baseline;
-		this.mostTrustedUser = mostTrustedUser;
-		this.confidence = confidence;
-	}
 	
 	public Recommendation(long content, int type, Double prediction) {
 		this.content = content;
@@ -62,18 +49,6 @@ public class Recommendation implements Comparable<Recommendation>, Serializable{
 		return prediction;
 	}
 
-	public Double getBaseline() {
-		return baseline;
-	}
-
-	public Long getMostTrustedUser() {
-		return mostTrustedUser;
-	}
-
-	public Double getConfidence() {
-		return confidence;
-	}
-	
 	
 	
 	public void setContent(long content) {
@@ -88,17 +63,7 @@ public class Recommendation implements Comparable<Recommendation>, Serializable{
 		this.prediction = prediction;
 	}
 
-	public void setBaseline(Double baseline) {
-		this.baseline = baseline;
-	}
-
-	public void setMostTrustedUser(Long mostTrustedUser) {
-		this.mostTrustedUser = mostTrustedUser;
-	}
-
-	public void setConfidence(Double confidence) {
-		this.confidence = confidence;
-	}
+	
 
 	@Override
 	public int compareTo(Recommendation o) {

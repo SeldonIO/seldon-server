@@ -16,7 +16,7 @@ from sklearn.utils import check_array
 from sklearn.base import BaseEstimator,ClassifierMixin
 import logging
 
-logger = logging.getLogger('seldon.vw')
+logger = logging.getLogger(__name__)
 
 class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     """
@@ -153,7 +153,7 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
                         ns["def"].append(feature)
                 elif isinstance(val,dict):
                     for key in val:
-                        feature = self._get_feature(str(key),val[key])
+                        feature = self._get_feature(key,val[key])
                         if not feature is None:
                             if not col in ns:
                                 ns[col] = []

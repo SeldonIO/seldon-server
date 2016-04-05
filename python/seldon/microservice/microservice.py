@@ -69,7 +69,10 @@ class Microservices(object):
             _mc_pool = pylibmc.ClientPool(mc, memcache_pool_size)
             app.config["seldon_memcache"] = _mc_pool
             
-        rw = seldon.Recommender_wrapper()
+        if self.aws_key:
+            rw = seldon.Recommender_wrapper(aws_key=self.aws_key,aws_secret=self.aws_secret)
+        else:
+            rw = seldon.Recommender_wrapper()
         recommender = rw.load_recommender(recommender_folder)
         app.config["seldon_recommender"] = recommender
  

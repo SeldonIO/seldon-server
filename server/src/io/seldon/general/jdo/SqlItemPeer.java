@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,8 +55,6 @@ import javax.jdo.Query;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
-import java.util.HashSet;
 
 public class SqlItemPeer extends ItemPeer {
 
@@ -122,11 +121,11 @@ public class SqlItemPeer extends ItemPeer {
 		return c;
 	}
 
-	public Map<String,String> getItemAttributesName(long userid) {
+	public Map<String,String> getItemAttributesName(long itemid) {
 		Map<String,String> attributes = new HashMap<>();
 		String sql = "SELECT a.name attr_name, CASE WHEN imi.value IS NOT NULL THEN cast(imi.value as char) WHEN imd.value IS NOT NULL THEN cast(imd.value as char) WHEN imb.value IS NOT NULL THEN cast(imb.value as char) WHEN imboo.value IS NOT NULL THEN cast(imboo.value as char) WHEN imt.value IS NOT NULL THEN imt.value WHEN imdt.value IS NOT NULL THEN cast(imdt.value as char) WHEN imv.value IS NOT NULL THEN imv.value WHEN e.value_name IS NOT NULL THEN e.value_name END value_id FROM  items i INNER JOIN item_attr a ON i.item_id=? and i.type=a.item_type LEFT JOIN item_map_int imi ON i.item_id=imi.item_id AND a.attr_id=imi.attr_id LEFT JOIN item_map_double imd ON i.item_id=imd.item_id AND a.attr_id=imd.attr_id LEFT JOIN item_map_enum ime ON i.item_id=ime.item_id AND a.attr_id=ime.attr_id LEFT JOIN item_map_bigint imb ON i.item_id=imb.item_id AND a.attr_id=imb.attr_id LEFT JOIN item_map_boolean imboo ON i.item_id=imboo.item_id AND a.attr_id=imboo.attr_id LEFT JOIN item_map_text imt ON i.item_id=imt.item_id AND a.attr_id=imt.attr_id LEFT JOIN item_map_datetime imdt ON i.item_id=imdt.item_id AND a.attr_id=imdt.attr_id LEFT JOIN item_map_varchar imv ON i.item_id=imv.item_id AND a.attr_id=imv.attr_id LEFT JOIN item_attr_enum e ON ime.attr_id =e.attr_id AND ime.value_id=e.value_id";
 		Query query = pm.newQuery( "javax.jdo.query.SQL", sql );
-		Collection<Object[]> c = (Collection<Object[]>) query.execute(userid);
+		Collection<Object[]> c = (Collection<Object[]>) query.execute(itemid);
 		for(Object[] array : c) {
 			if(array!=null && array[1]!=null) {
 				String currentValue = attributes.get((String)array[0]);
@@ -136,6 +135,22 @@ public class SqlItemPeer extends ItemPeer {
 			}
 		}
 		return attributes;
+	}
+	
+	
+	public Map<String,String> getItemAttributesNameLocale(long itemid,String locale) {
+		Map<String,String> attributes = new HashMap<>();
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select a.name,l.value from item_map_varchar_locale l join item_attr a on (a.attr_id=l.attr_id) where item_id=? and locale=?" );
+		Collection<Object[]> c = (Collection<Object[]>) query.execute(itemid,locale);
+		for(Object[] array : c) {
+			if(array!=null && array[1]!=null) {
+				String newValue = (String)array[1];
+				attributes.put((String)array[0],newValue);
+				attributes.put("_locale_"+((String)array[0]),locale);				
+			}
+		}
+		return attributes;
+		
 	}
 
 	public Map<Integer,Integer> getItemAttributes(long itemId) {
@@ -683,6 +698,20 @@ public class SqlItemPeer extends ItemPeer {
 		query.setUnique(true);
 		return (Integer) query.execute(name,itemId);
 	}
+	
+	@Override
+	public Map<String,Integer> getDimensionIdsForItem(long itemId){
+		Query query = pm.newQuery( "javax.jdo.query.SQL", "select ia.name,d.dim_id from item_map_enum ime join item_attr ia on (ia.attr_id=ime.attr_id) join dimension d on (ime.attr_id=d.attr_id and ime.value_id=d.value_id) where ime.item_id=?");
+		Collection<Object[]> results = (Collection<Object[]>) query.execute(itemId);
+		Map<String,Integer> toReturn = new HashMap<String,Integer>();
+		for(Object[] r : results)
+		{
+			String attr = (String) r[0];
+			Integer dim = (Integer) r[1];
+			toReturn.put(attr, dim);
+		}
+		return toReturn;
+	}
 
 	@Override
 	public List<ItemAndScore> retrieveMostPopularItems(int numItems, Set<Integer> dimensions){
@@ -716,13 +745,33 @@ public class SqlItemPeer extends ItemPeer {
 
 
 	public static class ItemAndScore implements Serializable {
-		public final Long item;
-		public final Double score;
+		public Long item;
+		public Double score;
 
 		public ItemAndScore(Long item, Double score) {
 			this.item = item;
 			this.score = score;
 		}
+		
+		public ItemAndScore(){}
+
+		public Long getItem() {
+			return item;
+		}
+
+		public void setItem(Long item) {
+			this.item = item;
+		}
+
+		public Double getScore() {
+			return score;
+		}
+
+		public void setScore(Double score) {
+			this.score = score;
+		}
+		
+		
 	}
 
 	// A set set of unicode characters that should be removed from text data

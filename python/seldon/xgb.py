@@ -14,7 +14,7 @@ from sklearn.utils import check_array
 from sklearn.base import BaseEstimator,ClassifierMixin
 import logging
 
-logger = logging.getLogger('seldon.xgb')
+logger = logging.getLogger(__name__)
 
 class XGBoostClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
     """

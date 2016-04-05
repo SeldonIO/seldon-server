@@ -1075,4 +1075,25 @@ CREATE TABLE `items_recent_popularity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+
+CREATE TABLE `items_recent_popularity_new` (
+  `item_id` int(11) unsigned NOT NULL,
+  `score` float DEFAULT '0',
+  `decay_id` int(11) NOT NULL DEFAULT '0',
+  `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`item_id`,`decay_id`),
+  KEY `score` (`score`,`decay_id`),
+  KEY `decay_id` (`decay_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `item_map_varchar_locale` (
+  `country` char(2) NOT NULL,
+  `language` char(2) NOT NULL,
+  `item_id` bigint(20) NOT NULL,
+  `attr_id` int(11) NOT NULL,
+  `value` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`country`,`language`,`attr_id`,`item_id`) USING BTREE,
+  KEY `uidx` (`item_id`,`attr_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Dump completed on 2015-03-03 10:42:31

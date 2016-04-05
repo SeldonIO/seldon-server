@@ -158,6 +158,9 @@ public class Util {
 		return req.getParameter(Constants.URL_ATTR_NAME);
 	}
 	
+	public static String getAttributes(HttpServletRequest req) {
+		return req.getParameter(Constants.URL_ATTRIBUTES);
+	}
 	
 	
 	public static List<String> getKeywords(HttpServletRequest req) {
@@ -170,16 +173,16 @@ public class Util {
 	}
 
 	public static Integer getDimension(HttpServletRequest req) throws NumberFormatException {
-		Integer dimension = 0;
 		String sDim = req.getParameter(Constants.URL_ATTR_DIMENSION);
 		if(sDim != null) {
-			dimension = Integer.parseInt(sDim);
+			return Integer.parseInt(sDim);
 		}
-		return dimension;
+		else
+			return null;
+
 	}
 	
 	public static Set<Integer> getDimensions(HttpServletRequest req) throws NumberFormatException {
-		Integer dimension = 0;
 		String sDim = req.getParameter(Constants.URL_ATTR_DIMENSIONS);
 		if(sDim != null) {
 			String[] dParts = sDim.split(",");
@@ -199,6 +202,11 @@ public class Util {
 			return Arrays.asList(sortStr.split(","));
 		else
 			return null;
+	}
+	
+	public static String getLocale(HttpServletRequest req)
+	{
+		return req.getParameter(Constants.URL_ATTR_LOCALE);
 	}
 	
 	public static ListBean getLimitedBean(ListBean bean, int limit) {

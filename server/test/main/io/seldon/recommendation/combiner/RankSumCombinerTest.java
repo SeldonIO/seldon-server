@@ -23,17 +23,18 @@
 
 package io.seldon.recommendation.combiner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
-import static io.seldon.recommendation.RecommendationPeer.*;
-
-import org.junit.Before;
-import org.junit.Test;
+import io.seldon.recommendation.RecommendationPeer.RecResultContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 public class RankSumCombinerTest {
 
@@ -77,7 +78,7 @@ public class RankSumCombinerTest {
 
     @Test
     public void isEnoughMethodShouldWorkCorrectly(){
-        RankSumCombiner combiner = new RankSumCombiner(2);
+        RankSumCombiner combiner = new RankSumCombiner(2,true);
         assertFalse(combiner.isEnoughResults(2, new ArrayList<RecResultContext>()));
         assertFalse(combiner.isEnoughResults(2, Arrays.asList(notEnoughInEachSet, emptySet )));
         assertFalse(combiner.isEnoughResults(2, Arrays.asList(notEnoughInEachSet, notEnoughInEachSet)));
@@ -87,14 +88,23 @@ public class RankSumCombinerTest {
 
     @Test
     public void shouldCombineResultsForRankSum(){
-        RankSumCombiner combiner = new RankSumCombiner(2);
-        RecResultContext result = combiner.combine(2, Arrays.asList(sufficientSet));
+    	RankSumCombiner combiner = new RankSumCombiner(2,false);
+    	RecResultContext result = combiner.combine(2, Arrays.asList(sufficientSet));
         assertEquals(sufficientSet.resultSet, result.resultSet);
-        result = combiner.combine(2, Arrays.asList(notEnoughInEachSet, sufficientSet));
+    	result = combiner.combine(2, Arrays.asList(emptySet,sufficientSet));
         assertEquals(sufficientSet.resultSet, result.resultSet);
+        result = combiner.combine(2, Arrays.asList(notEnoughInEachSet, sufficientSet)); // allows both into result
+        assertEquals(new ItemRecommendationResultSet(Arrays.asList(result1Ranked, result2Ranked), "plenty"), result.resultSet);
         result = combiner.combine(2, Arrays.asList(sufficientSet, plentySet));
         assertEquals(new ItemRecommendationResultSet(Arrays.asList(result2Ranked, result3Ranked, result1Ranked), "plenty"), result.resultSet);
 
+    }
+    
+    @Test
+    public void testStrictMode(){
+    	RankSumCombiner combiner = new RankSumCombiner(2,true);
+    	RecResultContext result = combiner.combine(2, Arrays.asList(notEnoughInEachSet, sufficientSet));
+    	assertEquals(sufficientSet.resultSet, result.resultSet);
     }
 
 

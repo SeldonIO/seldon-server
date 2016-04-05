@@ -9,7 +9,7 @@ import itertools
 from sklearn.base import BaseEstimator,TransformerMixin
 import logging
 
-logger = logging.getLogger('seldon.pipeline.auto_transforms')
+logger = logging.getLogger(__name__)
 
 class Auto_transform(BaseEstimator,TransformerMixin):
     """
@@ -39,7 +39,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
     cat_missing_value : str, optional
        string to use for missing categorical values
     date_transforms : list bool, optional
-       which date transforms to apply [hour,day_of_week,month,year], default is all
+       which date transforms to apply [hour,month,day_of_week,year], default is all
     create_date_differences : bool, optional
        whether to create differences between all date variables
     nan_threshold : float, optional
@@ -97,7 +97,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
             return self.cat_missing_val
         else:
             if col in self.cat_percent and v in self.cat_percent[col] and self.cat_percent[col][v] >= self.min_cat_percent and self.cat_percent[col][v] <= self.max_cat_percent:
-                val = str(v)
+                val = unicode(str(v), "utf-8")
                 if self._is_number(v):
                     val = col + "_" + val.replace(" ","_").lower()
                 else:

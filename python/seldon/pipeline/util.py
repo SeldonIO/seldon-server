@@ -11,7 +11,7 @@ import string
 from sklearn.externals import joblib
 import logging
 
-logger = logging.getLogger('seldon.pipeline.util')
+logger = logging.getLogger(__name__)
 
 class Pipeline_wrapper(object):
     """
