@@ -40,6 +40,16 @@ def write_data_to_file(data_fpath, data):
     f.close()
     print "Writing data to file[{data_fpath}]".format(**locals())
 
+def write_node_value_to_file(zk_client, zkroot, node_path):
+    node_value = zk_utils.node_get(zk_client, node_path)
+    node_value = node_value.strip()
+    if zk_utils.is_json_data(node_value):
+        data = seldon_utils.json_to_dict(node_value) if node_value != None and len(node_value)>0 else ""
+    else:
+        data = str(node_value)
+    data_fpath = zkroot + node_path + "/_data_"
+    write_data_to_file(data_fpath, data)
+
 def action_add(command_data, opts):
     client_name = opts.client_name
     if client_name == None:
@@ -99,6 +109,11 @@ def action_show(command_data, opts):
             print "Invalid client[{client_name}]".format(**locals())
             sys.exit(1)
         return client_name
+    def show_models(models_for_client_fpath):
+        models = os.listdir(models_for_client_fpath)
+        for idx,model in enumerate(models):
+            print "    {model}".format(**locals())
+
     client_name = get_valid_client()
 
     zk_client = command_data["zkdetails"]["zk_client"]
@@ -106,10 +121,7 @@ def action_show(command_data, opts):
 
     models_for_client_fpath = "{zkroot}{all_clients_node_path}/{client_name}/offline".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name)
 
-    models = os.listdir(models_for_client_fpath)
-
-    for idx,model in enumerate(models):
-        print "    {model}".format(**locals())
+    show_models(models_for_client_fpath)
 
 def cmd_model(command_data, command_args):
     actions = {
