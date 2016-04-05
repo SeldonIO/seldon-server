@@ -3,6 +3,7 @@ import argparse
 import sys
 import os
 import json
+from subprocess import call
 
 import zk_utils
 import seldon_utils
@@ -123,12 +124,62 @@ def action_show(command_data, opts):
 
     show_models(models_for_client_fpath)
 
+def action_edit(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    def get_valid_client():
+        client_name = opts.client_name
+        if client_name == None:
+            print "Need client name to show models for"
+            sys.exit(1)
+
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            sys.exit(1)
+        return client_name
+
+    def get_valid_model():
+        model_name = opts.model_name
+        if model_name == None:
+            print "Need model name to use"
+            sys.exit(1)
+
+        default_models = command_data["conf_data"]["default_models"]
+        if model_name not in default_models.keys():
+            print "Invalid model name: {model_name}".format(**locals())
+            sys.exit(1)
+        return model_name
+
+    client_name = get_valid_client()
+    model_name = get_valid_model()
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+
+    data_fpath = "{zkroot}{all_clients_node_path}/{client_name}/offline/{model_name}/_data_".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
+
+    #do the edit
+    editor=seldon_utils.get_editor()
+    call([editor, data_fpath])
+
+    f = open(data_fpath)
+    json = f.read()
+    f.close()
+    data = seldon_utils.json_to_dict(json)
+
+    if data is None:
+        print "Invalid model json!"
+    else:
+        write_data_to_file(data_fpath, data)
+        node_path = "{all_clients_node_path}/{client_name}/offline/{model_name}".format(all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
+        pp(node_path)
+        zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
+
 def cmd_model(command_data, command_args):
     actions = {
         "default" : action_list,
         "list" : action_list,
         "add" : action_add,
         "show" : action_show,
+        "edit" : action_edit,
     }
 
     opts = getOpts(command_args)
