@@ -13,6 +13,8 @@ import cmd_attr
 import cmd_import
 import cmd_alg
 import cmd_model
+import cmd_pred
+import cmd_keys
 
 gdata = {
     'zk_client': None,
@@ -24,7 +26,9 @@ gdata = {
         'client' : cmd_client.cmd_client,
         'attr' : cmd_attr.cmd_attr,
         'import' : cmd_import.cmd_import,
-        'alg' : cmd_alg.cmd_alg,
+        'rec_alg' : cmd_alg.cmd_alg,
+        'predict_alg' : cmd_pred.cmd_pred,
+        'keys' : cmd_keys.cmd_keys,
         'model': cmd_model.cmd_model,
     }
 }
@@ -32,6 +36,12 @@ gdata = {
 def get_default_conf():
     return '''\
 {
+    "default_predictors": {
+        "externalPredictionServer": {
+            "config": []
+        }
+    },
+
     "default_algorithms": {
         "assocRuleRecommender": {
             "config": []
@@ -43,15 +53,7 @@ def get_default_conf():
             "config": [
                 {
                     "name": "io.seldon.algorithm.inclusion.itemsperincluder",
-                    "value": 100000
-                },
-                {
-                    "name": "io.seldon.algorithm.external.url",
-                    "value": "http://127.0.0.1:5000/recommend"
-                },
-                {
-                    "name": "io.seldon.algorithm.external.name",
-                    "value": "example_alg"
+                    "value": 1000
                 }
             ],
             "includers": [

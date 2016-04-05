@@ -1,11 +1,9 @@
-VERSION=1.9
-IMAGE=seldonio/pyseldon
+SHELL=/bin/bash
+IMAGE=seldonio/iris_vw
+VERSION=1.0
 
-build:
+build:Dockerfile
 	docker build -t ${IMAGE} .
-
-shell:
-	docker run -it --rm seldonio/pyseldon bash
 
 tag:
 	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
@@ -15,5 +13,7 @@ push_to_dockerhub:
 		docker push $(IMAGE)
 	@docker login -u seldonio && \
 		docker push $(IMAGE):$(VERSION)
+
+
 
 

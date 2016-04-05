@@ -263,6 +263,8 @@ class DocumentSimilarity(Recommender):
            location of models
         """
         self.index =  similarities.Similarity.load(folder+"/"+self.gensim_output_prefix)
+        self.index.output_prefix=folder+"/gensim_index"
+        self.index.check_moved()
         self.index_annoy = annoy.AnnoyIndex(self.vec_size)
         self.index_annoy.load(folder+"/"+self.annoy_output_prefix)
         self.seq2meta = {}

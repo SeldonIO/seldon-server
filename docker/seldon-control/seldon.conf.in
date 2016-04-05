@@ -1,0 +1,104 @@
+{
+    "default_predictors": {
+        "externalPredictionServer": {
+            "config": []
+        }
+    },
+    "default_algorithms": {
+        "assocRuleRecommender": {
+            "config": []
+        },
+        "dynamicClusterCountsRecommender": {
+            "config": []
+        },
+        "externalItemRecommendationAlgorithm": {
+            "config": [
+                {
+                    "name": "io.seldon.algorithm.inclusion.itemsperincluder",
+                    "value": 1000
+                }
+            ],
+            "includers": [
+                "recentItemsIncluder"
+            ]
+        },
+        "globalClusterCountsRecommender": {
+            "config": []
+        },
+        "itemCategoryClusterCountsRecommender": {
+            "config": []
+        },
+        "itemClusterCountsRecommender": {
+            "config": []
+        },
+        "itemSimilarityRecommender": {
+            "config": []
+        },
+        "mfRecommender": {
+            "config": []
+        },
+        "mostPopularRecommender": {
+            "config": []
+        },
+        "recentItemsRecommender": {
+            "config": []
+        },
+        "recentMfRecommender": {
+            "config": [
+                {
+                    "name": "io.seldon.algorithm.general.numrecentactionstouse",
+                    "value": "1"
+                }
+            ]
+        },
+        "semanticVectorsRecommender": {
+            "config": []
+        },
+        "userTagAffinityRecommender": {
+            "config": []
+        }
+    },
+    "default_models": {
+        "cluster-by-dimension": {},
+        "matrix-factorization": {
+            "config": {
+                "activate": true,
+                "alpha": 1,
+                "days": 1,
+                "inputPath": "%SELDON_MODELS%",
+                "iterations": 5,
+                "lambda": 0.01,
+                "outputPath": "%SELDON_MODELS%",
+                "rank": 30,
+                "startDay": 1
+            },
+            "training": {
+                "job_info": {
+                    "cmd": "%SPARK_HOME%/bin/spark-submit",
+                    "cmd_args": [
+                        "--class",
+                        "io.seldon.spark.mllib.MfModelCreation",
+                        "--master",
+                        "local[1]",
+                        "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                        "--client",
+                        "%CLIENT_NAME%",
+                        "--zookeeper",
+                        "%ZK_HOSTS%"
+                    ]
+                },
+                "job_type": "spark"
+            }
+        },
+        "semvec": {},
+        "similar-items": {},
+        "tagaffinity": {},
+        "tagcluster": {}
+    },
+    "seldon_models": "/seldon-data/seldon-models",
+    "seldon_spark_home": "/home/seldon/libs",
+    "seldon_version": "__SELDON_VERSION__",
+    "spark_home": "/opt/spark",
+    "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
+    "zkroot": "/seldon-data/conf/zkroot"
+}

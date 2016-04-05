@@ -1,0 +1,86 @@
+        {
+            "kind": "Deployment",
+            "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "%NAME%",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "%NAME%"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "name": "%NAME%"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "name": "%NAME%",
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "%NAME%"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "%NAME%",
+                                "image": "%IMAGE%:%VERSION%",
+                                "ports": [
+                                    {
+                                        "containerPort": 5000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "imagePullPolicy": "IfNotPresent"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {}
+                    }
+                },
+                "strategy": {
+                    "type": "RollingUpdate",
+                    "rollingUpdate": {
+                        "maxUnavailable": 1,
+                        "maxSurge": 1
+                    }
+                }
+            },
+            "status": {}
+        }
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "%NAME%",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "%NAME%",
+                    "type": "microservice"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 5000,
+                        "targetPort": 5000
+                    }
+                ],
+                "selector": {
+                    "name": "%NAME%"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }

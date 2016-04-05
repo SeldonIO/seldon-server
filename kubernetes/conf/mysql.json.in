@@ -1,0 +1,78 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+        {
+            "kind": "Pod",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mysql",
+                "labels": {
+                    "name": "mysql"
+                }
+            },
+            "spec": {
+                "volumes": [
+                    {
+                        "name": "data-volume",
+                        %DATA_VOLUME%
+                    }
+                ],
+                "containers": [
+                    {
+                        "name": "mysql",
+                        "image": "seldonio/mysql:1.0",
+                        "ports": [
+                            {
+                                "name": "mysql",
+                                "containerPort": 3306,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "env": [
+                            {
+                                "name": "MYSQL_ROOT_PASSWORD",
+                                "value": "mypass"
+                            }
+                        ],
+                        "resources": {},
+                        "volumeMounts": [
+                            {
+                                "name": "data-volume",
+                                "mountPath": "/seldon-data"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mysql",
+                "labels": {
+                    "name": "mysql"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 3306,
+                        "targetPort": 3306
+                    }
+                ],
+                "selector": {
+                    "name": "mysql"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}
