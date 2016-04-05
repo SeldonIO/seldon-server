@@ -12,6 +12,7 @@ import cmd_client
 import cmd_attr
 import cmd_import
 import cmd_alg
+import cmd_model
 
 gdata = {
     'zk_client': None,
@@ -24,6 +25,7 @@ gdata = {
         'attr' : cmd_attr.cmd_attr,
         'import' : cmd_import.cmd_import,
         'alg' : cmd_alg.cmd_alg,
+        'model': cmd_model.cmd_model,
     }
 }
 
