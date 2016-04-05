@@ -1,0 +1,48 @@
+{
+  "kind": "Endpoints",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "glusterfs-cluster",
+    "labels": {
+	"component" : "glusterfs"
+    }
+  },
+  "subsets": [
+    {
+      "addresses": [
+        {
+          "ip": "${GLUSTERFS_IP1}"
+        }
+      ],
+      "ports": [
+        {
+          "port": 1
+        }
+      ]
+    },
+    {
+      "addresses": [
+        {
+          "ip": "${GLUSTERFS_IP2}"
+        }
+      ],
+      "ports": [
+        {
+          "port": 1
+        }
+      ]
+    }
+  ]
+}
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "glusterfs-cluster"
+  },
+  "spec": {
+    "ports": [
+      {"port": 1}
+    ]
+  }
+}

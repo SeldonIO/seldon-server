@@ -1,3 +1,4 @@
+#VERSION=1.0
 FROM seldonio/pyseldon:1.7
 
 ENV SELDON_HOME /home/seldon

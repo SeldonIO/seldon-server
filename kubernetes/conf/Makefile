@@ -17,6 +17,11 @@ SHELL=/bin/bash
 DATA_VOLUME="hostPath": {"path": "/seldon-data"}
 #DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
 
+#
+# Example seldon server service types. Change to the kubernetes type you need.
+#
+SELDON_SERVICE_TYPE=NodePort
+#SELDON_SERVICE_TYPE=LoadBalancer
 
 control.json:control.json.in
 	cat control.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > control.json
@@ -33,7 +38,13 @@ spark-master.json: spark-master.json.in
 spark-workers.json: spark-workers.json.in
 	cat spark-workers.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-workers.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json
+examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in
+	cat examples/reuters/import-data-job.json.in  | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > examples/reuters/import-data-job.json
+
+server.json :server.json.in
+	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' > server.json
+
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json
 
 #
 # microservice conf

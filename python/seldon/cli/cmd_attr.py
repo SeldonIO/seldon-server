@@ -109,11 +109,14 @@ def store_json(command_data,opts):
     data = seldon_utils.json_to_dict(json)
 
     zk_client = command_data["zkdetails"]["zk_client"]
+    zkroot = command_data["zkdetails"]["zkroot"]
 
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + opts.client_name + "/attr/_data_"
     if data is None:
         print "Invalid attr json!"
         sys.exit(1)
     else:
+        write_data_to_file(data_fpath, data)
         node_path = gdata["all_clients_node_path"]+"/"+opts.client_name+"/attr"
         zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
 

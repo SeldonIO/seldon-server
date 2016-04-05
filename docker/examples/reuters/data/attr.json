@@ -1,0 +1,18 @@
+{
+    "types": [
+        {
+            "type_attrs": [
+                {
+                    "name": "title",
+                    "value_type": "string"
+                },
+                {
+                    "name": "body",
+                    "value_type": "text"
+                }
+	    ],
+            "type_id": 1,
+            "type_name": "News"
+	}
+    ]
+}
