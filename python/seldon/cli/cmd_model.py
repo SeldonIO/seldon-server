@@ -51,6 +51,34 @@ def write_node_value_to_file(zk_client, zkroot, node_path):
     data_fpath = zkroot + node_path + "/_data_"
     write_data_to_file(data_fpath, data)
 
+def run_spark_job(command_data, job_info, client_name):
+    conf_data = command_data["conf_data"]
+    spark_home = conf_data["spark_home"]
+    seldon_spark_home = conf_data["seldon_spark_home"]
+    seldon_version = conf_data["seldon_version"]
+    zk_hosts = conf_data["zk_hosts"]
+
+    cmd = job_info["cmd"].replace("%SPARK_HOME%", spark_home)
+
+    cmd_args = job_info["cmd_args"]
+
+    replacements = [
+        ("%CLIENT_NAME%", client_name),
+        ("%SPARK_HOME%", spark_home),
+        ("%SELDON_SPARK_HOME%", seldon_spark_home),
+        ("%SELDON_VERSION%", seldon_version),
+        ("%ZK_HOSTS%", zk_hosts),
+    ]
+
+    def appy_replacements(item):
+        for rpair in replacements:
+            item = item.replace(rpair[0],rpair[1])
+        return item
+
+    cmd_args = map(appy_replacements, cmd_args)
+
+    call([cmd]+cmd_args)
+
 def action_add(command_data, opts):
     client_name = opts.client_name
     if client_name == None:
@@ -173,6 +201,51 @@ def action_edit(command_data, opts):
         pp(node_path)
         zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
 
+def action_train(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    def get_valid_client():
+        client_name = opts.client_name
+        if client_name == None:
+            print "Need client name to show models for"
+            sys.exit(1)
+
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            sys.exit(1)
+        return client_name
+
+    def get_valid_model():
+        model_name = opts.model_name
+        if model_name == None:
+            print "Need model name to use"
+            sys.exit(1)
+
+        default_models = command_data["conf_data"]["default_models"]
+        if model_name not in default_models.keys():
+            print "Invalid model name: {model_name}".format(**locals())
+            sys.exit(1)
+        return model_name
+
+    client_name = get_valid_client()
+    model_name = get_valid_model()
+
+    zkroot = command_data["zkdetails"]["zkroot"]
+
+    default_models = command_data["conf_data"]["default_models"]
+    model_training = default_models[model_name]["training"]
+    job_type = model_training["job_type"]
+    job_info = model_training["job_info"]
+
+    job_handlers = {
+            'spark' : run_spark_job
+    }
+
+    if job_handlers.has_key(job_type):
+        job_handlers[job_type](command_data, job_info, client_name)
+    else:
+        print "No handler found for job_type[{job_type}]".format(**locals())
+
+
 def cmd_model(command_data, command_args):
     actions = {
         "default" : action_list,
@@ -180,6 +253,7 @@ def cmd_model(command_data, command_args):
         "add" : action_add,
         "show" : action_show,
         "edit" : action_edit,
+        "train" : action_train,
     }
 
     opts = getOpts(command_args)
