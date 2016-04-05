@@ -87,11 +87,36 @@ def action_list(command_data, opts):
     for idx,model in enumerate(models):
         print "    {model}".format(**locals())
 
+def action_show(command_data, opts):
+    def get_valid_client():
+        client_name = opts.client_name
+        if client_name == None:
+            print "Need client name to show models for"
+            sys.exit(1)
+
+        zkroot = command_data["zkdetails"]["zkroot"]
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            sys.exit(1)
+        return client_name
+    client_name = get_valid_client()
+
+    zk_client = command_data["zkdetails"]["zk_client"]
+    zkroot = command_data["zkdetails"]["zkroot"]
+
+    models_for_client_fpath = "{zkroot}{all_clients_node_path}/{client_name}/offline".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name)
+
+    models = os.listdir(models_for_client_fpath)
+
+    for idx,model in enumerate(models):
+        print "    {model}".format(**locals())
+
 def cmd_model(command_data, command_args):
     actions = {
         "default" : action_list,
         "list" : action_list,
         "add" : action_add,
+        "show" : action_show,
     }
 
     opts = getOpts(command_args)
