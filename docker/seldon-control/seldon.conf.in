@@ -79,7 +79,7 @@
                         "--class",
                         "io.seldon.spark.mllib.MfModelCreation",
                         "--master",
-                        "local[1]",
+                        "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
                         "--client",
                         "%CLIENT_NAME%",
