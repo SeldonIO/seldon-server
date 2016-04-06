@@ -11,7 +11,7 @@
     {
       "addresses": [
         {
-          "ip": "${GLUSTERFS_IP1}"
+          "ip": "%GLUSTERFS_IP1%"
         }
       ],
       "ports": [
@@ -23,7 +23,7 @@
     {
       "addresses": [
         {
-          "ip": "${GLUSTERFS_IP2}"
+          "ip": "%GLUSTERFS_IP2%"
         }
       ],
       "ports": [

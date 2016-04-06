@@ -44,7 +44,19 @@ examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in
 server.json :server.json.in
 	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' > server.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json
+
+#
+# glusterfs
+#
+
+GLUSTERFS_IP1=192.168.0.149
+GLUSTERFS_IP2=192.168.0.248
+
+glusterfs.json:glusterfs.json.in
+	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
+
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json
+
 
 #
 # microservice conf
@@ -61,15 +73,6 @@ microservice-${MICROSERVICE_NAME}.json:microservice.json.in
 microservice:microservice-${MICROSERVICE_NAME}.json
 
 
-#
-# glusterfs
-#
-
-GLUSTERFS_IP1=192.168.0.149
-GLUSTERFS_IP2=192.168.0.248
-
-glusterfs.json:glusterfs.json.in
-	cat glusterfs.json.in | GLUSTERFS_IP1=${GLUSTERFS_IP1} GLUSTERFS_IP2=${GLUSTERFS_IP2} envsubst > glusterfs.json
 
 clean:
 	rm -f mysql.json
@@ -77,5 +80,7 @@ clean:
 	rm -f td-agent-server.json
 	rm -f spark-master.json
 	rm -f spark-workers.json
+	rm -f server.json
+	rm -f examples/reuters/import-data-job.json
 	rm -f microservice-${MICROSERVICE_NAME}.json
 	rm -f glusterfs.json

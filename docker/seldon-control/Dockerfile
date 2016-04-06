@@ -1,4 +1,4 @@
-FROM seldonio/pyseldon:1.10
+FROM seldonio/pyseldon:1.11
 
 RUN \
     apt-get update && \

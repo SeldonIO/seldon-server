@@ -4,7 +4,6 @@ set -o nounset
 set -o errexit
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
-SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-false}
 
 function stop_core_services {
     

@@ -5,7 +5,7 @@ set -o errexit
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-false}
+SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-true}
 SELDON_WITH_GLUSTERFS=${SELDON_WITH_GLUSTERFS:-false}
 KCMD="kubectl exec seldon-control -i bash"
 
