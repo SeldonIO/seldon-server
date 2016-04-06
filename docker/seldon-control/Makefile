@@ -2,7 +2,7 @@ SHELL=/bin/bash
 
 .PHONY: build push
 
-VERSION=1.2.3_v6
+VERSION=1.2.3_v7
 SELDON_VERSION=1.2.3
 
 seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar:
