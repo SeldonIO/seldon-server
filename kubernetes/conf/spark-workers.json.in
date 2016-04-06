@@ -42,7 +42,7 @@
                         "volumeMounts": [
                             {
                                 "name": "data-volume",
-                                "mountPath": "/seldon-models"
+                                "mountPath": "/seldon-data"
                             }
                         ]
                     }
