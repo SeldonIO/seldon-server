@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+KCMD="kubectl exec seldon-control -i bash"
+
+echo "seldon-cli $@" | ${KCMD}
+
+
