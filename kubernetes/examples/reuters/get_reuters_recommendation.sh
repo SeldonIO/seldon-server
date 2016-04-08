@@ -7,5 +7,5 @@ echo "Warning: this assumes your seldon server is running locally on port 30000.
 
 JSON=`echo "seldon-cli --quiet keys --client-name reuters --scope js" | kubectl exec seldon-control -i  bash`
 KEY=`echo $JSON | jq -r '.[0].key'`
-curl "http://127.0.0.1:30000/js/recommendations?consumer_key=${KEY}&user=1&type=1&limit=5&jsonpCallback=j" | sed 's/^j(//' | sed 's/)$//' | jq
+curl -s "http://127.0.0.1:30000/js/recommendations?consumer_key=${KEY}&user=1&type=1&limit=5&jsonpCallback=j" | sed 's/^j(//' | sed 's/)$//' | jq
 
