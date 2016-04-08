@@ -19,6 +19,7 @@ import org.apache.spark.storage.StorageLevel
 case class ProcessEventsConfig(
         input_path_pattern: String = "",
         input_date_string: String = "",
+        single_client: String = "",
         output_path_dir: String = "",
         aws_access_key_id: String = "",
         aws_secret_access_key: String = "",
@@ -29,6 +30,7 @@ case class ProcessEventsConfig(
     override def toString =
         "input_path_pattern[%s]\n".format(input_path_pattern) +
             "input_date_string[%s]\n".format(input_date_string) +
+            "single_client[%s]\n".format(single_client) +
             "output_path_dir[%s]\n".format(output_path_dir) +
             "aws_access_key_id[%s]\n".format(aws_access_key_id) +
             "aws_secret_access_key[%s]\n".format(aws_secret_access_key) +
@@ -86,20 +88,24 @@ class ProcessEventsJob(private val sc: SparkContext, config: ProcessEventsConfig
         val jsonRdd = parseJson(fileGlob)
         val clientList = jsonRdd.keys.distinct().collect()
         for (client <- clientList) {
-            val outputPath = getOutputPath(config.output_path_dir, unixDays, client)
-            val dryRunString = if (config.dry_run) "(DRY-RUN) " else ""
-            println("%sProcessing client[%s] outputPath[%s]".format(dryRunString, client, outputPath))
-            val filtered_by_client: RDD[(String, String)] = jsonRdd.filter((y) => {
-                if (client.equals(y._1)) {
-                    true
-                } else {
-                    false
+            if ((config.single_client.length()==0) || (config.single_client==client)) {
+                val outputPath = getOutputPath(config.output_path_dir, unixDays, client)
+                val dryRunString = if (config.dry_run) "(DRY-RUN) " else ""
+                println("%sProcessing client[%s] outputPath[%s]".format(dryRunString, client, outputPath))
+                val filtered_by_client: RDD[(String, String)] = jsonRdd.filter((y) => {
+                    if (client.equals(y._1)) {
+                        true
+                    } else {
+                        false
+                    }
+                })
+                val client_rdd: RDD[String] = filtered_by_client.map((z) => z._2)
+    
+                if (config.dry_run == false) {
+                    saveClientRdd(client, client_rdd, outputPath, config.gzip_output)
                 }
-            })
-            val client_rdd: RDD[String] = filtered_by_client.map((z) => z._2)
-
-            if (config.dry_run == false) {
-                saveClientRdd(client, client_rdd, outputPath, config.gzip_output)
+            } else {
+                println("Skipping client[%s]".format(client))
             }
         }
 
@@ -133,6 +139,7 @@ object ProcessEventsJob {
             head("ProcessEventsJob", "1.0")
             opt[String]("input-path-pattern") required () valueName ("input path") foreach { x => c = c.copy(input_path_pattern = x) } text ("input path")
             opt[String]("input-date-string") required () valueName ("input date string") foreach { x => c = c.copy(input_date_string = x) } text ("input date string")
+            opt[String]("single-client") valueName ("process this client only") foreach { x => c = c.copy(single_client = x) } text ("process this client only")
             opt[String]("output-path-dir") required () valueName ("output path dir") foreach { x => c = c.copy(output_path_dir = x) } text ("output path dir")
             opt[String]("aws-access-key-id") valueName ("the aws_access_key_id") foreach { x => c = c.copy(aws_access_key_id = x) } text ("the aws_access_key_id")
             opt[String]("aws-secret-access-key") valueName ("the aws_secret_access_key") foreach { x => c = c.copy(aws_secret_access_key = x) } text ("the aws_secret_access_key")
