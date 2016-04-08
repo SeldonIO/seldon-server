@@ -189,12 +189,51 @@ def action_processactions(command_data, opts):
 
     spark_utils.run_spark_job(command_data, job_info, client_name)
 
+def action_processevents(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    def get_valid_client():
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            sys.exit(1)
+        return client_name
+
+    def get_valid_input_date_string():
+        input_date_string = opts.input_date_string
+        if input_date_string == None:
+            print "Need input date string!"
+            sys.exit(1)
+        return input_date_string
+
+    client_name = opts.client_name
+    if client_name != None:
+        client_name = get_valid_client()
+
+    job_info = command_data["conf_data"]["processevents"]["job_info"]
+
+    input_date_string = get_valid_input_date_string()
+    replacements = [
+        ("%INPUT_DATE_STRING%", input_date_string),
+    ]
+
+    def appy_replacements(item):
+        for rpair in replacements:
+            if rpair[1] != None:
+                item = item.replace(rpair[0],rpair[1])
+        return item
+
+
+    cmd_args = job_info["cmd_args"]
+    job_info["cmd_args"] = map(appy_replacements, cmd_args)
+
+    spark_utils.run_spark_job(command_data, job_info, client_name)
+
 def cmd_client(command_data, command_args):
     actions = {
         "default" : action_list,
         "list" : action_list,
         "setup" : action_setup,
         "processactions" : action_processactions,
+        "processevents" : action_processevents,
     }
 
     opts = getOpts(command_args)
