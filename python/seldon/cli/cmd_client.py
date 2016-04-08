@@ -172,9 +172,6 @@ def action_processactions(command_data, opts):
 
     job_info = command_data["conf_data"]["processactions"]["job_info"]
 
-    input_date_string = "20160208"
-    input_date_string = "19700102"
-    input_date_string = "19700102"
     input_date_string = get_valid_input_date_string()
     replacements = [
         ("%INPUT_DATE_STRING%", input_date_string),
