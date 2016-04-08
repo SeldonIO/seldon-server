@@ -133,9 +133,54 @@ def get_default_conf():
         "tagaffinity": {},
         "tagcluster": {}
     },
+    "processactions": {
+        "job_info": {
+            "cmd": "%SPARK_HOME%/bin/spark-submit",
+            "cmd_args": [
+                "--class",
+                "io.seldon.spark.actions.GroupActionsJob",
+                "--master",
+                "local[1]",
+                "%SELDON_SPARK_HOME%/target/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                "--single-client",
+                "%CLIENT_NAME%",
+                "--input-path-pattern",
+                "%SELDON_LOGS%/actions.%y/%m%d/*/*",
+                "--output-path-dir",
+                "%SELDON_MODELS%",
+                "--input-date-string",
+                "%INPUT_DATE_STRING%",
+                "--gzip-output"
+            ]
+        },
+        "job_type": "spark"
+    },
+    "processevents": {
+        "job_info": {
+            "cmd": "%SPARK_HOME%/bin/spark-submit",
+            "cmd_args": [
+                "--class",
+                "io.seldon.spark.events.ProcessEventsJob",
+                "--master",
+                "local[1]",
+                "%SELDON_SPARK_HOME%/target/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                "--single-client",
+                "%CLIENT_NAME%",
+                "--input-path-pattern",
+                "%SELDON_LOGS%/events.%y/%m%d/*/*",
+                "--output-path-dir",
+                "%SELDON_MODELS%",
+                "--input-date-string",
+                "%INPUT_DATE_STRING%",
+                "--gzip-output"
+            ]
+        },
+        "job_type": "spark"
+    },
+    "seldon_logs": "/seldon-data/logs",
     "seldon_models": "~/.seldon/seldon-models",
     "seldon_spark_home": "~/seldon-server/offline-jobs/spark",
-    "seldon_version": "0.93",
+    "seldon_version": "1.2.3",
     "spark_home": "~/apps/spark",
     "zk_hosts": "localhost:2181",
     "zkroot": "~/.seldon/zkroot"
@@ -166,6 +211,7 @@ def getOpts():
     parser.add_argument('--debug', action='store_true', help="debugging flag", required=False)
     parser.add_argument('--zk-hosts', help="the zookeeper hosts", required=False)
     parser.add_argument('--setup-config', action='store_true', help="setup the config and exit", required=False)
+    parser.add_argument('--print-default-config', action='store_true', help="print the default config and exit", required=False)
     parser.add_argument('-q', "--quiet", action='store_true', help="only display important messages, useful in non-interactive mode")
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args()
@@ -225,6 +271,9 @@ def main():
     opts = getOpts()
     if opts.setup_config:
         create_default_conf()
+        sys.exit(0)
+    if opts.print_default_config:
+        print get_default_conf()
         sys.exit(0)
 
     # is the conf still not setup
