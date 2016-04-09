@@ -7,6 +7,7 @@ import re
 
 import zk_utils
 import seldon_utils
+import spark_utils
 
 gdata = {
     'all_clients_node_path': "/all_clients",
@@ -21,6 +22,7 @@ def getOpts(args):
     parser.add_argument('--action', help="the action to use", required=False)
     parser.add_argument('--db-name', help="the name of the db", required=False)
     parser.add_argument('--client-name', help="the name of the client", required=False)
+    parser.add_argument('--input-date-string', help="The date to process in YYYYMMDD format", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -50,6 +52,13 @@ def write_data_to_file(data_fpath, data):
     f.write('\n')
     f.close()
     print "Writing data to file[{data_fpath}]".format(**locals())
+
+def is_existing_client(zkroot, client_name):
+    client_names = os.listdir(zkroot + gdata["all_clients_node_path"])
+    if client_name in client_names:
+        return True
+    else:
+        return False
 
 def add_client(zk_client, zkroot, client_name, db_name, consumer_details=None):
     data_fpath = zkroot + "/config/dbcp/_data_"
@@ -142,11 +151,89 @@ def action_setup(command_data, opts):
     else:
         print "Client already exists!"
 
+def action_processactions(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    def get_valid_client():
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            sys.exit(1)
+        return client_name
+
+    def get_valid_input_date_string():
+        input_date_string = opts.input_date_string
+        if input_date_string == None:
+            print "Need input date string!"
+            sys.exit(1)
+        return input_date_string
+
+    client_name = opts.client_name
+    if client_name != None:
+        client_name = get_valid_client()
+
+    job_info = command_data["conf_data"]["processactions"]["job_info"]
+
+    input_date_string = get_valid_input_date_string()
+    replacements = [
+        ("%INPUT_DATE_STRING%", input_date_string),
+    ]
+
+    def appy_replacements(item):
+        for rpair in replacements:
+            if rpair[1] != None:
+                item = item.replace(rpair[0],rpair[1])
+        return item
+
+
+    cmd_args = job_info["cmd_args"]
+    job_info["cmd_args"] = map(appy_replacements, cmd_args)
+
+    spark_utils.run_spark_job(command_data, job_info, client_name)
+
+def action_processevents(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    def get_valid_client():
+        if not is_existing_client(zkroot, client_name):
+            print "Invalid client[{client_name}]".format(**locals())
+            sys.exit(1)
+        return client_name
+
+    def get_valid_input_date_string():
+        input_date_string = opts.input_date_string
+        if input_date_string == None:
+            print "Need input date string!"
+            sys.exit(1)
+        return input_date_string
+
+    client_name = opts.client_name
+    if client_name != None:
+        client_name = get_valid_client()
+
+    job_info = command_data["conf_data"]["processevents"]["job_info"]
+
+    input_date_string = get_valid_input_date_string()
+    replacements = [
+        ("%INPUT_DATE_STRING%", input_date_string),
+    ]
+
+    def appy_replacements(item):
+        for rpair in replacements:
+            if rpair[1] != None:
+                item = item.replace(rpair[0],rpair[1])
+        return item
+
+
+    cmd_args = job_info["cmd_args"]
+    job_info["cmd_args"] = map(appy_replacements, cmd_args)
+
+    spark_utils.run_spark_job(command_data, job_info, client_name)
+
 def cmd_client(gopts,command_data, command_args):
     actions = {
         "default" : action_list,
         "list" : action_list,
         "setup" : action_setup,
+        "processactions" : action_processactions,
+        "processevents" : action_processevents,
     }
 
     opts = getOpts(command_args)
