@@ -142,7 +142,7 @@ def action_setup(command_data, opts):
     else:
         print "Client already exists!"
 
-def cmd_client(command_data, command_args):
+def cmd_client(gopts,command_data, command_args):
     actions = {
         "default" : action_list,
         "list" : action_list,

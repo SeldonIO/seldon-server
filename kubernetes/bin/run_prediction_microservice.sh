@@ -14,8 +14,6 @@ IMAGE=$2
 VERSION=$3
 CLIENT=$4
 
-KCMD="kubectl exec seldon-control -i bash"
-
 function create_microservice_conf {
     
     mkdir -p ../conf/microservices
@@ -37,9 +35,9 @@ function run_microservice {
 
 function configure_seldon {
 
-    echo "seldon-cli predict_alg --action delete --client-name ${CLIENT} --predictor-name externalPredictionServer" | ${KCMD}
-    echo "seldon-cli predict_alg  --action add --client-name ${CLIENT} --predictor-name externalPredictionServer --config io.seldon.algorithm.external.url=http://${NAME}:5000/predict --config io.seldon.algorithm.external.name=${NAME}" | ${KCMD}
-    echo "seldon-cli predict_alg --action commit --client-name ${CLIENT}" | ${KCMD}
+    ${STARTUP_DIR}/seldon-cli predict_alg --action delete --client-name ${CLIENT} --predictor-name externalPredictionServer
+    ${STARTUP_DIR}/seldon-cli predict_alg  --action add --client-name ${CLIENT} --predictor-name externalPredictionServer --config io.seldon.algorithm.external.url=http://${NAME}:5000/predict --config io.seldon.algorithm.external.name=${NAME}
+    ${STARTUP_DIR}/seldon-cli predict_alg --action commit --client-name ${CLIENT}
 
 }
 

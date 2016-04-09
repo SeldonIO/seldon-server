@@ -113,7 +113,7 @@ def action_default(command_data, opts):
     print "    numClients: {numClients}".format(numClients=data["numClients"])
     print "    servers: {servers}".format(servers=data["servers"])
 
-def cmd_memcached(command_data, command_args):
+def cmd_memcached(gopts,command_data, command_args):
     actions = {
         "default" : action_default,
         "setup" : action_setup,

@@ -161,7 +161,7 @@ def action_commit(command_data, opts):
     node_path=gdata["node_path"]
     zk_utils.node_set(zk_client, node_path, data_json)
 
-def cmd_db(command_data, command_args):
+def cmd_db(gopts,command_data, command_args):
     actions = {
         "default" : action_show,
         "show" : action_show,

@@ -20,7 +20,7 @@ def pp(o):
     p.pprint(o)
 
 def getOpts(args):
-    parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
+    parser = argparse.ArgumentParser(prog='seldon-cli pred_alg', description='Seldon CLI')
     parser.add_argument('--action', help="the action to use", required=True)
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--predictor-name', help="the name of predictor", required=False)
@@ -251,7 +251,7 @@ def action_commit(command_data, opts):
     node_path = gdata["all_clients_node_path"] + "/" + client_name + "/predict_algs"
     zk_utils.node_set(zk_client, node_path, data_json)
 
-def cmd_pred(command_data, command_args):
+def cmd_pred(gopts,command_data, command_args):
     actions = {
         "list" : action_list,
         "show" : action_show,

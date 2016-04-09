@@ -14,8 +14,6 @@ IMAGE=$2
 VERSION=$3
 CLIENT=$4
 
-KCMD="kubectl exec seldon-control -i bash"
-
 function create_microservice_conf {
     
     mkdir -p ../conf/microservices
@@ -37,9 +35,10 @@ function run_microservice {
 
 function configure_seldon {
 
-    echo "seldon-cli rec_alg --action delete --client-name ${CLIENT} --recommender-name externalItemRecommendationAlgorithm" | ${KCMD}
-    echo "seldon-cli rec_alg  --action add --client-name ${CLIENT} --recommender-name externalItemRecommendationAlgorithm --config io.seldon.algorithm.external.url=http://${NAME}:5000/recommend --config io.seldon.algorithm.external.name=${NAME}" | ${KCMD}
-    echo "seldon-cli rec_alg --action commit --client-name ${CLIENT}" | ${KCMD}
+    ${STARTUP_DIR}/seldon-cli rec_alg --action delete --client-name ${CLIENT} --recommender-name externalItemRecommendationAlgorithm
+    ${STARTUP_DIR}/seldon-cli rec_alg --action delete --client-name ${CLIENT} --recommender-name recentItemsRecommender
+    ${STARTUP_DIR}/seldon-cli rec_alg  --action add --client-name ${CLIENT} --recommender-name externalItemRecommendationAlgorithm --config io.seldon.algorithm.external.url=http://${NAME}:5000/recommend --config io.seldon.algorithm.external.name=${NAME}
+    ${STARTUP_DIR}/seldon-cli rec_alg --action commit --client-name ${CLIENT}
 
 }
 

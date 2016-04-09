@@ -18,7 +18,7 @@ def pp(o):
     p.pprint(o)
 
 def getOpts(args):
-    parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
+    parser = argparse.ArgumentParser(prog='seldon-cli import', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=True)
     parser.add_argument('--client-name', help="the name of the client", required=True)
     parser.add_argument('--file-path', help="path to the data file", required=True)
@@ -126,7 +126,7 @@ def action_actions(command_data, opts):
 
     import_actions_utils.import_actions(client_name, db_settings, data_file_fpath, out_file_fpath)
 
-def cmd_import(command_data, command_args):
+def cmd_import(gopts,command_data, command_args):
     actions = {
         "items" : action_items,
         "users" : action_users,

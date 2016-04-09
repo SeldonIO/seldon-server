@@ -15,6 +15,7 @@ import cmd_alg
 import cmd_model
 import cmd_pred
 import cmd_keys
+import cmd_api
 
 gdata = {
     'zk_client': None,
@@ -30,6 +31,7 @@ gdata = {
         'predict_alg' : cmd_pred.cmd_pred,
         'keys' : cmd_keys.cmd_keys,
         'model': cmd_model.cmd_model,
+        'api': cmd_api.cmd_api,
     }
 }
 
@@ -138,7 +140,8 @@ def get_default_conf():
     "seldon_version": "0.93",
     "spark_home": "~/apps/spark",
     "zk_hosts": "localhost:2181",
-    "zkroot": "~/.seldon/zkroot"
+    "zkroot": "~/.seldon/zkroot",
+    "server_endpoint" :  "http://seldon-server:80"
 }
 '''
 
@@ -256,7 +259,7 @@ def main():
                 'conf_data' : gdata['conf_data'],
                 'zkdetails' : {'zkroot': gdata['conf_data']['zkroot'], 'zk_client': gdata['zk_client']},
         }
-        cmds[cmd](command_data, command_args)
+        cmds[cmd](opts,command_data, command_args)
         stop_zk_client()
     else:
         print "Invalid command[{}]".format(cmd)

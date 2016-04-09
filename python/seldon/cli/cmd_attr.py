@@ -13,7 +13,7 @@ gdata = {
 }
 
 def getOpts(args):
-    parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
+    parser = argparse.ArgumentParser(prog='seldon-cli attr', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=False)
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--json', help="the file containing attr json", required=False)
@@ -216,7 +216,7 @@ def action_apply(command_data, opts):
     clean = False
     attr_schema_utils.create_schema(client_name, dbSettings, scheme_file_path, clean)
 
-def cmd_attr(command_data, command_args):
+def cmd_attr(gopts,command_data, command_args):
     actions = {
         "default" : action_show,
         "show" : action_show,
