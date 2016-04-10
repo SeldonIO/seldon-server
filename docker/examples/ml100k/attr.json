@@ -1,0 +1,22 @@
+{
+    "types": [
+        {
+            "type_attrs": [
+                {
+                    "name": "title",
+                    "value_type": "string"
+                },
+                {
+                    "name": "url",
+                    "value_type": "string"
+                },
+                {
+                    "name": "release",
+                    "value_type": "string"
+                }
+	    ],
+            "type_id": 1,
+            "type_name": "Movies"
+	}
+    ]
+}

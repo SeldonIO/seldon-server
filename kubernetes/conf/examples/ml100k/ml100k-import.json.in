@@ -1,0 +1,36 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "ml100k-import"
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "ml100k-import"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "ml100k-create",
+                        "image": "seldonio/examples-ml100k:1.0",
+			"command": ["/create_ml100k_recommender.sh"],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}
