@@ -46,6 +46,21 @@ def dict_to_json(d, expand=False):
 def json_to_dict(json_data):
     return json.loads(json_data)
 
+
+def ensure_client_has_algs(zk_client):
+
+
+        node_path = gdata["all_clients_node_path"]+"/"+client_name+"/algs"
+        if zk_client.exists(node_path):
+            write_node_value_to_file(zk_client, zkroot, node_path)
+        else:
+            default_alg_json = '{"algorithms":[{"config":[],"filters":[],"includers":[],"name":"recentItemsRecommender"}],"combiner":"firstSuccessfulCombiner"}'
+            data = json_to_dict(default_alg_json)
+            write_data_to_file(data_fpath, data)
+            zk_utils.node_set(zk_client, node_path, dict_to_json(data))
+
+
+
 def write_data_to_file(data_fpath, data):
     json = dict_to_json(data, True) if isinstance(data,dict) else str(data)
     mkdir_p(os.path.dirname(data_fpath))
@@ -54,6 +69,17 @@ def write_data_to_file(data_fpath, data):
     f.write('\n')
     f.close()
     print "Writing data to file[{data_fpath}]".format(**locals())
+
+def get_data_from_file(data_fpath):
+    if os.path.isfile(data_fpath):
+        f = open(data_fpath)
+        data = f.read()
+        f.close()
+        return data
+    else:
+        return ""
+
+
 
 def write_node_value_to_file(zk_client, zkroot, node_path):
     node_value = zk_utils.node_get(zk_client, node_path)
@@ -66,12 +92,45 @@ def write_node_value_to_file(zk_client, zkroot, node_path):
     write_data_to_file(data_fpath, data)
 
 
+
 def is_existing_client(zkroot, client_name):
     client_names = os.listdir(zkroot + gdata["all_clients_node_path"])
     if client_name in client_names:
         return True
     else:
         return False
+
+
+
+def add_model_activate(zkroot,client_name,activate_path):
+    node_fpath = zkroot + activate_path + "/_data_"
+    data = get_data_from_file(node_fpath).rstrip()
+    if len(data) > 0:
+        clients = data.split(',')
+        for client in clients:
+            if client == client_name:
+                return
+    else:
+        clients = []
+    clients.append(client_name)
+    data = ",".join(clients)
+    write_data_to_file(node_fpath,data)
+
+
+def remove_model_activate(zkroot,client_name,activate_path):
+    node_fpath = zkroot + activate_path + "/_data_"
+    data = get_data_from_file(node_fpath).rstrip()
+    print "data is ",data
+    if len(data)>0:
+        clients = data.split(',')
+        for client in clients:
+            print "looking at ",client
+            if client == client_name:
+                clients.remove(client)
+                data = ",".join(clients)
+                write_data_to_file(node_fpath,data)
+
+            
 
 def show_algs(data):
     combiner = data["combiner"]
@@ -179,6 +238,10 @@ def action_add(command_data, opts):
 
     algorithms.append(recommender_data)
     write_data_to_file(data_fpath, data)
+
+    if default_algorithms[recommender_name].has_key("zk_activate_node"):
+        add_model_activate(zkroot,client_name,default_algorithms[recommender_name]["zk_activate_node"])
+
     print "Added [{recommender_name}]".format(**locals())
     show_algs(data)
 
@@ -227,6 +290,10 @@ def action_delete(command_data, opts):
     data["algorithms"] = filtered_algorithms
     if length_after_removal < length_before_removal:
         write_data_to_file(data_fpath, data)
+
+        if default_algorithms[recommender_name].has_key("zk_activate_node"):
+            remove_model_activate(zkroot,client_name,default_algorithms[recommender_name]["zk_activate_node"])
+
         print "Removed [{recommender_name}]".format(**locals())
 
 def action_list(command_data, opts):
@@ -258,6 +325,21 @@ def action_commit(command_data, opts):
     zk_client = command_data["zkdetails"]["zk_client"]
     node_path = gdata["all_clients_node_path"] + "/" + client_name + "/algs"
     zk_utils.node_set(zk_client, node_path, data_json)
+
+    # activate any required models
+
+    default_algorithms = command_data["conf_data"]["default_algorithms"]
+    data = json_to_dict(data_json)
+    algorithms = data["algorithms"]
+    print "algorithms:"
+    for alg in algorithms:
+        alg_name=alg["name"]
+        if default_algorithms[alg_name].has_key("zk_activate_node"):
+            node_path = default_algorithms[alg_name]["zk_activate_node"]
+            node_fpath = zkroot + node_path + "/_data_"
+            data_models = get_data_from_file(node_fpath)
+            zk_utils.node_set(zk_client, node_path, data_models)
+
 
 def cmd_alg(gopts,command_data, command_args):
     actions = {

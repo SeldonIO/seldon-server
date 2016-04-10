@@ -76,7 +76,7 @@ def validateCSVAgainstDb(csv_file, db):
 				noOfFields = len(line)
 				if not validateFieldsAgainstDbFields(set(line), attrs, db):
 					exit(1)
-			validateLine(line, noOfFields, attrs, enums)
+			validateLine(index,line, noOfFields, attrs, enums)
 			if len(line) != noOfFields:
 				failLine(index, line)
 				failed = True
@@ -85,7 +85,7 @@ def validateCSVAgainstDb(csv_file, db):
 	if failed:
 		exit(1)
 
-def validateLine(line, noOfFields, attrs, enums):
+def validateLine(index,line, noOfFields, attrs, enums):
 	if len(line) != noOfFields:
 		failLine(index, line)
 		failed = True

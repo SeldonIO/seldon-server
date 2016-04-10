@@ -6,9 +6,11 @@
     },
     "default_algorithms": {
         "assocRuleRecommender": {
+            "zk_activate_node" : "/config/assocrules",
             "config": []
         },
         "dynamicClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "externalItemRecommendationAlgorithm": {
@@ -23,18 +25,22 @@
             ]
         },
         "globalClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "itemCategoryClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "itemClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "itemSimilarityRecommender": {
             "config": []
         },
         "mfRecommender": {
+            "zk_activate_node" : "/config/mf",
             "config": []
         },
         "mostPopularRecommender": {
@@ -44,6 +50,7 @@
             "config": []
         },
         "recentMfRecommender": {
+            "zk_activate_node" : "/config/mf",
             "config": [
                 {
                     "name": "io.seldon.algorithm.general.numrecentactionstouse",
@@ -52,9 +59,11 @@
             ]
         },
         "semanticVectorsRecommender": {
+            "zk_activate_node" : "/config/svtext",
             "config": []
         },
         "userTagAffinityRecommender": {
+            "zk_activate_node" : "/config/tagaffinity",
             "config": []
         }
     },
@@ -100,5 +109,6 @@
     "seldon_version": "__SELDON_VERSION__",
     "spark_home": "/opt/spark",
     "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
-    "zkroot": "/seldon-data/conf/zkroot"
+    "zkroot": "/seldon-data/conf/zkroot",
+    "server_endpoint" : "http://seldon-server"
 }

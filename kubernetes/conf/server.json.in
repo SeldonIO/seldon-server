@@ -24,7 +24,11 @@
                     },
                     "spec": {
                         "volumes": [
-                            {
+			    {
+				"name": "data-volume",
+				%DATA_VOLUME%
+			    },
+                           {
                                 "name": "base-logs",
                                 "emptyDir": {}
                             },
@@ -55,6 +59,10 @@
                                 ],
                                 "resources": {},
                                 "volumeMounts": [
+				    {
+					"name": "data-volume",
+					"mountPath": "/seldon-data"
+				    },
                                     {
                                         "name": "base-logs",
                                         "mountPath": "/home/seldon/logs/base"

@@ -46,9 +46,11 @@ def get_default_conf():
 
     "default_algorithms": {
         "assocRuleRecommender": {
+            "zk_activate_node" : "/config/assocrules",
             "config": []
         },
         "dynamicClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "externalItemRecommendationAlgorithm": {
@@ -63,18 +65,22 @@ def get_default_conf():
             ]
         },
         "globalClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "itemCategoryClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "itemClusterCountsRecommender": {
+            "zk_activate_node" : "/config/userclusters",
             "config": []
         },
         "itemSimilarityRecommender": {
             "config": []
         },
         "mfRecommender": {
+            "zk_activate_node" : "/config/mf",
             "config": []
         },
         "mostPopularRecommender": {
@@ -84,6 +90,7 @@ def get_default_conf():
             "config": []
         },
         "recentMfRecommender": {
+            "zk_activate_node" : "/config/mf",
             "config": [
                 {
                     "name": "io.seldon.algorithm.general.numrecentactionstouse",
@@ -92,9 +99,11 @@ def get_default_conf():
             ]
         },
         "semanticVectorsRecommender": {
+            "zk_activate_node" : "/config/svtext",
             "config": []
         },
         "userTagAffinityRecommender": {
+            "zk_activate_node" : "/config/tagaffinity",
             "config": []
         }
     },
