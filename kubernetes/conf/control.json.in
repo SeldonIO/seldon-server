@@ -14,7 +14,7 @@
         "containers": [
             {
                 "name": "seldon-shell",
-                "image": "seldonio/seldon-control:1.2.3_v8",
+                "image": "seldonio/seldon-control:1.2.3_v9",
                 "command": [
                     "sleep",
                     "infinity"

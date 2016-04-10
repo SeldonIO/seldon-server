@@ -42,7 +42,7 @@ examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in
 	cat examples/reuters/import-data-job.json.in  | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > examples/reuters/import-data-job.json
 
 server.json :server.json.in
-	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' > server.json
+	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > server.json
 
 
 #

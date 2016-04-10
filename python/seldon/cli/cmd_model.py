@@ -103,10 +103,15 @@ def action_add(command_data, opts):
     data_fpath = "{zkroot}{all_clients_node_path}/{client_name}/offline/{model_name}/_data_".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
 
     zk_client = command_data["zkdetails"]["zk_client"]
+    node_path = "{all_clients_node_path}/{client_name}/offline/{model_name}".format(all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
     if not os.path.isfile(data_fpath):
-        node_path = "{all_clients_node_path}/{client_name}/offline/{model_name}".format(all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
         if zk_client.exists(node_path):
             write_node_value_to_file(zk_client, zkroot, node_path)
+            f = open(data_fpath)
+            json = f.read()
+            f.close()
+            data = seldon_utils.json_to_dict(json)
+            zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
         else:
             default_model_data = default_models[model_name]["config"]
             if default_model_data.has_key("inputPath"):
@@ -117,6 +122,11 @@ def action_add(command_data, opts):
             write_data_to_file(data_fpath, data)
             zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
     else:
+        f = open(data_fpath)
+        json = f.read()
+        f.close()
+        data = seldon_utils.json_to_dict(json)
+        zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
         print "Model [{model_name}] already added".format(**locals())
 
 def action_list(command_data, opts):
