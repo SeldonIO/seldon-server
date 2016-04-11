@@ -20,8 +20,8 @@ def pp(o):
     p.pprint(o)
 
 def getOpts(args):
-    parser = argparse.ArgumentParser(prog='seldon-cli pred_alg', description='Seldon CLI')
-    parser.add_argument('--action', help="the action to use", required=True)
+    parser = argparse.ArgumentParser(prog='seldon-cli predict_alg', description='Seldon CLI')
+    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show','add','delete','commit'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--predictor-name', help="the name of predictor", required=False)
     parser.add_argument('--config', help="algorithm specific config in the form x=y", required=False, action='append')

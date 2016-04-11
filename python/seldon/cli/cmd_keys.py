@@ -18,7 +18,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli keys', description='Seldon CLI')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--action', help="the action to use", required=False, choices=['list'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--scope', help="the key scope", required=False, choices=['js','all'])
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
