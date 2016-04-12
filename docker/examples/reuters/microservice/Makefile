@@ -1,7 +1,7 @@
 VERSION=1.0
 IMAGE=seldonio/reuters-example
 
-build:
+build_image:
 	docker build -t ${IMAGE} .
 
 shell:

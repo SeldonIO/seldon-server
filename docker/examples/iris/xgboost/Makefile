@@ -2,7 +2,7 @@ SHELL=/bin/bash
 IMAGE=seldonio/iris_xgboost
 VERSION=1.0
 
-build:Dockerfile
+build_image:Dockerfile
 	docker build -t ${IMAGE} .
 
 tag:

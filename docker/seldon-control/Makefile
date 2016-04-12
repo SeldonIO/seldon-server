@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 
-.PHONY: build push
+.PHONY: build_image push_to_dockerhub
 
 SPARK_VERSION=1.3_v1
 VERSION=1.3_v1
@@ -13,10 +13,10 @@ seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar:
 seldon.conf:seldon.conf.in
 	cat seldon.conf.in | sed 's/__SELDON_VERSION__/${SELDON_VERSION}/' > seldon.conf
 
-build:seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar seldon.conf
+build_image:seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar seldon.conf
 	docker build --force-rm=true -t seldonio/seldon-control:${VERSION} .
 
-push:
+push_to_dockerhub:
 	docker login -u seldonio && \
 		docker push seldonio/seldon-control:$(VERSION)
 
