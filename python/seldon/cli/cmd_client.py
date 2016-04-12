@@ -19,7 +19,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--action', help="the action to use", required=False, choices=['list','setup','processactions','processevents'])
     parser.add_argument('--db-name', help="the name of the db", required=False)
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--input-date-string', help="The date to process in YYYYMMDD format", required=False)

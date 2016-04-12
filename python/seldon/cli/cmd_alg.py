@@ -23,7 +23,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli rec_alg', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=True)
+    parser.add_argument('--action', help="the action to use", required=True, choices=['list','add','delete','show','commit'])
     parser.add_argument('--alg-type', help="type of algorithm", required=False, choices=['recommendation','prediction'], default='recommendation')
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--recommender-name', help="the name of recommender", required=False)
@@ -130,8 +130,6 @@ def remove_model_activate(zkroot,client_name,activate_path):
                 data = ",".join(clients)
                 write_data_to_file(node_fpath,data)
 
-            
-
 def show_algs(data):
     combiner = data["combiner"]
     algorithms = data["algorithms"]
@@ -211,7 +209,7 @@ def action_add(command_data, opts):
         if not (has_config(opts,CONFIG_MICROSERVICE_URL) and has_config(opts,CONFIG_MICROSERVICE_NAME)):
             print "You must supply "+CONFIG_MICROSERVICE_URL+" and "+CONFIG_MICROSERVICE_NAME+" for "+EXTERNAL_RECOMMENDER
             sys.exit(1)
-        
+
     zk_client = command_data["zkdetails"]["zk_client"]
     ensure_client_has_algs(zkroot, zk_client, client_name)
 

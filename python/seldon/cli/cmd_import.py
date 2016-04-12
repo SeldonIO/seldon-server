@@ -19,7 +19,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli import', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=True)
+    parser.add_argument('--action', help="the action to use", required=True, choices=['items','users','actions'])
     parser.add_argument('--client-name', help="the name of the client", required=True)
     parser.add_argument('--file-path', help="path to the data file", required=True)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args

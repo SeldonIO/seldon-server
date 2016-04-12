@@ -29,7 +29,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli db', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--action', help="the action to use", required=False, choices=['show','list','setup','commit'])
     parser.add_argument('--db-name', help="the name of the db", required=False)
     parser.add_argument('--db-user', help="the user", required=False)
     parser.add_argument('--db-password', help="the password for the user", required=False)

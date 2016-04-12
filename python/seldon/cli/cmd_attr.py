@@ -14,7 +14,7 @@ gdata = {
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli attr', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--action', help="the action to use", required=False, choices=['edit','show','apply'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--json', help="the file containing attr json", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args

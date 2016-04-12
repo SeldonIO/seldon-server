@@ -17,8 +17,8 @@ def pp(o):
     p.pprint(o)
 
 def getOpts(args):
-    parser = argparse.ArgumentParser(prog='seldon-cli memcached', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser = argparse.ArgumentParser(prog='seldon-cli model', description='Seldon Cli')
+    parser.add_argument('--action', help="the action to use", required=False, choices=['list','add','show','edit','train'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--model-name', help="the name of the client", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args

@@ -36,7 +36,7 @@ def json_to_dict(json_data):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli memcached', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False)
+    parser.add_argument('--action', help="the action to use", required=False, choices=['setup', 'commit'])
     parser.add_argument('--numClients', help="number of clients", required=False)
     parser.add_argument('--servers', help="the server list", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
