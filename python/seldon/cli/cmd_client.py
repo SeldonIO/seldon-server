@@ -171,6 +171,9 @@ def action_processactions(command_data, opts):
         client_name = get_valid_client()
 
     job_info = command_data["conf_data"]["processactions"]["job_info"]
+    if client_name != None:
+        job_info["cmd_args"].append("--single-client")
+        job_info["cmd_args"].append("%CLIENT_NAME%")
 
     input_date_string = get_valid_input_date_string()
     replacements = [
@@ -209,6 +212,9 @@ def action_processevents(command_data, opts):
         client_name = get_valid_client()
 
     job_info = command_data["conf_data"]["processevents"]["job_info"]
+    if client_name != None:
+        job_info["cmd_args"].append("--single-client")
+        job_info["cmd_args"].append("%CLIENT_NAME%")
 
     input_date_string = get_valid_input_date_string()
     replacements = [
