@@ -1,5 +1,5 @@
 #VERSION=1.0
-FROM seldonio/pyseldon:1.7
+FROM seldonio/pyseldon:1.14
 
 ENV SELDON_HOME /home/seldon
 RUN mkdir -p  "$SELDON_HOME"
