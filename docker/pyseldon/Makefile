@@ -1,4 +1,4 @@
-VERSION=1.13
+VERSION=1.14
 IMAGE=seldonio/pyseldon
 
 build:

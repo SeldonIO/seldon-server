@@ -1,4 +1,4 @@
-FROM seldonio/pyseldon:1.13
+FROM seldonio/pyseldon:1.14
 
 RUN \
     apt-get update && \
@@ -12,7 +12,7 @@ WORKDIR $SELDON_HOME
 
 COPY ./*.jar $SELDON_HOME/libs/
 
-ENV SELDON_TAG v1.2.3
+ENV SELDON_TAG v1.3_alpha_1
 RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
 
 RUN \

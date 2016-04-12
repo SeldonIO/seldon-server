@@ -40,7 +40,7 @@
                         "containers": [
                             {
                                 "name": "seldon-server",
-                                "image": "seldonio/seldon-server:1.2.3",
+                                "image": "seldonio/seldon-server:1.3_v1",
                                 "command": [
                                     "catalina.sh",
                                     "run"
