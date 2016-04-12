@@ -2,11 +2,12 @@ SHELL=/bin/bash
 
 .PHONY: build push
 
+SPARK_VERSION=1.3_v1
 VERSION=1.3_v1
 SELDON_VERSION=1.3
 
 seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar:
-	docker run --name "seldon_spark_build" --rm -v ${PWD}:/mnt/build seldonio/seldon-spark-build:${SELDON_VERSION} bash -c "cp /home/seldon/seldon-server/offline-jobs/spark/target/seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar /mnt/build"
+	docker run --name "seldon_spark_build" --rm -v ${PWD}:/mnt/build seldonio/seldon-spark-build:${SPARK_VERSION} bash -c "cp /home/seldon/seldon-server/offline-jobs/spark/target/seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar /mnt/build"
 
 
 seldon.conf:seldon.conf.in
