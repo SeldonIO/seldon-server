@@ -1,5 +1,5 @@
 #VERSION=1.0
-FROM seldonio/seldon-control:1.2.3_v5
+FROM seldonio/seldon-control:1.3_v1
 
 ENV REUTERS_HOME /home/seldon/reuters
 RUN mkdir -p  "$REUTERS_HOME"
