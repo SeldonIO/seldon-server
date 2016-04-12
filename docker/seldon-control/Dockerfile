@@ -12,7 +12,7 @@ WORKDIR $SELDON_HOME
 
 COPY ./*.jar $SELDON_HOME/libs/
 
-ENV SELDON_TAG v1.3_alpha_1
+ENV SELDON_TAG v1.3-alpha.1
 RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
 
 RUN \
