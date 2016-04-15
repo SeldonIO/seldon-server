@@ -95,7 +95,39 @@
             }
         },
         "semvec": {},
-        "similar-items": {},
+        "similar-items": {
+            "config": {
+                "activate": true,
+                "days": 1,
+                "inputPath": "%SELDON_MODELS%",
+                "outputPath": "%SELDON_MODELS%",
+                "startDay": 1,
+		"itemType" : -1,
+		"limit" : 100,
+		"minItemsPerUser" : 0,
+		"minUsersPerItem" : 0,    
+		"maxUsersPerItem" : 2000000,    
+		"dimsumThreshold" : 0.1,
+		"sample" : 1.0
+            },
+            "training": {
+                "job_info": {
+                    "cmd": "%SPARK_HOME%/bin/spark-submit",
+                    "cmd_args": [
+                        "--class",
+                        "io.seldon.spark.mllib.SimilarItems",
+                        "--master",
+                        "spark://spark-master:7077",
+                        "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                        "--client",
+                        "%CLIENT_NAME%",
+                        "--zookeeper",
+                        "%ZK_HOSTS%"
+                    ]
+                },
+                "job_type": "spark"
+		}
+	},
         "tagaffinity": {},
         "tagcluster": {}
     },
