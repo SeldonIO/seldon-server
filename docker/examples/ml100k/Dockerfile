@@ -1,5 +1,5 @@
-#VERSION=1.0
-FROM seldonio/seldon-control:1.2.3_v9
+#VERSION=1.1
+FROM seldonio/seldon-control:1.3_v4
 
 RUN \
     apt-get update && \

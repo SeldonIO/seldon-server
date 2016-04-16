@@ -132,8 +132,7 @@ def action_add(command_data, opts, extra_args):
             if default_model_data.has_key("outputPath"):
                 default_model_data["outputPath"]=command_data["conf_data"]["seldon_models"]
             data = default_model_data
-            write_data_to_file(data_fpath, data)
-    else:
+        else:
         f = open(data_fpath)
         json = f.read()
         f.close()
@@ -143,6 +142,7 @@ def action_add(command_data, opts, extra_args):
     for k in config_args:
         print "adding config ",k,":",config_args[k]
         data[k] = config_args[k]
+    write_data_to_file(data_fpath, data)
     zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
 
 def action_list(command_data, opts, extra_args):

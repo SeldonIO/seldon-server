@@ -36,8 +36,8 @@ function setup_client {
 
 function build_model {
 
-    seldon-cli model --action add --client-name ml100k --model-name matrix-factorization
-    seldon-cli model --action train --client-name ml100k --model-name matrix-factorization
+    luigi --module seldon.luigi.spark SeldonMatrixFactorization --local-schedule --client ml100k --startDay 1
+
 }
 
 function configure_runtime_scorer {
