@@ -21,8 +21,7 @@ def getOpts(args):
     parser.add_argument('--action', help="the action to use", required=False, choices=['list','add','show','edit','train'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--model-name', help="the name of the client", required=False)
-    parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
-    opts = parser.parse_args(args)
+    opts = parser.parse_known_args(args)
     return opts
 
 def is_existing_client(zkroot, client_name):
@@ -79,7 +78,20 @@ def run_spark_job(command_data, job_info, client_name):
 
     call([cmd]+cmd_args)
 
-def action_add(command_data, opts):
+def get_config_args(extra_args):
+    extra_args = [x.replace("--","") for x in extra_args]
+    d = dict(zip(extra_args[0::2], extra_args[1::2]))
+    for k in d:
+        try:
+            d[k] = int(d[k])
+        except:
+            try:
+                d[k] = float(d[k])
+            except:
+                pass
+    return d
+
+def action_add(command_data, opts, extra_args):
     client_name = opts.client_name
     if client_name == None:
         print "Need client name to add model for"
@@ -100,6 +112,8 @@ def action_add(command_data, opts):
         print "Invalid model name: {model_name}".format(**locals())
         sys.exit(1)
 
+    config_args = get_config_args(extra_args)
+
     data_fpath = "{zkroot}{all_clients_node_path}/{client_name}/offline/{model_name}/_data_".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name,model_name=model_name)
 
     zk_client = command_data["zkdetails"]["zk_client"]
@@ -111,7 +125,6 @@ def action_add(command_data, opts):
             json = f.read()
             f.close()
             data = seldon_utils.json_to_dict(json)
-            zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
         else:
             default_model_data = default_models[model_name]["config"]
             if default_model_data.has_key("inputPath"):
@@ -120,23 +133,26 @@ def action_add(command_data, opts):
                 default_model_data["outputPath"]=command_data["conf_data"]["seldon_models"]
             data = default_model_data
             write_data_to_file(data_fpath, data)
-            zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
     else:
         f = open(data_fpath)
         json = f.read()
         f.close()
         data = seldon_utils.json_to_dict(json)
-        zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
         print "Model [{model_name}] already added".format(**locals())
 
-def action_list(command_data, opts):
+    for k in config_args:
+        print "adding config ",k,":",config_args[k]
+        data[k] = config_args[k]
+    zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
+
+def action_list(command_data, opts, extra_args):
     default_models = command_data["conf_data"]["default_models"]
     models = default_models.keys()
     print "models:"
     for idx,model in enumerate(models):
         print "    {model}".format(**locals())
 
-def action_show(command_data, opts):
+def action_show(command_data, opts, extra_args):
     def get_valid_client():
         client_name = opts.client_name
         if client_name == None:
@@ -162,7 +178,7 @@ def action_show(command_data, opts):
 
     show_models(models_for_client_fpath)
 
-def action_edit(command_data, opts):
+def action_edit(command_data, opts, extra_args):
     zkroot = command_data["zkdetails"]["zkroot"]
     def get_valid_client():
         client_name = opts.client_name
@@ -211,7 +227,7 @@ def action_edit(command_data, opts):
         pp(node_path)
         zk_utils.node_set(zk_client, node_path, seldon_utils.dict_to_json(data))
 
-def action_train(command_data, opts):
+def action_train(command_data, opts,extra_args):
     zkroot = command_data["zkdetails"]["zkroot"]
     def get_valid_client():
         client_name = opts.client_name
@@ -266,14 +282,14 @@ def cmd_model(gopts,command_data, command_args):
         "train" : action_train,
     }
 
-    opts = getOpts(command_args)
+    (opts,extra_args) = getOpts(command_args)
 
     action = opts.action
     if action == None:
-        actions["default"](command_data, opts)
+        actions["default"](command_data, opts, extra_args)
     else:
         if actions.has_key(action):
-            actions[action](command_data, opts)
+            actions[action](command_data, opts, extra_args)
         else:
             print "Invalid action[{}]".format(action)
 
