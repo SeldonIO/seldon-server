@@ -58,7 +58,7 @@ RUN pip install -e git+git://github.com/SeldonIO/wabbit_wappa#egg=wabbit-wappa-3
 
 RUN pip install -e git+git://github.com/fmfn/BayesianOptimization#egg=bayes_opt
 
-RUN pip install seldon==1.4.20
+RUN pip install seldon==1.4.21
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
 

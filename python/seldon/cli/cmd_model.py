@@ -132,7 +132,7 @@ def action_add(command_data, opts, extra_args):
             if default_model_data.has_key("outputPath"):
                 default_model_data["outputPath"]=command_data["conf_data"]["seldon_models"]
             data = default_model_data
-        else:
+    else:
         f = open(data_fpath)
         json = f.read()
         f.close()

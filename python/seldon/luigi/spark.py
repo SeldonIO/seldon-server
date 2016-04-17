@@ -9,7 +9,9 @@ from seldon.misc.item_similarity import *
 #
 
 class ItemSimilaritySparkJob(luigi.Task):
-
+    """
+    Spark job for running item similarity model
+    """
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")
@@ -35,7 +37,9 @@ class ItemSimilaritySparkJob(luigi.Task):
 
 
 class SeldonItemSimilarity(luigi.Task):
-
+    """
+    Item similarity model. Depends on spark job. Writes results to mysql db.
+    """
     startDay = luigi.IntParameter(default=1)
     client = luigi.Parameter(default="test")
     db_host = luigi.Parameter(default="mysql")
@@ -55,7 +59,9 @@ class SeldonItemSimilarity(luigi.Task):
 #
 
 class SeldonMatrixFactorization(luigi.Task):
-
+    """
+    Matrix factorization using Spark
+    """
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")

@@ -11,7 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ItemSimilarityUploadMysql(object):
-
+    """
+    Upload results of item similarity training to mysql database
+    """
     def __init__(self,client,db_host,db_user,db_pass):
         self.db = MySQLdb.connect(
             host=db_host,
