@@ -16,7 +16,7 @@ CLIENT=$4
 
 function create_microservice_conf {
     
-    mkdir -p ../conf/microservices
+    mkdir -p ${STARTUP_DIR}/../conf/microservices
     if test -f "${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json"; 
     then 
 	echo "The microservice already exists. Will make a backup to .prev";
