@@ -128,8 +128,8 @@ def get_default_conf():
                         "--class",
                         "io.seldon.spark.mllib.MfModelCreation",
                         "--master",
-                        "local[1]",
-                        "%SELDON_SPARK_HOME%/target/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                        "spark://spark-master:7077",
+                        "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
                         "--client",
                         "%CLIENT_NAME%",
                         "--zookeeper",
@@ -150,8 +150,8 @@ def get_default_conf():
 		"itemType" : -1,
 		"limit" : 100,
 		"minItemsPerUser" : 0,
-		"minUsersPerItem" : 0,    
-		"maxUsersPerItem" : 2000000,    
+		"minUsersPerItem" : 0,
+		"maxUsersPerItem" : 2000000,
 		"dimsumThreshold" : 0.1,
 		"sample" : 1.0
             },
@@ -183,8 +183,8 @@ def get_default_conf():
                 "--class",
                 "io.seldon.spark.actions.GroupActionsJob",
                 "--master",
-                "local[1]",
-                "%SELDON_SPARK_HOME%/target/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                "spark://spark-master:7077",
+                "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
                 "--input-path-pattern",
                 "%SELDON_LOGS%/actions.%y/%m%d/*/*",
                 "--output-path-dir",
@@ -203,8 +203,8 @@ def get_default_conf():
                 "--class",
                 "io.seldon.spark.events.ProcessEventsJob",
                 "--master",
-                "local[1]",
-                "%SELDON_SPARK_HOME%/target/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                "spark://spark-master:7077",
+                "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
                 "--input-path-pattern",
                 "%SELDON_LOGS%/events.%y/%m%d/*/*",
                 "--output-path-dir",
@@ -217,13 +217,13 @@ def get_default_conf():
         "job_type": "spark"
     },
     "seldon_logs": "/seldon-data/logs",
-    "seldon_models": "~/.seldon/seldon-models",
-    "seldon_spark_home": "~/seldon-server/offline-jobs/spark",
-    "seldon_version": "1.2.3",
-    "spark_home": "~/apps/spark",
-    "zk_hosts": "localhost:2181",
-    "zkroot": "~/.seldon/zkroot",
-    "server_endpoint" :  "http://seldon-server:80"
+    "seldon_models": "/seldon-data/seldon-models",
+    "seldon_spark_home": "/home/seldon/libs",
+    "seldon_version": "__SELDON_VERSION__",
+    "server_endpoint": "http://seldon-server",
+    "spark_home": "/opt/spark",
+    "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
+    "zkroot": "/seldon-data/conf/zkroot"
 }
 '''
 
@@ -313,7 +313,7 @@ def main():
         create_default_conf()
         sys.exit(0)
     if opts.print_default_config:
-        print get_default_conf()
+        print dict_to_json(json_to_dict(get_default_conf()), True)
         sys.exit(0)
 
     # is the conf still not setup
