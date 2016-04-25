@@ -23,11 +23,12 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli rec_alg', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=True, choices=['list','add','delete','show','commit'])
+    parser.add_argument('--action', help="the action to use", required=True, choices=['list','add','delete','show','commit','create'])
     parser.add_argument('--alg-type', help="type of algorithm", required=False, choices=['recommendation','prediction'], default='recommendation')
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--recommender-name', help="the name of recommender", required=False)
     parser.add_argument('--config', help="algorithm specific config in the form x=y", required=False, action='append')
+    parser.add_argument('-f','--json-file', help="the json file to use for creating algs or '-' for stdin", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -338,6 +339,54 @@ def action_commit(command_data, opts):
             data_models = get_data_from_file(node_fpath)
             zk_utils.node_set(zk_client, node_path, data_models)
 
+def action_create(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+
+    #check_valid_client_name
+    client_name = opts.client_name
+    if client_name == None:
+        print "Need client name to create algs for"
+        sys.exit(1)
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        sys.exit(1)
+
+    #check_valid_json_file
+    json_file_contents = ""
+    json_file = opts.json_file
+    if json_file == None:
+        print "Need json-file to use for creating algs"
+        sys.exit(1)
+    if json_file == "-":
+        json_file_contents = sys.stdin.read()
+    else:
+        if not os.path.isfile(json_file):
+            print "Unable find file[{json_file}]".format(**locals())
+            sys.exit(1)
+        f = open(json_file)
+        json_file_contents = f.read()
+        f.close()
+
+    # ensure valid data
+    data = json_to_dict(json_file_contents)
+
+    #do the model activate
+    recommender_set = set()
+    if data["defaultStrategy"].has_key("algorithms"):
+        for alg in data["defaultStrategy"]["algorithms"]:
+            recommender_set.add(alg["name"])
+    elif data["defaultStrategy"].has_key("variations"):
+        for variation in data["defaultStrategy"]["variations"]:
+            for alg in variation["config"]["algorithms"]:
+                recommender_set.add(alg["name"])
+    default_algorithms = command_data["conf_data"]["default_algorithms"]
+    for recommender_name in recommender_set:
+        if default_algorithms[recommender_name].has_key("zk_activate_node"):
+            add_model_activate(zkroot,client_name,default_algorithms[recommender_name]["zk_activate_node"])
+
+    #save to zkoot
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectags/_data_"
+    write_data_to_file(data_fpath, data)
 
 def cmd_alg(gopts,command_data, command_args):
     actions = {
@@ -346,6 +395,7 @@ def cmd_alg(gopts,command_data, command_args):
         "add" : action_add,
         "delete" : action_delete,
         "commit" : action_commit,
+        "create" : action_create,
     }
 
     opts = getOpts(command_args)
@@ -359,3 +409,4 @@ def cmd_alg(gopts,command_data, command_args):
             actions[action](command_data, opts)
         else:
             print "Invalid action[{}]".format(action)
+
