@@ -304,7 +304,7 @@ def action_list(command_data, opts):
 def action_commit(command_data, opts):
     client_name = opts.client_name
     if client_name == None:
-        print "Need client name to add algs for"
+        print "Need client name to commit data for"
         sys.exit(1)
 
     zkroot = command_data["zkdetails"]["zkroot"]
@@ -314,9 +314,23 @@ def action_commit(command_data, opts):
 
     zk_client = command_data["zkdetails"]["zk_client"]
     zkroot = command_data["zkdetails"]["zkroot"]
+
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectags/_data_"
+    if os.path.isfile(data_fpath):
+        f = open(data_fpath)
+        data_json = f.read()
+        f.close()
+
+        zk_client = command_data["zkdetails"]["zk_client"]
+        node_path = gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectag"
+        zk_utils.node_set(zk_client, node_path, data_json)
+        return
+
+    #TODO remove the following once only using alg_rectags
     data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/algs/_data_"
     if not os.path.isfile(data_fpath):
-        "Data to commit not found!!"
+        print "Data to commit not found!!"
+        sys.exit(1)
     f = open(data_fpath)
     data_json = f.read()
     f.close()
