@@ -132,14 +132,8 @@ def remove_model_activate(zkroot,client_name,activate_path):
                 write_data_to_file(node_fpath,data)
 
 def show_algs(data):
-    combiner = data["combiner"]
-    algorithms = data["algorithms"]
-    print "algorithms:"
-    for alg in algorithms:
-        print "    {alg_name}".format(alg_name=alg["name"])
-        for config_item in alg["config"]:
-            print "        {n}={v}".format(n=config_item["name"],v=config_item["value"])
-    print "combiner: "+combiner
+    json = dict_to_json(data, True)
+    print json
 
 def ensure_client_has_algs(zkroot, zk_client, client_name):
     data_fpath = "{zkroot}{all_clients_node_path}/{client_name}/algs/_data_".format(zkroot=zkroot,all_clients_node_path=gdata["all_clients_node_path"],client_name=client_name)
@@ -164,15 +158,15 @@ def action_show(command_data, opts):
         print "Invalid client[{client_name}]".format(**locals())
         sys.exit(1)
 
-    zk_client = command_data["zkdetails"]["zk_client"]
-    ensure_client_has_algs(zkroot, zk_client, client_name)
-
-    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/algs/_data_"
-    f = open(data_fpath)
-    json = f.read()
-    f.close()
-    data = json_to_dict(json)
-    show_algs(data)
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectags/_data_"
+    if os.path.isfile(data_fpath):
+        f = open(data_fpath)
+        json = f.read()
+        f.close()
+        data = json_to_dict(json)
+        show_algs(data)
+    else:
+        print "Unable to show recommenders definition for client[{client_name}]".format(**locals())
 
 def has_config(opts,name):
     if not opts.config is None:
