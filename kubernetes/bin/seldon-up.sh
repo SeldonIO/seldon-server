@@ -18,7 +18,7 @@ function start_core_services {
     kubectl create -f ${STARTUP_DIR}/../conf/td-agent-server.json
 
     while true; do
-        non_running_states=$(kubectl get -o json pods  | jq -r '.items[].status.phase' | grep -v Running | grep -v Succeeded | wc -l | sed -e 's/^[ \t]*//')
+        non_running_states=$(get_non_running_states)
         if [[ "$non_running_states" == "0" ]]; then
             break
         else
@@ -31,7 +31,7 @@ function start_core_services {
 
 function start_api_server {
     echo "Starting Seldon API server"
-    kubectl create -f ${STARTUP_DIR}/../conf/server.json    
+    kubectl create -f ${STARTUP_DIR}/../conf/server.json
 }
 
 function setup_basic_conf {
@@ -52,7 +52,7 @@ function start_spark {
         echo 'Creating Spark Cluster'
         kubectl create -f ${STARTUP_DIR}/../conf/spark-master.json
         while true; do
-            non_running_states=$(kubectl get -o json pods  | jq -r '.items[].status.phase' | grep -v Running | grep -v Succeeded | wc -l | sed -e 's/^[ \t]*//')
+            non_running_states=$(get_non_running_states)
             if [[ "$non_running_states" == "0" ]]; then
                 break
             else
@@ -86,6 +86,9 @@ function seldon_up {
     start_api_server
 }
 
+function get_non_running_states {
+    kubectl get pods|tail +2|grep -v Running|wc -l| sed -e 's/^[ \t]*//'
+}
 
 seldon_up "$@"
 
