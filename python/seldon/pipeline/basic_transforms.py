@@ -282,7 +282,9 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
                         if not pd.isnull(v):
                             lvals += [(self.id_map[col],v)]
                     else:
-                        lvals += [(self.id_map[col+"_"+v],1)]
+                        var_name = col+"_"+v
+                        if var_name in self.id_map:
+                            lvals += [(self.id_map[var_name],1)]
         self.progress += 1
         if self.progress % 100 == 0:
             logger.info("processed %d/%d",self.progress,self.size)
