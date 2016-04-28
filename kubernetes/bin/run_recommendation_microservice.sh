@@ -15,10 +15,10 @@ VERSION=$3
 CLIENT=$4
 
 function create_microservice_conf {
-    
+
     mkdir -p ${STARTUP_DIR}/../conf/microservices
-    if test -f "${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json"; 
-    then 
+    if test -f "${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json";
+    then
 	echo "The microservice already exists. Will make a backup to .prev";
 	cp ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json.prev
     fi
@@ -35,9 +35,37 @@ function run_microservice {
 
 function configure_seldon {
 
-    ${STARTUP_DIR}/seldon-cli rec_alg --action delete --client-name ${CLIENT} --recommender-name externalItemRecommendationAlgorithm
-    ${STARTUP_DIR}/seldon-cli rec_alg --action delete --client-name ${CLIENT} --recommender-name recentItemsRecommender
-    ${STARTUP_DIR}/seldon-cli rec_alg  --action add --client-name ${CLIENT} --recommender-name externalItemRecommendationAlgorithm --config io.seldon.algorithm.external.url=http://${NAME}:5000/recommend --config io.seldon.algorithm.external.name=${NAME}
+    cat <<EOF | ${STARTUP_DIR}/seldon-cli rec_alg --action create --client-name ${CLIENT} -f -
+    {
+        "defaultStrategy": {
+            "algorithms": [
+                {
+                    "config": [
+                        {
+                            "name": "io.seldon.algorithm.inclusion.itemsperincluder",
+                            "value": 1000
+                        },
+                        {
+                            "name": "io.seldon.algorithm.external.url",
+                            "value": "http://${NAME}:5000/recommend"
+                        },
+                        {
+                            "name": "io.seldon.algorithm.external.name",
+                            "value": "${NAME}"
+                        }
+                    ],
+                    "filters": [],
+                    "includers": [
+                        "recentItemsIncluder"
+                    ],
+                    "name": "externalItemRecommendationAlgorithm"
+                }
+            ],
+            "combiner": "firstSuccessfulCombiner"
+        },
+        "recTagToStrategy": {}
+    }
+    EOF
     ${STARTUP_DIR}/seldon-cli rec_alg --action commit --client-name ${CLIENT}
 
 }
@@ -48,14 +76,11 @@ function start_microservice {
     create_microservice_conf
 
     run_microservice
-    
+
     configure_seldon
 
 }
 
 
 start_microservice "$@"
-
-
-
 
