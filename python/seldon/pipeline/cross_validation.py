@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.cross_validation import KFold
-from sklearn.metrics import accuracy_score
+from sklearn import metrics
 from sklearn.base import BaseEstimator
 import logging
 import numpy as np
@@ -21,11 +21,12 @@ class Seldon_KFold(BaseEstimator):
     save_folder_folder : str, optional
        a folder to save prediction results from each fold
     """
-    def __init__(self,clf=None,k=5,save_folds_folder=None):
+    def __init__(self,clf=None,k=5,save_folds_folder=None,metric='accuracy'):
         self.clf = clf
         self.k = k
         self.scores = []
         self.save_folds_folder=save_folds_folder
+        self.metric = metric
 
     def get_scores(self):
         return self.scores
@@ -64,11 +65,16 @@ class Seldon_KFold(BaseEstimator):
                 y_train, y_test = y[train_index], y[test_index]
             self.clf.fit(X_train,y_train)
             y_pred = self.clf.predict(X_test)
-            self.scores.append(accuracy_score(y_test, y_pred))
+            y_pred_proba = self.clf.predict_proba(X_test)
+            if self.metric == 'accuracy':
+                self.scores.append(metrics.accuracy_score(y_test, y_pred))
+            elif self.metric == 'auc':
+                fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred_proba[:, 1])
+                self.scores.append(metrics.auc(fpr, tpr))
+            logger.info("Running scores %s",self.scores)
             if not self.save_folds_folder is None:
                 np.savetxt(self.save_folds_folder+"/"+str(idx)+"_correct.txt",y_test,fmt='%1.3f')
                 np.savetxt(self.save_folds_folder+"/"+str(idx)+"_predictions.txt",y_pred,fmt='%1.3f')
-                y_pred_proba = self.clf.predict_proba(X_test)
                 np.savetxt(self.save_folds_folder+"/"+str(idx)+"_predictions_proba.txt",y_pred_proba,fmt='%1.3f')
             idx += 1
         logger.info("accuracy scores %s",self.scores)

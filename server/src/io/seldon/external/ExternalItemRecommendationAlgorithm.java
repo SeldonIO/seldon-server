@@ -23,6 +23,9 @@
 
 package io.seldon.external;
 
+import io.seldon.api.Constants;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.service.ItemService;
 import io.seldon.clustering.recommender.ItemRecommendationAlgorithm;
 import io.seldon.clustering.recommender.ItemRecommendationResultSet;
 import io.seldon.clustering.recommender.RecommendationContext;
@@ -32,8 +35,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,6 +50,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,7 +76,10 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
     private static final int DEFAULT_CON_TIMEOUT = 500;
     private static final int DEFAULT_SOCKET_TIMEOUT = 2000;
     
-    public ExternalItemRecommendationAlgorithm(){
+    ItemService itemService;
+    
+    @Autowired
+    public ExternalItemRecommendationAlgorithm(ItemService itemService){
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
         cm.setDefaultMaxPerRoute(20);
@@ -84,6 +93,8 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
                 .setConnectionManager(cm)
                 .setDefaultRequestConfig(requestConfig)
                 .build();
+        
+        this.itemService = itemService;
     }
 
 
@@ -127,11 +138,23 @@ public class ExternalItemRecommendationAlgorithm implements ItemRecommendationAl
             {
             	if(resp.getStatusLine().getStatusCode() == 200) 
             	{
+            		ConsumerBean c = new ConsumerBean(client);
             		ObjectReader reader = mapper.reader(AlgsResult.class);
             		AlgsResult recs = reader.readValue(resp.getEntity().getContent());
             		List<ItemRecommendationResultSet.ItemRecommendationResult> results = new ArrayList<>(recs.recommended.size());
             		for (AlgResult rec : recs.recommended) {
-            			results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
+            			Map<String,Integer> attrDimsCandidate = itemService.getDimensionIdsForItem(c, rec.item);
+						if (CollectionUtils.containsAny(dimensions, attrDimsCandidate.values()) || dimensions.contains(Constants.DEFAULT_DIMENSION))
+						{
+							if (logger.isDebugEnabled())
+								logger.debug("Adding item "+rec.item);
+							results.add(new ItemRecommendationResultSet.ItemRecommendationResult(rec.item, rec.score));
+						}
+						else
+						{
+							if (logger.isDebugEnabled())
+								logger.debug("Rejecting item "+rec.item+" as not in dimensions "+dimensions);
+						}
             		}
             		if (logger.isDebugEnabled())
             			logger.debug("External recommender took "+(System.currentTimeMillis()-timeNow) + "ms");

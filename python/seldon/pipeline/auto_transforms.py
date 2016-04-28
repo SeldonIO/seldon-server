@@ -44,8 +44,11 @@ class Auto_transform(BaseEstimator,TransformerMixin):
        whether to create differences between all date variables
     nan_threshold : float, optional
        featurs to drop if too many nan, threshold is between 0-1 as percent
+    drop_constant_features : bool, optional
+       drop a column if its value is constant
+    drop duplicate columns : bool, optional
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None,drop_constant_features=True,drop_duplicate_cols=True):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -69,7 +72,8 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         self.create_date_differences = create_date_differences
         self.nan_threshold=nan_threshold
         self.drop_cols = []
-
+        self.drop_constant_features=drop_constant_features
+        self.drop_duplicate_cols=drop_duplicate_cols
 
     def _scale(self,v,col):
         if np.isnan(v):
@@ -145,6 +149,26 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         else:
             return df[col]
 
+    def _duplicate_columns(self,frame):
+        groups = frame.columns.to_series().groupby(frame.dtypes).groups
+        dups = []
+        for t, v in groups.items():
+            dcols = frame[v].to_dict(orient="list")
+
+            vs = dcols.values()
+            ks = dcols.keys()
+            lvs = len(vs)
+
+            for i in range(lvs):
+                for j in range(i+1,lvs):
+                    if vs[i] == vs[j]: 
+                        dups.append(ks[i])
+                        break
+
+        return dups       
+
+
+
     def fit(self,df):
         """
         Fit models against an input pandas dataframe
@@ -164,20 +188,31 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
         numeric_cols = set(df.select_dtypes(include=numerics).columns)
         categorical_cols = set(df.select_dtypes(exclude=numerics).columns)
+        if self.drop_duplicate_cols:
+            logger.info("Adding duplciate cols to be dropped %s",self.drop_cols)
+            self.drop_cols = self._duplicate_columns(df)
         for col in df.columns:
             if col in self.exclude:
+                pass
+            if col in self.drop_cols:
                 pass
             elif not self.include or col in self.include:
                 if not self.nan_threshold is None:
                     num_nan = len(df) - df[col].count()
                     if num_nan > max_nan:
-                        logger.info("adding %s to drop columns %d %d",col,num_nan,max_nan)
-                        self.drop_cols.append(col)
-                        continue
+                        if not col in self.drop_cols:
+                            logger.info("adding %s to drop columns %d %d",col,num_nan,max_nan)
+                            self.drop_cols.append(col)
+                            continue
                 if not self.ignore_vals is None:
                     df[col].replace(self.ignore_vals,np.nan,inplace=True)
                 df[col] = df[col].apply(lambda x: np.nan if isinstance(x, basestring) and len(x)==0 else x)
                 cat_counts = df[col].value_counts(normalize=True,dropna=False)
+                if len(cat_counts) == 1 and self.drop_constant_features:
+                    if not col in self.drop_cols:
+                        logger.info("adding %s to drop columns as is constant",col)
+                        self.drop_cols.append(col)
+                        continue
                 is_bool = True
                 for val in cat_counts.index:
                     if not str(val).lower() in self.bool_map.keys():
