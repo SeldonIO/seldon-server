@@ -87,7 +87,7 @@ function seldon_up {
 }
 
 function get_non_running_states {
-    kubectl get pods|tail +2|grep -v Running|wc -l| sed -e 's/^[ \t]*//'
+    kubectl get pods| sed 1d |grep -v Running|wc -l| sed -e 's/^[ \t]*//'
 }
 
 seldon_up "$@"
