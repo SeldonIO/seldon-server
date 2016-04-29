@@ -316,7 +316,7 @@ def action_commit(command_data, opts):
         f.close()
 
         zk_client = command_data["zkdetails"]["zk_client"]
-        node_path = gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectag"
+        node_path = gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectags"
         zk_utils.node_set(zk_client, node_path, data_json)
         return
 
