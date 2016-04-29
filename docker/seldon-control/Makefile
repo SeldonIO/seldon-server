@@ -3,7 +3,7 @@ SHELL=/bin/bash
 .PHONY: build_image push_to_dockerhub
 
 SPARK_VERSION=1.3_v1
-VERSION=1.3_v6
+VERSION=1.3_v7
 SELDON_VERSION=1.3
 
 seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar:
