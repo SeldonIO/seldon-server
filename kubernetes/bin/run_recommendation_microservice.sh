@@ -36,36 +36,36 @@ function run_microservice {
 function configure_seldon {
 
     cat <<EOF | ${STARTUP_DIR}/seldon-cli rec_alg --action create --client-name ${CLIENT} -f -
-    {
-        "defaultStrategy": {
-            "algorithms": [
-                {
-                    "config": [
-                        {
-                            "name": "io.seldon.algorithm.inclusion.itemsperincluder",
-                            "value": 1000
-                        },
-                        {
-                            "name": "io.seldon.algorithm.external.url",
-                            "value": "http://${NAME}:5000/recommend"
-                        },
-                        {
-                            "name": "io.seldon.algorithm.external.name",
-                            "value": "${NAME}"
-                        }
-                    ],
-                    "filters": [],
-                    "includers": [
-                        "recentItemsIncluder"
-                    ],
-                    "name": "externalItemRecommendationAlgorithm"
-                }
-            ],
-            "combiner": "firstSuccessfulCombiner"
-        },
-        "recTagToStrategy": {}
-    }
-    EOF
+{
+    "defaultStrategy": {
+        "algorithms": [
+            {
+                "config": [
+                    {
+                        "name": "io.seldon.algorithm.inclusion.itemsperincluder",
+                        "value": 1000
+                    },
+                    {
+                        "name": "io.seldon.algorithm.external.url",
+                        "value": "http://${NAME}:5000/recommend"
+                    },
+                    {
+                        "name": "io.seldon.algorithm.external.name",
+                        "value": "${NAME}"
+                    }
+                ],
+                "filters": [],
+                "includers": [
+                    "recentItemsIncluder"
+                ],
+                "name": "externalItemRecommendationAlgorithm"
+            }
+        ],
+        "combiner": "firstSuccessfulCombiner"
+    },
+    "recTagToStrategy": {}
+}
+EOF
     ${STARTUP_DIR}/seldon-cli rec_alg --action commit --client-name ${CLIENT}
 
 }
