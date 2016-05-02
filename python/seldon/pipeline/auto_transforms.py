@@ -47,8 +47,11 @@ class Auto_transform(BaseEstimator,TransformerMixin):
     drop_constant_features : bool, optional
        drop a column if its value is constant
     drop duplicate columns : bool, optional
+       drop duplicate columns
+    min_max_limit : bool, optional
+       limit numeric cols to min and max seen in fit
     """
-    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None,drop_constant_features=True,drop_duplicate_cols=True):
+    def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None,drop_constant_features=True,drop_duplicate_cols=True,min_max_limit=False):
         super(Auto_transform, self).__init__()
         self.exclude = exclude
         self.include = include
@@ -74,6 +77,8 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         self.drop_cols = []
         self.drop_constant_features=drop_constant_features
         self.drop_duplicate_cols=drop_duplicate_cols
+        self.min_max_limit=min_max_limit
+        self.min_max = {}
 
     def _scale(self,v,col):
         if np.isnan(v):
@@ -189,13 +194,13 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         numeric_cols = set(df.select_dtypes(include=numerics).columns)
         categorical_cols = set(df.select_dtypes(exclude=numerics).columns)
         if self.drop_duplicate_cols:
-            logger.info("Adding duplciate cols to be dropped %s",self.drop_cols)
             self.drop_cols = self._duplicate_columns(df)
+            logger.info("Adding duplicate cols to be dropped %s",self.drop_cols)
         for col in df.columns:
             if col in self.exclude:
-                pass
+                continue
             if col in self.drop_cols:
-                pass
+                continue
             elif not self.include or col in self.include:
                 if not self.nan_threshold is None:
                     num_nan = len(df) - df[col].count()
@@ -227,6 +232,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
                         if dfs.shape[0] > 0:
                             arr = dfs.astype(float).values.reshape(-1,1)
                             self.scalers[col] = preprocessing.StandardScaler(with_mean=True, with_std=True).fit(arr)
+                            self.min_max[col] = (dfs.min(),dfs.max())
                     else:
                         self.convert_categorical.append(col)
                         self.cat_percent[col] = cat_counts
@@ -273,7 +279,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         Transformed pandas dataframe
 
         """
-        df.drop(self.drop_cols,inplace=True,axis=1)
+        df = df.drop(self.drop_cols,axis=1)
         c = 0
         num_bools  = len(self.convert_bool)
         for col in self.convert_bool:
@@ -329,6 +335,9 @@ class Auto_transform(BaseEstimator,TransformerMixin):
         for col in self.scalers:
             if not self.ignore_vals is None:
                 df[col].replace(self.ignore_vals,np.nan,inplace=True)
+            if self.min_max_limit:
+                df[col] = df[col].apply(lambda x : self.min_max[col][0] if x < self.min_max[col][0] else x)
+                df[col] = df[col].apply(lambda x : self.min_max[col][1] if x > self.min_max[col][1] else x)
             c += 1
             logger.info("scaling col %s %d/%d",col,c,num_scalers)
             df[col] = df[col].apply(self._scale,col=col)
