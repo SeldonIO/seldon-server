@@ -21,12 +21,13 @@ class Seldon_KFold(BaseEstimator):
     save_folder_folder : str, optional
        a folder to save prediction results from each fold
     """
-    def __init__(self,clf=None,k=5,save_folds_folder=None,metric='accuracy'):
+    def __init__(self,clf=None,k=5,save_folds_folder=None,metric='accuracy',random_state=1):
         self.clf = clf
         self.k = k
         self.scores = []
         self.save_folds_folder=save_folds_folder
         self.metric = metric
+        self.random_state = random_state
 
     def get_scores(self):
         return self.scores
@@ -51,7 +52,7 @@ class Seldon_KFold(BaseEstimator):
         self: object
         """
         df_len = X.shape[0]
-        kf = KFold(df_len, n_folds=self.k,shuffle=True)
+        kf = KFold(df_len, n_folds=self.k,shuffle=True,random_state=self.random_state)
         self.scores = []
         idx = 1
         for train_index, test_index in kf:

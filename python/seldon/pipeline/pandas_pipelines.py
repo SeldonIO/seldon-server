@@ -35,11 +35,12 @@ class BasePandasEstimator(object):
         self.id_map=id_map
         self.included = included
         self.excluded = excluded
+        if self.excluded is None:
+            self.excluded = [self.target]
+        else:
+            self.excluded.append(self.target)
         if not self.target_readable is None:
-            if self.excluded is None:
-                self.excluded = [self.target_readable]
-            else:
-                self.excluded.append(self.target_readable)
+            self.excluded.append(self.target_readable)
 
     def get_target(self):
         return self.target
