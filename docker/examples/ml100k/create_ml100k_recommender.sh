@@ -42,8 +42,28 @@ function build_model {
 
 function configure_runtime_scorer {
 
-    seldon-cli rec_alg --action delete --client-name ml100k --recommender-name recentItemsRecommender
-    seldon-cli rec_alg --action add --client-name ml100k --recommender-name recentMfRecommender
+    cat <<EOF | seldon-cli rec_alg --action create --client-name ml100k -f -
+{
+    "defaultStrategy": {
+        "algorithms": [
+            {
+                "config": [
+                    {
+                        "name": "io.seldon.algorithm.general.numrecentactionstouse",
+                        "value": "1"
+                    }
+                ],
+                "filters": [],
+                "includers": [],
+                "name": "recentMfRecommender"
+            }
+        ],
+        "combiner": "firstSuccessfulCombiner",
+        "diversityLevel": 3
+    },
+    "recTagToStrategy": {}
+}
+EOF
     seldon-cli rec_alg --action commit --client-name ml100k
 }
 
@@ -65,3 +85,4 @@ function create_recommender {
 
 
 create_recommender
+
