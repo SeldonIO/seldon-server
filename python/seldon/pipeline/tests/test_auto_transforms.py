@@ -112,6 +112,31 @@ class Test_auto_transforms(unittest.TestCase):
         print df2
         #self.assertAlmostEqual(df2["a_h1"][0],-0.707,places=2)
 
+
+    def test_drop_constant_cols(self):
+        df = pd.DataFrame([{"a":10,"b":11},{"a":10,"b":12}])
+        t = at.Auto_transform()
+        t.fit(df)
+        df2 = t.transform(df)
+        self.assertTrue(len(df2.columns) == 1)
+
+    def test_drop_duplicate_cols(self):
+        df = pd.DataFrame([{"a":12,"b":12},{"a":10,"b":10}])
+        t = at.Auto_transform()
+        t.fit(df)
+        df2 = t.transform(df)
+        self.assertTrue(len(df2.columns) == 1)
+
+
+    def test_min_max_limit(self):
+        df = pd.DataFrame([{"a":9,"b":12},{"a":12,"b":10}])
+        df2 = pd.DataFrame([{"a":1,"b":12},{"a":15,"b":10}])
+        t = at.Auto_transform(min_max_limit=True)
+        t.fit(df)
+        df3 = t.transform(df2)
+        self.assertTrue(df3["a"][0] == -1)
+        self.assertTrue(df3["a"][1] == 1)
+
         
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
