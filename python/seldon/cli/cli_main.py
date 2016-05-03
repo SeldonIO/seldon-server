@@ -5,6 +5,7 @@ import os
 import json
 from kazoo.client import KazooClient
 import errno
+import logging
 
 import cmd_memcached
 import cmd_db
@@ -306,6 +307,7 @@ def stop_zk_client():
         gdata["zk_client"].stop()
 
 def main():
+    logging.basicConfig()
     check_conf()
     expand_conf()
     opts = getOpts()
