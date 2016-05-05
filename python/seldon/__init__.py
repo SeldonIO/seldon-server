@@ -2,7 +2,7 @@ import logging
 
 from .util import Recommender_wrapper,Recommender,Extension,Extension_wrapper
 
-__version__ = '1.5.1'
+__version__ = '%SELDON_PYTHON_PACKAGE_VERSION%'
 
 class NullHandler(logging.Handler):
     def emit(self, record):
