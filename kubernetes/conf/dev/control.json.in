@@ -1,0 +1,42 @@
+{
+    "kind": "Pod",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "seldon-control"
+    },
+    "spec": {
+        "volumes": [
+            {
+                "name": "data-volume",
+                "hostPath": {"path": "/seldon-data"}
+            },
+            {
+                "name": "python-volume",
+                "hostPath": {"path": "%SELDON_HOME%/python"}
+            }
+        ],
+        "containers": [
+            {
+                "name": "seldon-shell",
+                "image": "seldonio/seldon-control:1.3_v4",
+                "command": [
+                    "sleep",
+                    "infinity"
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "data-volume",
+                        "mountPath": "/seldon-data"
+                    },
+                    {
+                        "name": "python-volume",
+                        "mountPath": "/pyseldon"
+                    }
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent"
+            }
+        ],
+	"terminationGracePeriodSeconds": 0
+    }
+}

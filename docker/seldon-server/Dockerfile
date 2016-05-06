@@ -27,7 +27,7 @@ RUN set -ex \
 	done
 
 ENV TOMCAT_MAJOR 7
-ENV TOMCAT_VERSION 7.0.68
+ENV TOMCAT_VERSION 7.0.69
 ENV TOMCAT_TGZ_URL https://www.apache.org/dist/tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz
 
 RUN set -x \
@@ -66,6 +66,7 @@ ENV SELDON_ZKSERVERS zookeeper
 ADD scripts/server.xml $CATALINA_HOME/conf/server.xml
 ADD scripts/context.xml $CATALINA_HOME/conf/context.xml
 ADD scripts/start-server.sh $SELDON_HOME/start-server.sh
+ADD scripts/start-server-debug.sh $SELDON_HOME/start-server-debug.sh
 
 # Define default command.
 CMD ["bash"]
