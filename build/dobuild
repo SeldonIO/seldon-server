@@ -25,4 +25,5 @@ export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
 log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
 
 ${STARTUP_DIR}/components/seldon_python_package/build_seldon_python_package
+${STARTUP_DIR}/components/seldonio_pyseldon/build_seldonio_pyseldon
 
