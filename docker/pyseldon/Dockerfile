@@ -58,7 +58,20 @@ RUN pip install -e git+git://github.com/SeldonIO/wabbit_wappa#egg=wabbit-wappa-3
 
 RUN pip install -e git+git://github.com/fmfn/BayesianOptimization#egg=bayes_opt
 
-RUN pip install seldon==1.5.1
+###RUN pip install seldon==1.5.1
+ARG SELDON_PYTHON_PACKAGE_VERSION
+RUN echo "using SELDON_PYTHON_PACKAGE_VERSION[${SELDON_PYTHON_PACKAGE_VERSION}]"
+COPY seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz /tmp/
+RUN \
+    mkdir -p /tmp/install && \
+    cd /tmp/install && \
+    mv /tmp/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz . && \
+    tar xfz seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz && \
+    cd seldon-${SELDON_PYTHON_PACKAGE_VERSION} && \
+    pip install python-daemon && \
+    python setup.py install && \
+    rm -rf /tmp/install
+
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
 
@@ -67,5 +80,4 @@ ADD ./scripts $SELDON_HOME/scripts
 
 # Define default command.
 CMD ["bash"]
-
 

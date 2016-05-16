@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+ts() {
+    date +"%Y%m%d_%H%M%S"
+}
+
+log() {
+    echo "$(ts) $1"
+}
+
+get_absolute_path() {
+    [[ -d $1 ]] && { cd "$1"; echo "$(pwd -P)"; } ||
+    { cd "$(dirname "$1")"; echo "$(pwd -P)/$(basename "$1")"; }
+}
+
+log "Starting build"
+
+export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
+log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
+
+${STARTUP_DIR}/components/seldon_python_package/build_seldon_python_package
+

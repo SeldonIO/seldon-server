@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+build_dist() {
+    cd /seldon-server
+    cd python
+    make clean
+    make dist
+}
+
+echo "creating dist SELDON_PYTHON_PACKAGE_VERSION[${SELDON_PYTHON_PACKAGE_VERSION}]"
+
+build_dist
+

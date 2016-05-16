@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+ts() {
+    date +"%Y%m%d_%H%M%S"
+}
+
+log() {
+    echo "$(ts) $1"
+}
+
+#From Env
+#${SELDON_SERVER_HOME}
+
+log "Building seldon_python_package"
+
+source ${SELDON_SERVER_HOME}/build/build_versions_generated
+log "SELDON_PYTHON_PACKAGE_VERSION[${SELDON_PYTHON_PACKAGE_VERSION}]"
+
+cd ${STARTUP_DIR}/docker
+docker build --force-rm=true -t seldon_python_package_build:latest .
+
+docker run --rm -it -e SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} -v ${STARTUP_DIR}:/workdir -v ${SELDON_SERVER_HOME}:/seldon-server seldon_python_package_build /workdir/builder
+
+DIST_FILE=$(ls ${SELDON_SERVER_HOME}/python/dist/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz)
+log "built ${DIST_FILE}"
+
