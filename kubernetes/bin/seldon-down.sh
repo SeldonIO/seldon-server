@@ -12,7 +12,9 @@ function stop_core_services {
     kubectl delete -f ${STARTUP_DIR}/../conf/memcache.json
     kubectl delete -f ${STARTUP_DIR}/../conf/zookeeper.json
     kubectl delete -f ${STARTUP_DIR}/../conf/control.json
+    kubectl delete -f ${STARTUP_DIR}/../conf/influxdb-grafana.json
     kubectl delete -f ${STARTUP_DIR}/../conf/td-agent-server.json
+    kubectl delete -f ${STARTUP_DIR}/../conf/kafka.json
     kubectl delete -f ${STARTUP_DIR}/../conf/server.json
 
 }

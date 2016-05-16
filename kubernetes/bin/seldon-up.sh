@@ -15,6 +15,8 @@ function start_core_services {
     kubectl create -f ${STARTUP_DIR}/../conf/memcache.json
     kubectl create -f ${STARTUP_DIR}/../conf/zookeeper.json
     kubectl create -f ${STARTUP_DIR}/../conf/control.json
+    kubectl create -f ${STARTUP_DIR}/../conf/influxdb-grafana.json
+    kubectl create -f ${STARTUP_DIR}/../conf/kafka.json
     kubectl create -f ${STARTUP_DIR}/../conf/td-agent-server.json
 
     while true; do
@@ -22,9 +24,10 @@ function start_core_services {
         if [[ "$non_running_states" == "0" ]]; then
             break
         else
+	    kubectl get pods
             echo "Waiting for pods to be running as found $non_running_states in non-running state"
-            echo "Sleeping for 3 seconds..."
-            sleep 3
+            echo "Sleeping for 5 seconds..."
+            sleep 5
         fi
     done
 }
@@ -56,6 +59,7 @@ function start_spark {
             if [[ "$non_running_states" == "0" ]]; then
                 break
             else
+		kubectl get pods
                 echo "Waiting for pods to be running as found $non_running_states in non-running state"
                 echo "Sleeping for 3 seconds..."
                 sleep 3
@@ -73,6 +77,14 @@ function start_glusterfs_service {
 }
 
 
+function setup_influxdb {
+
+    INFLUXDB_POD=`kubectl get pods -l name=influxGrafana | sed 1d | cut -d' ' -f1 |sed -e 's/^[ \t]*//'`
+    kubectl exec ${INFLUXDB_POD} -- influx --execute 'create database seldon'
+
+}
+
+
 function seldon_up {
 
     start_glusterfs_service
@@ -84,11 +96,14 @@ function seldon_up {
     setup_basic_conf
 
     start_api_server
+
+    setup_influxdb
 }
 
 function get_non_running_states {
-    kubectl get pods| sed 1d |grep -v Running|wc -l| sed -e 's/^[ \t]*//'
+    kubectl get pods | sed 1d | grep -v Running | wc -l | sed -e 's/^[ \t]*//'
 }
 
 seldon_up "$@"
+
 

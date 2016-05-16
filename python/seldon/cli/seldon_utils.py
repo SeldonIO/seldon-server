@@ -3,10 +3,11 @@ import json, os, random, string
 import MySQLdb
 import sys
 import errno
+import requests
 
 def retrieveDbSettings(data):
 	dbs = {}
-	for db in data["servers"]:
+        for db in data["servers"]:
 		dbs[db["name"]] = {"host":db['host'], "port":db['port'], "user":db['user'], "password":db['password']}
 	return dbs
 
@@ -146,3 +147,15 @@ def mkdir_p(path):
 def get_editor():
     return os.environ["EDITOR"] if os.environ.has_key("EDITOR") else "vim"
 
+
+def add_grafana_dashboard(grafana_endpoint,client,quiet):
+        dir = os.path.dirname(os.path.abspath(__file__))
+	filename = os.path.join(dir, "grafana/client-dashboard.json")
+	f = open(filename, 'r')
+	jStr = " ".join(f.readlines())
+        jStr = jStr.replace("%CLIENT%",client)
+        headers = {}
+        headers["content-type"] = "application/json"
+        r = requests.post(grafana_endpoint+"/api/dashboards/db",data=jStr,headers=headers)
+        if not quiet:
+                print "Adding grafana dashboard, response code",r.status_code

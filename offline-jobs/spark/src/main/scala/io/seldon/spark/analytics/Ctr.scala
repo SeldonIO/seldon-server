@@ -88,21 +88,41 @@ class Ctr(private val sc : SparkContext,config : CtrConfig) {
   def sendStatsToInfluxDb(data : org.apache.spark.sql.SchemaRDD,iHost : String, iUser : String, iPass : String) = {
     import org.influxdb.InfluxDBFactory
     import java.util.concurrent.TimeUnit
+    import org.influxdb.InfluxDBFactory
+    import org.influxdb.dto.Point
+    import org.influxdb.dto.BatchPoints
+    import java.util.concurrent.TimeUnit
+    
     
     val influxDB = InfluxDBFactory.connect("http://"+iHost+":8086", iUser, iPass);
     
     val rows = data.collect()
-    val serie = new org.influxdb.dto.Serie.Builder("impressions")
-            .columns("time", "client", "impressions", "clicks")
+    
+    val batchPoints = BatchPoints
+                .database("stats")
+                .tag("async", "true")
+                .retentionPolicy("default")
+                .build();
+    
+    //val serie = new org.influxdb.dto.Serie.Builder("impressions")
+    //        .columns("time", "client", "impressions", "clicks")
     for(row <- rows)
     {
       val date = new DateTime(row.getInt(1),row.getInt(2),row.getInt(3),0,0)
       val client = row.getString(0)
       val imps = row.getLong(4)
       val clicks = row.getLong(5)
-      serie.values(date.getMillis() : java.lang.Long,client,imps : java.lang.Long,clicks : java.lang.Long)
+      val point1 = Point.measurement("impressions")
+                    .time(date.getMillis, TimeUnit.MILLISECONDS)
+                    .tag("client", client)
+                    .addField("impressions", imps)
+                    .addField("clicks", clicks)
+                    .build();
+      batchPoints.point(point1);
+      //serie.values(date.getMillis() : java.lang.Long,client,imps : java.lang.Long,clicks : java.lang.Long)
     }
-    influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
+    influxDB.write(batchPoints);
+    //influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
   }
   
   def process(lines : org.apache.spark.rdd.RDD[String],iHost : String, iUser : String, iPass : String) = 

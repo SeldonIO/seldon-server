@@ -47,13 +47,14 @@ case class ImpressionsStatsConfig(
     kafka_topics : String = "impressionstopic",
     kafka_numThreadPartitions : Int = 1,
     influxdb_host : String = "",
+    influxdb_port : Int = 8086,
     influxdb_user : String = "",
     influxdb_pass : String = "",
     influxdb_db : String = "stats",
-    influxdb_series : String = "impressions_stream" 
+    influxdb_measurement : String = "impressions" 
     )
 
-case class Impression(consumer: String, time : Long, imp : Int, click : Int)
+case class Impression(consumer: String, rectag : String, variation : String, time : Long, imp : Int, click : Int)
 
 class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : ImpressionsStatsConfig) {
 
@@ -66,16 +67,20 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       implicit val formats = DefaultFormats
       val json = parse(line)
       val tag = (json \ "tag").extract[String]
-      if (tag == "restapi.ctr")
+      if (tag == "restapi.ctralg")
       {
         val time = (json \ "time").extract[Long]
         val timeSecs = time / 60
         val consumer = (json \ "consumer").extract[String]
+        var rectag = (json \ "rectag").extract[String]
+        var abkey = (json \ "abkey").extract[String]
+        if (rectag == "null"){ rectag = "default" }
+        if (abkey == "-"){ abkey = "all" }
         val click = (json \ "click").extract[String]
         if (click == "IMP")
-          Seq((consumer+timeSecs.toString(),(consumer,time,1,0)))
+          Seq((consumer+"_"+rectag+"_"+abkey+timeSecs.toString(),Impression(consumer,rectag,abkey,time,1,0)))
         else
-          Seq((consumer+timeSecs.toString(),(consumer,time,0,1)))
+          Seq((consumer+"_"+rectag+"_"+abkey+timeSecs.toString(),Impression(consumer,rectag,abkey,time,0,1)))
       }
       else
         None
@@ -84,25 +89,44 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
   }
   
 
-  def sendStatsToInfluxDb(data : org.apache.spark.rdd.RDD[(String,(String,Long,Int,Int))]) = {
+  def sendStatsToInfluxDb(data : org.apache.spark.rdd.RDD[(String,Impression)]) = {
     import org.influxdb.InfluxDBFactory
+    import org.influxdb.dto.Point
+    import org.influxdb.dto.BatchPoints
     import java.util.concurrent.TimeUnit
     
     val rows = data.collect()
     if (rows.length > 0)
     {
-      val influxDB = InfluxDBFactory.connect("http://"+config.influxdb_host+":8086", config.influxdb_user, config.influxdb_pass);
-      val serie = new org.influxdb.dto.Serie.Builder(config.influxdb_series)
-            .columns("time", "client", "impressions", "clicks")
+      val influxDB = InfluxDBFactory.connect("http://"+config.influxdb_host+":"+config.influxdb_port, config.influxdb_user, config.influxdb_pass);
+      
+      val batchPoints = BatchPoints
+                .database(config.influxdb_db)
+                .tag("async", "true")
+                .retentionPolicy("default")
+                .build();
+      
+      //val serie = new org.influxdb.dto.Serie.Builder(config.influxdb_series)
+      //      .columns("time", "client", "impressions", "clicks")
       for(row <- rows)
       {
-        val client = row._2._1
-        val imps = row._2._3
-        val clicks = row._2._4
-        val timeSecs = row._2._2
-        serie.values(timeSecs : java.lang.Long,client,imps : java.lang.Long,clicks : java.lang.Long)
+        println(row)
+        val point1 = Point.measurement(config.influxdb_measurement)
+                    .time(row._2.time, TimeUnit.SECONDS)
+                    .tag("client", row._2.consumer)
+                    .tag("rectag", row._2.rectag)
+                    .tag("variation", row._2.variation)
+                    .addField("impressions", row._2.imp)
+                    .addField("clicks", row._2.click)
+                    .build();
+      batchPoints.point(point1);
+      
+        //serie.values(timeSecs : java.lang.Long,client,imps : java.lang.Long,clicks : java.lang.Long)
       }
-      influxDB.write(config.influxdb_db, TimeUnit.SECONDS, serie.build());
+      println("Number of points "+batchPoints.getPoints.size())
+      influxDB.write(batchPoints);
+      
+      //influxDB.write(config.influxdb_db, TimeUnit.SECONDS, serie.build());
     }
   }
   
@@ -124,7 +148,7 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       
     lines.foreachRDD((rdd:RDD[String],time : Time) => 
       {
-       val stats = parseJson(rdd).reduceByKey{(i1,i2) => (i1._1,Math.max(i1._2,i2._2),i1._3+i2._3,i1._4+i2._4)}
+       val stats = parseJson(rdd).reduceByKey{(i1,i2) => (Impression(i1.consumer,i1.rectag,i1.variation,Math.max(i1.time,i2.time),i1.imp+i2.imp,i1.click+i2.click))}
        sendStatsToInfluxDb(stats)
     })
     
@@ -147,10 +171,11 @@ object InfluxdbImpressionsStatsJob
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[Unit]("testing") action { (_, c) => c.copy(testing = true) } text("testing mode - connect to port 7777")    
     opt[String]("influxdb-host") required() valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
+    opt[Int]("influxdb-port") required() valueName("influxdb port") action { (x, c) => c.copy(influxdb_port = x) } text("influx db port")    
     opt[String]("influxdb-user") required() valueName("influxdb username") action { (x, c) => c.copy(influxdb_user = x) } text("influx db username")    
     opt[String]("influxdb-pass") required() valueName("influxdb password") action { (x, c) => c.copy(influxdb_pass = x) } text("influx db password")        
     opt[String]("influxdb-db") required() valueName("influxdb db") action { (x, c) => c.copy(influxdb_db = x) } text("influx db database to use")        
-    opt[String]("influxdb-series") valueName("influxdb series") action { (x, c) => c.copy(influxdb_series = x) } text("influx db series to add to")            
+    opt[String]("influxdb-measurement") valueName("influxdb series") action { (x, c) => c.copy(influxdb_measurement = x) } text("influx db series to add to")            
     opt[String]("zk-quorum") required() valueName("zookeeper nodes") action { (x, c) => c.copy(zkQuorum = x) } text("zookeeper quorum nodes for kafka discovery")            
     opt[String]("kafka-group-id") valueName("kafka group id") action { (x, c) => c.copy(kafkaGroupId = x) } text("kafka group id")                
     opt[String]("kafka-topics") valueName("kafka topics") action { (x, c) => c.copy(kafka_topics = x) } text("kafka topics to subscribe to")                    

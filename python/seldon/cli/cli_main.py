@@ -224,7 +224,8 @@ def get_default_conf():
     "server_endpoint": "http://seldon-server",
     "spark_home": "/opt/spark",
     "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
-    "zkroot": "/seldon-data/conf/zkroot"
+    "zkroot": "/seldon-data/conf/zkroot",
+    "grafana_endpoint" : "http://monitoring-grafana"
 }
 '''
 

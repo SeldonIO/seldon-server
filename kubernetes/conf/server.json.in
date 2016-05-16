@@ -88,7 +88,7 @@
                             },
                             {
                                 "name": "td-agent",
-                                "image": "seldonio/td-agent-node:1.0.1",
+                                "image": "seldonio/td-agent-node:1.0.2",
                                 "command": [
                                     "td-agent"
                                 ],

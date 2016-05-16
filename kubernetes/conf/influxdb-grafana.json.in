@@ -1,0 +1,147 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "ReplicationController",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "influxGrafana"
+                },
+                "name": "influxdb-grafana"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "name": "influxGrafana"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "influxGrafana"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": "seldonio/influxdb:0.1",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "influxdb",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/seldon-data",
+                                        "name": "influxdb-storage"
+                                    }
+                                ]
+                            },
+                            {
+                                "env": [
+                                    {
+                                        "name": "INFLUXDB_SERVICE_URL",
+                                        "value": "http://localhost:8086"
+                                    },
+                                    {
+                                        "name": "GF_AUTH_BASIC_ENABLED",
+                                        "value": "false"
+                                    },
+                                    {
+                                        "name": "GF_AUTH_ANONYMOUS_ENABLED",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "GF_AUTH_ANONYMOUS_ORG_ROLE",
+                                        "value": "Admin"
+                                    }
+                                ],
+                                "image": "gcr.io/google_containers/heapster_grafana:v2.6.0-2",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "grafana",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/var",
+                                        "name": "grafana-storage"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+				%DATA_VOLUME%
+                                "name": "influxdb-storage"
+                            },
+                            {
+                                "emptyDir": {},
+                                "name": "grafana-storage"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "name": "monitoring-influxdb"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "nodePort": 30003,
+                        "name": "http",
+                        "port": 8083,
+                        "protocol": "TCP",
+                        "targetPort": 8083
+                    },
+                    {
+                        "nodePort": 30004,
+                        "name": "api",
+                        "port": 8086,
+                        "protocol": "TCP",
+                        "targetPort": 8086
+                    }
+                ],
+                "selector": {
+                    "name": "influxGrafana"
+                },
+                "sessionAffinity": "None",
+                "type": "%SERVICE_TYPE%"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "name": "monitoring-grafana"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "nodePort": 30002,
+                        "port": 80,
+                        "protocol": "TCP",
+                        "targetPort": 3000
+                    }
+                ],
+                "selector": {
+                    "name": "influxGrafana"
+                },
+                "sessionAffinity": "None",
+                "type": "%SERVICE_TYPE%"
+            }
+        }
+    ],
+    "kind": "List"
+}

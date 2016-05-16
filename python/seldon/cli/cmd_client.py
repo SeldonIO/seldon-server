@@ -60,7 +60,7 @@ def is_existing_client(zkroot, client_name):
     else:
         return False
 
-def add_client(zk_client, zkroot, client_name, db_name, consumer_details=None):
+def add_client(gopts,command_data,zk_client, zkroot, client_name, db_name, consumer_details=None):
     data_fpath = zkroot + "/config/dbcp/_data_"
     f = open(data_fpath)
     json = f.read()
@@ -92,7 +92,11 @@ def add_client(zk_client, zkroot, client_name, db_name, consumer_details=None):
     data_json = dict_to_json(data)
     zk_utils.node_set(zk_client, node_path, data_json)
 
-def action_list(command_data, opts):
+    grafana = command_data["conf_data"]["grafana_endpoint"]
+    if not (grafana is None or grafana == ""):
+        seldon_utils.add_grafana_dashboard(grafana,client_name,gopts.quiet)
+    
+def action_list(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
     zk_client = command_data["zkdetails"]["zk_client"]
 
@@ -131,7 +135,7 @@ def action_list(command_data, opts):
             DB_JNDI_NAME = data["DB_JNDI_NAME"] if isinstance(data, dict) and data.has_key("DB_JNDI_NAME") else ""
             print "    DB_JNDI_NAME: "+DB_JNDI_NAME
 
-def action_setup(command_data, opts):
+def action_setup(gopts,command_data, opts):
     db_name_to_use = opts.db_name
     client_name_to_setup = opts.client_name
     if db_name_to_use == None:
@@ -147,11 +151,11 @@ def action_setup(command_data, opts):
     data_fpath = get_data_fpath(zkroot, client_name_to_setup)
     if not os.path.isfile(data_fpath):
         print "Trying to create the client"
-        add_client(zk_client, zkroot, client_name_to_setup, db_name_to_use)
+        add_client(gopts,command_data,zk_client, zkroot, client_name_to_setup, db_name_to_use)
     else:
         print "Client already exists!"
 
-def action_processactions(command_data, opts):
+def action_processactions(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
     def get_valid_client():
         if not is_existing_client(zkroot, client_name):
@@ -192,7 +196,7 @@ def action_processactions(command_data, opts):
 
     spark_utils.run_spark_job(command_data, job_info, client_name)
 
-def action_processevents(command_data, opts):
+def action_processevents(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
     def get_valid_client():
         if not is_existing_client(zkroot, client_name):
@@ -246,10 +250,10 @@ def cmd_client(gopts,command_data, command_args):
 
     action = opts.action
     if action == None:
-        actions["default"](command_data, opts)
+        actions["default"](gopts,command_data, opts)
     else:
         if actions.has_key(action):
-            actions[action](command_data, opts)
+            actions[action](gopts,command_data, opts)
         else:
             print "Invalid action[{}]".format(action)
 
