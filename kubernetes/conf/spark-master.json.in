@@ -31,6 +31,12 @@
                         ],
                         "containers": [
                             {
+                                "env": [
+                                    {
+                                        "name": "SPARK_MASTER_OPTS",
+                                        "value": "-Dspark.deploy.defaultCores=1"
+                                    }
+                                ],
                                 "name": "spark-master",
                                 "image": "gcr.io/google_containers/spark:1.5.2_v1",
                                 "command": [

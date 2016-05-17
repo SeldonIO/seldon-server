@@ -92,9 +92,10 @@ def add_client(gopts,command_data,zk_client, zkroot, client_name, db_name, consu
     data_json = dict_to_json(data)
     zk_utils.node_set(zk_client, node_path, data_json)
 
-    grafana = command_data["conf_data"]["grafana_endpoint"]
-    if not (grafana is None or grafana == ""):
-        seldon_utils.add_grafana_dashboard(grafana,client_name,gopts.quiet)
+    if "grafana_endpoint" in command_data["conf_data"]:
+        grafana = command_data["conf_data"]["grafana_endpoint"]
+        if not (grafana is None or grafana == ""):
+            seldon_utils.add_grafana_dashboard(grafana,client_name,gopts.quiet)
     
 def action_list(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]

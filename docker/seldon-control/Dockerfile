@@ -1,4 +1,4 @@
-FROM seldonio/pyseldon:1.17
+FROM seldonio/pyseldon:1.18
 
 RUN \
     apt-get update && \
@@ -61,6 +61,8 @@ WORKDIR $SELDON_HOME
 
 ARG SELDON_SPARK_VERSION
 COPY ./seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar $SELDON_HOME/libs/
+
+RUN ln -s $SELDON_HOME/libs/seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar $SELDON_HOME/libs/seldon-spark.jar
 
 ENV SELDON_TAG v1.3-alpha.1
 RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}

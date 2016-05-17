@@ -76,8 +76,8 @@
                         "terminationGracePeriodSeconds": 30,
                         "volumes": [
                             {
+                                "name": "influxdb-storage",
 				%DATA_VOLUME%
-                                "name": "influxdb-storage"
                             },
                             {
                                 "emptyDir": {},
