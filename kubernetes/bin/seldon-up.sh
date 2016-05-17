@@ -66,6 +66,10 @@ function start_spark {
             fi
         done
         kubectl create -f ${STARTUP_DIR}/../conf/spark-workers.json
+	echo "Allowing spark workers to start..."
+	sleep 5
+	#kubectl logs spark-master-controller-mqu8j | grep Registering work
+	kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
     fi
 }
 
