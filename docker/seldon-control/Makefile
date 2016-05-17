@@ -7,7 +7,7 @@ VERSION=1.3_v8
 SELDON_VERSION=1.3.1
 
 seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar:
-	docker run --name "seldon_spark_build" --rm -v ${PWD}:/mnt/build seldonio/seldon-spark-build:${SPARK_VERSION} bash -c "cp /home/seldon/seldon-server/offline-jobs/spark/target/seldon-spark.jar /mnt/build"
+	docker run --name "seldon_spark_build" --rm -v ${PWD}:/mnt/build seldonio/seldon-spark-build:${SPARK_VERSION} bash -c "cp /home/seldon/seldon-server/offline-jobs/spark/target/seldon-spark-${SELDON_VERSION}-jar-with-dependencies.jar /mnt/build"
 
 
 seldon.conf:seldon.conf.in
