@@ -11,6 +11,9 @@ build_seldonio_pyseldon:
 	@./generate-build-versions
 	@./dobuild seldonio_pyseldon 2>&1 | tee $(LOG_APPEND) build.log
 
+build_seldon_spark_build:
+	@./dobuild seldon_spark_build 2>&1 | tee $(LOG_APPEND) build.log
+
 build_all:
 	@rm -f build.log
 	@make LOG_APPEND=-a build_seldon_python_package

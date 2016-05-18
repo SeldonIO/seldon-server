@@ -38,6 +38,9 @@ case "$BUILD_TARGET" in
         seldonio_pyseldon)
             ${STARTUP_DIR}/components/seldonio_pyseldon/build_seldonio_pyseldon
             ;;
+        seldon_spark_build)
+            ${STARTUP_DIR}/components/seldon_spark_build/build_seldon_spark_build
+            ;;
         *)
             echo "unkown target: ${BUILD_TARGET}"
             exit 1

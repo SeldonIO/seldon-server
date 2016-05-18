@@ -1,4 +1,3 @@
-#VERSION=1.3_v1
 FROM maven:3.3.3-jdk-7
 
 ENV SELDON_HOME /home/seldon
