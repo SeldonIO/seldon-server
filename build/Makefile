@@ -12,6 +12,7 @@ build_seldonio_pyseldon:
 	@./dobuild seldonio_pyseldon 2>&1 | tee $(LOG_APPEND) build.log
 
 build_seldon_spark_build:
+	@./generate-build-versions
 	@./dobuild seldon_spark_build 2>&1 | tee $(LOG_APPEND) build.log
 
 build_all:
