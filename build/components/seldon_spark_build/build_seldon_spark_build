@@ -19,7 +19,7 @@ log() {
 
 log "Building seldonio_pyseldon"
 
-source ${SELDON_SERVER_HOME}/build/build_versions
+source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
 cd ${STARTUP_DIR}
 
