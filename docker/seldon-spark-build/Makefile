@@ -6,7 +6,7 @@ build_image: seldon-server.tar.gz
 
 seldon-server.tar.gz:
 	@cd ../../.. && \
-		tar --exclude='.git*' -cvf seldon-server.tar seldon-server && gzip -v seldon-server.tar
+		tar -cvf seldon-server.tar seldon-server && gzip -v seldon-server.tar
 	@mv -v ../../../seldon-server.tar.gz .
 
 clean:
