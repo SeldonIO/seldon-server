@@ -18,4 +18,5 @@ build_all:
 	@rm -f build.log
 	@make LOG_APPEND=-a build_seldon_python_package
 	@make LOG_APPEND=-a build_seldonio_pyseldon
+	@make LOG_APPEND=-a build_seldon_spark_build
 
