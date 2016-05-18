@@ -1,5 +1,7 @@
 SHELL=/bin/bash
 
+SELDON_HOME := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
+
 #
 # Simple config for hostPath setting for demo cluster
 # Will change to more complex config if we allow alternate storage volumes for demo
@@ -47,6 +49,16 @@ examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in
 server.json :server.json.in
 	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > server.json
 
+#
+# Development conf 
+#
+
+dev/server.json :dev/server.json.in
+	cat dev/server.json.in | sed -e 's|%SELDON_HOME%|$(SELDON_HOME)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > dev/server.json
+
+dev/control.json :dev/control.json.in
+	cat dev/control.json.in | sed -e 's|%SELDON_HOME%|$(SELDON_HOME)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > dev/control.json
+
 
 #
 # glusterfs
@@ -58,7 +70,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json
 
 
 #
@@ -88,3 +100,5 @@ clean:
 	rm -f examples/ml100k/ml100k-import.json
 	rm -f microservice-${MICROSERVICE_NAME}.json
 	rm -f glusterfs.json
+	rm -f dev/server.json
+	rm -f dev/control.json

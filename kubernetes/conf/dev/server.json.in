@@ -35,18 +35,28 @@
                             {
                                 "name": "action-logs",
                                 "emptyDir": {}
-                            }
+                            },
+			    {
+				"name": "java-classes",
+				"hostPath": {"path": "%SELDON_HOME%/server/target/classes"}
+			    }
                         ],
                         "containers": [
                             {
                                 "name": "seldon-server",
                                 "image": "seldonio/seldon-server:1.3_v1",
-                                "command": [
-                                    "/home/seldon/start-server.sh"
-                                ],
+				"command": [
+                                    "/home/seldon/start-server-debug.sh"
+				],
                                 "ports": [
                                     {
+					"name": "api",
                                         "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+					"name": "debug",
+                                        "containerPort": 8000,
                                         "protocol": "TCP"
                                     }
                                 ],
@@ -69,21 +79,12 @@
                                     {
                                         "name": "action-logs",
                                         "mountPath": "/home/seldon/logs/actions"
+                                    },
+                                    {
+                                        "name": "java-classes",
+                                        "mountPath": "/home/seldon/ROOT/WEB-INF/classes"
                                     }
                                 ],
-                                "livenessProbe": {
-                                    "httpGet": {
-                                        "path": "/",
-                                        "port": 8080,
-                                        "scheme": "HTTP"
-                                    },
-                                    "initialDelaySeconds": 60,
-                                    "timeoutSeconds": 1,
-                                    "periodSeconds": 10,
-                                    "successThreshold": 1,
-                                    "failureThreshold": 3
-                                },
-                                "terminationMessagePath": "/dev/termination-log",
                                 "imagePullPolicy": "IfNotPresent"
                             },
                             {
@@ -129,16 +130,24 @@
             "spec": {
                 "ports": [
                     {
+			"name":"api",
                         "protocol": "TCP",
                         "port": 80,
                         "targetPort": 8080,
 			"nodePort": 30000
+                    },
+                    {
+			"name":"debug",
+                        "protocol": "TCP",
+                        "port": 8000,
+                        "targetPort": 8000,
+			"nodePort": 30001
                     }
                 ],
                 "selector": {
                     "name": "seldon-server"
                 },
-                "type": "%SERVICE_TYPE%",
+                "type": "NodePort",
                 "sessionAffinity": "None"
             }
         }
