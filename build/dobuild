@@ -6,6 +6,13 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+if [[ $# < 1 ]]; then
+    echo "Need target"
+    exit 1
+fi
+
+BUILD_TARGET=$1
+
 ts() {
     date +"%Y%m%d_%H%M%S"
 }
@@ -24,6 +31,15 @@ log "Starting build"
 export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
 log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
 
-${STARTUP_DIR}/components/seldon_python_package/build_seldon_python_package
-${STARTUP_DIR}/components/seldonio_pyseldon/build_seldonio_pyseldon
+case "$BUILD_TARGET" in
+        seldon_python_package)
+            ${STARTUP_DIR}/components/seldon_python_package/build_seldon_python_package
+            ;;
+        seldonio_pyseldon)
+            ${STARTUP_DIR}/components/seldonio_pyseldon/build_seldonio_pyseldon
+            ;;
+        *)
+            echo "unkown target: ${BUILD_TARGET}"
+            exit 1
+esac
 
