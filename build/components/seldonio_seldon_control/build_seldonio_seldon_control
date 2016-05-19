@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+ts() {
+    date +"%Y%m%d_%H%M%S"
+}
+
+log() {
+    echo "$(ts) $1"
+}
+
+#From Env
+#${SELDON_SERVER_HOME}
+
+log "Building seldonio_seldon_control"
+
+source ${SELDON_SERVER_HOME}/build/build_versions_generated
+
+cd ${SELDON_SERVER_HOME}/docker/seldon-control
+make clean
+make \
+    SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} \
+    SELDON_SPARK_BUILD_IMAGE_VERSION=${SELDON_SPARK_BUILD_IMAGE_VERSION} \
+    SELDON_CONTROL_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION} \
+    SELDON_SPARK_VERSION=${SELDON_SPARK_VERSION} \
+    build_image
+
+BUILT_IMAGE=$(docker images|grep seldonio/seldon-control|grep ${SELDON_CONTROL_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+log "built $BUILT_IMAGE"
+

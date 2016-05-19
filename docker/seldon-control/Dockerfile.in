@@ -1,4 +1,4 @@
-FROM seldonio/pyseldon:1.17
+FROM seldonio/pyseldon:%SELDON_PYTHON_PACKAGE_VERSION%
 
 RUN \
     apt-get update && \
@@ -12,8 +12,11 @@ WORKDIR $SELDON_HOME
 
 COPY ./*.jar $SELDON_HOME/libs/
 
-ENV SELDON_TAG v1.3-alpha.1
-RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
+### TODO Remove seldon-server from docker-control after testing
+###COPY seldon-server.tar.gz ${SELDON_HOME}/
+###RUN cd ${SELDON_HOME} && \
+###    tar xfz seldon-server.tar.gz && \
+###    rm -fv seldon-server.tar.gz
 
 RUN \
   apt-get update && \
@@ -56,6 +59,4 @@ RUN (mkdir /root/.seldon && ln -s /home/seldon/seldon.conf /root/.seldon/seldon.
 RUN mkdir -p /seldon-data/conf
 RUN mkdir -p /seldon-data/seldon-models
 VOLUME /seldon-data
-
-
 
