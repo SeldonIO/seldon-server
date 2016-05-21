@@ -34,12 +34,16 @@
                                 "volumeMounts": [
                                     {
                                         "mountPath": "/seldon-data",
-                                        "name": "influxdb-storage"
+                                        "name": "storage"
                                     }
                                 ]
                             },
                             {
                                 "env": [
+                                    {
+                                        "name": "INFLUXDB_DATABASE",
+                                        "value": "seldon"
+                                    },
                                     {
                                         "name": "INFLUXDB_SERVICE_URL",
                                         "value": "http://localhost:8086"
@@ -57,15 +61,15 @@
                                         "value": "Admin"
                                     }
                                 ],
-                                "image": "gcr.io/google_containers/heapster_grafana:v2.6.0-2",
+                                "image": "seldonio/grafana:0.1",
                                 "imagePullPolicy": "IfNotPresent",
                                 "name": "grafana",
                                 "resources": {},
                                 "terminationMessagePath": "/dev/termination-log",
                                 "volumeMounts": [
                                     {
-                                        "mountPath": "/var",
-                                        "name": "grafana-storage"
+                                        "mountPath": "/seldon-data",
+                                        "name": "storage"
                                     }
                                 ]
                             }
@@ -76,12 +80,8 @@
                         "terminationGracePeriodSeconds": 30,
                         "volumes": [
                             {
-                                "name": "influxdb-storage",
+                                "name": "storage",
 				%DATA_VOLUME%
-                            },
-                            {
-                                "emptyDir": {},
-                                "name": "grafana-storage"
                             }
                         ]
                     }

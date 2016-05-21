@@ -21,7 +21,7 @@
                 "containers": [
                     {
                         "name": "td-agent-server",
-                        "image": "seldonio/td-agent-server:1.0.3",
+                        "image": "seldonio/td-agent-server:1.0.4",
                         "ports": [
                             {
                                 "containerPort": 24224,

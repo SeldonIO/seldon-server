@@ -23,8 +23,10 @@ function stop_spark {
     spark_running=$(kubectl get pod --selector=component=spark-master --no-headers=true | wc -l)
     if [ "$spark_running" -ne "0" ]; then
 	echo 'Stopping Spark Cluster'
+	kubectl delete -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
 	kubectl delete -f ${STARTUP_DIR}/../conf/spark-master.json
 	kubectl delete -f ${STARTUP_DIR}/../conf/spark-workers.json
+
     fi
 }
 

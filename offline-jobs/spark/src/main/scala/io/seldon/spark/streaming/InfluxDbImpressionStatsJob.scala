@@ -65,6 +65,7 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       import org.json4s._
       import org.json4s.jackson.JsonMethods._
       implicit val formats = DefaultFormats
+      println(line)
       val json = parse(line)
       val tag = (json \ "tag").extract[String]
       if (tag == "restapi.ctralg")

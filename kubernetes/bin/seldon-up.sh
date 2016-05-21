@@ -84,7 +84,7 @@ function start_glusterfs_service {
 function setup_influxdb {
 
     INFLUXDB_POD=`kubectl get pods -l name=influxGrafana | sed 1d | cut -d' ' -f1 |sed -e 's/^[ \t]*//'`
-    kubectl exec ${INFLUXDB_POD} -- influx --execute 'create database seldon'
+    kubectl exec ${INFLUXDB_POD} -- influx --execute 'create database IF NOT EXISTS seldon'
 
 }
 

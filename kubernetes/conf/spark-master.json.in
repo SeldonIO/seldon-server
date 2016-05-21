@@ -34,7 +34,7 @@
                                 "env": [
                                     {
                                         "name": "SPARK_MASTER_OPTS",
-                                        "value": "-Dspark.deploy.defaultCores=1"
+                                        "value": "-Dspark.deploy.defaultCores=2"
                                     }
                                 ],
                                 "name": "spark-master",

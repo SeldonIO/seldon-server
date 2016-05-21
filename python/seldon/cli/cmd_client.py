@@ -92,6 +92,8 @@ def add_client(gopts,command_data,zk_client, zkroot, client_name, db_name, consu
     data_json = dict_to_json(data)
     zk_utils.node_set(zk_client, node_path, data_json)
 
+
+def add_client_dashboard(gopts,command_data,client_name):
     if "grafana_endpoint" in command_data["conf_data"]:
         grafana = command_data["conf_data"]["grafana_endpoint"]
         if not (grafana is None or grafana == ""):
@@ -153,7 +155,9 @@ def action_setup(gopts,command_data, opts):
     if not os.path.isfile(data_fpath):
         print "Trying to create the client"
         add_client(gopts,command_data,zk_client, zkroot, client_name_to_setup, db_name_to_use)
+        add_client_dashboard(gopts,command_data,client_name_to_setup)
     else:
+        add_client_dashboard(gopts,command_data,client_name_to_setup)
         print "Client already exists!"
 
 def action_processactions(gopts,command_data, opts):
