@@ -2,6 +2,7 @@
 {
   "id": null,
   "title": "%CLIENT%",
+  "originalTitle": "%CLIENT%",
   "tags": [],
   "style": "dark",
   "timezone": "browser",
@@ -9,6 +10,329 @@
   "hideControls": false,
   "sharedCrosshair": false,
   "rows": [
+    {
+      "title": "New row",
+      "height": "100px",
+      "editable": true,
+      "collapse": false,
+      "panels": [
+        {
+          "title": "Panel Title",
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "type": "text",
+          "isNew": true,
+          "id": 7,
+          "mode": "markdown",
+          "content": "# Seldon Dashboard : %CLIENT%\n## API Stats",
+          "style": {},
+          "links": [],
+          "height": ""
+        }
+      ]
+    },
+    {
+      "title": "API Analytics",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "panels": [
+        {
+          "title": "API Request Time",
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "type": "graph",
+          "isNew": true,
+          "id": 5,
+          "datasource": null,
+          "renderer": "flot",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ],
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "rightMax": null,
+            "leftMin": null,
+            "rightMin": null,
+            "rightLogBase": 1,
+            "threshold1": null,
+            "threshold2": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "lines": true,
+          "fill": 1,
+          "linewidth": 2,
+          "points": false,
+          "pointradius": 5,
+          "bars": false,
+          "stack": false,
+          "percentage": false,
+          "legend": {
+            "show": true,
+            "values": false,
+            "min": false,
+            "max": false,
+            "current": false,
+            "total": false,
+            "avg": false
+          },
+          "nullPointMode": "connected",
+          "steppedLine": false,
+          "tooltip": {
+            "value_type": "cumulative",
+            "shared": true
+          },
+          "timeFrom": null,
+          "timeShift": null,
+          "targets": [
+            {
+              "refId": "A",
+              "dsType": "influxdb",
+              "resultFormat": "time_series",
+              "tags": [],
+              "groupBy": [
+                {
+                  "type": "time",
+                  "params": [
+                    "$interval"
+                  ]
+                },
+                {
+                  "type": "fill",
+                  "params": [
+                    "null"
+                  ]
+                }
+              ],
+              "select": [
+                [
+                  {
+                    "type": "field",
+                    "params": [
+                      "value"
+                    ]
+                  },
+                  {
+                    "type": "mean",
+                    "params": []
+                  }
+                ]
+              ],
+              "rawQuery": true,
+              "query": "select mean(exectime) from requests WHERE client = '%CLIENT%' and  $timeFilter GROUP BY  time(1m),path,httpmethod fill(null)"
+            }
+          ],
+          "aliasColors": {},
+          "seriesOverrides": [],
+          "links": []
+        },
+        {
+          "title": "API Requests",
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "type": "graph",
+          "isNew": true,
+          "id": 6,
+          "datasource": null,
+          "renderer": "flot",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ],
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "rightMax": null,
+            "leftMin": null,
+            "rightMin": null,
+            "rightLogBase": 1,
+            "threshold1": null,
+            "threshold2": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "lines": true,
+          "fill": 1,
+          "linewidth": 2,
+          "points": false,
+          "pointradius": 5,
+          "bars": false,
+          "stack": false,
+          "percentage": false,
+          "legend": {
+            "show": true,
+            "values": false,
+            "min": false,
+            "max": false,
+            "current": false,
+            "total": false,
+            "avg": false
+          },
+          "nullPointMode": "connected",
+          "steppedLine": false,
+          "tooltip": {
+            "value_type": "cumulative",
+            "shared": true
+          },
+          "timeFrom": null,
+          "timeShift": null,
+          "targets": [
+            {
+              "refId": "A",
+              "dsType": "influxdb",
+              "resultFormat": "time_series",
+              "tags": [],
+              "groupBy": [
+                {
+                  "type": "time",
+                  "params": [
+                    "$interval"
+                  ]
+                },
+                {
+                  "type": "fill",
+                  "params": [
+                    "null"
+                  ]
+                }
+              ],
+              "select": [
+                [
+                  {
+                    "type": "field",
+                    "params": [
+                      "value"
+                    ]
+                  },
+                  {
+                    "type": "mean",
+                    "params": []
+                  }
+                ]
+              ],
+              "rawQuery": true,
+              "query": "select sum(count) from requests WHERE client = '%CLIENT%' and  $timeFilter GROUP BY  time(1m),path,httpmethod fill(null)"
+            }
+          ],
+          "aliasColors": {},
+          "seriesOverrides": [],
+          "links": []
+        }
+      ]
+    },
+    {
+      "title": "New row",
+      "height": "100px",
+      "editable": true,
+      "collapse": false,
+      "panels": [
+        {
+          "title": "Panel Title",
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "type": "text",
+          "isNew": true,
+          "id": 8,
+          "mode": "markdown",
+          "content": "## Content Recommendation Stats",
+          "style": {}
+        },
+        {
+          "title": "Panel Title",
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "type": "singlestat",
+          "isNew": true,
+          "id": 9,
+          "links": [],
+          "datasource": null,
+          "maxDataPoints": 100,
+          "interval": null,
+          "targets": [
+            {
+              "refId": "A",
+              "dsType": "influxdb",
+              "resultFormat": "time_series",
+              "tags": [],
+              "groupBy": [
+                {
+                  "type": "time",
+                  "params": [
+                    "$interval"
+                  ]
+                },
+                {
+                  "type": "fill",
+                  "params": [
+                    "null"
+                  ]
+                }
+              ],
+              "select": [
+                [
+                  {
+                    "type": "field",
+                    "params": [
+                      "count"
+                    ]
+                  },
+                  {
+                    "type": "sum",
+                    "params": []
+                  }
+                ]
+              ],
+              "rawQuery": false,
+              "query": "SELECT sum(\"count\") FROM \"requests\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "measurement": "requests"
+            }
+          ],
+          "cacheTimeout": null,
+          "format": "none",
+          "prefix": "Requests",
+          "postfix": "",
+          "nullText": null,
+          "valueMaps": [
+            {
+              "value": "null",
+              "op": "=",
+              "text": "N/A"
+            }
+          ],
+          "nullPointMode": "connected",
+          "valueName": "total",
+          "prefixFontSize": "50%",
+          "valueFontSize": "80%",
+          "postfixFontSize": "50%",
+          "thresholds": "",
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": [
+            "rgba(246, 58, 58, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "sparkline": {
+            "show": false,
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "fillColor": "rgba(31, 118, 189, 0.18)"
+          }
+        }
+      ]
+    },
     {
       "collapse": false,
       "editable": true,
@@ -74,7 +398,7 @@
                 }
               ],
               "measurement": "impressions",
-              "query": "SELECT sum(\"impressions\"), sum(\"clicks\") FROM \"impressions\" WHERE $timeFilter and client = '%CLIENT%'  GROUP BY time(1m) fill(null)",
+              "query": "SELECT sum(\"impressions\") as impressions, sum(\"clicks\") as clicks FROM \"impressions\" WHERE $timeFilter and client = '%CLIENT%'  GROUP BY time(1m) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -104,7 +428,8 @@
                   }
                 ]
               ],
-              "tags": []
+              "tags": [],
+              "alias": "$col"
             }
           ],
           "timeFrom": null,
@@ -181,7 +506,7 @@
                   "type": "fill"
                 }
               ],
-              "query": "select (sum(clicks)/(sum(impressions)*1.0)*100.0) from impressions WHERE client = '%CLIENT%' and  $timeFilter GROUP BY time(1m) fill(null)",
+              "query": "select (sum(clicks)/(sum(impressions)*1.0)*100.0) as CTR from impressions WHERE client = '%CLIENT%' and  $timeFilter GROUP BY time(1m) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -199,7 +524,8 @@
                   }
                 ]
               ],
-              "tags": []
+              "tags": [],
+              "alias": "$col"
             }
           ],
           "timeFrom": null,
@@ -269,7 +595,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "",
+              "alias": "$col $tag_rectag $tag_variation",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -285,7 +611,7 @@
                   "type": "fill"
                 }
               ],
-              "query": "SELECT sum(\"impressions\"), sum(\"clicks\") FROM \"impressions\" WHERE client = '%CLIENT%' and  $timeFilter GROUP BY time(1m),rectag,variation fill(null)",
+              "query": "SELECT sum(\"impressions\") as impressions, sum(\"clicks\") as clicks FROM \"impressions\" WHERE client = '%CLIENT%' and  $timeFilter GROUP BY time(1m),rectag,variation fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -365,7 +691,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "alias": "$tag_rectag $tag_variation",
+              "alias": "$col $tag_rectag $tag_variation",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -381,7 +707,7 @@
                   "type": "fill"
                 }
               ],
-              "query": "select (sum(clicks)/(sum(impressions)*1.0)*100.0) from impressions WHERE client = '%CLIENT%' and  $timeFilter GROUP BY time(1m),rectag,variation fill(null)",
+              "query": "select (sum(clicks)/(sum(impressions)*1.0)*100.0) as CTR from impressions WHERE client = '%CLIENT%' and  $timeFilter GROUP BY time(1m),rectag,variation fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -422,7 +748,7 @@
     }
   ],
   "time": {
-    "from": "now-3h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -458,7 +784,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 3,
+  "version": 0,
   "links": []
 },
  "overwrite": false

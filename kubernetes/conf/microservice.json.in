@@ -5,7 +5,8 @@
                 "name": "%NAME%",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "%NAME%"
+                    "name": "%NAME%",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -63,7 +64,8 @@
                 "creationTimestamp": null,
                 "labels": {
                     "name": "%NAME%",
-                    "type": "microservice"
+                    "type": "microservice",
+		    "service" : "seldon"
                 }
             },
             "spec": {

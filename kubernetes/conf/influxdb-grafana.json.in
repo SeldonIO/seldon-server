@@ -7,7 +7,8 @@
             "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "influxGrafana"
+                    "name": "influxGrafana",
+		    "service" : "seldon"
                 },
                 "name": "influxdb-grafana"
             },
@@ -20,7 +21,8 @@
                     "metadata": {
                         "creationTimestamp": null,
                         "labels": {
-                            "name": "influxGrafana"
+                            "name": "influxGrafana",
+			    "service": "seldon"
                         }
                     },
                     "spec": {
@@ -93,7 +95,10 @@
             "kind": "Service",
             "metadata": {
                 "creationTimestamp": null,
-                "name": "monitoring-influxdb"
+                "name": "monitoring-influxdb",
+                "labels": {
+		    "service": "seldon"
+                }
             },
             "spec": {
                 "ports": [
@@ -124,7 +129,10 @@
             "kind": "Service",
             "metadata": {
                 "creationTimestamp": null,
-                "name": "monitoring-grafana"
+                "name": "monitoring-grafana",
+                "labels": {
+		    "service": "seldon"
+                }
             },
             "spec": {
                 "ports": [

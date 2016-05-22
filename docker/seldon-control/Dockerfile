@@ -74,6 +74,7 @@ RUN mkdir -p /seldon-data/conf
 RUN mkdir -p /seldon-data/seldon-models
 VOLUME /seldon-data
 
+COPY client-dashboard.json $SELDON_HOME
 
 
 

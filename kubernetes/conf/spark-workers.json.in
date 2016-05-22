@@ -4,7 +4,8 @@
     "metadata": {
         "name": "spark-worker-controller",
         "labels": {
-            "component": "spark-worker"
+            "component": "spark-worker",
+	    "service" : "seldon"
         }
     },
     "spec": {
@@ -16,7 +17,8 @@
             "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                    "component": "spark-worker"
+                    "component": "spark-worker",
+		    "service" : "seldon"
                 }
             },
             "spec": {

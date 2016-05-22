@@ -184,5 +184,6 @@
     "spark_home": "/opt/spark",
     "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
     "zkroot": "/seldon-data/conf/zkroot",
-    "grafana_endpoint" : "http://monitoring-grafana"
+    "grafana_endpoint" : "http://monitoring-grafana",
+    "grafana_dashboard_template" : "/home/seldon/client-dashboard.json"
 }

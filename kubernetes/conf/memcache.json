@@ -8,7 +8,8 @@
             "metadata": {
                 "name": "memcached1",
                 "labels": {
-                    "name": "memcached1"
+                    "name": "memcached1",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -48,7 +49,8 @@
                 "name": "memcached1",
                 "labels": {
                     "app": "memcache",
-                    "name": "memcached1"
+                    "name": "memcached1",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -72,7 +74,8 @@
             "metadata": {
                 "name": "memcached2",
                 "labels": {
-                    "name": "memcached2"
+                    "name": "memcached2",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -111,7 +114,8 @@
                 "name": "memcached2",
                 "labels": {
                     "app": "memcache",
-                    "name": "memcached2"
+                    "name": "memcached2",
+		    "service" : "seldon"
                 }
             },
             "spec": {

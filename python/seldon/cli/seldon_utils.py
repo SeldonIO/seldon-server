@@ -148,9 +148,12 @@ def get_editor():
     return os.environ["EDITOR"] if os.environ.has_key("EDITOR") else "vim"
 
 
-def add_grafana_dashboard(grafana_endpoint,client,quiet):
-        dir = os.path.dirname(os.path.abspath(__file__))
-	filename = os.path.join(dir, "grafana/client-dashboard.json")
+def add_grafana_dashboard(grafana_endpoint,client,quiet,template):
+        if template is None:
+                dir = os.path.dirname(os.path.abspath(__file__))
+                filename = os.path.join(dir, "grafana/client-dashboard.json")
+        else:
+                filename = template
 	f = open(filename, 'r')
 	jStr = " ".join(f.readlines())
         jStr = jStr.replace("%CLIENT%",client)

@@ -50,7 +50,7 @@ case class ImpressionsStatsConfig(
     influxdb_port : Int = 8086,
     influxdb_user : String = "",
     influxdb_pass : String = "",
-    influxdb_db : String = "stats",
+    influxdb_db : String = "seldon",
     influxdb_measurement : String = "impressions" 
     )
 
@@ -111,7 +111,6 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       //      .columns("time", "client", "impressions", "clicks")
       for(row <- rows)
       {
-        println(row)
         val point1 = Point.measurement(config.influxdb_measurement)
                     .time(row._2.time, TimeUnit.SECONDS)
                     .tag("client", row._2.consumer)

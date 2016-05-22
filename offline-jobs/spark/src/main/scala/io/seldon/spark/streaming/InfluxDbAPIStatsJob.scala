@@ -38,7 +38,7 @@ case class APIStatsConfig(
 
 case class Request(consumer: String, time : Long, httpmethod : String, path : String, exectime : Int, count : Int)
 
-class InfluxDbAPIStatsJob(private val sc : StreamingContext,config : APIStatsConfig) {
+class InfluxdbAPIStatsJob(private val sc : StreamingContext,config : APIStatsConfig) {
 
   def parseJson(lines : org.apache.spark.rdd.RDD[String]) = {
     
@@ -136,7 +136,7 @@ class InfluxDbAPIStatsJob(private val sc : StreamingContext,config : APIStatsCon
 }
 
 
-object InfluxDbAPIStatsJob
+object InfluxdbAPIStatsJob
 {
   def main(args: Array[String]) 
   {
@@ -145,7 +145,7 @@ object InfluxDbAPIStatsJob
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
     val parser = new scopt.OptionParser[APIStatsConfig]("ClusterUsersByDimension") {
-    head("InfluxDbAPIStatsJob", "1.x")
+    head("InfluxdbAPIStatsJob", "1.x")
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[Unit]("testing") action { (_, c) => c.copy(testing = true) } text("testing mode - connect to port 7777")    
     opt[String]("influxdb-host") required() valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
@@ -163,7 +163,7 @@ object InfluxDbAPIStatsJob
     
     parser.parse(args, APIStatsConfig()) map { config =>
     val conf = new SparkConf()
-      .setAppName("InfluxDbAPIStats Job")
+      .setAppName("InfluxdbAPIStats Job")
       
     if (config.local)
       conf.setMaster("local[2]")
@@ -173,7 +173,7 @@ object InfluxDbAPIStatsJob
     try
     {
       println(config)
-      val cByd = new InfluxDbAPIStatsJob(sc,config)
+      val cByd = new InfluxdbAPIStatsJob(sc,config)
       cByd.run()
     }
     finally

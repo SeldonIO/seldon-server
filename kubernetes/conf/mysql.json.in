@@ -9,7 +9,8 @@
             "metadata": {
                 "name": "mysql",
                 "labels": {
-                    "name": "mysql"
+                    "name": "mysql",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -53,7 +54,8 @@
             "metadata": {
                 "name": "mysql",
                 "labels": {
-                    "name": "mysql"
+                    "name": "mysql",
+		    "service" : "seldon"
                 }
             },
             "spec": {

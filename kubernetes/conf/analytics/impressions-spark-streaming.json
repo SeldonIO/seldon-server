@@ -2,7 +2,10 @@
     "kind": "Pod",
     "apiVersion": "v1",
     "metadata": {
-        "name": "spark-streaming-impressions"
+        "name": "spark-streaming-impressions",
+        "labels": {
+	    "service" : "seldon"
+        }
     },
     "spec": {
         "containers": [
@@ -10,7 +13,7 @@
                 "name": "spark-streaming-impressions",
                 "image": "seldonio/seldon-control:1.3_v8",
                 "command": [
-		    "/opt/spark/bin/spark-submit", "--master", "spark://spark-master:7077", "--deploy-mode","client","--class","io.seldon.spark.streaming.InfluxdbImpressionsStatsJob","/home/seldon/libs/seldon-spark.jar","--influxdb-host","monitoring-influxdb","--influxdb-port","8086","--influxdb-user","root","--influxdb-pass","root","--zk-quorum","zookeeper-1","--influxdb-db","seldon","--kafka-group-id","1","--kafka-topics","ctr_full","--kafka-thread-partitions","2"
+		    "/opt/spark/bin/spark-submit", "--master", "spark://spark-master:7077", "--deploy-mode","client","--class","io.seldon.spark.streaming.InfluxdbImpressionsStatsJob","/home/seldon/libs/seldon-spark.jar","--influxdb-host","monitoring-influxdb","--influxdb-port","8086","--influxdb-user","root","--influxdb-pass","root","--zk-quorum","zookeeper-1","--influxdb-db","seldon","--kafka-group-id","2","--kafka-topics","ctr_full","--kafka-thread-partitions","2"
                 ],
                 "terminationMessagePath": "/dev/termination-log",
                 "imagePullPolicy": "IfNotPresent"
