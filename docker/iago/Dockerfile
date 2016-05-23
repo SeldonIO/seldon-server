@@ -13,11 +13,7 @@ RUN cd iago && \
     mkdir tmp; cd tmp && \
     unzip ../target/iago-*-package-dist.zip
 
-#remove this when done - or add to above apt-get
-RUN apt-get -y -q install emacs
-
 COPY web.ramp-up.scala.in /iago/tmp
-COPY replay.txt /iago/tmp
 COPY start-load-test.sh /
 
 
