@@ -53,10 +53,40 @@ RUN pip install luigi
 COPY luigi.cfg /home/seldon/luigi.cfg
 ENV LUIGI_CONFIG_PATH /home/seldon/luigi.cfg
 
+# add Kafkacat for debugging kafka
+RUN mkdir -p /opt && \ 
+    cd /opt && \
+    git clone https://github.com/edenhill/librdkafka && \
+    cd librdkafka && \ 
+    ./configure && \
+    make && make install
+RUN mkdir -p /opt && \ 
+    cd /opt && \
+    git clone https://github.com/edenhill/kafkacat && \
+    cd kafkacat && \ 
+    ./configure && \
+    make && make install
+
+ENV SELDON_HOME /home/seldon
+RUN mkdir -p  "$SELDON_HOME"
+WORKDIR $SELDON_HOME
+
+ARG SELDON_SPARK_VERSION
+COPY ./seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar $SELDON_HOME/libs/
+
+RUN ln -s $SELDON_HOME/libs/seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar $SELDON_HOME/libs/seldon-spark.jar
+
+ENV SELDON_TAG v1.3-alpha.1
+RUN git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG}
+
 COPY seldon.conf /home/seldon
 RUN (mkdir /root/.seldon && ln -s /home/seldon/seldon.conf /root/.seldon/seldon.conf)
 
 RUN mkdir -p /seldon-data/conf
 RUN mkdir -p /seldon-data/seldon-models
 VOLUME /seldon-data
+
+COPY client-dashboard.json $SELDON_HOME
+
+
 

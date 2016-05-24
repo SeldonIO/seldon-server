@@ -1,26 +1,8 @@
-/*
- * Seldon -- open source prediction engine
- * =======================================
- * Copyright 2011-2015 Seldon Technologies Ltd and Rummble Ltd (http://www.seldon.io/)
- *
- **********************************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at       
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ********************************************************************************************** 
-*/
 package io.seldon.spark.streaming
 
+/**
+ * @author clive
+ */
 import kafka.producer._
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
@@ -38,7 +20,7 @@ import org.apache.spark.streaming.kafka._
 import org.apache.spark.storage.StorageLevel
 
 
-case class ImpressionsStatsConfig(
+case class APIStatsConfig(
     local : Boolean = false,
     testing : Boolean = false,
     mini_batch_secs : Int = 30,
@@ -51,12 +33,12 @@ case class ImpressionsStatsConfig(
     influxdb_user : String = "",
     influxdb_pass : String = "",
     influxdb_db : String = "seldon",
-    influxdb_measurement : String = "impressions" 
+    influxdb_measurement : String = "requests" 
     )
 
-case class Impression(consumer: String, rectag : String, variation : String, time : Long, imp : Int, click : Int)
+case class Request(consumer: String, time : Long, httpmethod : String, path : String, exectime : Int, count : Int)
 
-class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : ImpressionsStatsConfig) {
+class InfluxdbAPIStatsJob(private val sc : StreamingContext,config : APIStatsConfig) {
 
   def parseJson(lines : org.apache.spark.rdd.RDD[String]) = {
     
@@ -68,20 +50,16 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       println(line)
       val json = parse(line)
       val tag = (json \ "tag").extract[String]
-      if (tag == "restapi.ctralg")
+      if (tag == "restapi.calls")
       {
         val time = (json \ "time").extract[Long]
         val timeSecs = time / 60
         val consumer = (json \ "consumer").extract[String]
-        var rectag = (json \ "rectag").extract[String]
-        var abkey = (json \ "abkey").extract[String]
-        if (rectag == "null"){ rectag = "default" }
-        if (abkey == "-"){ abkey = "all" }
-        val click = (json \ "click").extract[String]
-        if (click == "IMP")
-          Seq((consumer+"_"+rectag+"_"+abkey+timeSecs.toString(),Impression(consumer,rectag,abkey,time,1,0)))
-        else
-          Seq((consumer+"_"+rectag+"_"+abkey+timeSecs.toString(),Impression(consumer,rectag,abkey,time,0,1)))
+        var path = (json \ "path").extract[String]
+        var exectimeStr = (json \ "exectime").extract[String]
+        val exectime = exectimeStr.toInt
+        var httpmethod = (json \ "httpmethod").extract[String]
+        Seq((consumer+"_"+httpmethod+"_"+path+"_"+timeSecs.toString(),Request(consumer,time,httpmethod,path,exectime,1)))
       }
       else
         None
@@ -90,7 +68,7 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
   }
   
 
-  def sendStatsToInfluxDb(data : org.apache.spark.rdd.RDD[(String,Impression)]) = {
+  def sendStatsToInfluxDb(data : org.apache.spark.rdd.RDD[(String,Request)]) = {
     import org.influxdb.InfluxDBFactory
     import org.influxdb.dto.Point
     import org.influxdb.dto.BatchPoints
@@ -114,10 +92,10 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
         val point1 = Point.measurement(config.influxdb_measurement)
                     .time(row._2.time, TimeUnit.SECONDS)
                     .tag("client", row._2.consumer)
-                    .tag("rectag", row._2.rectag)
-                    .tag("variation", row._2.variation)
-                    .addField("impressions", row._2.imp)
-                    .addField("clicks", row._2.click)
+                    .tag("httpmethod", row._2.httpmethod)
+                    .tag("path", row._2.path)
+                    .addField("exectime", row._2.exectime/row._2.count.toFloat)
+                    .addField("count", row._2.count)
                     .build();
       batchPoints.point(point1);
       
@@ -148,7 +126,7 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       
     lines.foreachRDD((rdd:RDD[String],time : Time) => 
       {
-       val stats = parseJson(rdd).reduceByKey{(i1,i2) => (Impression(i1.consumer,i1.rectag,i1.variation,Math.max(i1.time,i2.time),i1.imp+i2.imp,i1.click+i2.click))}
+       val stats = parseJson(rdd).reduceByKey{(i1,i2) => (Request(i1.consumer,Math.max(i1.time,i2.time),i1.httpmethod,i1.path,i1.exectime+i2.exectime,i1.count+i2.count))}
        sendStatsToInfluxDb(stats)
     })
     
@@ -158,7 +136,7 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
 }
 
 
-object InfluxdbImpressionsStatsJob
+object InfluxdbAPIStatsJob
 {
   def main(args: Array[String]) 
   {
@@ -166,8 +144,8 @@ object InfluxdbImpressionsStatsJob
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    val parser = new scopt.OptionParser[ImpressionsStatsConfig]("ClusterUsersByDimension") {
-    head("InfluxDbImpressionStatsJob", "1.x")
+    val parser = new scopt.OptionParser[APIStatsConfig]("ClusterUsersByDimension") {
+    head("InfluxdbAPIStatsJob", "1.x")
     opt[Unit]('l', "local") action { (_, c) => c.copy(local = true) } text("debug mode - use local Master")
     opt[Unit]("testing") action { (_, c) => c.copy(testing = true) } text("testing mode - connect to port 7777")    
     opt[String]("influxdb-host") required() valueName("influxdb host") action { (x, c) => c.copy(influxdb_host = x) } text("influx db hostname")    
@@ -183,9 +161,9 @@ object InfluxdbImpressionsStatsJob
     opt[Int]("mini-batch-secs") valueName("mini-batch secs") action { (x, c) => c.copy(mini_batch_secs = x) } text("time interval between streaming runs")                            
     }
     
-    parser.parse(args, ImpressionsStatsConfig()) map { config =>
+    parser.parse(args, APIStatsConfig()) map { config =>
     val conf = new SparkConf()
-      .setAppName("InfluxDbImpressionsStatsJob")
+      .setAppName("InfluxdbAPIStats Job")
       
     if (config.local)
       conf.setMaster("local[2]")
@@ -195,7 +173,7 @@ object InfluxdbImpressionsStatsJob
     try
     {
       println(config)
-      val cByd = new InfluxdbImpressionsStatsJob(sc,config)
+      val cByd = new InfluxdbAPIStatsJob(sc,config)
       cByd.run()
     }
     finally

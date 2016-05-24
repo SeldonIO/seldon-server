@@ -2,22 +2,22 @@
     "kind": "Pod",
     "apiVersion": "v1",
     "metadata": {
-        "name": "seldon-control",
+        "name": "iago",
         "labels": {
-            "service": "seldon"
+	    "service": "seldon"
         }
     },
     "spec": {
         "volumes": [
             {
                 "name": "data-volume",
-                %DATA_VOLUME%
+                "hostPath": {"path": "/seldon-data"}
             }
         ],
         "containers": [
             {
-                "name": "seldon-shell",
-                "image": "seldonio/seldon-control:1.3_v8",
+                "name": "iago",
+                "image": "seldonio/iago:0.1",
                 "command": [
                     "sleep",
                     "infinity"

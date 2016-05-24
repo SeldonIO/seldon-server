@@ -1,0 +1,155 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "ReplicationController",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "influxGrafana",
+		    "service" : "seldon"
+                },
+                "name": "influxdb-grafana"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "name": "influxGrafana"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "influxGrafana",
+			    "service": "seldon"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": "seldonio/influxdb:0.1",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "influxdb",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/seldon-data",
+                                        "name": "storage"
+                                    }
+                                ]
+                            },
+                            {
+                                "env": [
+                                    {
+                                        "name": "INFLUXDB_DATABASE",
+                                        "value": "seldon"
+                                    },
+                                    {
+                                        "name": "INFLUXDB_SERVICE_URL",
+                                        "value": "http://localhost:8086"
+                                    },
+                                    {
+                                        "name": "GF_AUTH_BASIC_ENABLED",
+                                        "value": "false"
+                                    },
+                                    {
+                                        "name": "GF_AUTH_ANONYMOUS_ENABLED",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "GF_AUTH_ANONYMOUS_ORG_ROLE",
+                                        "value": "Admin"
+                                    }
+                                ],
+                                "image": "seldonio/grafana:0.1",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "grafana",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/seldon-data",
+                                        "name": "storage"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "name": "storage",
+				%DATA_VOLUME%
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "name": "monitoring-influxdb",
+                "labels": {
+		    "service": "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "nodePort": 30003,
+                        "name": "http",
+                        "port": 8083,
+                        "protocol": "TCP",
+                        "targetPort": 8083
+                    },
+                    {
+                        "nodePort": 30004,
+                        "name": "api",
+                        "port": 8086,
+                        "protocol": "TCP",
+                        "targetPort": 8086
+                    }
+                ],
+                "selector": {
+                    "name": "influxGrafana"
+                },
+                "sessionAffinity": "None",
+                "type": "%SERVICE_TYPE%"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "name": "monitoring-grafana",
+                "labels": {
+		    "service": "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "nodePort": 30002,
+                        "port": 80,
+                        "protocol": "TCP",
+                        "targetPort": 3000
+                    }
+                ],
+                "selector": {
+                    "name": "influxGrafana"
+                },
+                "sessionAffinity": "None",
+                "type": "%SERVICE_TYPE%"
+            }
+        }
+    ],
+    "kind": "List"
+}

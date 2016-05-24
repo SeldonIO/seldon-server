@@ -11,3 +11,6 @@ pushd examples/iris/xgboost; make build_image; popd
 pushd examples/iris/vw; make build_image; popd
 pushd examples/iris/keras; make build_image; popd
 make build_image IMAGE_FOLDER=examples/ml100k
+make build_image IMAGE_FOLDER=grafana
+make build_image IMAGE_FOLDER=influxdb
+make build_image IMAGE_FOLDER=iago

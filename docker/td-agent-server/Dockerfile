@@ -1,4 +1,4 @@
-#VERSION=1.0.3
+#VERSION=1.0.4
 FROM seldonio/td-agent:1.0
 
 EXPOSE 24224

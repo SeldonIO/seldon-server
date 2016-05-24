@@ -318,6 +318,26 @@ def action_commit(command_data, opts):
         zk_client = command_data["zkdetails"]["zk_client"]
         node_path = gdata["all_clients_node_path"] + "/" + client_name + "/alg_rectags"
         zk_utils.node_set(zk_client, node_path, data_json)
+
+        # activate any required models
+        data = json_to_dict(data_json)
+        recommender_set = set()
+        if data["defaultStrategy"].has_key("algorithms"):
+            for alg in data["defaultStrategy"]["algorithms"]:
+                recommender_set.add(alg["name"])
+        elif data["defaultStrategy"].has_key("variations"):
+            for variation in data["defaultStrategy"]["variations"]:
+                for alg in variation["config"]["algorithms"]:
+                    recommender_set.add(alg["name"])
+        default_algorithms = command_data["conf_data"]["default_algorithms"]
+        for recommender_name in recommender_set:
+            if default_algorithms[recommender_name].has_key("zk_activate_node"):
+                print "activate",recommender_name
+                node_path = default_algorithms[recommender_name]["zk_activate_node"]
+                node_fpath = zkroot + node_path + "/_data_"
+                data_models = get_data_from_file(node_fpath)
+                zk_utils.node_set(zk_client, node_path, data_models)
+
         return
 
     #TODO remove the following once only using alg_rectags

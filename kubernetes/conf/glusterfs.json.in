@@ -4,7 +4,8 @@
   "metadata": {
     "name": "glusterfs-cluster",
     "labels": {
-	"component" : "glusterfs"
+	"component" : "glusterfs",
+	"service" : "seldon"
     }
   },
   "subsets": [
@@ -38,7 +39,10 @@
   "kind": "Service",
   "apiVersion": "v1",
   "metadata": {
-    "name": "glusterfs-cluster"
+    "name": "glusterfs-cluster",
+    "labels": {
+	"service" : "seldon"
+    }
   },
   "spec": {
     "ports": [

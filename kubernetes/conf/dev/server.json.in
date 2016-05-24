@@ -4,7 +4,8 @@
             "metadata": {
                 "name": "seldon-server",
                 "labels": {
-                    "name": "seldon-server"
+                    "name": "seldon-server",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -124,7 +125,8 @@
                 "name": "seldon-server",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "seldon-server"
+                    "name": "seldon-server",
+		    "service": "seldon"
                 }
             },
             "spec": {

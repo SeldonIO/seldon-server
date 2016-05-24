@@ -8,7 +8,8 @@
             "metadata": {
                 "name": "spark-master-controller",
                 "labels": {
-                    "component": "spark-master"
+                    "component": "spark-master",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -31,6 +32,12 @@
                         ],
                         "containers": [
                             {
+                                "env": [
+                                    {
+                                        "name": "SPARK_MASTER_OPTS",
+                                        "value": "-Dspark.deploy.defaultCores=2"
+                                    }
+                                ],
                                 "name": "spark-master",
                                 "image": "gcr.io/google_containers/spark:1.5.2_v1",
                                 "command": [
@@ -64,6 +71,9 @@
             "apiVersion": "v1",
             "metadata": {
                 "name": "spark-master",
+                "labels": {
+		    "service" : "seldon"
+                },
                 "creationTimestamp": null
             },
             "spec": {
@@ -86,6 +96,9 @@
             "apiVersion": "v1",
             "metadata": {
                 "name": "spark-webui",
+                "labels": {
+		    "service" : "seldon"
+                },
                 "creationTimestamp": null
             },
             "spec": {

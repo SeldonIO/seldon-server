@@ -82,12 +82,22 @@ class CtrByRectag(private val sc : SparkContext,config : CtrByRectagConfig) {
   def sendStatsToInfluxDb(data : org.apache.spark.sql.SchemaRDD,iHost : String, iUser : String, iPass : String) = {
     import org.influxdb.InfluxDBFactory
     import java.util.concurrent.TimeUnit
+    import java.util.concurrent.TimeUnit
+    import org.influxdb.InfluxDBFactory
+    import org.influxdb.dto.Point
+    import org.influxdb.dto.BatchPoints
+    import java.util.concurrent.TimeUnit
     
     val influxDB = InfluxDBFactory.connect("http://"+iHost+":8086", iUser, iPass);
     
     val rows = data.collect()
-    val serie = new org.influxdb.dto.Serie.Builder("impressionsbytag")
-            .columns("time", "client", "abkey", "rectag", "impressions", "clicks")
+    //val serie = new org.influxdb.dto.Serie.Builder("impressionsbytag")
+    //        .columns("time", "client", "abkey", "rectag", "impressions", "clicks")
+    val batchPoints = BatchPoints
+                .database("stats")
+                .tag("async", "true")
+                .retentionPolicy("default")
+                .build();
     for(row <- rows)
     {
       val date = new DateTime(row.getInt(3),row.getInt(4),row.getInt(5),0,0)
@@ -96,9 +106,19 @@ class CtrByRectag(private val sc : SparkContext,config : CtrByRectagConfig) {
       val rectag = row.getString(2)
       val imps = row.getLong(6)
       val clicks = row.getLong(7)
-      serie.values(date.getMillis() : java.lang.Long,client,abkey,rectag,imps : java.lang.Long,clicks : java.lang.Long)
+      val point1 = Point.measurement("impressions")
+                    .time(date.getMillis, TimeUnit.MILLISECONDS)
+                    .tag("client", client)
+                    .tag("rectag", rectag)
+                    .tag("abkey", abkey)                    
+                    .addField("impressions", imps)
+                    .addField("clicks", clicks)
+                    .build();
+      batchPoints.point(point1);
+      //serie.values(date.getMillis() : java.lang.Long,client,abkey,rectag,imps : java.lang.Long,clicks : java.lang.Long)
     }
-    influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
+    influxDB.write(batchPoints);
+    //influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
   }
   
   def process(lines : org.apache.spark.rdd.RDD[String],iHost : String, iUser : String, iPass : String) = 

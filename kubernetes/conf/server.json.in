@@ -4,7 +4,8 @@
             "metadata": {
                 "name": "seldon-server",
                 "labels": {
-                    "name": "seldon-server"
+                    "name": "seldon-server",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -88,7 +89,7 @@
                             },
                             {
                                 "name": "td-agent",
-                                "image": "seldonio/td-agent-node:1.0.1",
+                                "image": "seldonio/td-agent-node:1.0.2",
                                 "command": [
                                     "td-agent"
                                 ],
@@ -123,7 +124,8 @@
                 "name": "seldon-server",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "seldon-server"
+                    "name": "seldon-server",
+		    "service" : "seldon"
                 }
             },
             "spec": {

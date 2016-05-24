@@ -8,7 +8,8 @@
             "metadata": {
                 "name": "td-agent-server",
                 "labels": {
-                    "name": "td-agent-server"
+                    "name": "td-agent-server",
+		    "service" : "seldon"
                 }
             },
             "spec": {
@@ -21,7 +22,7 @@
                 "containers": [
                     {
                         "name": "td-agent-server",
-                        "image": "seldonio/td-agent-server:1.0.3",
+                        "image": "seldonio/td-agent-server:1.0.4",
                         "ports": [
                             {
                                 "containerPort": 24224,
@@ -45,7 +46,8 @@
                 "name": "td-agent-server",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "td-agent-server"
+                    "name": "td-agent-server",
+		    "service" : "seldon"
                 }
             },
             "spec": {

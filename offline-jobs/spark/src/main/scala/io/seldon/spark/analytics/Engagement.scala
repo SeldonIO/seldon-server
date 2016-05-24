@@ -98,14 +98,25 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
       baseline : scala.collection.mutable.Map[String,(Double,Double,Double)],
       normal : scala.collection.mutable.Map[String,(Double,Double,Double)],iHost : String, iUser : String, iPass : String) = {
     import org.influxdb.InfluxDBFactory
+
+    import java.util.concurrent.TimeUnit
+    import java.util.concurrent.TimeUnit
+    import java.util.concurrent.TimeUnit
+    import org.influxdb.InfluxDBFactory
+    import org.influxdb.dto.Point
+    import org.influxdb.dto.BatchPoints
     import java.util.concurrent.TimeUnit
     
     val influxDB = InfluxDBFactory.connect("http://"+iHost+":8086", iUser, iPass);
     val formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     val date = formatter.parseDateTime(startDate)
-    
-    val serie = new org.influxdb.dto.Serie.Builder("engagement")
-            .columns("time", "client", "abkey", "avg_time", "avg_pages", "multi_percent","diff_time","diff_pages","diff_multi")
+    val batchPoints = BatchPoints
+                .database("stats")
+                .tag("async", "true")
+                .retentionPolicy("default")
+                .build();
+    //val serie = new org.influxdb.dto.Serie.Builder("engagement")
+    //        .columns("time", "client", "abkey", "avg_time", "avg_pages", "multi_percent","diff_time","diff_pages","diff_multi")
 
     for (client <- baseline.keys)
     {
@@ -114,11 +125,36 @@ class Engagement(private val sc : SparkContext,config : EngagementConfig) {
         val (bTime,bPv,bPlus) = baseline(client)
         val (nTime,nPv,nPlus) = normal(client)
         val (dTime,dPv,dPlus) = diffs(client)
-        serie.values(date.getMillis() : java.lang.Long,client,"normal",nTime : java.lang.Double,nPv : java.lang.Double,nPlus : java.lang.Double,dTime : java.lang.Double,dPv : java.lang.Double,dPlus : java.lang.Double)
-        serie.values(date.getMillis() : java.lang.Long,client,"baseline",bTime : java.lang.Double,bPv : java.lang.Double,bPlus : java.lang.Double,-1.0 * dTime : java.lang.Double,-1.0 * dPv : java.lang.Double,-1.0 * dPlus : java.lang.Double)
+        val point1 = Point.measurement("impressions")
+                    .time(date.getMillis, TimeUnit.MILLISECONDS)
+                    .tag("client", client)
+                    .tag("abkey", "normal")
+                    .addField("avg_time", nTime)                    
+                    .addField("avg_pages", nPv)                                        
+                    .addField("multi_percent", nPlus)                                                            
+                    .addField("diff_time", dTime)                    
+                    .addField("diff_pages", dPv)                                        
+                    .addField("diff_multi", dPlus)                                                            
+                    .build();
+        batchPoints.point(point1);
+        val point2 = Point.measurement("impressions")
+                    .time(date.getMillis, TimeUnit.MILLISECONDS)
+                    .tag("client", client)
+                    .tag("abkey", "baseline")
+                    .addField("avg_time", bTime)                    
+                    .addField("avg_pages", bPv)                                        
+                    .addField("multi_percent", bPlus)                                                            
+                    .addField("diff_time", -1.0 * dTime)                    
+                    .addField("diff_pages", -1.0 * dPv)                                        
+                    .addField("diff_multi", -1.0 * dPlus)                                                            
+                    .build();
+        batchPoints.point(point2);
+        //serie.values(date.getMillis() : java.lang.Long,client,"normal",nTime : java.lang.Double,nPv : java.lang.Double,nPlus : java.lang.Double,dTime : java.lang.Double,dPv : java.lang.Double,dPlus : java.lang.Double)
+        //serie.values(date.getMillis() : java.lang.Long,client,"baseline",bTime : java.lang.Double,bPv : java.lang.Double,bPlus : java.lang.Double,-1.0 * dTime : java.lang.Double,-1.0 * dPv : java.lang.Double,-1.0 * dPlus : java.lang.Double)
       }
     }
-    influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
+    influxDB.write(batchPoints);
+    //influxDB.write("stats", TimeUnit.MILLISECONDS, serie.build());
   }
   
   def run()
