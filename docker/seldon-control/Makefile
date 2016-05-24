@@ -22,7 +22,7 @@ seldon-server.tar.gz:
 	@mv -v ../../../seldon-server.tar.gz .
 
 build_image: Dockerfile seldon-server.tar.gz seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar seldon.conf
-	docker build --force-rm=true -t seldonio/seldon-control:${SELDON_CONTROL_IMAGE_VERSION} .
+	docker build --build-arg SELDON_SPARK_VERSION=${SELDON_SPARK_VERSION} --force-rm=true -t seldonio/seldon-control:${SELDON_CONTROL_IMAGE_VERSION} .
 
 push_to_dockerhub:
 	docker login -u seldonio && \
