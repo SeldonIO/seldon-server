@@ -46,6 +46,12 @@ var rlClient = (function () {
             // removing final # if present in the query parameter
             query = query.replace(new RegExp("#" + ".*"), "");
         }
+
+        //// Fix for actual spaces appearing in the query string, eg "rlabs=3 rt$sitewide p$8"
+        /// convert these to %20 eg. "rlabs=3%20rt$sitewide%20p$8"
+        query = query.split(' ').join('%20');
+        ////
+
         if (query !== "") {
             query_params = extractQuery(query);
             underscore.each(params.track_par_list, function (par) {
