@@ -39,6 +39,8 @@ function start_api_server {
 
 function setup_basic_conf {
 
+    #push any existing conf to zookeeper
+    ${STARTUP_DIR}/seldon-cli client --action zk_push
     # Setup memcached
     ${STARTUP_DIR}/seldon-cli memcached --action setup --servers memcached1:11211,memcached2:11211
     ${STARTUP_DIR}/seldon-cli memcached --action commit
@@ -70,6 +72,7 @@ function start_spark {
 	sleep 5
 	#kubectl logs spark-master-controller-mqu8j | grep Registering work
 	kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
+	kubectl create -f ${STARTUP_DIR}/../conf/analytics/requests-spark-streaming.json
     fi
 }
 

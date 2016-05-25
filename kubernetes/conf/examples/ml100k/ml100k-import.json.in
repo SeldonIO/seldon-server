@@ -2,7 +2,11 @@
     "kind": "Job",
     "apiVersion": "batch/v1",
     "metadata": {
-        "name": "ml100k-import"
+        "name": "ml100k-import",
+        "labels": {
+            "name": "ml100k-import",
+	    "service" : "seldon"
+        }
     },
     "spec": {
         "template": {
