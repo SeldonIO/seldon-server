@@ -1,19 +1,21 @@
 SHELL=/bin/bash
 IMAGE=seldonio/iris_keras
-VERSION=1.0
+SELDON_IRIS_KERAS_IMAGE_VERSION=00
+
+Dockerfile: Dockerfile.in
+	@cat Dockerfile.in | sed 's/%SELDON_PYTHON_PACKAGE_VERSION%/$(SELDON_PYTHON_PACKAGE_VERSION)/' > Dockerfile
 
 build_image:Dockerfile
-	docker build -t ${IMAGE} .
-
-tag:
-	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
+	docker build --force-rm=true -t ${IMAGE}:$(SELDON_IRIS_KERAS_IMAGE_VERSION) .
 
 push_to_dockerhub:
 	@docker login -u seldonio && \
 		docker push $(IMAGE)
 	@docker login -u seldonio && \
-		docker push $(IMAGE):$(VERSION)
+		docker push $(IMAGE):$(SELDON_IRIS_KERAS_IMAGE_VERSION)
 
 
 
+clean:
+	@rm -fv Dockerfile
 

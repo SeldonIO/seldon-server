@@ -44,6 +44,9 @@ case "$BUILD_TARGET" in
         seldonio_seldon_control)
             ${STARTUP_DIR}/components/seldonio_seldon_control/build_seldonio_seldon_control
             ;;
+        seldonio_iris_keras)
+            ${STARTUP_DIR}/components/seldonio_iris_keras/build_seldonio_iris_keras
+            ;;
         *)
             echo "unkown target: ${BUILD_TARGET}"
             exit 1

@@ -33,9 +33,15 @@ seldon_control_image_version() {
     echo ${SELDON_CONTROL_IMAGE_VERSION}
 }
 
+seldon_iris_keras_image_version() {
+    local SELDON_IRIS_KERAS_IMAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION}${SELDON_IRIS_KERAS_IMAGE_VERSION_POSTFIX}
+    echo ${SELDON_IRIS_KERAS_IMAGE_VERSION}
+}
+
 SELDON_SPARK_VERSION=$(seldon_spark_version)
 SELDON_SERVER_VERSION=$(seldon_server_version)
 SELDON_CONTROL_IMAGE_VERSION=$(seldon_control_image_version)
+SELDON_IRIS_KERAS_IMAGE_VERSION=$(seldon_iris_keras_image_version)
 
 
 echo "#GENERATED ${TS}" > build_versions_generated
@@ -44,4 +50,5 @@ echo "SELDON_SPARK_VERSION=${SELDON_SPARK_VERSION}" >> ${STARTUP_DIR}/build_vers
 echo "SELDON_SPARK_BUILD_IMAGE_VERSION=${SELDON_SPARK_VERSION}${SELDON_SPARK_BUILD_IMAGE_VERSION_POSTFIX}" >> ${STARTUP_DIR}/build_versions_generated
 echo "SELDON_SERVER_VERSION=${SELDON_SERVER_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
 echo "SELDON_CONTROL_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
+echo "SELDON_IRIS_KERAS_IMAGE_VERSION=${SELDON_IRIS_KERAS_IMAGE_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
 
