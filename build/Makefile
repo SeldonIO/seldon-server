@@ -17,6 +17,8 @@ build_seldonio_seldon_control: build_versions_generated
 #Examples
 build_seldonio_iris_keras: build_versions_generated
 	@./dobuild seldonio_iris_keras
+build_seldonio_examples_ml100k: build_versions_generated
+	@./dobuild seldonio_examples_ml100k
 
 build_all:
 	@make build_seldon_python_package

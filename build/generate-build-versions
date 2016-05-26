@@ -51,9 +51,17 @@ seldon_iris_keras_image_version() {
     echo ${SELDON_IRIS_KERAS_IMAGE_VERSION}
 }
 
+seldon_examples_ml100k_image_version() {
+    local SELDON_EXAMPLES_ML100K_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}
+    echo ${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}
+}
+
+
 # Versions needed by other versions
 SELDON_PYTHON_PACKAGE_VERSION=$(seldon_python_package_version)
 SELDON_SPARK_VERSION=$(seldon_spark_version)
+SELDON_CONTROL_IMAGE_VERSION=$(seldon_control_image_version)
+
 
 # Write versions to file
 echo "#GENERATED ${TS}" > build_versions_generated
@@ -61,6 +69,7 @@ write_version "SELDON_PYTHON_PACKAGE_VERSION" "${SELDON_PYTHON_PACKAGE_VERSION}"
 write_version "SELDON_SPARK_VERSION" "${SELDON_SPARK_VERSION}"
 write_version "SELDON_SPARK_BUILD_IMAGE_VERSION" "$(seldon_spark_build_image_version)"
 write_version "SELDON_SERVER_VERSION" "$(seldon_server_version)"
-write_version "SELDON_CONTROL_IMAGE_VERSION" "$(seldon_control_image_version)"
+write_version "SELDON_CONTROL_IMAGE_VERSION" "${SELDON_CONTROL_IMAGE_VERSION}"
 write_version "SELDON_IRIS_KERAS_IMAGE_VERSION" "$(seldon_iris_keras_image_version)"
+write_version "SELDON_EXAMPLES_ML100K_IMAGE_VERSION" "$(seldon_examples_ml100k_image_version)"
 
