@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+if [[ $# < 1 ]]; then
+    echo "Need target"
+    exit 1
+fi
+
+PUBLISH_TARGET=$1
+
+ts() {
+    date +"%Y%m%d_%H%M%S"
+}
+
+log() {
+    echo "$(ts) $1"
+}
+
+get_absolute_path() {
+    [[ -d $1 ]] && { cd "$1"; echo "$(pwd -P)"; } ||
+    { cd "$(dirname "$1")"; echo "$(pwd -P)/$(basename "$1")"; }
+}
+
+log "Starting publish"
+
+export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
+log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
+
+case "$PUBLISH_TARGET" in
+        seldonio_examples_ml100k)
+            ${STARTUP_DIR}/components/seldonio_examples_ml100k/publish_seldonio_examples_ml100k
+            ;;
+        *)
+            echo "unkown target: ${PUBLISH_TARGET}"
+            exit 1
+esac
+

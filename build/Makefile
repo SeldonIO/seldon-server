@@ -32,3 +32,8 @@ clean:
 build_versions_generated: build_versions
 	@./generate-build-versions
 
+
+#publish
+publish_seldonio_examples_ml100k: build_versions_generated
+	@./dopublish seldonio_examples_ml100k
+
