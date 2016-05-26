@@ -50,6 +50,9 @@ case "$BUILD_TARGET" in
         seldonio_examples_ml100k)
             ${STARTUP_DIR}/components/seldonio_examples_ml100k/build_seldonio_examples_ml100k
             ;;
+        seldonio_examples_reuters_data)
+            ${STARTUP_DIR}/components/seldonio_examples_reuters_data/build_seldonio_examples_reuters_data
+            ;;
         *)
             echo "unkown target: ${BUILD_TARGET}"
             exit 1

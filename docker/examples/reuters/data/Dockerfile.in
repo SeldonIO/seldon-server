@@ -1,5 +1,4 @@
-#VERSION=1.0
-FROM seldonio/seldon-control:1.3_v1
+FROM seldonio/seldon-control:%SELDON_CONTROL_IMAGE_VERSION%
 
 ENV REUTERS_HOME /home/seldon/reuters
 RUN mkdir -p  "$REUTERS_HOME"
@@ -16,6 +15,4 @@ RUN python create_csv.py
 ADD run_seldon_cli.sh /run_seldon_cli.sh
 
 CMD ["/run_seldon_cli.sh"]
-
-
 

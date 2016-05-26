@@ -19,6 +19,8 @@ build_seldonio_iris_keras: build_versions_generated
 	@./dobuild seldonio_iris_keras
 build_seldonio_examples_ml100k: build_versions_generated
 	@./dobuild seldonio_examples_ml100k
+build_seldonio_examples_reuters_data: build_versions_generated
+	@./dobuild seldonio_examples_reuters_data
 
 build_all:
 	@make build_seldon_python_package
