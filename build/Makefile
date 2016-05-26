@@ -27,6 +27,9 @@ build_all:
 	@make build_seldonio_pyseldon
 	@make build_seldon_spark_build
 	@make build_seldonio_seldon_control
+	@make build_seldonio_examples_ml100k
+	@make build_seldonio_examples_reuters_data
+	@make build_seldonio_iris_keras
 
 clean:
 	@rm -fv build_versions_generated
