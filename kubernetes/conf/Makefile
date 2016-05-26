@@ -2,6 +2,8 @@ SHELL=/bin/bash
 
 SELDON_HOME := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
 
+BUILD_VERSIONS_GENERATED_FILE=$(SELDON_HOME)/build/build_versions_generated
+
 #
 # Simple config for hostPath setting for demo cluster
 # Will change to more complex config if we allow alternate storage volumes for demo
@@ -46,8 +48,12 @@ influxdb-grafana.json: influxdb-grafana.json.in
 examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in
 	cat examples/reuters/import-data-job.json.in  | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > examples/reuters/import-data-job.json
 
-examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in
-	cat examples/ml100k/ml100k-import.json.in  | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > examples/ml100k/ml100k-import.json
+examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/ml100k/ml100k-import.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|" \
+				> examples/ml100k/ml100k-import.json
 
 server.json :server.json.in
 	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > server.json
@@ -90,7 +96,8 @@ microservice-${MICROSERVICE_NAME}.json:microservice.json.in
 
 microservice:microservice-${MICROSERVICE_NAME}.json
 
-
+$(BUILD_VERSIONS_GENERATED_FILE):
+	@$(SELDON_HOME)/build/generate-build-versions
 
 clean:
 	rm -f mysql.json

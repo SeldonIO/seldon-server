@@ -19,7 +19,7 @@
                 "containers": [
                     {
                         "name": "ml100k-create",
-                        "image": "seldonio/examples-ml100k:1.2",
+                        "image": "seldonio/examples-ml100k:%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%",
 			"command": ["/create_ml100k_recommender.sh"],
 			"volumeMounts": [
 			    {
