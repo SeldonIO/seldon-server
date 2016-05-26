@@ -8,7 +8,7 @@ GRAFANA_PASSWD=${GRAFANA_PASSWD:-admin}
 GRAFANA_PORT=${GRAFANA_PORT:-3000}
 
 INFLUXDB_HOST=${INFLUXDB_HOST:-"monitoring-influxdb"}
-INFLUXDB_DATABASE=${INFLUXDB_DATABASE:-k8s}
+INFLUXDB_DATABASE=${INFLUXDB_DATABASE:-seldon}
 INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD:-root}
 INFLUXDB_PORT=${INFLUXDB_PORT:-8086}
 INFLUXDB_USER=${INFLUXDB_USER:-root}
@@ -53,14 +53,6 @@ curl -i -XPOST -H "${HEADER_ACCEPT}" -H "${HEADER_CONTENT_TYPE}" "http://${GRAFA
   "database": "'"${INFLUXDB_DATABASE}"'"
 }'
 
-echo ""
-echo "Importing default dashboards..."
-for filename in ${DASHBOARD_LOCATION}/*.json; do
-  echo "Importing ${filename} ..."
-  curl -i -XPOST --data "@${filename}" -H "${HEADER_ACCEPT}" -H "${HEADER_CONTENT_TYPE}" "http://${GRAFANA_USER}:${GRAFANA_PASSWD}@localhost:${GRAFANA_PORT}/api/dashboards/db"
-  echo ""
-  echo "Done importing ${filename}"
-done
 echo ""
 echo "Bringing Grafana back to the foreground"
 fg

@@ -19,7 +19,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli client', description='Seldon Cli')
-    parser.add_argument('--action', help="the action to use", required=False, choices=['list','setup','processactions','processevents'])
+    parser.add_argument('--action', help="the action to use", required=False, choices=['list','setup','processactions','processevents','zk_push',"zk_pull"])
     parser.add_argument('--db-name', help="the name of the db", required=False)
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--input-date-string', help="The date to process in YYYYMMDD format", required=False)
@@ -164,6 +164,17 @@ def action_setup(gopts,command_data, opts):
         add_client_dashboard(gopts,command_data,client_name_to_setup)
         print "Client already exists!"
 
+def action_zk_push(gopts,command_data,opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    zk_client = command_data["zkdetails"]["zk_client"]
+    zk_utils.push_all_nodes(zk_client,zkroot)
+
+def action_zk_pull(gopts,command_data,opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+    zk_client = command_data["zkdetails"]["zk_client"]
+    zk_utils.pull_all_nodes(zk_client,zkroot)
+
+
 def action_processactions(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
     def get_valid_client():
@@ -253,6 +264,8 @@ def cmd_client(gopts,command_data, command_args):
         "setup" : action_setup,
         "processactions" : action_processactions,
         "processevents" : action_processevents,
+        "zk_push" : action_zk_push,
+        "zk_pull" : action_zk_pull,
     }
 
     opts = getOpts(command_args)
