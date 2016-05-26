@@ -54,14 +54,6 @@ curl -i -XPOST -H "${HEADER_ACCEPT}" -H "${HEADER_CONTENT_TYPE}" "http://${GRAFA
 }'
 
 echo ""
-echo "Importing default dashboards..."
-for filename in ${DASHBOARD_LOCATION}/*.json; do
-  echo "Importing ${filename} ..."
-  curl -i -XPOST --data "@${filename}" -H "${HEADER_ACCEPT}" -H "${HEADER_CONTENT_TYPE}" "http://${GRAFANA_USER}:${GRAFANA_PASSWD}@localhost:${GRAFANA_PORT}/api/dashboards/db"
-  echo ""
-  echo "Done importing ${filename}"
-done
-echo ""
 echo "Bringing Grafana back to the foreground"
 fg
 
