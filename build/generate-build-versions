@@ -10,16 +10,29 @@ source ${STARTUP_DIR}/build_versions
 
 SELDON_SERVER_HOME=${STARTUP_DIR}/..
 
-SELDON_PYTHON_PACKAGE_INIT_FILE=${SELDON_SERVER_HOME}/python/seldon/__init__.py
-
-SELDON_PYTHON_PACKAGE_VERSION=$(sed -n -e "s/__version__[ \t]*=[ \t]*'\(.*\)'/\1/p" ${SELDON_PYTHON_PACKAGE_INIT_FILE})
-
 TS=$(date +"%Y%m%d_%H%M%S")
+
+write_version() {
+    NAME=$1
+    VALUE=$2
+
+    echo "${NAME}=${VALUE}" >> ${STARTUP_DIR}/build_versions_generated
+}
+
+seldon_python_package_version() {
+    local SELDON_PYTHON_PACKAGE_INIT_FILE=${SELDON_SERVER_HOME}/python/seldon/__init__.py
+    local SELDON_PYTHON_PACKAGE_VERSION=$(sed -n -e "s/__version__[ \t]*=[ \t]*'\(.*\)'/\1/p" ${SELDON_PYTHON_PACKAGE_INIT_FILE})
+    echo ${SELDON_PYTHON_PACKAGE_VERSION}
+}
 
 seldon_spark_version() {
     local SELDON_SPARK_VERSION=$(cat ${SELDON_SERVER_HOME}/offline-jobs/spark/pom.xml|grep -A 1 '<artifactId>seldon-parent</artifactId>'|sed -n -e "s/<version>\(.*\)<\/version>/\1/p")
     local SELDON_SPARK_VERSION=$(echo -n "${SELDON_SPARK_VERSION}" | sed "s/^[ \t]*//")
     echo ${SELDON_SPARK_VERSION}
+}
+
+seldon_spark_build_image_version() {
+    echo "${SELDON_SPARK_VERSION}${SELDON_SPARK_BUILD_IMAGE_VERSION_POSTFIX}"
 }
 
 seldon_server_version() {
@@ -38,17 +51,16 @@ seldon_iris_keras_image_version() {
     echo ${SELDON_IRIS_KERAS_IMAGE_VERSION}
 }
 
+# Versions needed by other versions
+SELDON_PYTHON_PACKAGE_VERSION=$(seldon_python_package_version)
 SELDON_SPARK_VERSION=$(seldon_spark_version)
-SELDON_SERVER_VERSION=$(seldon_server_version)
-SELDON_CONTROL_IMAGE_VERSION=$(seldon_control_image_version)
-SELDON_IRIS_KERAS_IMAGE_VERSION=$(seldon_iris_keras_image_version)
 
-
+# Write versions to file
 echo "#GENERATED ${TS}" > build_versions_generated
-echo "SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
-echo "SELDON_SPARK_VERSION=${SELDON_SPARK_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
-echo "SELDON_SPARK_BUILD_IMAGE_VERSION=${SELDON_SPARK_VERSION}${SELDON_SPARK_BUILD_IMAGE_VERSION_POSTFIX}" >> ${STARTUP_DIR}/build_versions_generated
-echo "SELDON_SERVER_VERSION=${SELDON_SERVER_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
-echo "SELDON_CONTROL_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
-echo "SELDON_IRIS_KERAS_IMAGE_VERSION=${SELDON_IRIS_KERAS_IMAGE_VERSION}" >> ${STARTUP_DIR}/build_versions_generated
+write_version "SELDON_PYTHON_PACKAGE_VERSION" "${SELDON_PYTHON_PACKAGE_VERSION}"
+write_version "SELDON_SPARK_VERSION" "${SELDON_SPARK_VERSION}"
+write_version "SELDON_SPARK_BUILD_IMAGE_VERSION" "$(seldon_spark_build_image_version)"
+write_version "SELDON_SERVER_VERSION" "$(seldon_server_version)"
+write_version "SELDON_CONTROL_IMAGE_VERSION" "$(seldon_control_image_version)"
+write_version "SELDON_IRIS_KERAS_IMAGE_VERSION" "$(seldon_iris_keras_image_version)"
 
