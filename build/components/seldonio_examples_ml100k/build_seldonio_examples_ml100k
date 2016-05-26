@@ -6,18 +6,14 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-ts() {
-    date +"%Y%m%d_%H%M%S"
-}
-
 log() {
-    echo "$(ts) $1"
+    echo "$(date +"%Y%m%d_%H%M%S") $1"
 }
 
 #From Env
 #${SELDON_SERVER_HOME}
 
-log "Building seldonio_examples_ml100k"
+log "[BUILD_EVENT:BEGIN] Building seldonio_examples_ml100k"
 
 source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
@@ -29,5 +25,5 @@ make \
     build_image
 
 BUILT_IMAGE=$(docker images|grep 'seldonio/examples-ml100k' | grep ${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
-log "built $BUILT_IMAGE"
+log "[BUILD_EVENT:END] built $BUILT_IMAGE"
 
