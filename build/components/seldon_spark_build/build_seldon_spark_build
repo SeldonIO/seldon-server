@@ -6,6 +6,8 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+DRY_RUN=${DRY_RUN-false}
+
 ts() {
     date +"%Y%m%d_%H%M%S"
 }
@@ -17,19 +19,24 @@ log() {
 #From Env
 #${SELDON_SERVER_HOME}
 
-log "Building seldonio_pyseldon"
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldon_spark_build"
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
+    source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
-cd ${STARTUP_DIR}
+    cd ${STARTUP_DIR}
 
-log "SELDON_SPARK_BUILD_IMAGE_VERSION[${SELDON_SPARK_BUILD_IMAGE_VERSION}]"
+    log "SELDON_SPARK_BUILD_IMAGE_VERSION[${SELDON_SPARK_BUILD_IMAGE_VERSION}]"
 
-cd ${SELDON_SERVER_HOME}/docker/seldon-spark-build
-make clean
-make SELDON_SPARK_BUILD_IMAGE_VERSION=${SELDON_SPARK_BUILD_IMAGE_VERSION} build_image
-make clean
+    cd ${SELDON_SERVER_HOME}/docker/seldon-spark-build
+    make clean
+    make SELDON_SPARK_BUILD_IMAGE_VERSION=${SELDON_SPARK_BUILD_IMAGE_VERSION} build_image
+    make clean
 
-BUILT_IMAGE=$(docker images|grep seldonio/seldon-spark-build|grep ${SELDON_SPARK_BUILD_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
-log "built $BUILT_IMAGE"
+    BUILT_IMAGE=$(docker images|grep seldonio/seldon-spark-build|grep ${SELDON_SPARK_BUILD_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END] Finished seldon_spark_build, built [$BUILT_IMAGE]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldon_spark_build"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldon_spark_build"
+fi
 
