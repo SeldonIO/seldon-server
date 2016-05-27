@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+DRY_RUN=${DRY_RUN-false}
+
+log() {
+    echo "$(date +"%Y%m%d_%H%M%S") $1"
+}
+
+#From Env
+#${SELDON_SERVER_HOME}
+
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldonio_iris_xgboost"
+
+    source ${SELDON_SERVER_HOME}/build/build_versions_generated
+
+    cd ${SELDON_SERVER_HOME}/docker/examples/iris/xgboost
+    make clean
+    make \
+        SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} \
+        SELDON_IRIS_XGBOOST_IMAGE_VERSION=${SELDON_IRIS_XGBOOST_IMAGE_VERSION} \
+        build_image
+
+    BUILT_IMAGE=$(docker images|grep 'seldonio/iris_xgboost' | grep ${SELDON_IRIS_XGBOOST_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END] Finished seldonio_iris_xgboost, built[$BUILT_IMAGE]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_iris_xgboost"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_iris_xgboost"
+fi
+
