@@ -11,7 +11,7 @@
         "containers": [
             {
                 "name": "spark-streaming-predictions",
-                "image": "seldonio/seldon-control:2.0.0_v1",
+                "image": "seldonio/seldon-control:%SELDON_CONTROL_IMAGE_VERSION%",
                 "command": [
 		    "/opt/spark/bin/spark-submit", "--master", "spark://spark-master:7077", "--deploy-mode","client","--class","io.seldon.spark.streaming.InfluxDbPredictionsStatsJob","/home/seldon/libs/seldon-spark.jar","--influxdb-host","monitoring-influxdb","--influxdb-port","8086","--influxdb-user","root","--influxdb-pass","root","--zk-quorum","zookeeper-1","--influxdb-db","seldon","--kafka-group-id","3","--kafka-topics","predictions","--kafka-thread-partitions","2"
                 ],
