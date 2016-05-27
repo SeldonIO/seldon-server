@@ -22,6 +22,7 @@ make clean
 make \
     SELDON_SERVER_IMAGE_VERSION=${SELDON_SERVER_IMAGE_VERSION} \
     build_image
+make clean
 
 BUILT_IMAGE=$(docker images|grep 'seldonio/seldon-server' | grep ${SELDON_SERVER_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
 log "[BUILD_EVENT:END] built $BUILT_IMAGE"

@@ -29,6 +29,7 @@ make \
     SELDON_CONTROL_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION} \
     SELDON_SPARK_VERSION=${SELDON_SPARK_VERSION} \
     build_image
+make clean
 
 BUILT_IMAGE=$(docker images|grep seldonio/seldon-control|grep ${SELDON_CONTROL_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
 log "built $BUILT_IMAGE"

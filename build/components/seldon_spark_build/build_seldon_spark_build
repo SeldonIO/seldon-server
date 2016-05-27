@@ -28,6 +28,7 @@ log "SELDON_SPARK_BUILD_IMAGE_VERSION[${SELDON_SPARK_BUILD_IMAGE_VERSION}]"
 cd ${SELDON_SERVER_HOME}/docker/seldon-spark-build
 make clean
 make SELDON_SPARK_BUILD_IMAGE_VERSION=${SELDON_SPARK_BUILD_IMAGE_VERSION} build_image
+make clean
 
 BUILT_IMAGE=$(docker images|grep seldonio/seldon-spark-build|grep ${SELDON_SPARK_BUILD_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
 log "built $BUILT_IMAGE"
