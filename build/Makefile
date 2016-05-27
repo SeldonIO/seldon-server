@@ -46,6 +46,9 @@ build_seldonio_zookeeper_k8s: build_versions_generated
 build_seldonio_iris_vw: build_versions_generated
 	@./dobuild seldonio_iris_vw
 
+build_seldonio_iris_xgboost: build_versions_generated
+	@./dobuild seldonio_iris_xgboost
+
 build_all:
 	@make build_seldon_python_package
 	@make build_seldonio_pyseldon
@@ -62,6 +65,7 @@ build_all:
 	@make build_seldonio_influxdb
 	@make build_seldonio_zookeper-k8s
 	#@make build_seldonio_iris_vw
+	@make build_seldonio_iris_xgboost
 
 clean:
 	@rm -fv build_versions_generated
