@@ -13,6 +13,8 @@ build_seldon_spark_build: build_versions_generated
 build_seldonio_seldon_control: build_versions_generated
 	@./dobuild seldonio_seldon_control
 
+build_seldonio_seldon_server: build_versions_generated
+	@./dobuild seldonio_seldon_server
 
 #Examples
 build_seldonio_iris_keras: build_versions_generated

@@ -53,6 +53,9 @@ case "$BUILD_TARGET" in
         seldonio_examples_reuters_data)
             ${STARTUP_DIR}/components/seldonio_examples_reuters_data/build_seldonio_examples_reuters_data
             ;;
+        seldonio_seldon_server)
+            ${STARTUP_DIR}/components/seldonio_seldon_server/build_seldonio_seldon_server
+            ;;
         *)
             echo "unkown target: ${BUILD_TARGET}"
             exit 1

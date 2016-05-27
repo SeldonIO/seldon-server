@@ -1,5 +1,18 @@
-#VERSION=1.3_v1
 FROM maven:3.3.3-jdk-8
+
+ENV SELDON_HOME /home/seldon
+RUN mkdir -p  "${SELDON_HOME}"
+WORKDIR ${SELDON_HOME}
+
+# create ${SELDON_HOME}/seldon-server-?.war
+COPY seldon-server.tar.gz ${SELDON_HOME}/
+RUN cd ${SELDON_HOME} && \
+    tar xfz seldon-server.tar.gz && \
+    cd seldon-server/server && \
+    mvn package && \
+    mv -v ${SELDON_HOME}/seldon-server/server/target/*.war ${SELDON_HOME}/ && \
+    rm -rf ${SELDON_HOME}/seldon-server && \
+    rm -f ${SELDON_HOME}/seldon-server.tar.gz
 
 ENV CATALINA_HOME /usr/local/tomcat
 ENV PATH $CATALINA_HOME/bin:$PATH
@@ -41,18 +54,10 @@ RUN set -x \
 EXPOSE 8080
 
 RUN apt-get update && \
-    apt-get install -y less telnet emacs 
-
-ENV SELDON_HOME /home/seldon
-ENV SELDON_TAG v1.3-alpha.1
-RUN mkdir -p  "$SELDON_HOME"
-WORKDIR $SELDON_HOME
-RUN (git clone https://github.com/SeldonIO/seldon-server --branch ${SELDON_TAG} && \
-    cd seldon-server/server && \
-    mvn package)
+    apt-get install -y less telnet emacs
 
 RUN (mkdir -p $SELDON_HOME/ROOT && \
-    cp $SELDON_HOME/seldon-server/server/target/*.war $SELDON_HOME/ROOT && \
+    mv -v $SELDON_HOME/*.war $SELDON_HOME/ROOT && \
     cd $SELDON_HOME/ROOT && unzip *.war && rm *.war && \
     rm -rf $CATALINA_HOME/webapps/ROOT && ln -s $SELDON_HOME/ROOT $CATALINA_HOME/webapps/ROOT && \
     mkdir -p $SELDON_HOME/logs/base && \
@@ -70,6 +75,4 @@ ADD scripts/start-server-debug.sh $SELDON_HOME/start-server-debug.sh
 
 # Define default command.
 CMD ["bash"]
-
-
 
