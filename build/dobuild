@@ -31,33 +31,5 @@ log "Starting build"
 export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
 log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
 
-case "$BUILD_TARGET" in
-        seldon_python_package)
-            ${STARTUP_DIR}/components/seldon_python_package/build_seldon_python_package
-            ;;
-        seldonio_pyseldon)
-            ${STARTUP_DIR}/components/seldonio_pyseldon/build_seldonio_pyseldon
-            ;;
-        seldon_spark_build)
-            ${STARTUP_DIR}/components/seldon_spark_build/build_seldon_spark_build
-            ;;
-        seldonio_seldon_control)
-            ${STARTUP_DIR}/components/seldonio_seldon_control/build_seldonio_seldon_control
-            ;;
-        seldonio_iris_keras)
-            ${STARTUP_DIR}/components/seldonio_iris_keras/build_seldonio_iris_keras
-            ;;
-        seldonio_examples_ml100k)
-            ${STARTUP_DIR}/components/seldonio_examples_ml100k/build_seldonio_examples_ml100k
-            ;;
-        seldonio_examples_reuters_data)
-            ${STARTUP_DIR}/components/seldonio_examples_reuters_data/build_seldonio_examples_reuters_data
-            ;;
-        seldonio_seldon_server)
-            ${STARTUP_DIR}/components/seldonio_seldon_server/build_seldonio_seldon_server
-            ;;
-        *)
-            echo "unkown target: ${BUILD_TARGET}"
-            exit 1
-esac
+${STARTUP_DIR}/components/${BUILD_TARGET}/build_${BUILD_TARGET}
 
