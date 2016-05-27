@@ -6,6 +6,8 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+DRY_RUN=${DRY_RUN-false}
+
 log() {
     echo "$(date +"%Y%m%d_%H%M%S") $1"
 }
@@ -13,17 +15,22 @@ log() {
 #From Env
 #${SELDON_SERVER_HOME}
 
-log "[BUILD_EVENT:BEGIN] Building seldonio_examples_ml100k"
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldonio_examples_ml100k"
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
+    source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
-cd ${SELDON_SERVER_HOME}/docker/examples/ml100k
-make clean
-make \
-    SELDON_CONTROL_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION} \
-    SELDON_EXAMPLES_ML100K_IMAGE_VERSION=${SELDON_EXAMPLES_ML100K_IMAGE_VERSION} \
-    build_image
+    cd ${SELDON_SERVER_HOME}/docker/examples/ml100k
+    make clean
+    make \
+        SELDON_CONTROL_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION} \
+        SELDON_EXAMPLES_ML100K_IMAGE_VERSION=${SELDON_EXAMPLES_ML100K_IMAGE_VERSION} \
+        build_image
 
-BUILT_IMAGE=$(docker images|grep 'seldonio/examples-ml100k' | grep ${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
-log "[BUILD_EVENT:END] built $BUILT_IMAGE"
+    BUILT_IMAGE=$(docker images|grep 'seldonio/examples-ml100k' | grep ${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END] Finished seldonio_examples_ml100k, built[$BUILT_IMAGE]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_examples_ml100k"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_examples_ml100k"
+fi
 
