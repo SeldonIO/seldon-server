@@ -73,6 +73,7 @@ function start_spark {
 	#kubectl logs spark-master-controller-mqu8j | grep Registering work
 	kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
 	kubectl create -f ${STARTUP_DIR}/../conf/analytics/requests-spark-streaming.json
+	kubectl create -f ${STARTUP_DIR}/../conf/analytics/predictions-spark-streaming.json
     fi
 }
 
