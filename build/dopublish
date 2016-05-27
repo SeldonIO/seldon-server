@@ -31,5 +31,5 @@ log "Starting publish"
 export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
 log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
 
-${STARTUP_DIR}/components/${BUILD_TARGET}/publish_${BUILD_TARGET}
+${STARTUP_DIR}/components/${PUBLISH_TARGET}/publish_${PUBLISH_TARGET}
 
