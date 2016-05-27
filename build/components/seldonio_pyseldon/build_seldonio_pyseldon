@@ -6,41 +6,44 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-ts() {
-    date +"%Y%m%d_%H%M%S"
-}
+DRY_RUN=${DRY_RUN-false}
 
 log() {
-    echo "$(ts) $1"
+    echo "$(date +"%Y%m%d_%H%M%S") $1"
 }
 
 #From Env
 #${SELDON_SERVER_HOME}
 
-log "Building seldonio_pyseldon"
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldonio_pyseldon"
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
+    source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
-cd ${STARTUP_DIR}
+    cd ${STARTUP_DIR}
 
-log "SELDON_PYTHON_PACKAGE_VERSION[${SELDON_PYTHON_PACKAGE_VERSION}]"
+    log "SELDON_PYTHON_PACKAGE_VERSION[${SELDON_PYTHON_PACKAGE_VERSION}]"
 
-copy_package() {
-    local DIST_SRC_FILE=${SELDON_SERVER_HOME}/python/dist/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz
-    local DIST_TGT_FILE=${SELDON_SERVER_HOME}/docker/pyseldon/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz
-    cp -v ${DIST_SRC_FILE} ${DIST_TGT_FILE}
-    ls ${SELDON_SERVER_HOME}/docker/pyseldon
-}
-remove_package() {
-    local DIST_TGT_FILE=${SELDON_SERVER_HOME}/docker/pyseldon/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz
-    rm -fv ${DIST_TGT_FILE}
-}
+    copy_package() {
+        local DIST_SRC_FILE=${SELDON_SERVER_HOME}/python/dist/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz
+        local DIST_TGT_FILE=${SELDON_SERVER_HOME}/docker/pyseldon/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz
+        cp -v ${DIST_SRC_FILE} ${DIST_TGT_FILE}
+        ls ${SELDON_SERVER_HOME}/docker/pyseldon
+    }
+    remove_package() {
+        local DIST_TGT_FILE=${SELDON_SERVER_HOME}/docker/pyseldon/seldon-${SELDON_PYTHON_PACKAGE_VERSION}.tar.gz
+        rm -fv ${DIST_TGT_FILE}
+    }
 
-cd ${SELDON_SERVER_HOME}/docker/pyseldon
-copy_package
-docker build --build-arg SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} --force-rm=true -t seldonio/pyseldon:${SELDON_PYTHON_PACKAGE_VERSION} .
-#remove_package
+    cd ${SELDON_SERVER_HOME}/docker/pyseldon
+    copy_package
+    docker build --build-arg SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} --force-rm=true -t seldonio/pyseldon:${SELDON_PYTHON_PACKAGE_VERSION} .
+    #remove_package
 
-BUILT_IMAGE=$(docker images|grep seldonio/pyseldon|grep ${SELDON_PYTHON_PACKAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
-log "built $BUILT_IMAGE"
+    BUILT_IMAGE=$(docker images|grep seldonio/pyseldon|grep ${SELDON_PYTHON_PACKAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END] Finished seldonio_pyseldon, built [$BUILT_IMAGE]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_pyseldon"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_pyseldon"
+fi
 
