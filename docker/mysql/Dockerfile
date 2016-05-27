@@ -1,4 +1,3 @@
-#VERSION=1.0
 FROM mysql:5.6.29
 
 ENV HOME /root
@@ -8,7 +7,4 @@ ADD my.cnf /etc/mysql/conf.d/seldon.cnf
 
 RUN mkdir -p /seldon-data/mysql
 VOLUME /seldon-data
-
-
-
 
