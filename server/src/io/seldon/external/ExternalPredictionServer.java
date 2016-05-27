@@ -155,7 +155,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     					PredictionsResult res = reader.readValue(resp.getEntity().getContent());
     					if (logger.isDebugEnabled())
     						logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
-    					PredictLogger.log(name, jsonNode, res);
+    					PredictLogger.log(client,name, jsonNode, res);
     					return res;
     				} 
     				else 
