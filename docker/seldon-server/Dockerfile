@@ -9,7 +9,7 @@ COPY seldon-server.tar.gz ${SELDON_HOME}/
 RUN cd ${SELDON_HOME} && \
     tar xfz seldon-server.tar.gz && \
     cd seldon-server/server && \
-    mvn package && \
+    mvn clean package && \
     mv -v ${SELDON_HOME}/seldon-server/server/target/*.war ${SELDON_HOME}/ && \
     rm -rf ${SELDON_HOME}/seldon-server && \
     rm -f ${SELDON_HOME}/seldon-server.tar.gz
