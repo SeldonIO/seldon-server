@@ -35,7 +35,17 @@ control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 			> control.json
 
 mysql.json:mysql.json.in
-	cat mysql.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > mysql.json
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat mysql.json.in | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e  "s|%SELDON_MYSQL_IMAGE_VERSION%|$${SELDON_MYSQL_IMAGE_VERSION}|" \
+				> mysql.json
+
+zookeeper.json:zookeeper.json.in
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat zookeeper.json.in | sed \
+				-e  "s|%SELDON_ZOOKEEPER_K8S_IMAGE_VERSION%|$${SELDON_ZOOKEEPER_K8S_IMAGE_VERSION}|" \
+				> zookeeper.json
 
 td-agent-server.json:td-agent-server.json.in
 	cat td-agent-server.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > td-agent-server.json
@@ -47,7 +57,13 @@ spark-workers.json: spark-workers.json.in
 	cat spark-workers.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-workers.json
 
 influxdb-grafana.json: influxdb-grafana.json.in
-	cat influxdb-grafana.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > influxdb-grafana.json
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat influxdb-grafana.json.in | sed \
+				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e  "s|%SELDON_INFLUXDB_IMAGE_VERSION%|$${SELDON_INFLUXDB_IMAGE_VERSION}|" \
+				-e  "s|%SELDON_GRAFANA_IMAGE_VERSION%|$${SELDON_GRAFANA_IMAGE_VERSION}|" \
+				> influxdb-grafana.json
 
 examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -110,6 +126,12 @@ dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
 				> dev/control.json
 
+dev/iago.json :dev/iago.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat dev/iago.json.in | sed \
+				-e "s|%SELDON_IAGO_IMAGE_VERSION%|$${SELDON_IAGO_IMAGE_VERSION}|" \
+				> dev/iago.json
+
 
 #
 # glusterfs
@@ -121,7 +143,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json dev/iago.json
 
 
 #
@@ -153,6 +175,8 @@ clean:
 	rm -f examples/ml100k/ml100k-import.json
 	rm -f microservice-${MICROSERVICE_NAME}.json
 	rm -f glusterfs.json
+	rm -f zookeeper.json
 	rm -f dev/server.json
 	rm -f dev/control.json
+	rm -f dev/iago.json
 	rm -f analytics/*.json

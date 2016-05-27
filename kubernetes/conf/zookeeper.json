@@ -141,7 +141,7 @@
                 "containers": [
                     {
                         "name": "server",
-                        "image": "seldonio/zookeeper-k8s:3.4.8",
+                        "image": "seldonio/zookeeper-k8s:1.0",
                         "ports": [
                             {
                                 "containerPort": 2181,
@@ -194,7 +194,7 @@
                 "containers": [
                     {
                         "name": "server",
-                        "image": "seldonio/zookeeper-k8s:3.4.8",
+                        "image": "seldonio/zookeeper-k8s:1.0",
                         "ports": [
                             {
                                 "containerPort": 2181,
@@ -247,7 +247,7 @@
                 "containers": [
                     {
                         "name": "server",
-                        "image": "seldonio/zookeeper-k8s:3.4.8",
+                        "image": "seldonio/zookeeper-k8s:1.0",
                         "ports": [
                             {
                                 "containerPort": 2181,
