@@ -1,19 +1,18 @@
-SHELL=/bin/bash
-IMAGE=seldonio/iris_vw
-VERSION=1.0
+SELDON_PYTHON_PACKAGE_VERSION=00
+SELDON_IRIS_VW_IMAGE_VERSION=00
+IMAGE_NAME=iris_vw
 
-build_image:Dockerfile
-	docker build -t ${IMAGE} .
+Dockerfile: Dockerfile.in
+	@cat Dockerfile.in | \
+		sed 's/%SELDON_PYTHON_PACKAGE_VERSION%/$(SELDON_PYTHON_PACKAGE_VERSION)/' > Dockerfile
 
-tag:
-	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
+build_image: Dockerfile
+	docker build --force-rm=true -t seldonio/$(IMAGE_NAME):$(SELDON_IRIS_VW_IMAGE_VERSION) .
 
 push_to_dockerhub:
-	@docker login -u seldonio && \
-		docker push $(IMAGE)
-	@docker login -u seldonio && \
-		docker push $(IMAGE):$(VERSION)
+	cd ${IMAGE_FOLDER} ; docker login -u seldonio && \
+		docker push seldonio/$(IMAGE_NAME):$(SELDON_IRIS_VW_IMAGE_VERSION)
 
-
-
+clean:
+	@rm -fv Dockerfile
 

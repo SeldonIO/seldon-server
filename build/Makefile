@@ -31,6 +31,9 @@ build_seldonio_iris_keras: build_versions_generated
 build_seldonio_mysql: build_versions_generated
 	@./dobuild seldonio_mysql
 
+build_seldonio_iris_vw: build_versions_generated
+	@./dobuild seldonio_iris_vw
+
 build_all:
 	@make build_seldon_python_package
 	@make build_seldonio_pyseldon
@@ -42,6 +45,7 @@ build_all:
 	@make build_seldonio_reuters_example
 	@make build_seldonio_iris_keras
 	@make build_seldonio_mysql
+	#@make build_seldonio_iris_vw
 
 clean:
 	@rm -fv build_versions_generated
