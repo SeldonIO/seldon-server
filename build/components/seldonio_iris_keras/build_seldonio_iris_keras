@@ -6,6 +6,8 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+DRY_RUN=${DRY_RUN-false}
+
 ts() {
     date +"%Y%m%d_%H%M%S"
 }
@@ -17,18 +19,23 @@ log() {
 #From Env
 #${SELDON_SERVER_HOME}
 
-log "Building seldonio_iris_keras"
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldonio_iris_keras"
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
+    source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
-cd ${SELDON_SERVER_HOME}/docker/examples/iris/keras
-make clean
+    cd ${SELDON_SERVER_HOME}/docker/examples/iris/keras
+    make clean
 
-make \
-    SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} \
-    SELDON_IRIS_KERAS_IMAGE_VERSION=${SELDON_IRIS_KERAS_IMAGE_VERSION} \
-    build_image
+    make \
+        SELDON_PYTHON_PACKAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION} \
+        SELDON_IRIS_KERAS_IMAGE_VERSION=${SELDON_IRIS_KERAS_IMAGE_VERSION} \
+        build_image
 
-BUILT_IMAGE=$(docker images|grep seldonio/iris_keras|grep ${SELDON_IRIS_KERAS_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
-log "built $BUILT_IMAGE"
+    BUILT_IMAGE=$(docker images|grep seldonio/iris_keras|grep ${SELDON_IRIS_KERAS_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END] Finished seldonio_iris_keras, built[$BUILT_IMAGE]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_iris_keras"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_iris_keras"
+fi
 
