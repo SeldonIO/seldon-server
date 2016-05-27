@@ -1,5 +1,4 @@
-#VERSION=1.0
-FROM seldonio/pyseldon:1.14
+FROM seldonio/pyseldon:%SELDON_PYTHON_PACKAGE_VERSION%
 
 ENV SELDON_HOME /home/seldon
 RUN mkdir -p  "$SELDON_HOME"
@@ -12,6 +11,4 @@ ADD build_model.py $SELDON_HOME/build_model.py
 RUN python build_model.py
 
 CMD [ "python","/home/seldon/scripts/start_recommendation_microservice.py","--recommender","/home/seldon/reuters_recommender"]
-
-
 

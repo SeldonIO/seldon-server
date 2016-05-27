@@ -1,19 +1,18 @@
-VERSION=1.0
-IMAGE=seldonio/reuters-example
+SELDON_PYTHON_PACKAGE_VERSION=00
+SELDON_REUTERS_EXAMPLE_IMAGE_VERSION=00
+IMAGE_NAME=seldonio/reuters-example
 
-build_image:
-	docker build -t ${IMAGE} .
+Dockerfile: Dockerfile.in
+	@cat Dockerfile.in | \
+		sed 's/%SELDON_PYTHON_PACKAGE_VERSION%/$(SELDON_PYTHON_PACKAGE_VERSION)/' > Dockerfile
 
-shell:
-	docker run -it --rm seldonio/pyseldon bash
-
-tag:
-	docker tag -f $(IMAGE) $(IMAGE):$(VERSION)
+build_image: Dockerfile
+	docker build --force-rm=true -t $(IMAGE_NAME):$(SELDON_REUTERS_EXAMPLE_IMAGE_VERSION) .
 
 push_to_dockerhub:
-	@docker login -u seldonio && \
-		docker push $(IMAGE)
-	@docker login -u seldonio && \
-		docker push $(IMAGE):$(VERSION)
+	cd ${IMAGE_FOLDER} ; docker login -u seldonio && \
+		docker push $(IMAGE_NAME):$(SELDON_REUTERS_EXAMPLE_IMAGE_VERSION)
 
+clean:
+	@rm -fv Dockerfile
 
