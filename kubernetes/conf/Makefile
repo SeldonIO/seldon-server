@@ -27,8 +27,12 @@ DATA_VOLUME="hostPath": {"path": "/seldon-data"}
 SELDON_SERVICE_TYPE=NodePort
 #SELDON_SERVICE_TYPE=LoadBalancer
 
-control.json:control.json.in
-	cat control.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > control.json
+control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat control.json.in | sed \
+			-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+			-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
+			> control.json
 
 mysql.json:mysql.json.in
 	cat mysql.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > mysql.json
@@ -45,8 +49,12 @@ spark-workers.json: spark-workers.json.in
 influxdb-grafana.json: influxdb-grafana.json.in
 	cat influxdb-grafana.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > influxdb-grafana.json
 
-examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in
-	cat examples/reuters/import-data-job.json.in  | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > examples/reuters/import-data-job.json
+examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/reuters/import-data-job.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION%|$${SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION}|" \
+				> examples/reuters/import-data-job.json
 
 examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -55,18 +63,33 @@ examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUIL
 				-e "s|%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|" \
 				> examples/ml100k/ml100k-import.json
 
-server.json :server.json.in
-	cat server.json.in | sed -e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > server.json
+server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat server.json.in | sed \
+				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				> server.json
 
 #
-# Development conf 
+# Development conf
 #
 
-dev/server.json :dev/server.json.in
-	cat dev/server.json.in | sed -e 's|%SELDON_HOME%|$(SELDON_HOME)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > dev/server.json
+dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat dev/server.json.in | sed \
+				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				> dev/server.json
 
-dev/control.json :dev/control.json.in
-	cat dev/control.json.in | sed -e 's|%SELDON_HOME%|$(SELDON_HOME)|' | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > dev/control.json
+dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat dev/control.json.in | sed \
+				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
+				> dev/control.json
 
 
 #

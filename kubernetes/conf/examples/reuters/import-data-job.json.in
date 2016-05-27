@@ -19,7 +19,7 @@
                 "containers": [
                     {
                         "name": "reuters-import-data",
-                        "image": "seldonio/examples-reuters-data:1.0",
+                        "image": "seldonio/examples-reuters-data:%SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION%",
 			"volumeMounts": [
 			    {
 				"name": "data-volume",

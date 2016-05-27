@@ -41,7 +41,7 @@
                         "containers": [
                             {
                                 "name": "seldon-server",
-                                "image": "seldonio/seldon-server:1.3_v1",
+                                "image": "seldonio/seldon-server:%SELDON_SERVER_IMAGE_VERSION%",
                                 "command": [
                                     "/home/seldon/start-server.sh"
                                 ],
