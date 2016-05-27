@@ -71,6 +71,25 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				> server.json
 
+analytics/impressions-spark-streaming.json: analytics/impressions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat analytics/impressions-spark-streaming.json.in  | sed \
+				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
+				> analytics/impressions-spark-streaming.json
+
+analytics/requests-spark-streaming.json: analytics/requests-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat analytics/requests-spark-streaming.json.in  | sed \
+				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
+				> analytics/requests-spark-streaming.json
+
+analytics/predictions-spark-streaming.json: analytics/predictions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat analytics/predictions-spark-streaming.json.in  | sed \
+				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
+				> analytics/predictions-spark-streaming.json
+
+
 #
 # Development conf
 #
@@ -102,7 +121,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json
 
 
 #
@@ -136,3 +155,4 @@ clean:
 	rm -f glusterfs.json
 	rm -f dev/server.json
 	rm -f dev/control.json
+	rm -f analytics/*.json
