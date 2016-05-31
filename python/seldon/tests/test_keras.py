@@ -12,20 +12,6 @@ from sklearn.externals import joblib
 from keras.wrappers.scikit_learn import KerasClassifier
 import logging
 
-def default_classification_model(input_width,num_classes):
-    """Default classification model
-    """
-    model = Sequential()                         
-    print "input width=",input_width
-    model.add(Dense(5, init='uniform',input_dim=input_width))
-    model.add(Activation('tanh'))
-    model.add(Dropout(0.5))
-
-    model.add(Dense(num_classes))
-    model.add(Activation('softmax'))
-
-    return model
-
 
 class Test_keras(unittest.TestCase):
 

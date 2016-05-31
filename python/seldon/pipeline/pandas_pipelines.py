@@ -36,9 +36,7 @@ class BasePandasEstimator(object):
         self.included = included
         self.excluded = excluded
         if self.excluded is None:
-            self.excluded = [self.target]
-        else:
-            self.excluded.append(self.target)
+            self.excluded = []
         if not self.target_readable is None:
             self.excluded.append(self.target_readable)
 

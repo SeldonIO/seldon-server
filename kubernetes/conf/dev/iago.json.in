@@ -17,7 +17,7 @@
         "containers": [
             {
                 "name": "iago",
-                "image": "seldonio/iago:0.1",
+                "image": "seldonio/iago:%SELDON_IAGO_IMAGE_VERSION%",
                 "command": [
                     "sleep",
                     "infinity"

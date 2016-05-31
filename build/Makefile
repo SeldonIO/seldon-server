@@ -28,8 +28,20 @@ build_seldonio_reuters_example: build_versions_generated
 build_seldonio_iris_keras: build_versions_generated
 	@./dobuild seldonio_iris_keras
 
+build_seldonio_grafana: build_versions_generated
+	@./dobuild seldonio_grafana
+
+build_seldonio_iago: build_versions_generated
+	@./dobuild seldonio_iago
+
 build_seldonio_mysql: build_versions_generated
 	@./dobuild seldonio_mysql
+
+build_seldonio_influxdb: build_versions_generated
+	@./dobuild seldonio_influxdb
+
+build_seldonio_zookeeper_k8s: build_versions_generated
+	@./dobuild seldonio_zookeeper_k8s
 
 build_seldonio_iris_vw: build_versions_generated
 	@./dobuild seldonio_iris_vw
@@ -48,6 +60,10 @@ build_all:
 	@make build_seldonio_reuters_example
 	@make build_seldonio_iris_keras
 	@make build_seldonio_mysql
+	@make build_seldonio_grafana
+	@make build_seldonio_iago
+	@make build_seldonio_influxdb
+	@make build_seldonio_zookeper-k8s
 	#@make build_seldonio_iris_vw
 	@make build_seldonio_iris_xgboost
 

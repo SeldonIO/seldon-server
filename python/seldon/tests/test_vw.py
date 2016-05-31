@@ -143,8 +143,8 @@ class Test_vw(unittest.TestCase):
             f = {}
             f2 = {}
             for i in range(1,5000):
-                f[i] = 1
-                f2[i] = 0.1
+                f[str(i)] = 1
+                f2[str(i)] = 0.1
             df = pd.DataFrame.from_dict([{"target":"1","df":f},{"target":"2","df":f2}])
             t.fit(df)
             scores = t.predict_proba(df)
@@ -160,8 +160,8 @@ class Test_vw(unittest.TestCase):
             f = {}
             f2 = {}
             for i in range(1,5000):
-                f[i] = 1
-                f2[i] = 0.1
+                f[str(i)] = 1
+                f2[str(i)] = 0.1
             df = pd.DataFrame.from_dict([{"target":"1","df":f},{"target":"2","df":f2}])
             t.fit(df)
             scores = t.predict_proba(df)

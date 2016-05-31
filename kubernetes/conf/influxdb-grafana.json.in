@@ -28,7 +28,7 @@
                     "spec": {
                         "containers": [
                             {
-                                "image": "seldonio/influxdb:0.1",
+                                "image": "seldonio/influxdb:%SELDON_INFLUXDB_IMAGE_VERSION%",
                                 "imagePullPolicy": "IfNotPresent",
                                 "name": "influxdb",
                                 "resources": {},
@@ -63,7 +63,7 @@
                                         "value": "Admin"
                                     }
                                 ],
-                                "image": "seldonio/grafana:0.1",
+                                "image": "seldonio/grafana:%SELDON_GRAFANA_IMAGE_VERSION%",
                                 "imagePullPolicy": "IfNotPresent",
                                 "name": "grafana",
                                 "resources": {},

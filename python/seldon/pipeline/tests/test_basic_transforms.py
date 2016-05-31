@@ -1,3 +1,4 @@
+# coding=utf-8
 import unittest
 from .. import basic_transforms as bt
 import pandas as pd

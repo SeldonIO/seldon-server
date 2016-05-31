@@ -26,7 +26,6 @@ def default_classification_model(input_width,num_classes):
     logger.info("input width=%d",input_width)
     model.add(Dense(5, init='uniform',input_dim=input_width))
     model.add(Activation('tanh'))
-    model.add(Dropout(0.5))
 
     model.add(Dense(num_classes))
     model.add(Activation('softmax'))
