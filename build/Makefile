@@ -97,6 +97,8 @@ publish_seldonio_reuters_example: build_versions_generated
 	@./dopublish seldonio_reuters_example
 publish_seldonio_iris_keras: build_versions_generated
 	@./dopublish seldonio_iris_keras
+publish_seldonio_mysql: build_versions_generated
+	@./dopublish seldonio_mysql
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -106,4 +108,5 @@ publish_all:
 	@make publish_seldonio_examples_reuters_data
 	@make publish_seldonio_reuters_example
 	@make publish_seldonio_iris_keras
+	@make publish_seldonio_mysql
 
