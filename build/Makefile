@@ -101,6 +101,8 @@ publish_seldonio_mysql: build_versions_generated
 	@./dopublish seldonio_mysql
 publish_seldonio_grafana: build_versions_generated
 	@./dopublish seldonio_grafana
+publish_seldonio_iago: build_versions_generated
+	@./dopublish seldonio_iago
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -112,4 +114,5 @@ publish_all:
 	@make publish_seldonio_iris_keras
 	@make publish_seldonio_mysql
 	@make publish_seldonio_grafana
+	@make publish_seldonio_iago
 
