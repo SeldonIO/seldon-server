@@ -83,6 +83,8 @@ build_versions_generated: build_versions
 
 
 #publish
+publish_seldonio_pyseldon: build_versions_generated
+	@./dopublish seldonio_pyseldon
 publish_seldonio_examples_ml100k: build_versions_generated
 	@./dopublish seldonio_examples_ml100k
 
