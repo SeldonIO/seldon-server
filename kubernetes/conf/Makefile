@@ -51,7 +51,7 @@ td-agent-server.json:td-agent-server.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat td-agent-server.json.in | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
-				-e  "s|%SELDON_TDAGENT_SERVER_IMAGE_VERSION%]|$${SELDON_TDAGENT_SERVER_IMAGE_VERSION}|" \
+				-e  "s|%SELDON_TDAGENT_SERVER_IMAGE_VERSION%|$${SELDON_TDAGENT_SERVER_IMAGE_VERSION}|" \
 				 > td-agent-server.json
 
 spark-master.json: spark-master.json.in
