@@ -113,6 +113,8 @@ publish_seldonio_tdagent_node: build_versions_generated
 	@./dopublish seldonio_tdagent_node
 publish_seldonio_iris_vw: build_versions_generated
 	@./dopublish seldonio_iris_vw
+publish_seldonio_iris_xgboost: build_versions_generated
+	@./dopublish seldonio_iris_xgboost
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -130,4 +132,5 @@ publish_all:
 	@make publish_seldonio_tdagent_server
 	@make publish_seldonio_tdagent_node
 	#@make publish_seldonio_iris_vw
+	@make publish_seldonio_iris_xgboost
 
