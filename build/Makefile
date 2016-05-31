@@ -63,7 +63,7 @@ build_all:
 	@make build_seldonio_grafana
 	@make build_seldonio_iago
 	@make build_seldonio_influxdb
-	@make build_seldonio_zookeper_k8s
+	@make build_seldonio_zookeeper_k8s
 	#@make build_seldonio_iris_vw
 	@make build_seldonio_iris_xgboost
 
