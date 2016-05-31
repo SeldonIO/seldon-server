@@ -107,6 +107,8 @@ publish_seldonio_influxdb: build_versions_generated
 	@./dopublish seldonio_influxdb
 publish_seldonio_zookeeper_k8s: build_versions_generated
 	@./dopublish seldonio_zookeeper_k8s
+publish_seldonio_tdagent_server: build_versions_generated
+	@./dopublish seldonio_tdagent_server
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -121,4 +123,5 @@ publish_all:
 	@make publish_seldonio_iago
 	@make publish_seldonio_influxdb
 	@make publish_seldonio_zookeeper_k8s
+	@make publish_seldonio_tdagent_server
 
