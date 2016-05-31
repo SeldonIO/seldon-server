@@ -1,0 +1,288 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "items": [
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "zookeeper-1",
+                "labels": {
+                    "name": "zookeeper-1",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "client",
+                        "protocol": "TCP",
+                        "port": 2181,
+                        "targetPort": 2181
+                    },
+                    {
+                        "name": "followers",
+                        "protocol": "TCP",
+                        "port": 2888,
+                        "targetPort": 2888
+                    },
+                    {
+                        "name": "election",
+                        "protocol": "TCP",
+                        "port": 3888,
+                        "targetPort": 3888
+                    }
+                ],
+                "selector": {
+                    "server-id": "1"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "zookeeper-2",
+                "labels": {
+                    "name": "zookeeper-2",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "client",
+                        "protocol": "TCP",
+                        "port": 2181,
+                        "targetPort": 2181
+                    },
+                    {
+                        "name": "followers",
+                        "protocol": "TCP",
+                        "port": 2888,
+                        "targetPort": 2888
+                    },
+                    {
+                        "name": "election",
+                        "protocol": "TCP",
+                        "port": 3888,
+                        "targetPort": 3888
+                    }
+                ],
+                "selector": {
+                    "server-id": "2"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "zookeeper-3",
+                "labels": {
+                    "name": "zookeeper-3",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "client",
+                        "protocol": "TCP",
+                        "port": 2181,
+                        "targetPort": 2181
+                    },
+                    {
+                        "name": "followers",
+                        "protocol": "TCP",
+                        "port": 2888,
+                        "targetPort": 2888
+                    },
+                    {
+                        "name": "election",
+                        "protocol": "TCP",
+                        "port": 3888,
+                        "targetPort": 3888
+                    }
+                ],
+                "selector": {
+                    "server-id": "3"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "Pod",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "zookeeper-1",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "zookeeper",
+                    "server-id": "1",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "name": "server",
+                        "image": "seldonio/zookeeper-k8s:%SELDON_ZOOKEEPER_K8S_IMAGE_VERSION%",
+                        "ports": [
+                            {
+                                "containerPort": 2181,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 2888,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 3888,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "env": [
+                            {
+                                "name": "SERVER_ID",
+                                "value": "1"
+                            },
+                            {
+                                "name": "MAX_SERVERS",
+                                "value": "3"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "imagePullPolicy": "Always"
+                    }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "securityContext": {}
+            },
+            "status": {}
+        },
+        {
+            "kind": "Pod",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "zookeeper-2",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "zookeeper",
+                    "server-id": "2",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "name": "server",
+                        "image": "seldonio/zookeeper-k8s:%SELDON_ZOOKEEPER_K8S_IMAGE_VERSION%",
+                        "ports": [
+                            {
+                                "containerPort": 2181,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 2888,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 3888,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "env": [
+                            {
+                                "name": "SERVER_ID",
+                                "value": "2"
+                            },
+                            {
+                                "name": "MAX_SERVERS",
+                                "value": "3"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "imagePullPolicy": "Always"
+                    }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "securityContext": {}
+            },
+            "status": {}
+        },
+        {
+            "kind": "Pod",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "zookeeper-3",
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "zookeeper",
+                    "server-id": "3",
+		    "service": "seldon"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "name": "server",
+                        "image": "seldonio/zookeeper-k8s:%SELDON_ZOOKEEPER_K8S_IMAGE_VERSION%",
+                        "ports": [
+                            {
+                                "containerPort": 2181,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 2888,
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 3888,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "env": [
+                            {
+                                "name": "SERVER_ID",
+                                "value": "3"
+                            },
+                            {
+                                "name": "MAX_SERVERS",
+                                "value": "3"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "imagePullPolicy": "Always"
+                    }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "securityContext": {}
+            },
+            "status": {}
+        }
+    ]
+}
