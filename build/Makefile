@@ -83,6 +83,54 @@ build_versions_generated: build_versions
 
 
 #publish
+publish_seldonio_pyseldon: build_versions_generated
+	@./dopublish seldonio_pyseldon
+publish_seldonio_seldon_control: build_versions_generated
+	@./dopublish seldonio_seldon_control
+publish_seldonio_seldon_server: build_versions_generated
+	@./dopublish seldonio_seldon_server
 publish_seldonio_examples_ml100k: build_versions_generated
 	@./dopublish seldonio_examples_ml100k
+publish_seldonio_examples_reuters_data: build_versions_generated
+	@./dopublish seldonio_examples_reuters_data
+publish_seldonio_reuters_example: build_versions_generated
+	@./dopublish seldonio_reuters_example
+publish_seldonio_iris_keras: build_versions_generated
+	@./dopublish seldonio_iris_keras
+publish_seldonio_mysql: build_versions_generated
+	@./dopublish seldonio_mysql
+publish_seldonio_grafana: build_versions_generated
+	@./dopublish seldonio_grafana
+publish_seldonio_iago: build_versions_generated
+	@./dopublish seldonio_iago
+publish_seldonio_influxdb: build_versions_generated
+	@./dopublish seldonio_influxdb
+publish_seldonio_zookeeper_k8s: build_versions_generated
+	@./dopublish seldonio_zookeeper_k8s
+publish_seldonio_tdagent_server: build_versions_generated
+	@./dopublish seldonio_tdagent_server
+publish_seldonio_tdagent_node: build_versions_generated
+	@./dopublish seldonio_tdagent_node
+publish_seldonio_iris_vw: build_versions_generated
+	@./dopublish seldonio_iris_vw
+publish_seldonio_iris_xgboost: build_versions_generated
+	@./dopublish seldonio_iris_xgboost
+
+publish_all:
+	@make publish_seldonio_pyseldon
+	@make publish_seldonio_seldon_control
+	@make publish_seldonio_seldon_server
+	@make publish_seldonio_examples_ml100k
+	@make publish_seldonio_examples_reuters_data
+	@make publish_seldonio_reuters_example
+	@make publish_seldonio_iris_keras
+	@make publish_seldonio_mysql
+	@make publish_seldonio_grafana
+	@make publish_seldonio_iago
+	@make publish_seldonio_influxdb
+	@make publish_seldonio_zookeeper_k8s
+	@make publish_seldonio_tdagent_server
+	@make publish_seldonio_tdagent_node
+	#@make publish_seldonio_iris_vw
+	@make publish_seldonio_iris_xgboost
 

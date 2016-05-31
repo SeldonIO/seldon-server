@@ -19,10 +19,10 @@ log() {
 #From Env
 #${SELDON_SERVER_HOME}
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
-TARGET_NAME=seldonio_examples_ml100k
-IMAGE_NAME=seldonio/examples-ml100k
-IMAGE_VERSION=${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}
+source ${SELDON_SERVER_HOME}/build/build_versions
+TARGET_NAME=seldonio_grafana
+IMAGE_NAME=seldonio/grafana
+IMAGE_VERSION=${SELDON_GRAFANA_IMAGE_VERSION}
 
 if [ "${DRY_RUN}" = "false" ]; then
     log "[BUILD_EVENT:BEGIN] Publishing ${TARGET_NAME}"

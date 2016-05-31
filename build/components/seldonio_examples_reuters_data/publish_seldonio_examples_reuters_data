@@ -20,9 +20,9 @@ log() {
 #${SELDON_SERVER_HOME}
 
 source ${SELDON_SERVER_HOME}/build/build_versions_generated
-TARGET_NAME=seldonio_examples_ml100k
-IMAGE_NAME=seldonio/examples-ml100k
-IMAGE_VERSION=${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}
+TARGET_NAME=seldonio_examples_reuters_data
+IMAGE_NAME=seldonio/examples-reuters-data
+IMAGE_VERSION=${SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION}
 
 if [ "${DRY_RUN}" = "false" ]; then
     log "[BUILD_EVENT:BEGIN] Publishing ${TARGET_NAME}"
