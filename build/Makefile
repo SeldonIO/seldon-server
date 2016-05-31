@@ -85,10 +85,13 @@ build_versions_generated: build_versions
 #publish
 publish_seldonio_pyseldon: build_versions_generated
 	@./dopublish seldonio_pyseldon
+publish_seldonio_seldon_control: build_versions_generated
+	@./dopublish seldonio_seldon_control
 publish_seldonio_examples_ml100k: build_versions_generated
 	@./dopublish seldonio_examples_ml100k
 
 publish_all:
 	@make publish_seldonio_pyseldon
+	@make publish_seldonio_seldon_control
 	@make publish_seldonio_examples_ml100k
 
