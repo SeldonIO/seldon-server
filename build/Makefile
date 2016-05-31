@@ -111,6 +111,8 @@ publish_seldonio_tdagent_server: build_versions_generated
 	@./dopublish seldonio_tdagent_server
 publish_seldonio_tdagent_node: build_versions_generated
 	@./dopublish seldonio_tdagent_node
+publish_seldonio_iris_vw: build_versions_generated
+	@./dopublish seldonio_iris_vw
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -127,5 +129,5 @@ publish_all:
 	@make publish_seldonio_zookeeper_k8s
 	@make publish_seldonio_tdagent_server
 	@make publish_seldonio_tdagent_node
-
+	#@make publish_seldonio_iris_vw
 
