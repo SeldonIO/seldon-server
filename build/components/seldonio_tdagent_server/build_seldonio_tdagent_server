@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+DRY_RUN=${DRY_RUN-false}
+
+log() {
+    echo "$(date +"%Y%m%d_%H%M%S") $1"
+}
+
+#From Env
+#${SELDON_SERVER_HOME}
+
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldonio_tdgaent_server"
+
+    source ${SELDON_SERVER_HOME}/build/build_versions
+
+    cd ${SELDON_SERVER_HOME}/docker/td-agent-server
+    make \
+        SELDON_TDAGENT_SERVER_IMAGE_VERSION=${SELDON_TDAGENT_SERVER_IMAGE_VERSION} \
+        build_image
+    BUILT_IMAGE=$(docker images|grep 'seldonio/td-agent-server' | grep ${SELDON_TDAGENT_SERVER_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END] Finished seldonio_tdagent_server, built[${BUILT_IMAGE}]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_tdgaent_server"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_tdagent_server"
+fi
+

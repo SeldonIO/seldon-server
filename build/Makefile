@@ -40,6 +40,12 @@ build_seldonio_mysql: build_versions_generated
 build_seldonio_influxdb: build_versions_generated
 	@./dobuild seldonio_influxdb
 
+build_seldonio_tdagent_node: build_versions_generated
+	@./dobuild seldonio_tdagent_node
+
+build_seldonio_tdagent_server: build_versions_generated
+	@./dobuild seldonio_tdagent_server
+
 build_seldonio_zookeeper_k8s: build_versions_generated
 	@./dobuild seldonio_zookeeper_k8s
 

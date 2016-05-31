@@ -48,7 +48,11 @@ zookeeper.json:zookeeper.json.in
 				> zookeeper.json
 
 td-agent-server.json:td-agent-server.json.in
-	cat td-agent-server.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > td-agent-server.json
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat td-agent-server.json.in | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e  "s|%SELDON_TDAGENT_SERVER_IMAGE_VERSION%]|$${SELDON_TDAGENT_SERVER_IMAGE_VERSION}|" \
+				 > td-agent-server.json
 
 spark-master.json: spark-master.json.in
 	cat spark-master.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-master.json
@@ -81,10 +85,12 @@ examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUIL
 
 server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+	source $(SELDON_HOME)/build/build_versions; \
 		cat server.json.in | sed \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> server.json
 
 analytics/impressions-spark-streaming.json: analytics/impressions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
