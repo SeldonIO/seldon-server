@@ -103,6 +103,8 @@ publish_seldonio_grafana: build_versions_generated
 	@./dopublish seldonio_grafana
 publish_seldonio_iago: build_versions_generated
 	@./dopublish seldonio_iago
+publish_seldonio_influxdb: build_versions_generated
+	@./dopublish seldonio_influxdb
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -115,4 +117,5 @@ publish_all:
 	@make publish_seldonio_mysql
 	@make publish_seldonio_grafana
 	@make publish_seldonio_iago
+	@make publish_seldonio_influxdb
 
