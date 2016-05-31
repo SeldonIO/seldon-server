@@ -6,6 +6,8 @@ set -o pipefail
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
+DRY_RUN=${DRY_RUN-false}
+
 ts() {
     date +"%Y%m%d_%H%M%S"
 }
@@ -17,19 +19,23 @@ log() {
 #From Env
 #${SELDON_SERVER_HOME}
 
-log "Publishing seldonio_examples_ml100k"
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Publishing seldonio_examples_ml100k"
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
+    source ${SELDON_SERVER_HOME}/build/build_versions_generated
 
-IMAGE_NAME=seldonio/examples-ml100k
-IMAGE_VERSION=${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}
+    IMAGE_NAME=seldonio/examples-ml100k
+    IMAGE_VERSION=${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}
 
-BUILT_IMAGE=$(docker images|grep "${IMAGE_NAME}" | grep ${IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    BUILT_IMAGE=$(docker images|grep "${IMAGE_NAME}" | grep ${IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
 
-log "attempting to publish [${BUILT_IMAGE}]"
+    log "attempting to publish [${BUILT_IMAGE}]"
 
-docker login -u seldonio
-docker push ${IMAGE_NAME}:${IMAGE_VERSION}
+    docker push ${IMAGE_NAME}:${IMAGE_VERSION}
 
-log "published [${BUILT_IMAGE}]"
+    log "[BUILD_EVENT:END] published [${BUILT_IMAGE}]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Publishing seldonio_examples_ml100k"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_examples_ml100k"
+fi
 
