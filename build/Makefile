@@ -93,6 +93,8 @@ publish_seldonio_examples_ml100k: build_versions_generated
 	@./dopublish seldonio_examples_ml100k
 publish_seldonio_examples_reuters_data: build_versions_generated
 	@./dopublish seldonio_examples_reuters_data
+publish_seldonio_reuters_example: build_versions_generated
+	@./dopublish seldonio_reuters_example
 
 publish_all:
 	@make publish_seldonio_pyseldon
@@ -100,4 +102,6 @@ publish_all:
 	@make publish_seldonio_seldon_server
 	@make publish_seldonio_examples_ml100k
 	@make publish_seldonio_examples_reuters_data
+	@make publish_seldonio_reuters_example
+
 
