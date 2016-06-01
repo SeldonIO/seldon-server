@@ -71,7 +71,7 @@ class InfluxdbImpressionsStatsJob(private val sc : StreamingContext,config : Imp
       if (tag == "restapi.ctralg")
       {
         val time = (json \ "time").extract[Long]
-        val timeSecs = time / 60
+        val timeSecs = time
         val consumer = (json \ "consumer").extract[String]
         var rectag = (json \ "rectag").extract[String]
         var abkey = (json \ "abkey").extract[String]

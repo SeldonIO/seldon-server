@@ -54,7 +54,7 @@ class InfluxDbPredictionsStatsJob(private val sc : StreamingContext,config : Pre
       if (tag == "predict.live")
       {
         val time = (json \ "time").extract[Long]
-        val timeSecs = time / 60
+        val timeSecs = time
         //FIXME
         val consumerFound = (json \ "consumer").extract[Option[String]]
         var consumer = "test"

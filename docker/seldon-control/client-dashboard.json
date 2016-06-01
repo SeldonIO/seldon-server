@@ -296,7 +296,7 @@
                 }
               ],
               "measurement": "requests",
-              "query": "SELECT sum(\"count\") FROM \"requests\" WHERE client='%CLIENT%' and  $timeFilter GROUP BY time($interval) fill(null)",
+              "query": "SELECT sum(\"count\") FROM \"requests\" WHERE client='%CLIENT%' and path!='/js/predict' and path!='/js/event' and  $timeFilter",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -747,138 +747,221 @@
       "title": "New row"
     },
     {
-      "title": "New row",
-      "height": "100px",
-      "editable": true,
       "collapse": false,
+      "editable": true,
+      "height": "100px",
       "panels": [
         {
-          "title": "Panel Title",
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "type": "text",
-          "isNew": true,
-          "id": 11,
-          "mode": "markdown",
           "content": "# Prediction API",
-          "style": {}
+          "editable": true,
+          "error": false,
+          "id": 11,
+          "isNew": true,
+          "mode": "markdown",
+          "span": 6,
+          "style": {},
+          "title": "Panel Title",
+          "type": "text"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "id": 12,
+          "interval": "1m",
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "Requests",
+          "prefixFontSize": "50%",
+          "span": 6,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "query": "SELECT sum(\"count\") FROM \"requests\" WHERE client='%CLIENT%' and (path='/js/predict' or path='/js/event') and  $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": "",
+          "title": "Requests",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
         }
-      ]
+      ],
+      "title": "New row"
     },
     {
-      "title": "New row",
-      "height": "250px",
-      "editable": true,
       "collapse": false,
+      "editable": true,
+      "height": "250px",
       "panels": [
         {
-          "title": "Predictions",
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "type": "graph",
-          "isNew": true,
-          "id": 10,
+          "aliasColors": {},
+          "bars": false,
           "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 10,
+          "interval": "1m",
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
           "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "class"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "predictions",
+              "query": "SELECT sum(\"count\") as count FROM \"predictions\" WHERE client = '%CLIENT%' and $timeFilter GROUP BY time($interval), \"class\" fill(null)",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "count"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Predictions",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
             "short",
             "short"
-          ],
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "rightMax": null,
-            "leftMin": null,
-            "rightMin": null,
-            "rightLogBase": 1,
-            "threshold1": null,
-            "threshold2": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "lines": true,
-          "fill": 1,
-          "linewidth": 2,
-          "points": false,
-          "pointradius": 5,
-          "bars": false,
-          "stack": false,
-          "percentage": false,
-          "legend": {
-            "show": true,
-            "values": false,
-            "min": false,
-            "max": false,
-            "current": false,
-            "total": false,
-            "avg": false
-          },
-          "nullPointMode": "connected",
-          "steppedLine": false,
-          "tooltip": {
-            "value_type": "cumulative",
-            "shared": true
-          },
-          "timeFrom": null,
-          "timeShift": null,
-          "targets": [
-            {
-              "refId": "A",
-              "dsType": "influxdb",
-              "resultFormat": "time_series",
-              "tags": [],
-              "groupBy": [
-                {
-                  "type": "time",
-                  "params": [
-                    "$interval"
-                  ]
-                },
-                {
-                  "type": "tag",
-                  "params": [
-                    "class"
-                  ]
-                },
-                {
-                  "type": "fill",
-                  "params": [
-                    "null"
-                  ]
-                }
-              ],
-              "select": [
-                [
-                  {
-                    "type": "field",
-                    "params": [
-                      "count"
-                    ]
-                  },
-                  {
-                    "type": "mean",
-                    "params": []
-                  }
-                ]
-              ],
-              "measurement": "predictions",
-              "query": "SELECT mean(\"count\") as count FROM \"predictions\" WHERE client = '%CLIENT%' and $timeFilter GROUP BY time($interval), \"class\" fill(null)",
-              "rawQuery": true
-            }
-          ],
-          "aliasColors": {},
-          "seriesOverrides": [],
-          "links": []
+          ]
         }
-      ]
+      ],
+      "title": "New row"
     }
   ],
   "time": {
-    "from": "now-1h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {
@@ -914,7 +997,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 2,
+  "version": 1,
   "links": []
 },
  "overwrite": false

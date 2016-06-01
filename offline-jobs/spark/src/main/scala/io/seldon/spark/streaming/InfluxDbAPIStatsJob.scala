@@ -53,7 +53,7 @@ class InfluxdbAPIStatsJob(private val sc : StreamingContext,config : APIStatsCon
       if (tag == "restapi.calls")
       {
         val time = (json \ "time").extract[Long]
-        val timeSecs = time / 60
+        val timeSecs = time
         val consumer = (json \ "consumer").extract[String]
         var path = (json \ "path").extract[String]
         var exectimeStr = (json \ "exectime").extract[String]
