@@ -6,6 +6,7 @@ set -o errexit
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-true}
+SELDON_WITH_ANALYTICS=${SELDON_WITH_ANALYTICS:-true}
 SELDON_WITH_GLUSTERFS=${SELDON_WITH_GLUSTERFS:-false}
 KCMD="kubectl exec seldon-control -i bash"
 
@@ -70,10 +71,12 @@ function start_spark {
         kubectl create -f ${STARTUP_DIR}/../conf/spark-workers.json
 	echo "Allowing spark workers to start..."
 	sleep 5
-	#kubectl logs spark-master-controller-mqu8j | grep Registering work
-	kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
-	kubectl create -f ${STARTUP_DIR}/../conf/analytics/requests-spark-streaming.json
-	kubectl create -f ${STARTUP_DIR}/../conf/analytics/predictions-spark-streaming.json
+	if $SELDON_WITH_ANALYTICS ; then
+	    #kubectl logs spark-master-controller-mqu8j | grep Registering work
+	    kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
+	    kubectl create -f ${STARTUP_DIR}/../conf/analytics/requests-spark-streaming.json
+	    kubectl create -f ${STARTUP_DIR}/../conf/analytics/predictions-spark-streaming.json
+	fi
     fi
 }
 
