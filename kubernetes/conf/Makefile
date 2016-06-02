@@ -32,33 +32,33 @@ control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 		cat control.json.in | sed \
 			-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 			-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-			> control.json
+			> control.json && echo "created $@"
 
 mysql.json:mysql.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat mysql.json.in | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e  "s|%SELDON_MYSQL_IMAGE_VERSION%|$${SELDON_MYSQL_IMAGE_VERSION}|" \
-				> mysql.json
+				> mysql.json && echo "created $@"
 
 zookeeper.json:zookeeper.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat zookeeper.json.in | sed \
 				-e  "s|%SELDON_ZOOKEEPER_K8S_IMAGE_VERSION%|$${SELDON_ZOOKEEPER_K8S_IMAGE_VERSION}|" \
-				> zookeeper.json
+				> zookeeper.json && echo "created $@"
 
 td-agent-server.json:td-agent-server.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat td-agent-server.json.in | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e  "s|%SELDON_TDAGENT_SERVER_IMAGE_VERSION%|$${SELDON_TDAGENT_SERVER_IMAGE_VERSION}|" \
-				 > td-agent-server.json
+				> td-agent-server.json && echo "created $@"
 
 spark-master.json: spark-master.json.in
-	cat spark-master.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-master.json
+	@cat spark-master.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-master.json && echo "created $@"
 
 spark-workers.json: spark-workers.json.in
-	cat spark-workers.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-workers.json
+	@cat spark-workers.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-workers.json && echo "created $@"
 
 influxdb-grafana.json: influxdb-grafana.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
@@ -67,21 +67,21 @@ influxdb-grafana.json: influxdb-grafana.json.in
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e  "s|%SELDON_INFLUXDB_IMAGE_VERSION%|$${SELDON_INFLUXDB_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_GRAFANA_IMAGE_VERSION%|$${SELDON_GRAFANA_IMAGE_VERSION}|" \
-				> influxdb-grafana.json
+				> influxdb-grafana.json && echo "created $@"
 
 examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/reuters/import-data-job.json.in  | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION%|$${SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION}|" \
-				> examples/reuters/import-data-job.json
+				> examples/reuters/import-data-job.json && echo "created $@"
 
 examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/ml100k/ml100k-import.json.in  | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|" \
-				> examples/ml100k/ml100k-import.json
+				> examples/ml100k/ml100k-import.json && echo "created $@"
 
 server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -91,7 +91,7 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
-				> server.json
+				> server.json && echo "created $@"
 
 analytics/impressions-spark-streaming.json: analytics/impressions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -103,13 +103,13 @@ analytics/requests-spark-streaming.json: analytics/requests-spark-streaming.json
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat analytics/requests-spark-streaming.json.in  | sed \
 				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/requests-spark-streaming.json
+				> analytics/requests-spark-streaming.json && echo "created $@"
 
 analytics/predictions-spark-streaming.json: analytics/predictions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat analytics/predictions-spark-streaming.json.in  | sed \
 				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/predictions-spark-streaming.json
+				> analytics/predictions-spark-streaming.json && echo "created $@"
 
 
 #
@@ -122,7 +122,7 @@ dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
-				> dev/server.json
+				> dev/server.json && echo "created $@"
 
 dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -130,13 +130,13 @@ dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> dev/control.json
+				> dev/control.json && echo "created $@"
 
 dev/iago.json :dev/iago.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat dev/iago.json.in | sed \
 				-e "s|%SELDON_IAGO_IMAGE_VERSION%|$${SELDON_IAGO_IMAGE_VERSION}|" \
-				> dev/iago.json
+				> dev/iago.json && echo "created $@"
 
 
 #
@@ -147,7 +147,7 @@ GLUSTERFS_IP1=192.168.0.149
 GLUSTERFS_IP2=192.168.0.248
 
 glusterfs.json:glusterfs.json.in
-	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
+	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
 conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json dev/iago.json zookeeper.json
 
