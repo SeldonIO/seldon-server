@@ -93,6 +93,13 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> server.json
 
+analytics/impressions-kafka-stream.json: analytics/impressions-kafka-stream.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat analytics/impressions-kafka-stream.json.in  | sed \
+				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				> analytics/impressions-kafka-stream.json
+
+
 analytics/impressions-spark-streaming.json: analytics/impressions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat analytics/impressions-spark-streaming.json.in  | sed \

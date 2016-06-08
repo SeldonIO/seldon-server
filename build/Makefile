@@ -7,6 +7,7 @@ ALL_LIST=\
 	seldon_spark_build \
 	seldonio_seldon_control \
 	seldonio_seldon_server \
+	seldonio_seldon_stream \
 	seldonio_examples_ml100k \
 	seldonio_examples_reuters_data \
 	seldonio_reuters_example \
@@ -32,6 +33,8 @@ build_seldonio_seldon_control: build_versions_generated
 	@./dobuild seldonio_seldon_control
 build_seldonio_seldon_server: build_versions_generated
 	@./dobuild seldonio_seldon_server
+build_seldonio_seldon_stream: build_versions_generated
+	@./dobuild seldonio_seldon_stream
 build_seldonio_examples_ml100k: build_versions_generated
 	@./dobuild seldonio_examples_ml100k
 build_seldonio_examples_reuters_data: build_versions_generated
