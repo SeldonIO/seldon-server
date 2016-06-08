@@ -1,0 +1,14 @@
+{
+    "types": [
+        {
+            "type_attrs": [
+                {
+                    "name": "title",
+                    "value_type": "string"
+                }
+	    ],
+            "type_id": 1,
+            "type_name": "Movies"
+	}
+    ]
+}

@@ -34,10 +34,10 @@ class ReplayCreate(object):
                     i += 1
 
 
-    def create_replay(self,filename,num):
+    def create_replay(self,filename,num_actions,num_users):
         with open(filename,"w") as f:
-            for i in range (0,num):
-                user = str(randint(1,1000))
+            for i in range (0,num_actions):
+                user = str(randint(1,num_users))
                 item_idx = randint(0,len(self.items)-1)
                 item = self.items[item_idx]
                 url = RECOMMENDATION_TEMPLATE.replace("%KEY%",self.key).replace("%USER%",user).replace("%ITEM%",item)+"\n"
@@ -60,7 +60,8 @@ if __name__ == '__main__':
     parser.add_argument('--key', help='file containing output of seldon-cli keys call', required=True)
     parser.add_argument('--items', help='file containing output of seldon-cli api /items call', required=True)
     parser.add_argument('--replay', help='replay file to create', required=True)
-    parser.add_argument('--num', help='number of actions and recommendation pair calls to create', required=False, type=int, default=1000)
+    parser.add_argument('--num-actions', help='number of actions and recommendation pair calls to create', required=False, type=int, default=1000)
+    parser.add_argument('--num-users', help='number of users to create recommendation calls for', required=False, type=int, default=1000)
 
     args = parser.parse_args()
     opts = vars(args)
@@ -68,4 +69,4 @@ if __name__ == '__main__':
     rc = ReplayCreate()
     rc.get_key(args.key)
     rc.get_items(args.items)
-    rc.create_replay(args.replay,args.num)
+    rc.create_replay(args.replay,args.num_actions,args.num_users)

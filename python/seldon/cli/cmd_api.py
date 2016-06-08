@@ -107,6 +107,8 @@ def get_js_predict_params(opts,params):
 def get_oauth_items_params(opts,params):
     if not opts.full is None:
         params["full"] = opts.full
+    params["type"] = opts.type
+    params["limit"] = opts.limit
     return params
 
 def call_js(gopts,command_data,opts,auth):
