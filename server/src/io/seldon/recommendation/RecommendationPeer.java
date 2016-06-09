@@ -148,7 +148,7 @@ public class RecommendationPeer {
 
 			// add current item id if not in recent actions
 			if (currentItemId != null && !recentItemInteractions.contains(currentItemId))
-				recentItemInteractions.add(currentItemId);
+				recentItemInteractions.add(0,currentItemId);
 			FilteredItems explicitItems = null;
 			if (scoreItems != null)
 				explicitItems = explicitItemsIncluder.create(client, scoreItems);

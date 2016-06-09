@@ -57,7 +57,9 @@
                                         "value": "zookeeper-1,zookeeper-2,zookeeper-3"
                                     }
                                 ],
-                                "resources": {},
+                                "resources": {
+				    %SELDON_SERVER_RESOURCES%
+				},
                                 "volumeMounts": [
 				    {
 					"name": "data-volume",
