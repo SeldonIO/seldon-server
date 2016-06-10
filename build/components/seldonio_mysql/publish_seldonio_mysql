@@ -31,7 +31,7 @@ if [ "${DRY_RUN}" = "false" ]; then
 
     log "attempting to publish [${BUILT_IMAGE}]"
 
-    ##docker push ${IMAGE_NAME}:${IMAGE_VERSION}
+    docker push ${IMAGE_NAME}:${IMAGE_VERSION}
 
     log "[BUILD_EVENT:END] published [${BUILT_IMAGE}]"
 else
