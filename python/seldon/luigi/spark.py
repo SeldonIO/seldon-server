@@ -29,7 +29,7 @@ class ItemSimilaritySparkJob(luigi.Task):
         return luigi.LocalTarget("{}/{}/item-similarity/{}".format(self.outputPath,self.client,self.startDay))
 
     def run(self):
-        params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","similar-items","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--sample",str(self.sample),"--itemType",str(self.itemType),"--limit",str(self.limit),"--minItemsPerUser",str(self.minItemsPerUser),"--minUsersPerItem",str(self.minUsersPerItem),"--maxUsersPerItem",str(self.maxUsersPerItem),"--dimsumthreshold",str(self.dimsumThreshold)]
+        params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","similar-items","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--sample",str(self.sample),"--itemType",str(self.itemType),"--limit",str(self.limit),"--minItemsPerUser",str(self.minItemsPerUser),"--minUsersPerItem",str(self.minUsersPerItem),"--maxUsersPerItem",str(self.maxUsersPerItem),"--dimsumThreshold",str(self.dimsumThreshold)]
         res = call(params)
         params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","similar-items"]
         res = call(params)
