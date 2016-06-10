@@ -91,12 +91,19 @@ examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUIL
 				-e "s|%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|" \
 				> examples/ml100k/ml100k-import.json
 
-examples/ml10m/ml10m-import.json: examples/ml10m/ml10m-import.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+examples/ml10m/ml10m-import-item-similarity.json: examples/ml10m/ml10m-import-item-similarity.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat examples/ml10m/ml10m-import.json.in  | sed \
+		cat examples/ml10m/ml10m-import-item-similarity.json.in  | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
-				> examples/ml10m/ml10m-import.json
+				> examples/ml10m/ml10m-import-item-similarity.json
+
+examples/ml10m/ml10m-import-matrix-factorization.json: examples/ml10m/ml10m-import-matrix-factorization.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/ml10m/ml10m-import-matrix-factorization.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
+				> examples/ml10m/ml10m-import-matrix-factorization.json
 
 server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -174,7 +181,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import.json
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json
 
 
 #
@@ -204,7 +211,8 @@ clean:
 	rm -f influxdb-grafana.json
 	rm -f examples/reuters/import-data-job.json
 	rm -f examples/ml100k/ml100k-import.json
-	rm -f examples/ml10m/ml10m-import.json
+	rm -f examples/ml10m/ml10m-import-item-similarity.json
+	rm -f examples/ml10m/ml10m-import-matrix-factorization.json
 	rm -f microservice-${MICROSERVICE_NAME}.json
 	rm -f glusterfs.json
 	rm -f zookeeper.json
