@@ -6,9 +6,12 @@ set -o errexit
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-true}
-SELDON_WITH_ANALYTICS=${SELDON_WITH_ANALYTICS:-true}
 SELDON_WITH_GLUSTERFS=${SELDON_WITH_GLUSTERFS:-false}
 KCMD="kubectl exec seldon-control -i bash"
+
+function check_zookeeper {
+    kubectl exec -i zookeeper-3 -- echo srvr | nc localhost  2181 | grep Mode | cut -d' ' -f2
+}
 
 function start_core_services {
     echo "Starting core servces"
@@ -17,8 +20,6 @@ function start_core_services {
     kubectl create -f ${STARTUP_DIR}/../conf/zookeeper.json
     kubectl create -f ${STARTUP_DIR}/../conf/control.json
     kubectl create -f ${STARTUP_DIR}/../conf/influxdb-grafana.json
-    kubectl create -f ${STARTUP_DIR}/../conf/kafka.json
-    kubectl create -f ${STARTUP_DIR}/../conf/td-agent-server.json
 
     while true; do
         non_running_states=$(get_non_running_states)
@@ -31,7 +32,32 @@ function start_core_services {
             sleep 5
         fi
     done
+    while true; do
+        zookeeper_mode=$(check_zookeeper)
+        if [[ "$zookeeper_mode" == "standalone" ]]; then
+            break
+        else
+            echo "Waiting for zookeeper to be ready as status check returned $zookeeper_ready"
+            sleep 1
+        fi
+    done
+
+    kubectl create -f ${STARTUP_DIR}/../conf/kafka.json
+    kubectl create -f ${STARTUP_DIR}/../conf/td-agent-server.json
+    while true; do
+        non_running_states=$(get_non_running_states)
+        if [[ "$non_running_states" == "0" ]]; then
+            break
+        else
+	    kubectl get pods
+            echo "Waiting for kafka and td-agent-server to be running as found $non_running_states in non-running state"
+            echo "Sleeping for 5 seconds..."
+            sleep 5
+        fi
+    done
+
 }
+
 
 function start_api_server {
     echo "Starting Seldon API server"
@@ -69,15 +95,11 @@ function start_spark {
             fi
         done
         kubectl create -f ${STARTUP_DIR}/../conf/spark-workers.json
-	echo "Allowing spark workers to start..."
-	sleep 5
-	if $SELDON_WITH_ANALYTICS ; then
-	    #kubectl logs spark-master-controller-mqu8j | grep Registering work
-	    kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-spark-streaming.json
-	    kubectl create -f ${STARTUP_DIR}/../conf/analytics/requests-spark-streaming.json
-	    kubectl create -f ${STARTUP_DIR}/../conf/analytics/predictions-spark-streaming.json
-	fi
     fi
+}
+
+function start_analytics {
+    kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-kafka-stream.json
 }
 
 function start_glusterfs_service {
@@ -103,12 +125,14 @@ function seldon_up {
     start_core_services
 
     start_spark
-
+    
     setup_basic_conf
 
     start_api_server
 
     setup_influxdb
+
+    start_analytics
 }
 
 function get_non_running_states {

@@ -72,6 +72,8 @@ publish_seldonio_seldon_control: build_versions_generated
 	@./dopublish seldonio_seldon_control
 publish_seldonio_seldon_server: build_versions_generated
 	@./dopublish seldonio_seldon_server
+publish_seldonio_seldon_stream: build_versions_generated
+	@./dopublish seldonio_seldon_stream
 publish_seldonio_examples_ml100k: build_versions_generated
 	@./dopublish seldonio_examples_ml100k
 publish_seldonio_examples_ml10m: build_versions_generated

@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class ImpressionsToInfluxDb {
 	
+	@SuppressWarnings("unchecked")
 	public static void process(final Namespace ns) throws InterruptedException
 	{
 		Properties props = new Properties();
@@ -79,31 +80,62 @@ public class ImpressionsToInfluxDb {
         
         io.seldon.stream.serializer.JsonSerializer<Impression> impressionJsonSerializer = new io.seldon.stream.serializer.JsonSerializer<>();
         io.seldon.stream.serializer.JsonDeserializer<Impression> impressionJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Impression.class);
-
         Serde<Impression> impressionSerde = Serdes.serdeFrom(impressionJsonSerializer,impressionJsonDeserializer);
+
+        io.seldon.stream.serializer.JsonSerializer<Request> requestJsonSerializer = new io.seldon.stream.serializer.JsonSerializer<>();
+        io.seldon.stream.serializer.JsonDeserializer<Request> requestJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Request.class);
+        Serde<Request> requestSerde = Serdes.serdeFrom(requestJsonSerializer,requestJsonDeserializer);
         
         System.out.println("Topic is "+ns.getString("topic"));
         KStream<String, JsonNode> source = builder.stream(stringSerde,jsonSerde,ns.getString("topic"));
      
+        KStream<String,JsonNode>[] branches = source.branch(
+        		new Predicate<String, JsonNode>()
+        			{
+        			@Override
+        			public boolean test(String key, JsonNode value)
+        			{
+        				System.out.println("checking tag of "+value.get("tag").asText());
+        				if (value.get("tag").asText().equals("restapi.ctralg"))
+        				{
+        					System.out.println("sending tag of "+value.get("tag").asText());
+        					return true;
+        				}
+        				else
+        				{
+        					System.out.println("ignoring tag of "+value.get("tag").asText());
+        					return false;
+        				}
+        			}
+        			},
+        			new Predicate<String, JsonNode>()
+        			{
+        			@Override
+        			public boolean test(String key, JsonNode value)
+        			{
+        				System.out.println("checking tag of "+value.get("tag").asText());
+        				if (value.get("tag").asText().equals("restapi.calls"))
+        				{
+        					System.out.println("sending calls tag of "+value.get("tag").asText());
+        					return true;
+        				}
+        				else
+        				{
+        					System.out.println("ignoring tag of "+value.get("tag").asText());
+        					return false;
+        				}
+        			}
+        			}
+        		);
         
-        source.filter(new Predicate<String, JsonNode>() {
-			
-			@Override
-			public boolean test(String key, JsonNode value) {
-				System.out.println("received tag of "+value.get("tag").asText());
-				if (value.get("tag").asText().equals("restapi.ctralg"))
-				{
-					System.out.println("sending tag of "+value.get("tag").asText());
-					return true;
-				}
-				else
-				{
-					System.out.println("ignoring tag of "+value.get("tag").asText());
-					return false;
-				}
-			}
-		})
-        .map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
+        KStream<String,JsonNode> impressionsStream = branches[0];
+        KStream<String,JsonNode> requestsStream = branches[1];
+        
+        /*
+         * Impressions topology
+         */
+        
+        impressionsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
 
 			@Override
 			public KeyValue<String, Impression> apply(String key, JsonNode value) {
@@ -127,7 +159,7 @@ public class ImpressionsToInfluxDb {
 			@Override
 			public void apply(Windowed<String> key, Impression value) {
 			
-				Point point = Point.measurement(ns.getString("influx_measurement"))
+				Point point = Point.measurement(ns.getString("influx_measurement_impressions"))
                 .time(value.time, TimeUnit.SECONDS)
                 .tag("client", value.consumer)
                 .tag("rectag", value.rectag)
@@ -142,6 +174,49 @@ public class ImpressionsToInfluxDb {
 			}
 		});
 		
+        
+        
+        requestsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Request>>() {
+
+			@Override
+			public KeyValue<String, Request> apply(String key, JsonNode value) {
+				System.out.println("mapping "+value.toString());
+				Request req = new Request(value);
+				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time;
+				return new KeyValue<String,Request>(rkey,req);
+			}
+        	
+		})
+		.reduceByKey(new Reducer<Request>() {
+			
+			@Override
+			public Request apply(Request value1, Request value2) {
+				System.out.println("Reducing "+value1+" with "+value2);
+				return value1.add(value2);
+			}
+		}, TimeWindows.of("RequestWindow", 1L),stringSerde, requestSerde)
+		.foreach(new ForeachAction<Windowed<String>, Request>() {
+			
+			@Override
+			public void apply(Windowed<String> key, Request value) {
+			
+				Point point = Point.measurement(ns.getString("influx_measurement_requests"))
+                .time(value.time, TimeUnit.SECONDS)
+                .tag("client", value.consumer)
+                .tag("path", value.path)
+                .tag("httpmethod", value.httpmethod)
+                .addField("count", value.count)
+                .addField("exectime", value.exectime/((float)value.count))
+                .build();
+
+				
+				System.out.println("Value is "+value.toString());
+				influxDB.write(ns.getString("influx_database"), "default", point);				
+			}
+		});
+		
+        
+        
         //TimeWindows.of("ImpressionWindow", 5 * 1000L)
         
         KafkaStreams streams = new KafkaStreams(builder, props);
@@ -163,7 +238,8 @@ public class ImpressionsToInfluxDb {
     	parser.addArgument("-u", "--influx-user").setDefault("root").help("Influxdb user");
     	parser.addArgument("-p", "--influx-password").setDefault("root").help("Influxdb password");
     	parser.addArgument("-d", "--influx-database").setDefault("seldon").help("Influxdb database");
-    	parser.addArgument("-m", "--influx-measurement").setDefault("impressions").help("Influxdb measurement");
+    	parser.addArgument("--influx-measurement-impressions").setDefault("impressions").help("Influxdb impressions measurement");
+    	parser.addArgument("--influx-measurement-requests").setDefault("requests").help("Influxdb requests measurement");
         
         Namespace ns = null;
         try {
