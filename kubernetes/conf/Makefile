@@ -121,25 +121,11 @@ analytics/impressions-kafka-stream.json: analytics/impressions-kafka-stream.json
 		cat analytics/impressions-kafka-stream.json.in  | sed \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				> analytics/impressions-kafka-stream.json
-
-
-analytics/impressions-spark-streaming.json: analytics/impressions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+analytics/predictions-kafka-stream.json: analytics/predictions-kafka-stream.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat analytics/impressions-spark-streaming.json.in  | sed \
-				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/impressions-spark-streaming.json
-
-analytics/requests-spark-streaming.json: analytics/requests-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
-	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat analytics/requests-spark-streaming.json.in  | sed \
-				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/requests-spark-streaming.json
-
-analytics/predictions-spark-streaming.json: analytics/predictions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
-	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat analytics/predictions-spark-streaming.json.in  | sed \
-				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/predictions-spark-streaming.json
+		cat analytics/predictions-kafka-stream.json.in  | sed \
+				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				> analytics/predictions-kafka-stream.json
 
 
 #
@@ -181,7 +167,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json
+conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json
 
 
 #

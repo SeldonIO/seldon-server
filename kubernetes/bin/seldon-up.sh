@@ -100,6 +100,7 @@ function start_spark {
 
 function start_analytics {
     kubectl create -f ${STARTUP_DIR}/../conf/analytics/impressions-kafka-stream.json
+    kubectl create -f ${STARTUP_DIR}/../conf/analytics/predictions-kafka-stream.json
 }
 
 function start_glusterfs_service {

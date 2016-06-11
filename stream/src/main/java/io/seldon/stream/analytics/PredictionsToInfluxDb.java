@@ -52,13 +52,12 @@ import org.influxdb.dto.Point;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class ImpressionsToInfluxDb {
-	
+public class PredictionsToInfluxDb {
 	@SuppressWarnings("unchecked")
 	public static void process(final Namespace ns) throws InterruptedException
 	{
 		Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-impressions");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-predictions");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ns.getString("kafka"));
         props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -78,135 +77,67 @@ public class ImpressionsToInfluxDb {
         final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(new JsonSerializer(),jsonDeserializer);
         final Serde<String> stringSerde = Serdes.String();
         
-        io.seldon.stream.serializer.JsonSerializer<Impression> impressionJsonSerializer = new io.seldon.stream.serializer.JsonSerializer<>();
-        io.seldon.stream.serializer.JsonDeserializer<Impression> impressionJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Impression.class);
-        Serde<Impression> impressionSerde = Serdes.serdeFrom(impressionJsonSerializer,impressionJsonDeserializer);
+        io.seldon.stream.serializer.JsonSerializer<Prediction> predictionJsonSerializer = new io.seldon.stream.serializer.JsonSerializer<>();
+        io.seldon.stream.serializer.JsonDeserializer<Prediction> predictionJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Prediction.class);
+        Serde<Prediction> predictionSerde = Serdes.serdeFrom(predictionJsonSerializer,predictionJsonDeserializer);
 
-        io.seldon.stream.serializer.JsonSerializer<Request> requestJsonSerializer = new io.seldon.stream.serializer.JsonSerializer<>();
-        io.seldon.stream.serializer.JsonDeserializer<Request> requestJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Request.class);
-        Serde<Request> requestSerde = Serdes.serdeFrom(requestJsonSerializer,requestJsonDeserializer);
-        
         System.out.println("Topic is "+ns.getString("topic"));
         KStream<String, JsonNode> source = builder.stream(stringSerde,jsonSerde,ns.getString("topic"));
      
-        KStream<String,JsonNode>[] branches = source.branch(
+       
+        
+        source.filter(
         		new Predicate<String, JsonNode>()
-        			{
-        			@Override
-        			public boolean test(String key, JsonNode value)
-        			{
-        				System.out.println("checking tag of "+value.get("tag").asText());
-        				if (value.get("tag").asText().equals("restapi.ctralg"))
-        				{
-        					System.out.println("sending tag of "+value.get("tag").asText());
-        					return true;
-        				}
-        				else
-        				{
-        					System.out.println("ignoring tag of "+value.get("tag").asText());
-        					return false;
-        				}
-        			}
-        			},
-        			new Predicate<String, JsonNode>()
-        			{
-        			@Override
-        			public boolean test(String key, JsonNode value)
-        			{
-        				System.out.println("checking tag of "+value.get("tag").asText());
-        				if (value.get("tag").asText().equals("restapi.calls"))
-        				{
-        					System.out.println("sending calls tag of "+value.get("tag").asText());
-        					return true;
-        				}
-        				else
-        				{
-        					System.out.println("ignoring tag of "+value.get("tag").asText());
-        					return false;
-        				}
-        			}
-        			}
-        		);
-        
-        KStream<String,JsonNode> impressionsStream = branches[0];
-        KStream<String,JsonNode> requestsStream = branches[1];
-        
-        /*
-         * Impressions topology
-         */
-        
-        impressionsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
+    			{
+    			@Override
+    			public boolean test(String key, JsonNode value)
+    			{
+    				System.out.println("checking tag of "+value.get("tag").asText());
+    				if (value.get("tag").asText().equals("predict.live"))
+    				{
+    					System.out.println("sending tag of "+value.get("tag").asText());
+    					return true;
+    				}
+    				else
+    				{
+    					System.out.println("ignoring tag of "+value.get("tag").asText());
+    					return false;
+    				}
+    			}
+    			}
+        		)
+        .map(new KeyValueMapper<String, JsonNode, KeyValue<String,Prediction>>() {
 
 			@Override
-			public KeyValue<String, Impression> apply(String key, JsonNode value) {
+			public KeyValue<String, Prediction> apply(String key, JsonNode value) {
 				System.out.println("mapping "+value.toString());
-				Impression imp = new Impression(value);
-				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time;
-				return new KeyValue<String,Impression>(ikey,imp);
+				Prediction imp = new Prediction(value);
+				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.model+"_"+imp.predictedClass+"_"+imp.time;
+				return new KeyValue<String,Prediction>(ikey,imp);
 			}
         	
 		})
-		.reduceByKey(new Reducer<Impression>() {
+		.reduceByKey(new Reducer<Prediction>() {
 			
 			@Override
-			public Impression apply(Impression value1, Impression value2) {
+			public Prediction apply(Prediction value1, Prediction value2) {
 				System.out.println("Reducing "+value1+" with "+value2);
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("ImpressionWindow", 1L),stringSerde, impressionSerde)
-		.foreach(new ForeachAction<Windowed<String>, Impression>() {
+		}, TimeWindows.of("PredictionWindow", 1L),stringSerde, predictionSerde)
+		.foreach(new ForeachAction<Windowed<String>, Prediction>() {
 			
 			@Override
-			public void apply(Windowed<String> key, Impression value) {
+			public void apply(Windowed<String> key, Prediction value) {
 			
-				Point point = Point.measurement(ns.getString("influx_measurement_impressions"))
+				Point point = Point.measurement(ns.getString("influx_measurement"))
                 .time(value.time, TimeUnit.SECONDS)
                 .tag("client", value.consumer)
                 .tag("rectag", value.rectag)
                 .tag("variation", value.variation)
-                .addField("impressions", value.imp)
-                .addField("clicks", value.click)
-                .build();
-
-				
-				System.out.println("Value is "+value.toString());
-				influxDB.write(ns.getString("influx_database"), "default", point);				
-			}
-		});
-		
-        
-        
-        requestsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Request>>() {
-
-			@Override
-			public KeyValue<String, Request> apply(String key, JsonNode value) {
-				System.out.println("mapping "+value.toString());
-				Request req = new Request(value);
-				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time;
-				return new KeyValue<String,Request>(rkey,req);
-			}
-        	
-		})
-		.reduceByKey(new Reducer<Request>() {
-			
-			@Override
-			public Request apply(Request value1, Request value2) {
-				System.out.println("Reducing "+value1+" with "+value2);
-				return value1.add(value2);
-			}
-		}, TimeWindows.of("RequestWindow", 1L),stringSerde, requestSerde)
-		.foreach(new ForeachAction<Windowed<String>, Request>() {
-			
-			@Override
-			public void apply(Windowed<String> key, Request value) {
-			
-				Point point = Point.measurement(ns.getString("influx_measurement_requests"))
-                .time(value.time, TimeUnit.SECONDS)
-                .tag("client", value.consumer)
-                .tag("path", value.path)
-                .tag("httpmethod", value.httpmethod)
+                .tag("model", value.model)
+                .addField("score", value.score/(double) value.count)
                 .addField("count", value.count)
-                .addField("exectime", value.exectime/((float)value.count))
                 .build();
 
 				
@@ -217,7 +148,10 @@ public class ImpressionsToInfluxDb {
 		
         
         
-        //TimeWindows.of("ImpressionWindow", 5 * 1000L)
+        
+        
+        
+        //TimeWindows.of("PredictionWindow", 5 * 1000L)
         
         KafkaStreams streams = new KafkaStreams(builder, props);
         streams.start();
@@ -228,27 +162,25 @@ public class ImpressionsToInfluxDb {
 	
     public static void main(String[] args) throws Exception {
         
-    	ArgumentParser parser = ArgumentParsers.newArgumentParser("ImpressionsToInfluxDb")
+    	ArgumentParser parser = ArgumentParsers.newArgumentParser("PredictionsToInfluxDb")
                 .defaultHelp(true)
-                .description("Read Seldon impressions and send stats to influx db");
-    	parser.addArgument("-t", "--topic").setDefault("impressions").help("Kafka topic to read from");
+                .description("Read Seldon predictions and send stats to influx db");
+    	parser.addArgument("-t", "--topic").setDefault("Predictions").help("Kafka topic to read from");
     	parser.addArgument("-k", "--kafka").setDefault("localhost:9092").help("Kafka server and port");
     	parser.addArgument("-z", "--zookeeper").setDefault("localhost:2181").help("Zookeeper server and port");
     	parser.addArgument("-i", "--influxdb").setDefault("localhost:8086").help("Influxdb server and port");
     	parser.addArgument("-u", "--influx-user").setDefault("root").help("Influxdb user");
     	parser.addArgument("-p", "--influx-password").setDefault("root").help("Influxdb password");
     	parser.addArgument("-d", "--influx-database").setDefault("seldon").help("Influxdb database");
-    	parser.addArgument("--influx-measurement-impressions").setDefault("impressions").help("Influxdb impressions measurement");
-    	parser.addArgument("--influx-measurement-requests").setDefault("requests").help("Influxdb requests measurement");
+    	parser.addArgument("--influx-measurement").setDefault("predictions").help("Influxdb Predictions measurement");
         
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
-            ImpressionsToInfluxDb.process(ns);
+            PredictionsToInfluxDb.process(ns);
         } catch (ArgumentParserException e) {
             parser.handleError(e);
             System.exit(1);
         }
     }
-
 }
