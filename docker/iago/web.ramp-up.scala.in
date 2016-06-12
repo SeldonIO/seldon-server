@@ -55,6 +55,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse
 import com.twitter.conversions.time._
 import com.twitter.parrot.util.SlowStartPoissonProcess
 """
-  createDistribution = "createDistribution = { rate => new SlowStartPoissonProcess(%REQ_RATE%, (120).seconds) }"
+  createDistribution = "createDistribution = { rate => new SlowStartPoissonProcess(%REQ_RATE%, (240).seconds) }"
   loadTest = "new SimpleRecordProcessor(service.get, this)"
 }

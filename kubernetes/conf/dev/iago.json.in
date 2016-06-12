@@ -26,6 +26,7 @@
                         }
                     },
                     "spec": {
+			"nodeSelector" : { "role":"iago" },
                         "containers": [
                             {
                                 "command": [

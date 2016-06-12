@@ -17,7 +17,9 @@ gdata = {
                 'jdbc': "jdbc:mysql:replication://127.0.0.1:3306,127.0.0.1:3306/?characterEncoding=utf8&useServerPrepStmts=true&logger=com.mysql.jdbc.log.StandardLogger&roundRobinLoadBalance=true&transformedBitIsBoolean=true&rewriteBatchedStatements=true",
                 'password': "mypass",
                 "name": "ClientDB",
-                'user': "root"
+                'user': "root",
+                "maxIdle" : 50,
+                "minIdle" : 20
             }
          ]
     },

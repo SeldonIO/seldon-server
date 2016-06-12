@@ -30,6 +30,13 @@
                             {
                                 "name": "memcached1",
                                 "image": "seldonio/memcached:0.1",
+				"command": [
+				    "memcached",
+				    "-m","512"
+				],
+				"resources": {
+					%MEMCACHE_RESOURCES%
+				},
                                 "ports": [
                                     {
                                         "containerPort": 11211,
@@ -95,6 +102,13 @@
                             {
                                 "name": "memcached2",
                                 "image": "seldonio/memcached:0.1",
+				"command": [
+				    "memcached",
+				    "-m","512"
+				],
+				"resources": {
+					%MEMCACHE_RESOURCES%
+				},
                                 "ports": [
                                     {
                                         "containerPort": 11211,

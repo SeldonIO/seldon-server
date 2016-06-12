@@ -32,7 +32,7 @@ SELDON_SERVICE_TYPE=NodePort
 #
 SELDON_SERVER_RESOURCES="requests":{ "memory" : "3Gi" }
 MYSQL_RESOURCES="requests":{ "memory" : "5Gi" }
-
+MEMCACHE_RESOURCES="requests":{ "memory" : "550Mi" }
 
 control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -48,6 +48,11 @@ mysql.json:mysql.json.in
 				-e  's|%MYSQL_RESOURCES%|$(MYSQL_RESOURCES)|' \
 				-e  "s|%SELDON_MYSQL_IMAGE_VERSION%|$${SELDON_MYSQL_IMAGE_VERSION}|" \
 				> mysql.json
+
+memcache.json:memcache.json.in
+	cat memcache.json.in | sed \
+				-e  's|%MEMCACHE_RESOURCES%|$(MEMCACHE_RESOURCES)|' \
+				> memcache.json
 
 zookeeper.json:zookeeper.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
@@ -167,7 +172,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json
 
 
 #
@@ -189,6 +194,7 @@ $(BUILD_VERSIONS_GENERATED_FILE):
 
 clean:
 	rm -f mysql.json
+	rm -f memcache.json
 	rm -f control.json
 	rm -f td-agent-server.json
 	rm -f spark-master.json

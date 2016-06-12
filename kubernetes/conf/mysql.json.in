@@ -24,6 +24,7 @@
                     {
                         "name": "mysql",
                         "image": "seldonio/mysql:%SELDON_MYSQL_IMAGE_VERSION%",
+			"imagePullPolicy": "Always",
                         "ports": [
                             {
                                 "name": "mysql",
