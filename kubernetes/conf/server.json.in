@@ -81,10 +81,10 @@
                                         "scheme": "HTTP"
                                     },
                                     "initialDelaySeconds": 60,
-                                    "timeoutSeconds": 1,
-                                    "periodSeconds": 10,
+                                    "timeoutSeconds": 5,
+                                    "periodSeconds": 15,
                                     "successThreshold": 1,
-                                    "failureThreshold": 3
+                                    "failureThreshold": 2
                                 },
                                 "terminationMessagePath": "/dev/termination-log",
                                 "imagePullPolicy": "IfNotPresent"
