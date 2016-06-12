@@ -34,7 +34,7 @@
                                     "infinity"
                                 ],
                                 "image": "seldonio/iago:%SELDON_IAGO_IMAGE_VERSION%",
-                                "imagePullPolicy": "IfNotPresent",
+                                "imagePullPolicy": "Always",
                                 "name": "iago",
                                 "terminationMessagePath": "/dev/termination-log",
                                 "volumeMounts": [
