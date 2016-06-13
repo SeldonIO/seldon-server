@@ -31,8 +31,8 @@ SELDON_SERVICE_TYPE=NodePort
 # Default Resources (edit for your own needs)
 #
 SELDON_SERVER_RESOURCES="requests":{ "memory" : "3Gi" }
-MYSQL_RESOURCES="requests":{ "memory" : "5Gi" }
-MEMCACHE_RESOURCES="requests":{ "memory" : "550Mi" }
+MYSQL_RESOURCES="requests":{ "memory" : "3Gi" }
+MEMCACHE_RESOURCES="requests":{ "memory" : "260Mi" }
 
 control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
