@@ -1,0 +1,24 @@
+{
+    "kind": "Pod",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "kafka-stream-predictions",
+        "labels": {
+	    "service" : "seldon"
+        }
+    },
+    "spec": {
+        "containers": [
+            {
+                "name": "spark-streaming-predictions",
+                "image": "seldonio/seldon-stream:%SELDON_SERVER_IMAGE_VERSION%",
+                "command": [
+                    "java","-cp","seldon-stream-%SELDON_SERVER_IMAGE_VERSION%-jar-with-dependencies.jar","io.seldon.stream.analytics.PredictionsToInfluxDb","--topic","predictions","--kafka","kafka-service:9092","--zookeeper","zookeeper-1:2181","--influxdb","monitoring-influxdb:8086","--influx-measurement","predictions"
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent"
+            }
+        ],
+	"terminationGracePeriodSeconds": 0
+    }
+}

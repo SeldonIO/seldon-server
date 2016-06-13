@@ -1,0 +1,40 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "ml10m-import",
+        "labels": {
+            "name": "ml10m-import",
+	    "service" : "seldon"
+        }
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "ml10m-import"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "ml10m-create",
+                        "image": "seldonio/examples-ml10m:%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%",
+			"command": ["/create_ml10m_recommender.sh","matrix-factorization"],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}

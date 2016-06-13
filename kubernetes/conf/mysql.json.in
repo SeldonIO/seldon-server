@@ -23,7 +23,8 @@
                 "containers": [
                     {
                         "name": "mysql",
-                        "image": "seldonio/mysql:1.0",
+                        "image": "seldonio/mysql:%SELDON_MYSQL_IMAGE_VERSION%",
+			"imagePullPolicy": "Always",
                         "ports": [
                             {
                                 "name": "mysql",
@@ -37,7 +38,9 @@
                                 "value": "mypass"
                             }
                         ],
-                        "resources": {},
+                        "resources": {
+			    %MYSQL_RESOURCES%
+				     },
                         "volumeMounts": [
                             {
                                 "name": "data-volume",

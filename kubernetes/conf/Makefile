@@ -27,6 +27,13 @@ DATA_VOLUME="hostPath": {"path": "/seldon-data"}
 SELDON_SERVICE_TYPE=NodePort
 #SELDON_SERVICE_TYPE=LoadBalancer
 
+# 
+# Default Resources (edit for your own needs)
+#
+SELDON_SERVER_RESOURCES="requests":{ "memory" : "3Gi" }
+MYSQL_RESOURCES="requests":{ "memory" : "5Gi" }
+MEMCACHE_RESOURCES="requests":{ "memory" : "550Mi" }
+
 control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat control.json.in | sed \
@@ -38,8 +45,14 @@ mysql.json:mysql.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat mysql.json.in | sed \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e  's|%MYSQL_RESOURCES%|$(MYSQL_RESOURCES)|' \
 				-e  "s|%SELDON_MYSQL_IMAGE_VERSION%|$${SELDON_MYSQL_IMAGE_VERSION}|" \
 				> mysql.json && echo "created $@"
+
+memcache.json:memcache.json.in
+	cat memcache.json.in | sed \
+				-e  's|%MEMCACHE_RESOURCES%|$(MEMCACHE_RESOURCES)|' \
+				> memcache.json
 
 zookeeper.json:zookeeper.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
@@ -83,34 +96,42 @@ examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUIL
 				-e "s|%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|" \
 				> examples/ml100k/ml100k-import.json && echo "created $@"
 
+examples/ml10m/ml10m-import-item-similarity.json: examples/ml10m/ml10m-import-item-similarity.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/ml10m/ml10m-import-item-similarity.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
+				> examples/ml10m/ml10m-import-item-similarity.json
+
+examples/ml10m/ml10m-import-matrix-factorization.json: examples/ml10m/ml10m-import-matrix-factorization.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/ml10m/ml10m-import-matrix-factorization.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
+				> examples/ml10m/ml10m-import-matrix-factorization.json
+
 server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 	source $(SELDON_HOME)/build/build_versions; \
 		cat server.json.in | sed \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> server.json && echo "created $@"
 
-analytics/impressions-spark-streaming.json: analytics/impressions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+analytics/impressions-kafka-stream.json: analytics/impressions-kafka-stream.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat analytics/impressions-spark-streaming.json.in  | sed \
-				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/impressions-spark-streaming.json
+		cat analytics/impressions-kafka-stream.json.in  | sed \
+				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				> analytics/impressions-kafka-stream.json
 
-analytics/requests-spark-streaming.json: analytics/requests-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+analytics/predictions-kafka-stream.json: analytics/predictions-kafka-stream.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat analytics/requests-spark-streaming.json.in  | sed \
-				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/requests-spark-streaming.json && echo "created $@"
-
-analytics/predictions-spark-streaming.json: analytics/predictions-spark-streaming.json.in $(BUILD_VERSIONS_GENERATED_FILE)
-	@source $(BUILD_VERSIONS_GENERATED_FILE); \
-		cat analytics/predictions-spark-streaming.json.in  | sed \
-				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
-				> analytics/predictions-spark-streaming.json && echo "created $@"
-
+		cat analytics/predictions-kafka-stream.json.in  | sed \
+				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				> analytics/predictions-kafka-stream.json
 
 #
 # Development conf
@@ -136,7 +157,9 @@ dev/iago.json :dev/iago.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat dev/iago.json.in | sed \
 				-e "s|%SELDON_IAGO_IMAGE_VERSION%|$${SELDON_IAGO_IMAGE_VERSION}|" \
-				> dev/iago.json && echo "created $@"
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
+				> dev/iago.json
 
 
 #
@@ -149,7 +172,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json analytics/predictions-spark-streaming.json analytics/impressions-spark-streaming.json analytics/requests-spark-streaming.json dev/iago.json zookeeper.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json
 
 
 #
@@ -171,6 +194,7 @@ $(BUILD_VERSIONS_GENERATED_FILE):
 
 clean:
 	rm -f mysql.json
+	rm -f memcache.json
 	rm -f control.json
 	rm -f td-agent-server.json
 	rm -f spark-master.json
@@ -179,6 +203,8 @@ clean:
 	rm -f influxdb-grafana.json
 	rm -f examples/reuters/import-data-job.json
 	rm -f examples/ml100k/ml100k-import.json
+	rm -f examples/ml10m/ml10m-import-item-similarity.json
+	rm -f examples/ml10m/ml10m-import-matrix-factorization.json
 	rm -f microservice-${MICROSERVICE_NAME}.json
 	rm -f glusterfs.json
 	rm -f zookeeper.json

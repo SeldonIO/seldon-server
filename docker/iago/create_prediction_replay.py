@@ -5,7 +5,7 @@ from random import randint,random,uniform
 import json
 import urllib
 
-PREDICT_TEMPLATE = 'http://seldon-server/js/predict?json=%JSON%&consumer_key=%KEY%&jsonpCallback=j'
+PREDICT_TEMPLATE = 'http://%ENDPOINT%/js/predict?json=%JSON%&consumer_key=%KEY%&jsonpCallback=j'
 
 class ReplayCreate(object):
 
@@ -33,12 +33,12 @@ class ReplayCreate(object):
                 j[f["name"]] = fval
         return json.dumps(j)
 
-    def create_replay(self,filename,num):
+    def create_replay(self,endpoint,filename,num):
         with open(filename,"w") as f:
             for i in range (0,num):
                 jStr = self.construct_json()
                 jEncoded = urllib.quote_plus(jStr)
-                url = PREDICT_TEMPLATE.replace("%KEY%",self.key).replace("%JSON%",jEncoded)+"\n"
+                url = PREDICT_TEMPLATE.replace("%ENDPOINT%",endpoint).replace("%KEY%",self.key).replace("%JSON%",jEncoded)+"\n"
                 f.write(url)
 
 if __name__ == '__main__':
@@ -48,6 +48,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(prog='create_replay')
+    parser.add_argument('--endpoint', help='endpoint for seldon server', default="seldon-server")
     parser.add_argument('--key', help='file containing output of seldon-cli keys call', required=True)
     parser.add_argument('--replay', help='replay file to create', required=True)
     parser.add_argument('--num', help='number of actions and recommendation pair calls to create', required=False, type=int, default=1000)
@@ -59,4 +60,4 @@ if __name__ == '__main__':
     rc = ReplayCreate()
     rc.get_key(args.key)
     rc.parse_features(args.feature)
-    rc.create_replay(args.replay,args.num)
+    rc.create_replay(args.endpoint,args.replay,args.num)

@@ -1,37 +1,91 @@
 {
-    "kind": "Pod",
     "apiVersion": "v1",
-    "metadata": {
-        "name": "iago",
-        "labels": {
-	    "service": "seldon"
-        }
-    },
-    "spec": {
-        "volumes": [
-            {
-                "name": "data-volume",
-                "hostPath": {"path": "/seldon-data"}
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "ReplicationController",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "name": "iago",
+                    "service": "seldon"
+                },
+                "name": "iago"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "name": "iago"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "iago",
+                            "service": "seldon"
+                        }
+                    },
+                    "spec": {
+			"nodeSelector" : { "role":"iago" },
+                        "containers": [
+                            {
+                                "command": [
+                                    "sleep",
+                                    "infinity"
+                                ],
+                                "image": "seldonio/iago:%SELDON_IAGO_IMAGE_VERSION%",
+                                "imagePullPolicy": "Always",
+                                "name": "iago",
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/seldon-data",
+                                        "name": "storage"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "name": "storage",
+				%DATA_VOLUME%
+                            }
+                        ]
+                    }
+                }
             }
-        ],
-        "containers": [
-            {
-                "name": "iago",
-                "image": "seldonio/iago:%SELDON_IAGO_IMAGE_VERSION%",
-                "command": [
-                    "sleep",
-                    "infinity"
-                ],
-                "volumeMounts": [
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "service": "seldon"
+                },
+                "name": "iago"
+            },
+            "spec": {
+                "ports": [
                     {
-                        "name": "data-volume",
-                        "mountPath": "/seldon-data"
+                        "nodePort": 30005,
+                        "port": 9994,
+                        "protocol": "TCP",
+                        "targetPort": 9994
                     }
                 ],
-                "terminationMessagePath": "/dev/termination-log",
-                "imagePullPolicy": "IfNotPresent"
+                "selector": {
+                    "name": "iago"
+                },
+                "sessionAffinity": "None",
+                "type": "%SERVICE_TYPE%"
             }
-        ],
-	"terminationGracePeriodSeconds": 0
-    }
+        }
+    ],
+    "kind": "List"
 }
+

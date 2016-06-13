@@ -56,6 +56,11 @@ seldon_examples_ml100k_image_version() {
     echo ${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}
 }
 
+seldon_examples_ml10m_image_version() {
+    local SELDON_EXAMPLES_ML10M_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}
+    echo ${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}
+}
+
 seldon_examples_reuters_data_image_version() {
     local SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}
     echo ${SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION}
@@ -96,6 +101,7 @@ write_version "SELDON_SERVER_VERSION" "${SELDON_SERVER_VERSION}"
 write_version "SELDON_CONTROL_IMAGE_VERSION" "${SELDON_CONTROL_IMAGE_VERSION}"
 write_version "SELDON_IRIS_KERAS_IMAGE_VERSION" "$(seldon_iris_keras_image_version)"
 write_version "SELDON_EXAMPLES_ML100K_IMAGE_VERSION" "$(seldon_examples_ml100k_image_version)"
+write_version "SELDON_EXAMPLES_ML10M_IMAGE_VERSION" "$(seldon_examples_ml10m_image_version)"
 write_version "SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION" "$(seldon_examples_reuters_data_image_version)"
 write_version "SELDON_SERVER_IMAGE_VERSION" "$(seldon_server_image_version)"
 write_version "SELDON_REUTERS_EXAMPLE_IMAGE_VERSION" "$(seldon_reuters_example_image_version)"
