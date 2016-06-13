@@ -22,6 +22,7 @@
 package io.seldon.stream.analytics;
 
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -95,15 +96,12 @@ public class ImpressionsToInfluxDb {
         			@Override
         			public boolean test(String key, JsonNode value)
         			{
-        				System.out.println("checking tag of "+value.get("tag").asText());
         				if (value.get("tag").asText().equals("restapi.ctralg"))
         				{
-        					System.out.println("sending tag of "+value.get("tag").asText());
         					return true;
         				}
         				else
         				{
-        					System.out.println("ignoring tag of "+value.get("tag").asText());
         					return false;
         				}
         			}
@@ -113,15 +111,12 @@ public class ImpressionsToInfluxDb {
         			@Override
         			public boolean test(String key, JsonNode value)
         			{
-        				System.out.println("checking tag of "+value.get("tag").asText());
         				if (value.get("tag").asText().equals("restapi.calls"))
         				{
-        					System.out.println("sending calls tag of "+value.get("tag").asText());
         					return true;
         				}
         				else
         				{
-        					System.out.println("ignoring tag of "+value.get("tag").asText());
         					return false;
         				}
         			}
@@ -139,9 +134,11 @@ public class ImpressionsToInfluxDb {
 
 			@Override
 			public KeyValue<String, Impression> apply(String key, JsonNode value) {
-				System.out.println("mapping "+value.toString());
+
+				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
+				Random r = new Random();
 				Impression imp = new Impression(value);
-				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time;
+				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time+"_"+r.nextInt();
 				return new KeyValue<String,Impression>(ikey,imp);
 			}
         	
@@ -150,26 +147,28 @@ public class ImpressionsToInfluxDb {
 			
 			@Override
 			public Impression apply(Impression value1, Impression value2) {
-				System.out.println("Reducing "+value1+" with "+value2);
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("ImpressionWindow", 1L),stringSerde, impressionSerde)
-		.foreach(new ForeachAction<Windowed<String>, Impression>() {
-			
+		}, TimeWindows.of("ImpressionWindow", 5000L),stringSerde, impressionSerde)
+		.foreach(
+				new ForeachAction<Windowed<String>, Impression>() {
 			@Override
 			public void apply(Windowed<String> key, Impression value) {
 			
+				Random r = new Random();
+				long time = value.time * 1000000;
+				time = time + r.nextInt(1000000);
+				
 				Point point = Point.measurement(ns.getString("influx_measurement_impressions"))
-                .time(value.time, TimeUnit.SECONDS)
+                .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)
                 .tag("rectag", value.rectag)
                 .tag("variation", value.variation)
                 .addField("impressions", value.imp)
                 .addField("clicks", value.click)
                 .build();
-
 				
-				System.out.println("Value is "+value.toString());
+				//System.out.println(key.key()+"Window "+key.window().start()+" to "+key.window().end()+"Value is "+value.toString());
 				influxDB.write(ns.getString("influx_database"), "default", point);				
 			}
 		});
@@ -180,9 +179,11 @@ public class ImpressionsToInfluxDb {
 
 			@Override
 			public KeyValue<String, Request> apply(String key, JsonNode value) {
-				System.out.println("mapping "+value.toString());
+				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
+				Random r = new Random();
+
 				Request req = new Request(value);
-				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time;
+				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time+"_"+r.nextInt();
 				return new KeyValue<String,Request>(rkey,req);
 			}
         	
@@ -191,17 +192,21 @@ public class ImpressionsToInfluxDb {
 			
 			@Override
 			public Request apply(Request value1, Request value2) {
-				System.out.println("Reducing "+value1+" with "+value2);
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("RequestWindow", 1L),stringSerde, requestSerde)
+		}, TimeWindows.of("RequestWindow", 5000L),stringSerde, requestSerde)
 		.foreach(new ForeachAction<Windowed<String>, Request>() {
 			
 			@Override
 			public void apply(Windowed<String> key, Request value) {
 			
+
+				Random r = new Random();
+				long time = value.time * 1000000;
+				time = time + r.nextInt(1000000);
+
 				Point point = Point.measurement(ns.getString("influx_measurement_requests"))
-                .time(value.time, TimeUnit.SECONDS)
+                .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)
                 .tag("path", value.path)
                 .tag("httpmethod", value.httpmethod)
@@ -210,7 +215,7 @@ public class ImpressionsToInfluxDb {
                 .build();
 
 				
-				System.out.println("Value is "+value.toString());
+				//System.out.println("Value is "+value.toString());
 				influxDB.write(ns.getString("influx_database"), "default", point);				
 			}
 		});

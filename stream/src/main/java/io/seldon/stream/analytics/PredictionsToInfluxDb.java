@@ -22,6 +22,7 @@
 package io.seldon.stream.analytics;
 
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -95,12 +96,10 @@ public class PredictionsToInfluxDb {
     				System.out.println("checking tag of "+value.get("tag").asText());
     				if (value.get("tag").asText().equals("predict.live"))
     				{
-    					System.out.println("sending tag of "+value.get("tag").asText());
     					return true;
     				}
     				else
     				{
-    					System.out.println("ignoring tag of "+value.get("tag").asText());
     					return false;
     				}
     			}
@@ -110,9 +109,10 @@ public class PredictionsToInfluxDb {
 
 			@Override
 			public KeyValue<String, Prediction> apply(String key, JsonNode value) {
-				System.out.println("mapping "+value.toString());
+				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
+				Random r = new Random();
 				Prediction imp = new Prediction(value);
-				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.model+"_"+imp.predictedClass+"_"+imp.time;
+				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.model+"_"+imp.predictedClass+"_"+imp.time+"_"+r.nextInt();;
 				return new KeyValue<String,Prediction>(ikey,imp);
 			}
         	
@@ -121,17 +121,20 @@ public class PredictionsToInfluxDb {
 			
 			@Override
 			public Prediction apply(Prediction value1, Prediction value2) {
-				System.out.println("Reducing "+value1+" with "+value2);
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("PredictionWindow", 1L),stringSerde, predictionSerde)
+		}, TimeWindows.of("PredictionWindow", 5000L),stringSerde, predictionSerde)
 		.foreach(new ForeachAction<Windowed<String>, Prediction>() {
 			
 			@Override
 			public void apply(Windowed<String> key, Prediction value) {
 			
+				Random r = new Random();
+				long time = value.time * 1000000;
+				time = time + r.nextInt(1000000);
+				
 				Point point = Point.measurement(ns.getString("influx_measurement"))
-                .time(value.time, TimeUnit.SECONDS)
+                .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)
                 .tag("rectag", value.rectag)
                 .tag("variation", value.variation)
