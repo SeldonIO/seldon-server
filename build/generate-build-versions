@@ -93,7 +93,7 @@ SELDON_CONTROL_IMAGE_VERSION=$(seldon_control_image_version)
 SELDON_SERVER_VERSION=$(seldon_server_version)
 
 # Write versions to file
-echo "#GENERATED ${TS}" > build_versions_generated
+echo "#GENERATED ${TS}" > ${STARTUP_DIR}/build_versions_generated
 write_version "SELDON_PYTHON_PACKAGE_VERSION" "${SELDON_PYTHON_PACKAGE_VERSION}"
 write_version "SELDON_SPARK_VERSION" "${SELDON_SPARK_VERSION}"
 write_version "SELDON_SPARK_BUILD_IMAGE_VERSION" "$(seldon_spark_build_image_version)"
