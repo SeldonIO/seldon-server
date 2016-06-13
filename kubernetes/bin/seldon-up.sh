@@ -10,7 +10,7 @@ SELDON_WITH_GLUSTERFS=${SELDON_WITH_GLUSTERFS:-false}
 KCMD="kubectl exec seldon-control -i bash"
 
 function check_zookeeper {
-    kubectl exec -i zookeeper-3 -- echo srvr | nc localhost  2181 | grep Mode | cut -d' ' -f2
+    kubectl exec -i zookeeper-3 -- bash -c "echo srvr | nc localhost  2181 | grep Mode | cut -d' ' -f2"
 }
 
 function start_core_services {
@@ -34,10 +34,10 @@ function start_core_services {
     done
     while true; do
         zookeeper_mode=$(check_zookeeper)
-        if [[ "$zookeeper_mode" == "standalone" ]]; then
+        if [[ "$zookeeper_mode" == "leader" || "$zookeeper_mode" == "follower" ]]; then
             break
         else
-            echo "Waiting for zookeeper to be ready as status check returned $zookeeper_ready"
+            echo "Waiting for zookeeper to be ready as status check returned $zookeeper_mode"
             sleep 1
         fi
     done
