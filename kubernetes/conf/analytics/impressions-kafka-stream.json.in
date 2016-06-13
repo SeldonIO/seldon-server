@@ -16,7 +16,7 @@
                     "java","-cp","seldon-stream-%SELDON_SERVER_IMAGE_VERSION%-jar-with-dependencies.jar","io.seldon.stream.analytics.ImpressionsToInfluxDb","--topic","ctr_full","--kafka","kafka-service:9092","--zookeeper","zookeeper-1:2181","--influxdb","monitoring-influxdb:8086","--influx-measurement-impressions","impressions","--influx-measurement-requests","requests"
                 ],
                 "terminationMessagePath": "/dev/termination-log",
-                "imagePullPolicy": "IfNotPresent"
+                "imagePullPolicy": "Always"
             }
         ],
 	"terminationGracePeriodSeconds": 0
