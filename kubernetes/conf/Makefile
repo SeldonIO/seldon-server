@@ -193,6 +193,7 @@ $(BUILD_VERSIONS_GENERATED_FILE):
 	@$(SELDON_HOME)/build/generate-build-versions
 
 clean:
+	rm -f $(BUILD_VERSIONS_GENERATED_FILE)
 	rm -f mysql.json
 	rm -f memcache.json
 	rm -f control.json
