@@ -23,7 +23,6 @@
     </prerequisites>
 
     <modules>
-        <module>config</module>
         <module>server</module>
         <module>client/java-client</module>
         <module>offline-jobs/spark</module>
