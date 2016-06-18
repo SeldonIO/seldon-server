@@ -168,7 +168,7 @@
                         ],
                         "resources": {},
                         "terminationMessagePath": "/dev/termination-log",
-                        "imagePullPolicy": "Always"
+                        "imagePullPolicy": "IfNotPresent"
                     }
                 ],
                 "restartPolicy": "Always",
@@ -221,7 +221,7 @@
                         ],
                         "resources": {},
                         "terminationMessagePath": "/dev/termination-log",
-                        "imagePullPolicy": "Always"
+                        "imagePullPolicy": "IfNotPresent"
                     }
                 ],
                 "restartPolicy": "Always",
@@ -274,7 +274,7 @@
                         ],
                         "resources": {},
                         "terminationMessagePath": "/dev/termination-log",
-                        "imagePullPolicy": "Always"
+                        "imagePullPolicy": "IfNotPresent"
                     }
                 ],
                 "restartPolicy": "Always",
