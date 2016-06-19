@@ -86,6 +86,11 @@ seldon_iris_xgboost_image_version() {
     echo ${SELDON_IRIS_XGBOOST_IMAGE_VERSION}
 }
 
+seldon_finefoods_xgboost_image_version() {
+    local SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION}
+    echo ${SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION}
+}
+
 # Versions needed by other versions
 SELDON_PYTHON_PACKAGE_VERSION=$(seldon_python_package_version)
 SELDON_SPARK_VERSION=$(seldon_spark_version)
@@ -107,4 +112,5 @@ write_version "SELDON_SERVER_IMAGE_VERSION" "$(seldon_server_image_version)"
 write_version "SELDON_REUTERS_EXAMPLE_IMAGE_VERSION" "$(seldon_reuters_example_image_version)"
 write_version "SELDON_IRIS_VW_IMAGE_VERSION" "$(seldon_iris_vw_image_version)"
 write_version "SELDON_IRIS_XGBOOST_IMAGE_VERSION" "$(seldon_iris_xgboost_image_version)"
+write_version "SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION" "$(seldon_finefoods_xgboost_image_version)"
 

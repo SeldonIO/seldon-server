@@ -21,7 +21,8 @@ ALL_LIST=\
 	seldonio_tdagent_server \
 	seldonio_tdagent_node \
 	seldonio_iris_vw \
-	seldonio_iris_xgboost
+	seldonio_iris_xgboost \
+	seldonio_finefoods_xgboost
 
 #build
 build_seldon_python_package: build_versions_generated
@@ -64,6 +65,8 @@ build_seldonio_iris_vw: build_versions_generated
 	@./dobuild seldonio_iris_vw
 build_seldonio_iris_xgboost: build_versions_generated
 	@./dobuild seldonio_iris_xgboost
+build_seldonio_finefoods_xgboost: build_versions_generated
+	@./dobuild seldonio_finefoods_xgboost
 
 #publish
 publish_seldonio_pyseldon: build_versions_generated
@@ -102,6 +105,8 @@ publish_seldonio_iris_vw: build_versions_generated
 	@./dopublish seldonio_iris_vw
 publish_seldonio_iris_xgboost: build_versions_generated
 	@./dopublish seldonio_iris_xgboost
+publish_seldonio_finefoods_xgboost: build_versions_generated
+	@./dopublish seldonio_finefoods_xgboost
 
 build_all:
 	@for item in $(ALL_LIST) ; do \

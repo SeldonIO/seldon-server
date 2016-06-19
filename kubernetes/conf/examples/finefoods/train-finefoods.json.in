@@ -1,0 +1,37 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "train-finefoods"
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "train-finefoods"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "train-finefoods",
+                        "image": "seldonio/finefoods_xgboost:%SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION%",
+			"command": ["/home/seldon/create_model.sh","/seldon-data/seldon-models/finefoods/1","0.1"
+			    ],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}

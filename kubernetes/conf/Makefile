@@ -9,7 +9,7 @@ BUILD_VERSIONS_GENERATED_FILE=$(SELDON_HOME)/build/build_versions_generated
 # Will change to more complex config if we allow alternate storage volumes for demo
 #
 
-.PHONY: microservice conf
+.PHONY: conf
 
 #
 # core conf
@@ -88,6 +88,13 @@ examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in 
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION%|$${SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION}|" \
 				> examples/reuters/import-data-job.json && echo "created $@"
+
+examples/finefoods/train-finefoods.json: examples/finefoods/train-finefoods.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/finefoods/train-finefoods.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION%|$${SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION}|" \
+				> examples/finefoods/train-finefoods.json && echo "created $@"
 
 examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
@@ -172,22 +179,21 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json microservice_pipeline.template
 
 
 #
 # microservice conf
 #
 
-MICROSERVICE_NAME=reuters-example
-MICROSERVICE_IMAGE=seldonio/reuters-example
-MICROSERVICE_VERSION=1.0
+microservice_pipeline.template: microservice_pipeline.template.in  $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat microservice_pipeline.template.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_PYTHON_PACKAGE_VERSION%|$${SELDON_PYTHON_PACKAGE_VERSION}|" \
+				> microservice_pipeline.template && echo "created $@"
 
 
-microservice-${MICROSERVICE_NAME}.json:microservice.json.in
-	cat microservice.json.in | sed -e 's|%NAME%|${MICROSERVICE_NAME}|' | sed -e 's|%IMAGE%|${MICROSERVICE_IMAGE}|' | sed -e 's|%VERSION%|${MICROSERVICE_VERSION}|' > microservice-${MICROSERVICE_NAME}.json
-
-microservice:microservice-${MICROSERVICE_NAME}.json
 
 $(BUILD_VERSIONS_GENERATED_FILE):
 	@$(SELDON_HOME)/build/generate-build-versions
@@ -206,6 +212,7 @@ clean:
 	rm -f examples/ml100k/ml100k-import.json
 	rm -f examples/ml10m/ml10m-import-item-similarity.json
 	rm -f examples/ml10m/ml10m-import-matrix-factorization.json
+	rm -f examples/finefoods/train-finefoods.json
 	rm -f microservice-${MICROSERVICE_NAME}.json
 	rm -f glusterfs.json
 	rm -f zookeeper.json
@@ -213,3 +220,4 @@ clean:
 	rm -f dev/control.json
 	rm -f dev/iago.json
 	rm -f analytics/*.json
+	rm -f microservice_pipeline.template

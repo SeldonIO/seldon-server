@@ -3,5 +3,5 @@
 set -o nounset
 set -o errexit
 
-kubectl exec seldon-control -i -- seldon-cli $@
+kubectl exec seldon-control -i -- seldon-cli "$@"
 
