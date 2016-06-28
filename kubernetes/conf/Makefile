@@ -146,10 +146,12 @@ analytics/predictions-kafka-stream.json: analytics/predictions-kafka-stream.json
 
 dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+	source $(SELDON_HOME)/build/build_versions; \
 		cat dev/server.json.in | sed \
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> dev/server.json && echo "created $@"
 
 dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
