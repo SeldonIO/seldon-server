@@ -67,7 +67,9 @@
                                         "value": "zookeeper-1,zookeeper-2,zookeeper-3"
                                     }
                                 ],
-                                "resources": {},
+                                "resources": {
+				                    %SELDON_SERVER_RESOURCES%
+                                },
                                 "volumeMounts": [
 				    {
 					"name": "data-volume",
@@ -136,7 +138,7 @@
                         "protocol": "TCP",
                         "port": 80,
                         "targetPort": 8080,
-			"nodePort": 30000
+			"nodePort": %SELDON_SERVER_NODEPORT%
                     },
                     {
 			"name":"debug",

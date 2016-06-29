@@ -27,6 +27,9 @@ DATA_VOLUME="hostPath": {"path": "/seldon-data"}
 SELDON_SERVICE_TYPE=NodePort
 #SELDON_SERVICE_TYPE=LoadBalancer
 
+
+SELDON_SERVER_NODEPORT=30015
+
 # 
 # Default Resources (edit for your own needs)
 #
@@ -123,6 +126,7 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 		cat server.json.in | sed \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
@@ -150,6 +154,8 @@ dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 		cat dev/server.json.in | sed \
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
+				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> dev/server.json && echo "created $@"
