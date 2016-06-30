@@ -30,6 +30,7 @@ SELDON_SERVICE_TYPE=NodePort
 
 SELDON_SERVER_NODEPORT=30015
 SELDON_SERVER_DEBUG_NODEPORT=30016
+SELDON_SERVER_DEBUG_COMMAND="command":["/home/seldon/start-server-debug.sh"]
 
 # 
 # Default Resources (edit for your own needs)
@@ -158,6 +159,7 @@ dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_DEBUG_NODEPORT%|$(SELDON_SERVER_DEBUG_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
+				-e 's|%SELDON_SERVER_DEBUG_COMMAND%|$(SELDON_SERVER_DEBUG_COMMAND)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> dev/server.json && echo "created $@"
@@ -231,3 +233,4 @@ clean:
 	rm -f dev/iago.json
 	rm -f analytics/*.json
 	rm -f microservice_pipeline.template
+
