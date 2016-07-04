@@ -55,9 +55,9 @@ mysql.json:mysql.json.in
 				> mysql.json && echo "created $@"
 
 memcache.json:memcache.json.in
-	cat memcache.json.in | sed \
+	@cat memcache.json.in | sed \
 				-e  's|%MEMCACHE_RESOURCES%|$(MEMCACHE_RESOURCES)|' \
-				> memcache.json
+				> memcache.json && echo "created $@"
 
 zookeeper.json:zookeeper.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
