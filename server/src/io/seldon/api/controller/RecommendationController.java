@@ -36,6 +36,8 @@ import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.service.ResourceServer;
+import io.seldon.recommendation.userdimensionmapping.UserDimensionMappingModelManager;
+import io.seldon.api.resource.service.UserService;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -70,6 +72,12 @@ public class RecommendationController {
 
     @Autowired
     private DimensionsMappingManager dimensionsMappingManager;
+
+    @Autowired
+    private UserDimensionMappingModelManager userDimensionMappingModelManager;
+
+    @Autowired
+    private UserService userService;
 
     @RequestMapping(value="/users/{userId}/recommendations", method = RequestMethod.GET)
 	public @ResponseBody
@@ -113,9 +121,15 @@ public class RecommendationController {
 			String attributes = Util.getAttributes(req);
 			String locale = Util.getLocale(req);
 			
-	        if (locale != null)  { // map dimensions based on locale
-	            String client = ((ConsumerBean) con).getShort_name();
-	            dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(client, dimensions, locale);
+	        { // Map dimensions if necessary
+	            // map dimensions based on user
+	            ConsumerBean consumerBean = (ConsumerBean) con;
+	            long internalUserId = ControllerUtils.getInternalUserId(userService, consumerBean, userId);
+	            dimensions = userDimensionMappingModelManager.getMappedDimensionsByUser(consumerBean.getShort_name(), dimensions, internalUserId);
+	        
+                if (locale != null)  { // map dimensions based on locale
+                    dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(consumerBean.getShort_name(), dimensions, locale);
+                }
 	        }
 
 			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems,attributes,locale);

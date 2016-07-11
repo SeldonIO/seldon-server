@@ -99,16 +99,19 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
         return model;
     }
 
-    public Set<Integer> getMappedDimensionsByUser(String client, Set<Integer> dimensions, long userid) {
+    public Set<Integer> getMappedDimensionsByUser(String client, Set<Integer> dimensions, long internalUserId) {
+        logger.debug("dimensions in: " + dimensions);
         UserDimensionMappingModel userDimensionMappingModel = client_userDimensionMappingModel.get(client);
         if (userDimensionMappingModel == null) {
-            logger.info(">> No mappings for client");
+            logger.debug("No mappings for client");
+            logger.debug("dimensions out: " + dimensions);
             return dimensions; // no mappings for this client so return input
         }
 
-        DimensionMapping dimensionMapping = userDimensionMappingModel.userToDimensions.get(userid);
+        DimensionMapping dimensionMapping = userDimensionMappingModel.userToDimensions.get(internalUserId);
         if (dimensionMapping == null) {
-            logger.info(">> No mappings for user");
+            logger.debug(String.format("No mappings for internalUserId[%d]", internalUserId));
+            logger.debug("dimensions out: " + dimensions);
             return dimensions; // no mappings for this userid so return input
         }
 
@@ -122,6 +125,7 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
             }
         }
 
+        logger.debug("dimensions out: " + mapped_dimensions);
         return mapped_dimensions;
     }
 

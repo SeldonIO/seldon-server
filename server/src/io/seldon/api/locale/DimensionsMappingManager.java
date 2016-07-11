@@ -59,6 +59,7 @@ public class DimensionsMappingManager implements ClientConfigUpdateListener {
     }
 
     public Set<Integer> getMappedDimensionsByLocale(String client, Set<Integer> dimensions, String locale) {
+        logger.debug("dimensions in: "+dimensions);
 
         Set<Integer> mapped_dimensions = dimensions;
 
@@ -78,6 +79,7 @@ public class DimensionsMappingManager implements ClientConfigUpdateListener {
             }
         }
 
+        logger.debug("dimensions out: "+mapped_dimensions);
         return mapped_dimensions;
     }
 
