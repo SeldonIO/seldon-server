@@ -87,19 +87,19 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
 
     public UserDimensionMappingModel loadUserDimensionMapping(BufferedReader reader) throws IOException {
 
-        Map<Long, DimensionMapping> userToDimensions = new HashMap<Long, DimensionMapping>();
+        Map<String, DimensionMapping> userToDimensions = new HashMap<String, DimensionMapping>();
         String line;
         ObjectMapper mapper = new ObjectMapper();
         while ((line = reader.readLine()) != null) {
             DimensionMapping userDimensionMapping = mapper.readValue(line, DimensionMapping.class);
-            userToDimensions.put(userDimensionMapping.userid, userDimensionMapping);
+            userToDimensions.put(userDimensionMapping.client_user_id, userDimensionMapping);
         }
         UserDimensionMappingModel model = new UserDimensionMappingModel(userToDimensions);
 
         return model;
     }
 
-    public Set<Integer> getMappedDimensionsByUser(String client, Set<Integer> dimensions, long internalUserId) {
+    public Set<Integer> getMappedDimensionsByUser(String client, Set<Integer> dimensions, String client_user_id) {
         logger.debug("dimensions in: " + dimensions);
         UserDimensionMappingModel userDimensionMappingModel = client_userDimensionMappingModel.get(client);
         if (userDimensionMappingModel == null) {
@@ -108,9 +108,9 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
             return dimensions; // no mappings for this client so return input
         }
 
-        DimensionMapping dimensionMapping = userDimensionMappingModel.userToDimensions.get(internalUserId);
+        DimensionMapping dimensionMapping = userDimensionMappingModel.userToDimensions.get(client_user_id);
         if (dimensionMapping == null) {
-            logger.debug(String.format("No mappings for internalUserId[%d]", internalUserId));
+            logger.debug(String.format("No mappings for client_user_id[%s]", client_user_id));
             logger.debug("dimensions out: " + dimensions);
             return dimensions; // no mappings for this userid so return input
         }
@@ -130,19 +130,19 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
     }
 
     public static class DimensionMapping {
-        long userid;
+        String client_user_id;
         Set<Integer> dims_in;
         Set<Integer> dims_out;
 
         public DimensionMapping() {
         }
 
-        public long getUserid() {
-            return userid;
+        public String getClient_user_id() {
+            return client_user_id;
         }
 
-        public void setUserid(long userid) {
-            this.userid = userid;
+        public void setClient_user_id(String client_user_id) {
+            this.client_user_id = client_user_id;
         }
 
         public Set<Integer> getDims_in() {
@@ -163,15 +163,15 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
 
         @Override
         public String toString() {
-            String output = String.format("{userid:%d, dims_in:%s, dims_out:%s}", userid, dims_in, dims_out);
+            String output = String.format("{client_user_id:%s, dims_in:%s, dims_out:%s}", client_user_id, dims_in, dims_out);
             return output;
         }
     }
 
     public static class UserDimensionMappingModel {
-        final Map<Long, DimensionMapping> userToDimensions;
+        final Map<String, DimensionMapping> userToDimensions;
 
-        public UserDimensionMappingModel(Map<Long, DimensionMapping> userToDimensions) {
+        public UserDimensionMappingModel(Map<String, DimensionMapping> userToDimensions) {
             this.userToDimensions = userToDimensions;
         }
     }

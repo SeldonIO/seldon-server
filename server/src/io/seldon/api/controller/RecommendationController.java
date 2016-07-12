@@ -124,8 +124,8 @@ public class RecommendationController {
 	        { // Map dimensions if necessary
 	            // map dimensions based on user
 	            ConsumerBean consumerBean = (ConsumerBean) con;
-	            long internalUserId = ControllerUtils.getInternalUserId(userService, consumerBean, userId);
-	            dimensions = userDimensionMappingModelManager.getMappedDimensionsByUser(consumerBean.getShort_name(), dimensions, internalUserId);
+                String client_user_id = userId;
+                dimensions = userDimensionMappingModelManager.getMappedDimensionsByUser(consumerBean.getShort_name(), dimensions, client_user_id);
 	        
                 if (locale != null)  { // map dimensions based on locale
                     dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(consumerBean.getShort_name(), dimensions, locale);
