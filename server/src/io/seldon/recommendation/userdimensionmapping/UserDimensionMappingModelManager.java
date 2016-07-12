@@ -103,7 +103,7 @@ public class UserDimensionMappingModelManager extends ModelManager<UserDimension
         logger.debug("dimensions in: " + dimensions);
         UserDimensionMappingModel userDimensionMappingModel = client_userDimensionMappingModel.get(client);
         if (userDimensionMappingModel == null) {
-            logger.debug("No mappings for client");
+            logger.debug(String.format("No mappings for client[%s]", client));
             logger.debug("dimensions out: " + dimensions);
             return dimensions; // no mappings for this client so return input
         }
