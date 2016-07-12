@@ -37,14 +37,12 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
-import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.resource.service.business.UserProfileService;
 import io.seldon.api.statsd.StatsdPeer;
 import io.seldon.recommendation.userdimensionmapping.UserDimensionMappingModelManager;
-import io.seldon.api.resource.service.UserService;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -83,9 +81,6 @@ public class JsClientController {
     private ActionBusinessService actionBusinessService;
 
     @Autowired
-    private ItemBusinessService itemBusinessService;
-
-    @Autowired
     private RecommendationBusinessService recommendationBusinessService;
     
     @Autowired
@@ -106,9 +101,6 @@ public class JsClientController {
     @Autowired
     private UserDimensionMappingModelManager userDimensionMappingModelManager;
     
-    @Autowired
-    private UserService userService;
-
     private ConsumerBean retrieveConsumer(HttpSession session) {
         return (ConsumerBean) session.getAttribute("consumer");
     }

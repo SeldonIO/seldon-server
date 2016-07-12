@@ -33,11 +33,9 @@ import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ItemService;
-import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.service.ResourceServer;
 import io.seldon.recommendation.userdimensionmapping.UserDimensionMappingModelManager;
-import io.seldon.api.resource.service.UserService;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -68,16 +66,10 @@ public class RecommendationController {
     private ItemService itemService;
 
     @Autowired
-    private RecommendationService recommendationService;
-
-    @Autowired
     private DimensionsMappingManager dimensionsMappingManager;
 
     @Autowired
     private UserDimensionMappingModelManager userDimensionMappingModelManager;
-
-    @Autowired
-    private UserService userService;
 
     @RequestMapping(value="/users/{userId}/recommendations", method = RequestMethod.GET)
 	public @ResponseBody
