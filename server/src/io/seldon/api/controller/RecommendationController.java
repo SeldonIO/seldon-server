@@ -33,9 +33,9 @@ import io.seldon.api.logging.MDCKeys;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.ItemService;
-import io.seldon.api.resource.service.RecommendationService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.service.ResourceServer;
+import io.seldon.recommendation.userdimensionmapping.UserDimensionMappingModelManager;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -66,10 +66,10 @@ public class RecommendationController {
     private ItemService itemService;
 
     @Autowired
-    private RecommendationService recommendationService;
+    private DimensionsMappingManager dimensionsMappingManager;
 
     @Autowired
-    private DimensionsMappingManager dimensionsMappingManager;
+    private UserDimensionMappingModelManager userDimensionMappingModelManager;
 
     @RequestMapping(value="/users/{userId}/recommendations", method = RequestMethod.GET)
 	public @ResponseBody
@@ -113,9 +113,15 @@ public class RecommendationController {
 			String attributes = Util.getAttributes(req);
 			String locale = Util.getLocale(req);
 			
-	        if (locale != null)  { // map dimensions based on locale
-	            String client = ((ConsumerBean) con).getShort_name();
-	            dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(client, dimensions, locale);
+	        { // Map dimensions if necessary
+	            // map dimensions based on user
+	            ConsumerBean consumerBean = (ConsumerBean) con;
+                String client_user_id = userId;
+                dimensions = userDimensionMappingModelManager.getMappedDimensionsByUser(consumerBean.getShort_name(), dimensions, client_user_id);
+	        
+                if (locale != null)  { // map dimensions based on locale
+                    dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(consumerBean.getShort_name(), dimensions, locale);
+                }
 	        }
 
 			res = recommendationBusinessService.recommendedItemsForUser((ConsumerBean) con, userId, dimensions, limit,sortItems,attributes,locale);
