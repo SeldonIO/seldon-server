@@ -30,6 +30,13 @@
         <!-- Custom source directory (move to conventional layout in phase 2) -->
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>test/main</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>
+                    ${project.basedir}/test/resources
+                </directory>
+            </testResource>
+        </testResources>
         
 
         <resources>
