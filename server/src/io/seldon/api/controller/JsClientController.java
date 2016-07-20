@@ -37,12 +37,12 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.UserBean;
 import io.seldon.api.resource.service.ItemService;
 import io.seldon.api.resource.service.business.ActionBusinessService;
-import io.seldon.api.resource.service.business.ItemBusinessService;
 import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.resource.service.business.RecommendationBusinessService;
 import io.seldon.api.resource.service.business.UserBusinessService;
 import io.seldon.api.resource.service.business.UserProfileService;
 import io.seldon.api.statsd.StatsdPeer;
+import io.seldon.recommendation.userdimensionmapping.UserDimensionMappingModelManager;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -81,9 +81,6 @@ public class JsClientController {
     private ActionBusinessService actionBusinessService;
 
     @Autowired
-    private ItemBusinessService itemBusinessService;
-
-    @Autowired
     private RecommendationBusinessService recommendationBusinessService;
     
     @Autowired
@@ -101,6 +98,9 @@ public class JsClientController {
     @Autowired
     private DimensionsMappingManager dimensionsMappingManager;
 
+    @Autowired
+    private UserDimensionMappingModelManager userDimensionMappingModelManager;
+    
     private ConsumerBean retrieveConsumer(HttpSession session) {
         return (ConsumerBean) session.getAttribute("consumer");
     }
@@ -214,9 +214,14 @@ public class JsClientController {
         	dimensions.add(dimensionId);
         }
         
-        if (locale != null)  { // map dimensions based on locale
-            String client = consumerBean.getShort_name();
-            dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(client, dimensions, locale);
+        { // Map dimensions if necessary
+            // map dimensions based on user
+            String client_user_id = userId;
+            dimensions = userDimensionMappingModelManager.getMappedDimensionsByUser(consumerBean.getShort_name(), dimensions, client_user_id);
+        
+            if (locale != null)  { // map dimensions based on locale
+                dimensions = dimensionsMappingManager.getMappedDimensionsByLocale(consumerBean.getShort_name(), dimensions, locale);
+            }
         }
         
         final ResourceBean recommendations = getRecommendations(consumerBean, userId, itemId, dimensions, lastRecommendationListUuid, recommendationsLimit, attributes,algorithms,referrer,recTag,includeCohort,scoreItems,locale);

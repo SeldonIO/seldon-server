@@ -73,8 +73,10 @@ public class RedisActionHistory implements ActionHistory {
 				for (String item : itemSet)
 				{
 					item = item.replaceAll("\"", "");
-					res.add(0,Long.parseLong(item));
+					res.add(0,Long.parseLong(item));// reverse order so last ones are earliest in time
 				}
+				if (res.size() > numActions)
+					res = res.subList(0, numActions);
 			}
 			finally
 			{
@@ -109,6 +111,8 @@ public class RedisActionHistory implements ActionHistory {
 	                ActionLogEntry ale = mapper.readValue(val, ActionLogEntry.class);
 	                actions.add(0,ale.toAction());
 				}
+				if (actions.size() > numActions)
+					actions = actions.subList(0, numActions);
 			}
 			catch (IOException e) {
 				logger.error("Failed to convert values to actions ",e);

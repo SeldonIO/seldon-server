@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.seldon</groupId>
         <artifactId>seldon-parent</artifactId>
-        <version>1.3.4</version>
+        <version>1.3.6</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>seldon-server</artifactId>
@@ -30,6 +30,13 @@
         <!-- Custom source directory (move to conventional layout in phase 2) -->
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>test/main</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>
+                    ${project.basedir}/test/resources
+                </directory>
+            </testResource>
+        </testResources>
         
 
         <resources>

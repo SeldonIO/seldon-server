@@ -46,17 +46,15 @@
                             {
                                 "name": "seldon-server",
                                 "image": "seldonio/seldon-server:%SELDON_SERVER_IMAGE_VERSION%",
-				"command": [
-                                    "/home/seldon/start-server-debug.sh"
-				],
+                                %SELDON_SERVER_DEBUG_COMMAND%,
                                 "ports": [
                                     {
-					"name": "api",
-                                        "containerPort": 8080,
-                                        "protocol": "TCP"
-                                    },
-                                    {
-					"name": "debug",
+                                        "name": "api",
+                                                            "containerPort": 8080,
+                                                            "protocol": "TCP"
+                                                        },
+                                                        {
+                                        "name": "debug",
                                         "containerPort": 8000,
                                         "protocol": "TCP"
                                     }
@@ -67,7 +65,9 @@
                                         "value": "zookeeper-1,zookeeper-2,zookeeper-3"
                                     }
                                 ],
-                                "resources": {},
+                                "resources": {
+				                    %SELDON_SERVER_RESOURCES%
+                                },
                                 "volumeMounts": [
 				    {
 					"name": "data-volume",
@@ -90,7 +90,7 @@
                             },
                             {
                                 "name": "td-agent",
-                                "image": "seldonio/td-agent-node:1.0.1",
+                                "image": "seldonio/td-agent-node:%SELDON_TDAGENT_NODE_IMAGE_VERSION%",
                                 "command": [
                                     "td-agent"
                                 ],
@@ -136,14 +136,14 @@
                         "protocol": "TCP",
                         "port": 80,
                         "targetPort": 8080,
-			"nodePort": 30000
+			"nodePort": %SELDON_SERVER_NODEPORT%
                     },
                     {
 			"name":"debug",
                         "protocol": "TCP",
                         "port": 8000,
                         "targetPort": 8000,
-			"nodePort": 30001
+			"nodePort": %SELDON_SERVER_DEBUG_NODEPORT%
                     }
                 ],
                 "selector": {

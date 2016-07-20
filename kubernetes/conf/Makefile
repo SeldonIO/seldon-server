@@ -27,6 +27,11 @@ DATA_VOLUME="hostPath": {"path": "/seldon-data"}
 SELDON_SERVICE_TYPE=NodePort
 #SELDON_SERVICE_TYPE=LoadBalancer
 
+
+SELDON_SERVER_NODEPORT=30015
+SELDON_SERVER_DEBUG_NODEPORT=30016
+SELDON_SERVER_DEBUG_COMMAND="command":["/home/seldon/start-server-debug.sh"]
+
 # 
 # Default Resources (edit for your own needs)
 #
@@ -50,9 +55,9 @@ mysql.json:mysql.json.in
 				> mysql.json && echo "created $@"
 
 memcache.json:memcache.json.in
-	cat memcache.json.in | sed \
+	@cat memcache.json.in | sed \
 				-e  's|%MEMCACHE_RESOURCES%|$(MEMCACHE_RESOURCES)|' \
-				> memcache.json
+				> memcache.json && echo "created $@"
 
 zookeeper.json:zookeeper.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
@@ -123,6 +128,7 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 		cat server.json.in | sed \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
@@ -146,10 +152,16 @@ analytics/predictions-kafka-stream.json: analytics/predictions-kafka-stream.json
 
 dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+	source $(SELDON_HOME)/build/build_versions; \
 		cat dev/server.json.in | sed \
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
+				-e 's|%SELDON_SERVER_DEBUG_NODEPORT%|$(SELDON_SERVER_DEBUG_NODEPORT)|' \
+				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
+				-e 's|%SELDON_SERVER_DEBUG_COMMAND%|$(SELDON_SERVER_DEBUG_COMMAND)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
+				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
 				> dev/server.json && echo "created $@"
 
 dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
@@ -221,3 +233,4 @@ clean:
 	rm -f dev/iago.json
 	rm -f analytics/*.json
 	rm -f microservice_pipeline.template
+
