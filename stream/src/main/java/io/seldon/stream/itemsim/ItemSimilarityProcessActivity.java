@@ -21,8 +21,10 @@
 */
 package io.seldon.stream.itemsim;
 
+import java.util.List;
 import java.util.Properties;
-import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -41,17 +43,53 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.ForeachAction;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
+import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
+import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class ItemSimilarityProcessActivity {
 	
+	final StreamingJaccardSimilarity streamJaccard;
+	Timer outputTimer;
+	long lastTime = 0;
+	int window;
+	String outputTopic;
+
+	public ItemSimilarityProcessActivity(final Namespace ns)
+	{
+		this.window = ns.getInt("window_secs");
+		this.outputTopic = ns.getString("output_topic");
+		System.out.println(ns);
+		this.streamJaccard = new StreamingJaccardSimilarity(window, ns.getInt("hashes"), ns.getInt("min_activity"));
+		createOutputSimilaritiesTimer(ns);
+	}
+	
+	public void createOutputSimilaritiesTimer(Namespace ns)
+	{
+		int windowSecs = ns.getInt("window_secs");
+		int timer_ms = windowSecs * 1000;
+		System.out.println("Scheduling at "+timer_ms);
+		outputTimer = new Timer(true);
+		outputTimer.scheduleAtFixedRate(new TimerTask() {
+			   public void run()  
+			   {
+				   System.out.println("getting similarities");
+				   List<JaccardSimilarity> res = streamJaccard.getSimilarity(System.currentTimeMillis()/1000);
+				   System.out.println("Results size "+res.size());
+				   for (JaccardSimilarity j : res)
+					   System.out.println("Result:"+j.toString());
+			   }
+		   }, timer_ms, timer_ms);
+	}
+	
+	
 	@SuppressWarnings("unchecked")
-	public static void process(final Namespace ns) throws InterruptedException
+	public void process(final Namespace ns) throws InterruptedException
 	{
 		Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-impressions");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-item-similarity");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ns.getString("kafka"));
         props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -66,61 +104,86 @@ public class ItemSimilarityProcessActivity {
         JsonDeserializer jsonDeserializer = new JsonDeserializer();
         
         final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(new JsonSerializer(),jsonDeserializer);
-        final Serde<String> stringSerde = Serdes.String();
-        final String topic = "fake-data5";
-        
+        //final Serde<String> stringSerde = Serdes.String();
+        final String topic = ns.getString("topic");
+        System.out.println("topic:"+topic);
+        final String parseDateMethod = ns.getString("parse_date_method");
         KStream<byte[], JsonNode> source = builder.stream(Serdes.ByteArray(),jsonSerde,topic);
-     
-        source.foreach(new ForeachAction<byte[], JsonNode>() {
+
+        source.filter(new Predicate<byte[], JsonNode>() {
+			
+			@Override
+			public boolean test(byte[] key, JsonNode value) {
+				//System.out.println(value);
+				String client = value.get("client").asText();
+				if (client.equals(ns.getString("client")))
+					return true;
+				else
+					return false;
+			}
+		})
+        .foreach(new ForeachAction<byte[], JsonNode>() {
 
 			@Override
 			public void apply(byte[] key, JsonNode value) {
-				Long user = value.get("user").asLong();
-				Long item = value.get("item").asLong();
-				Long time = value.get("time").asLong();
-				System.out.println("User:"+user+"item:"+item+"time:"+time);
+				Long user = value.get("userid").asLong();
+				Long item = value.get("itemid").asLong();
+				Long time;
+				if (parseDateMethod.equals("json-utc"))
+				{
+					//expected 2016-07-18T08:49:45Z
+					DateTime dtime = new DateTime(value.get("timestamp_utc").asText());
+					time = dtime.getMillis()/1000;
+				}
+				else if (parseDateMethod.equals("json-time"))
+					time = value.get("time").asLong();
+				else
+					time = System.currentTimeMillis()/1000;
+				
+				//System.out.println("User:"+user+"item:"+item+"time:"+time);
+				ItemSimilarityProcessActivity.this.streamJaccard.add(item, user, time);
+				
+				//debugging only
+				if (ItemSimilarityProcessActivity.this.lastTime == 0)
+					ItemSimilarityProcessActivity.this.lastTime = time;
+				long diff = time - ItemSimilarityProcessActivity.this.lastTime;
+				if (diff >= window)
+				{
+					System.out.println("getting similarities");
+					List<JaccardSimilarity> res = streamJaccard.getSimilarity(time);
+					System.out.println("Results size "+res.size());
+					sendMessages(res, time);
+					ItemSimilarityProcessActivity.this.lastTime = time;
+				}
 			}
 		});
     	
-       
-		
-		
-		
-		
-   
-        
+               
         KafkaStreams streams = new KafkaStreams(builder, props);
         streams.start();
-        
-     // Now generate the data and write to the topic.
-        Properties producerConfig = new Properties();
-        producerConfig.put("bootstrap.servers", "localhost:9092");
-        producerConfig.put("key.serializer",
-                           "org.apache.kafka.common" +
-                           ".serialization.ByteArraySerializer");
-        producerConfig.put("value.serializer",
-                           "org.apache.kafka.common" +
-                           ".serialization.StringSerializer");
-        KafkaProducer producer = 
-            new KafkaProducer<byte[], String>(producerConfig);
-        
-        Random rng = new Random(12345L);
-        
-        int i = 0;
-        while(true) {
-        	
-    		Long time = System.currentTimeMillis() / 1000;
-    		Integer item = rng.nextInt(100);
-    		Integer user = rng.nextInt(100);
-    		String msg = "{\"user\":"+user+",\"item\":"+item+",\"time\":"+time+"}";
-    		System.out.println(msg);
-            producer.send(new ProducerRecord<byte[], String>(
-                topic, "A".getBytes(), msg));
-            i++;
-            Thread.sleep(500L);
-        } // Close infinite loop generating data.
-        
-        
+       
+	}
+	
+	
+	public void sendMessages(List<JaccardSimilarity> sims,long timestamp)
+	{
+		  Properties producerConfig = new Properties();
+		  producerConfig.put("bootstrap.servers", "localhost:9092");
+		  producerConfig.put("key.serializer",
+				  "org.apache.kafka.common" +
+				  ".serialization.ByteArraySerializer");
+		  producerConfig.put("value.serializer",
+				  "org.apache.kafka.common" +
+				  ".serialization.StringSerializer");
+		  KafkaProducer producer = new KafkaProducer<byte[], String>(producerConfig);
+		  StringBuffer buf = new StringBuffer();
+		  for(JaccardSimilarity s : sims)
+		  {
+			  buf.append(timestamp).append(",").append(s.item1).append(",").append(s.item2).append(",").append(s.similarity);
+			  producer.send(new ProducerRecord<byte[], String>(this.outputTopic, "A".getBytes(), buf.toString()));
+			  buf.delete(0, buf.length());
+		  }
+		  
 
 	}
 	
@@ -129,14 +192,21 @@ public class ItemSimilarityProcessActivity {
     	ArgumentParser parser = ArgumentParsers.newArgumentParser("ImpressionsToInfluxDb")
                 .defaultHelp(true)
                 .description("Read Seldon impressions and send stats to influx db");
-    	//parser.addArgument("-t", "--topic").setDefault("impressions").help("Kafka topic to read from");
+    	parser.addArgument("-t", "--topic").setDefault("actions").help("Kafka topic to read from");
+    	parser.addArgument("-c", "--client").required(true).help("Client to run item similarity");
+    	parser.addArgument("-o", "--output-topic").required(true).help("Output topic");
     	parser.addArgument("-k", "--kafka").setDefault("localhost:9092").help("Kafka server and port");
     	parser.addArgument("-z", "--zookeeper").setDefault("localhost:2181").help("Zookeeper server and port");
+    	parser.addArgument("-w", "--window-secs").type(Integer.class).setDefault(3600*5).help("streaming window size in secs");
+    	parser.addArgument("--hashes").type(Integer.class).setDefault(100).help("number of hashes");
+    	parser.addArgument("-m", "--min-activity").type(Integer.class).setDefault(200).help("min activity");
+    	parser.addArgument("-p", "--parse-date-method").choices("json-time","json-utc","system").setDefault("json-time").help("min activity");
         
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
-            ItemSimilarityProcessActivity.process(ns);
+            ItemSimilarityProcessActivity processor = new ItemSimilarityProcessActivity(ns);
+            processor.process(ns);
         } catch (ArgumentParserException e) {
             parser.handleError(e);
             System.exit(1);

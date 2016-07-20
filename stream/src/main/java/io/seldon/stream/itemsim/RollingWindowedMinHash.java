@@ -68,6 +68,7 @@ public class RollingWindowedMinHash implements MinHasher {
 			hashes.add(new MinHashEntry(hash,time,cSum + 1));
 		}
 		this.removeOldEntries(time);
+		//System.out.println(hashes.size());
 	}
 	
 	private void removeOldEntries(long time)

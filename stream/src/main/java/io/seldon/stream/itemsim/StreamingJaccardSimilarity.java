@@ -32,7 +32,6 @@ import java.util.Set;
 
 public class StreamingJaccardSimilarity {
 
-	int window;
 	MinHashCollections mhcs;
 	
 	public StreamingJaccardSimilarity(int windowSizeSecs,int numHashes,int minActivity)
@@ -63,7 +62,8 @@ public class StreamingJaccardSimilarity {
 				if (s1.id < s2.id)
 				{
 					float jaccard = s1.jaccardEstimate(s2);
-					res.add(new JaccardSimilarity(s1.id, s2.id, jaccard));
+					if (jaccard > 0)
+						res.add(new JaccardSimilarity(s1.id, s2.id, jaccard));
 				}
 			}
 		return res;

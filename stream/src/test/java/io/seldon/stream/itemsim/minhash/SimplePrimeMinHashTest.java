@@ -19,24 +19,17 @@
  *
  ********************************************************************************************** 
 */
-package io.seldon.stream.itemsim;
+package io.seldon.stream.itemsim.minhash;
 
-public class JaccardSimilarity {
+import org.junit.Test;
 
-	long item1;
-	long item2;
-	double similarity;
-	public JaccardSimilarity(long item1, long item2, double similarity) {
-		super();
-		this.item1 = item1;
-		this.item2 = item2;
-		this.similarity = similarity;
+public class SimplePrimeMinHashTest {
+
+	
+	@Test
+	public void checkMaxCoefsAndIdOk()
+	{
+		SimplePrimeHash h = new SimplePrimeHash(SimplePrimeHash.maxID-1,SimplePrimeHash.maxID-2 );
+		System.out.println(h.hash(SimplePrimeHash.maxID));
 	}
-	@Override
-	public String toString() {
-		return "JaccardSimilarity [item1=" + item1 + ", item2=" + item2
-				+ ", similarity=" + similarity + "]";
-	};
-	
-	
 }

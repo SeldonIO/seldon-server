@@ -52,20 +52,14 @@ public class MinHashCollections {
 		List<State> states = new ArrayList<>();
 		for(Long id : mhcs.keySet())
 		{
-			List<Long> mh = mhcs.get(id).getMinHashes(time);
-			if (mh != null && mh.size() > 0)
-				states.add(new State(id,mh));
+			if (mhcs.get(id).getCount(time) >= minActivity)
+			{
+				List<Long> mh = mhcs.get(id).getMinHashes(time);
+				if (mh != null && mh.size() > 0)
+					states.add(new State(id,mh));
+			}
 		}
 		return states;
-	}
-	
-	public void removeLowActivityItems(long time)
-	{
-		for(Long id : mhcs.keySet())
-		{
-			if (mhcs.get(id).getCount(time) < minActivity)
-				mhcs.remove(id);
-		}
 	}
 	
 	public static class State
