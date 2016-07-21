@@ -122,7 +122,8 @@ function setup_influxdb {
 function startup_msg {
     local SELDON_VERSION_INSTALLED=$(cat ${SELDON_HOME}/pom.xml|grep -A 1 '<artifactId>seldon-parent</artifactId>'|sed -n -e "s/<version>\(.*\)<\/version>/\1/p")
     local SELDON_VERSION_INSTALLED=$(echo -n "${SELDON_VERSION_INSTALLED}" | sed "s/^[ \t]*//")
-    local SELDON_VERSION_RELEASED=$(curl -s 'http://static.seldon.io/seldon-version/seldon-version.txt')
+    local SELDON_VERSION_URL="http://static.seldon.io/seldon-version/seldon-version.txt"
+    local SELDON_VERSION_RELEASED=$(curl -fsL --max-time 5 ${SELDON_VERSION_URL} || echo '0.0.0')
     local UPDATE_MSG=
     if [ ! "${SELDON_VERSION_INSTALLED}" = "${SELDON_VERSION_RELEASED}" ]; then
         UPDATE_MSG=", latest released version is [${SELDON_VERSION_RELEASED}]"
@@ -156,5 +157,4 @@ function get_non_running_states {
 }
 
 seldon_up "$@"
-
 
