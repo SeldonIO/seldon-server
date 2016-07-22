@@ -10,6 +10,10 @@ SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-true}
 SELDON_WITH_GLUSTERFS=${SELDON_WITH_GLUSTERFS:-false}
 KCMD="kubectl exec seldon-control -i bash"
 
+function normalize_version {
+    echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }';
+}
+
 function check_zookeeper {
     kubectl exec -i zookeeper-3 -- bash -c "echo srvr | nc localhost  2181 | grep Mode | cut -d' ' -f2"
 }
@@ -125,7 +129,7 @@ function startup_msg {
     local SELDON_VERSION_URL="http://static.seldon.io/seldon-version/seldon-version.txt"
     local SELDON_VERSION_RELEASED=$(curl -fsL --max-time 5 ${SELDON_VERSION_URL} || echo '0.0.0')
     local UPDATE_MSG=
-    if [ ! "${SELDON_VERSION_INSTALLED}" = "${SELDON_VERSION_RELEASED}" ]; then
+    if [ $(normalize_version ${SELDON_VERSION_RELEASED}) -gt $(normalize_version ${SELDON_VERSION_INSTALLED}) ]; then
         UPDATE_MSG=", latest released version is [${SELDON_VERSION_RELEASED}]"
     fi
 
