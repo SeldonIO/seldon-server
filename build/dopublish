@@ -31,10 +31,5 @@ log "Starting publish"
 export SELDON_SERVER_HOME=$(get_absolute_path ${STARTUP_DIR}/..)
 log "SELDON_SERVER_HOME[${SELDON_SERVER_HOME}]"
 
-PUBLISH_SCRIPT=${STARTUP_DIR}/components/${PUBLISH_TARGET}/publish_${PUBLISH_TARGET}
-if [ -f ${PUBLISH_SCRIPT} ]; then
-	${PUBLISH_SCRIPT}
-else
-	echo "script[${PUBLISH_SCRIPT}] not found."
-fi
+${STARTUP_DIR}/components/${PUBLISH_TARGET}/publish_${PUBLISH_TARGET}
 
