@@ -111,11 +111,17 @@ publish_seldonio_finefoods_xgboost: build_versions_generated
 build_all:
 	@for item in $(ALL_LIST) ; do \
 			TARGET="build_$$item" && make $${TARGET}; \
+			if [ ! $$? -eq 0 ]; then \
+				break; \
+			fi \
 		done
 
 publish_all:
 	@for item in $(ALL_LIST) ; do \
 			TARGET="publish_$$item" && make $${TARGET}; \
+			if [ ! $$? -eq 0 ]; then \
+				break; \
+			fi \
 		done
 
 clean:
