@@ -136,6 +136,7 @@ public class RecommendationPeer {
 		AlgorithmResultsCombiner combiner = strategy.getAlgorithmResultsCombiner(clientUserId, recTag);
 		for(AlgorithmStrategy algStr : strategy.getAlgorithms(clientUserId, recTag))
 		{
+	        long startTime = System.currentTimeMillis();
 			if (logger.isDebugEnabled())
 				logger.debug("Using recommender class " + algStr.name);
 
@@ -157,7 +158,7 @@ public class RecommendationPeer {
 			ItemRecommendationResultSet results = algStr.algorithm.recommend(client, user, dimensions,
 					numRecommendations, ctxt, recentItemInteractions);
 			if (logger.isDebugEnabled())
-				logger.debug("Recommender "+algStr.name+" returned "+results.getResults().size()+" results ");
+				logger.debug("Recommender "+algStr.name+" returned "+results.getResults().size()+" results, took "+(System.currentTimeMillis()-startTime) + "ms");
 		    resultSets.add(new RecResultContext(results, results.getRecommenderName()));
 			if(combiner.isEnoughResults(numRecommendationsAsked, resultSets))
 				break;

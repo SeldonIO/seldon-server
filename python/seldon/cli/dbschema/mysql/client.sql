@@ -1076,3 +1076,17 @@ CREATE TABLE `items_recent_popularity` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 -- Dump completed on 2015-03-03 10:42:31
+
+CREATE TABLE `recommendations` (
+  `user_id` bigint(20) NOT NULL,
+  `item_id` bigint(20) NOT NULL,
+  `score` double DEFAULT '0',
+  PRIMARY KEY (`user_id`,`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `recommendations_new` (
+  `user_id` bigint(20) NOT NULL,
+  `item_id` bigint(20) NOT NULL,
+  `score` double DEFAULT '0',
+  PRIMARY KEY (`user_id`,`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

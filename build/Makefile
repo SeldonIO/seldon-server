@@ -1,3 +1,5 @@
+SHELL:=/bin/bash
+
 notarget:
 	@echo need target
 
@@ -23,6 +25,11 @@ ALL_LIST=\
 	seldonio_iris_vw \
 	seldonio_iris_xgboost \
 	seldonio_finefoods_xgboost
+
+
+NO_PUBLISH_LIST=\
+    seldon_python_package \
+    publish_seldon_spark_build
 
 #build
 build_seldon_python_package: build_versions_generated
@@ -111,11 +118,19 @@ publish_seldonio_finefoods_xgboost: build_versions_generated
 build_all:
 	@for item in $(ALL_LIST) ; do \
 			TARGET="build_$$item" && make $${TARGET}; \
+			if [ ! $$? -eq 0 ]; then \
+				break; \
+			fi \
 		done
 
 publish_all:
 	@for item in $(ALL_LIST) ; do \
-			TARGET="publish_$$item" && make $${TARGET}; \
+            if [[ ! "$(NO_PUBLISH_LIST)" =~ "$${item}" ]];then \
+                    TARGET="publish_$$item" && make $${TARGET}; \
+                    if [ ! $$? -eq 0 ]; then \
+                        break; \
+                    fi \
+            fi \
 		done
 
 clean:

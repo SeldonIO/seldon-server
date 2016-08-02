@@ -1,5 +1,8 @@
 {
     "default_algorithms": {
+        "staticRecommender": {
+            "config": []
+        },
         "assocRuleRecommender": {
             "config": [],
             "zk_activate_node": "/config/assocrules"
