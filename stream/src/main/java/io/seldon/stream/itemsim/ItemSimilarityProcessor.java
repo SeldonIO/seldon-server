@@ -21,6 +21,7 @@
 */
 package io.seldon.stream.itemsim;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
@@ -49,21 +50,22 @@ import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class ItemSimilarityProcessActivity {
+public class ItemSimilarityProcessor {
 	
 	final StreamingJaccardSimilarity streamJaccard;
 	Timer outputTimer;
 	long lastTime = 0;
 	int window;
 	String outputTopic;
+	int count = 0;
 
-	public ItemSimilarityProcessActivity(final Namespace ns)
+	public ItemSimilarityProcessor(final Namespace ns)
 	{
 		this.window = ns.getInt("window_secs");
 		this.outputTopic = ns.getString("output_topic");
 		System.out.println(ns);
 		this.streamJaccard = new StreamingJaccardSimilarity(window, ns.getInt("hashes"), ns.getInt("min_activity"));
-		createOutputSimilaritiesTimer(ns);
+		//createOutputSimilaritiesTimer(ns);
 	}
 	
 	public void createOutputSimilaritiesTimer(Namespace ns)
@@ -141,19 +143,26 @@ public class ItemSimilarityProcessActivity {
 					time = System.currentTimeMillis()/1000;
 				
 				//System.out.println("User:"+user+"item:"+item+"time:"+time);
-				ItemSimilarityProcessActivity.this.streamJaccard.add(item, user, time);
+				ItemSimilarityProcessor.this.streamJaccard.add(item, user, time);
 				
 				//debugging only
-				if (ItemSimilarityProcessActivity.this.lastTime == 0)
-					ItemSimilarityProcessActivity.this.lastTime = time;
-				long diff = time - ItemSimilarityProcessActivity.this.lastTime;
+				if (ItemSimilarityProcessor.this.lastTime == 0)
+					ItemSimilarityProcessor.this.lastTime = time;
+				long diff = time - ItemSimilarityProcessor.this.lastTime;
 				if (diff >= window)
 				{
-					System.out.println("getting similarities");
+					SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy 'at' h:mm a");
+					String date = sdf.format(time*1000);
+					System.out.println("getting similarities at "+date);
 					List<JaccardSimilarity> res = streamJaccard.getSimilarity(time);
 					System.out.println("Results size "+res.size());
 					sendMessages(res, time);
-					ItemSimilarityProcessActivity.this.lastTime = time;
+					ItemSimilarityProcessor.this.lastTime = time;
+				}
+				ItemSimilarityProcessor.this.count++;
+				if (ItemSimilarityProcessor.this.count % 1000 == 0)
+				{
+					System.out.println("Processed "+count+" time diff is "+diff+" window is "+window);
 				}
 			}
 		});
@@ -177,12 +186,14 @@ public class ItemSimilarityProcessActivity {
 				  ".serialization.StringSerializer");
 		  KafkaProducer producer = new KafkaProducer<byte[], String>(producerConfig);
 		  StringBuffer buf = new StringBuffer();
+		  producer.send(new ProducerRecord<byte[], String>(this.outputTopic, "START".getBytes(),"0,,,"));
 		  for(JaccardSimilarity s : sims)
 		  {
 			  buf.append(timestamp).append(",").append(s.item1).append(",").append(s.item2).append(",").append(s.similarity);
 			  producer.send(new ProducerRecord<byte[], String>(this.outputTopic, "A".getBytes(), buf.toString()));
 			  buf.delete(0, buf.length());
 		  }
+		  producer.send(new ProducerRecord<byte[], String>(this.outputTopic, "END".getBytes(),"0,,,"));
 		  
 
 	}
@@ -205,7 +216,7 @@ public class ItemSimilarityProcessActivity {
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
-            ItemSimilarityProcessActivity processor = new ItemSimilarityProcessActivity(ns);
+            ItemSimilarityProcessor processor = new ItemSimilarityProcessor(ns);
             processor.process(ns);
         } catch (ArgumentParserException e) {
             parser.handleError(e);

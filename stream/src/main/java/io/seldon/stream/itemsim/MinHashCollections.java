@@ -59,6 +59,7 @@ public class MinHashCollections {
 					states.add(new State(id,mh));
 			}
 		}
+		System.out.println("Raw number of minHashes "+mhcs.size()+" but will return "+states.size()+" with minActiviy filter at "+minActivity);
 		return states;
 	}
 	

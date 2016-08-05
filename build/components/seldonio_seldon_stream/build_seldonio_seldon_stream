@@ -23,11 +23,11 @@ if [ "${DRY_RUN}" = "false" ]; then
     cd ${SELDON_SERVER_HOME}/docker/seldon-stream
     make clean
     make \
-        SELDON_SERVER_IMAGE_VERSION=${SELDON_SERVER_IMAGE_VERSION} \
+        SELDON_STREAM_BUILD_IMAGE_VERSION=${SELDON_STREAM_BUILD_IMAGE_VERSION} \
         build_image
     make clean
 
-    BUILT_IMAGE=$(docker images|grep 'seldonio/seldon-stream' | grep ${SELDON_SERVER_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    BUILT_IMAGE=$(docker images|grep 'seldonio/seldon-stream' | grep ${SELDON_STREAM_BUILD_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
     log "[BUILD_EVENT:END] Finished seldonio_seldon_stream, built[$BUILT_IMAGE]"
 else
     log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_seldon_stream"

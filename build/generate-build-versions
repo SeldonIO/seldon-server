@@ -35,6 +35,22 @@ seldon_spark_build_image_version() {
     echo "${SELDON_SPARK_VERSION}${SELDON_SPARK_BUILD_IMAGE_VERSION_POSTFIX}"
 }
 
+seldon_stream_version() {
+    local SELDON_STREAM_VERSION=$(cat ${SELDON_SERVER_HOME}/stream/pom.xml|grep -A 1 '<artifactId>seldon-parent</artifactId>'|sed -n -e "s/<version>\(.*\)<\/version>/\1/p")
+    local SELDON_STREAM_VERSION=$(echo -n "${SELDON_STREAM_VERSION}" | sed "s/^[ \t]*//")
+    echo ${SELDON_STREAM_VERSION}
+}
+
+seldon_stream_build_image_version() {
+    echo "${SELDON_STREAM_VERSION}${SELDON_STREAM_BUILD_IMAGE_VERSION_POSTFIX}"
+}
+
+seldon_stream_itemsim_image_version() {
+    local SELDONIO_STREAM_ITEMSIM_IMAGE_VERSION=${SELDON_STREAM_BUILD_IMAGE_VERSION}
+    echo ${SELDONIO_STREAM_ITEMSIM_IMAGE_VERSION}
+}
+
+
 seldon_server_version() {
     local SELDON_SERVER_VERSION=$(cat ${SELDON_SERVER_HOME}/server/pom.xml|grep -A 1 '<artifactId>seldon-parent</artifactId>'|sed -n -e "s/<version>\(.*\)<\/version>/\1/p")
     local SELDON_SERVER_VERSION=$(echo -n "${SELDON_SERVER_VERSION}" | sed "s/^[ \t]*//")
@@ -91,17 +107,23 @@ seldon_finefoods_xgboost_image_version() {
     echo ${SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION}
 }
 
+
 # Versions needed by other versions
 SELDON_PYTHON_PACKAGE_VERSION=$(seldon_python_package_version)
 SELDON_SPARK_VERSION=$(seldon_spark_version)
+SELDON_STREAM_VERSION=$(seldon_stream_version)
 SELDON_CONTROL_IMAGE_VERSION=$(seldon_control_image_version)
 SELDON_SERVER_VERSION=$(seldon_server_version)
+SELDON_STREAM_BUILD_IMAGE_VERSION=$(seldon_stream_build_image_version)
 
 # Write versions to file
 echo "#GENERATED ${TS}" > ${STARTUP_DIR}/build_versions_generated
 write_version "SELDON_PYTHON_PACKAGE_VERSION" "${SELDON_PYTHON_PACKAGE_VERSION}"
 write_version "SELDON_SPARK_VERSION" "${SELDON_SPARK_VERSION}"
 write_version "SELDON_SPARK_BUILD_IMAGE_VERSION" "$(seldon_spark_build_image_version)"
+write_version "SELDON_STREAM_VERSION" "${SELDON_STREAM_VERSION}"
+write_version "SELDON_STREAM_BUILD_IMAGE_VERSION" "$(seldon_stream_build_image_version)"
+write_version "SELDON_STREAM_ITEMSIM_IMAGE_VERSION" "$(seldon_stream_itemsim_image_version)"
 write_version "SELDON_SERVER_VERSION" "${SELDON_SERVER_VERSION}"
 write_version "SELDON_CONTROL_IMAGE_VERSION" "${SELDON_CONTROL_IMAGE_VERSION}"
 write_version "SELDON_IRIS_KERAS_IMAGE_VERSION" "$(seldon_iris_keras_image_version)"
