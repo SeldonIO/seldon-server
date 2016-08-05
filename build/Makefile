@@ -122,6 +122,8 @@ publish_seldonio_iris_xgboost: build_versions_generated
 	@./dopublish seldonio_iris_xgboost
 publish_seldonio_finefoods_xgboost: build_versions_generated
 	@./dopublish seldonio_finefoods_xgboost
+publish_seldonio_stream_itemsim: build_versions_generated
+	@./dopublish seldonio_stream_itemsim
 
 build_all:
 	@for item in $(ALL_LIST) ; do \

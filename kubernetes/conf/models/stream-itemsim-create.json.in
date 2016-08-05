@@ -1,0 +1,25 @@
+{
+    "kind": "Pod",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "stream-itemsim-create",
+        "labels": {
+	    "service" : "seldon"
+        }
+    },
+    "spec": {
+        "containers": [
+            {
+                "name": "stream-itemsim-create",
+                "image": "seldonio/seldon-stream-itemsim:%SELDON_STREAM_ITEMSIM_IMAGE_VERSION%",
+                "command": [
+		    "sleep",
+                    "infinity"
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent"
+            }
+        ],
+	"terminationGracePeriodSeconds": 0
+    }
+}

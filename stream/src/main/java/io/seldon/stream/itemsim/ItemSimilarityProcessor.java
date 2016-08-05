@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicLong;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -55,14 +56,17 @@ public class ItemSimilarityProcessor {
 	final StreamingJaccardSimilarity streamJaccard;
 	Timer outputTimer;
 	long lastTime = 0;
+	AtomicLong outputSimilaritiesTime = new AtomicLong(0);
 	int window;
 	String outputTopic;
 	int count = 0;
+	final String kafkaServers;
 
 	public ItemSimilarityProcessor(final Namespace ns)
 	{
 		this.window = ns.getInt("window_secs");
 		this.outputTopic = ns.getString("output_topic");
+		this.kafkaServers = ns.getString("kafka");
 		System.out.println(ns);
 		this.streamJaccard = new StreamingJaccardSimilarity(window, ns.getInt("hashes"), ns.getInt("min_activity"));
 		//createOutputSimilaritiesTimer(ns);
@@ -70,18 +74,29 @@ public class ItemSimilarityProcessor {
 	
 	public void createOutputSimilaritiesTimer(Namespace ns)
 	{
-		int windowSecs = ns.getInt("window_secs");
+		int windowSecs = ns.getInt("output_poll_secs");
 		int timer_ms = windowSecs * 1000;
 		System.out.println("Scheduling at "+timer_ms);
 		outputTimer = new Timer(true);
 		outputTimer.scheduleAtFixedRate(new TimerTask() {
 			   public void run()  
 			   {
-				   System.out.println("getting similarities");
-				   List<JaccardSimilarity> res = streamJaccard.getSimilarity(System.currentTimeMillis()/1000);
-				   System.out.println("Results size "+res.size());
-				   for (JaccardSimilarity j : res)
-					   System.out.println("Result:"+j.toString());
+				   long time = ItemSimilarityProcessor.this.outputSimilaritiesTime.get();
+				   if (time > 0)
+				   {
+					   SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy 'at' h:mm a");
+					   String date = sdf.format(time*1000);
+					   System.out.println("getting similarities at "+date);
+					   List<JaccardSimilarity> res = streamJaccard.getSimilarity(time);
+					   System.out.println("Results size "+res.size()+". Sending Messages...");
+					   sendMessages(res, time);
+					   System.out.println("Messages sent");
+					   ItemSimilarityProcessor.this.outputSimilaritiesTime.set(0);
+				   }
+				   else
+				   {
+					   System.out.println("Timer: not outputing similarities");
+				   }
 			   }
 		   }, timer_ms, timer_ms);
 	}
@@ -151,12 +166,16 @@ public class ItemSimilarityProcessor {
 				long diff = time - ItemSimilarityProcessor.this.lastTime;
 				if (diff >= window)
 				{
+					//ItemSimilarityProcessor.this.outputSimilaritiesTime.compareAndSet(0, time);
+					//ItemSimilarityProcessor.this.lastTime = time;
+					
 					SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy 'at' h:mm a");
 					String date = sdf.format(time*1000);
 					System.out.println("getting similarities at "+date);
 					List<JaccardSimilarity> res = streamJaccard.getSimilarity(time);
-					System.out.println("Results size "+res.size());
+					System.out.println("Results size "+res.size()+" Sending messages..");
 					sendMessages(res, time);
+					System.out.println("Sent messages");
 					ItemSimilarityProcessor.this.lastTime = time;
 				}
 				ItemSimilarityProcessor.this.count++;
@@ -177,7 +196,7 @@ public class ItemSimilarityProcessor {
 	public void sendMessages(List<JaccardSimilarity> sims,long timestamp)
 	{
 		  Properties producerConfig = new Properties();
-		  producerConfig.put("bootstrap.servers", "localhost:9092");
+		  producerConfig.put("bootstrap.servers", this.kafkaServers);
 		  producerConfig.put("key.serializer",
 				  "org.apache.kafka.common" +
 				  ".serialization.ByteArraySerializer");
@@ -209,6 +228,7 @@ public class ItemSimilarityProcessor {
     	parser.addArgument("-k", "--kafka").setDefault("localhost:9092").help("Kafka server and port");
     	parser.addArgument("-z", "--zookeeper").setDefault("localhost:2181").help("Zookeeper server and port");
     	parser.addArgument("-w", "--window-secs").type(Integer.class).setDefault(3600*5).help("streaming window size in secs");
+    	parser.addArgument("--output-poll-secs").type(Integer.class).setDefault(60).help("output timer polling period in secs");
     	parser.addArgument("--hashes").type(Integer.class).setDefault(100).help("number of hashes");
     	parser.addArgument("-m", "--min-activity").type(Integer.class).setDefault(200).help("min activity");
     	parser.addArgument("-p", "--parse-date-method").choices("json-time","json-utc","system").setDefault("json-time").help("min activity");

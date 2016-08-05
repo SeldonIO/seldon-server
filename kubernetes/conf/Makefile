@@ -161,6 +161,13 @@ models/stream-itemsim-create.json: models/stream-itemsim-create.json.in $(BUILD_
 				-e "s|%SELDON_STREAM_VERSION%|$${SELDON_STREAM_VERSION}|" \
 				> models/stream-itemsim-create.json
 
+models/stream-itemsim-dbupload.json: models/stream-itemsim-dbupload.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat models/stream-itemsim-dbupload.json.in  | sed \
+				-e "s|%SELDON_STREAM_ITEMSIM_IMAGE_VERSION%|$${SELDON_STREAM_ITEMSIM_IMAGE_VERSION}|" \
+				-e "s|%SELDON_STREAM_VERSION%|$${SELDON_STREAM_VERSION}|" \
+				> models/stream-itemsim-dbupload.json
+
 #
 # Development conf
 #
@@ -206,7 +213,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json microservice_pipeline.template models/stream-itemsim-create.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json microservice_pipeline.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json
 
 
 #
@@ -249,4 +256,5 @@ clean:
 	rm -f dev/iago.json
 	rm -f analytics/*.json
 	rm -f microservice_pipeline.template
-
+	rm -f models/stream-itemsim-create.json
+	rm -f models/stream-itemsim-dbupload.json
