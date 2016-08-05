@@ -20,9 +20,9 @@ log() {
 #${SELDON_SERVER_HOME}
 
 source ${SELDON_SERVER_HOME}/build/build_versions_generated
-TARGET_NAME=seldonio_seldon_control
+TARGET_NAME=seldonio_stream_itemsiml
 IMAGE_NAME=seldonio/seldon-stream-itemsim
-IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}
+IMAGE_VERSION=${SELDON_STREAM_ITEMSIM_IMAGE_VERSION}
 
 if [ "${DRY_RUN}" = "false" ]; then
     log "[BUILD_EVENT:BEGIN] Publishing ${TARGET_NAME}"
