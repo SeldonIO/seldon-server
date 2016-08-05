@@ -21,7 +21,7 @@ log() {
 
 source ${SELDON_SERVER_HOME}/build/build_versions_generated
 TARGET_NAME=seldonio_seldon_control
-IMAGE_NAME=seldonio/seldon-control
+IMAGE_NAME=seldonio/seldon-stream-itemsim
 IMAGE_VERSION=${SELDON_CONTROL_IMAGE_VERSION}
 
 if [ "${DRY_RUN}" = "false" ]; then
