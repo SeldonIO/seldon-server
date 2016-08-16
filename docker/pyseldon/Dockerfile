@@ -1,4 +1,4 @@
-FROM continuumio/anaconda:2.4.1
+FROM continuumio/anaconda:4.1.1
 
 ENV HOME /root
 ENV DEBIAN_FRONTEND noninteractive
