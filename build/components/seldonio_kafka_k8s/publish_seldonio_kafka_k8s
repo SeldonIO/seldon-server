@@ -19,10 +19,10 @@ log() {
 #From Env
 #${SELDON_SERVER_HOME}
 
-source ${SELDON_SERVER_HOME}/build/build_versions_generated
-TARGET_NAME=seldonio_seldon_stream
-IMAGE_NAME=seldonio/seldon-stream
-IMAGE_VERSION=${SELDON_STREAM_BUILD_IMAGE_VERSION}
+source ${SELDON_SERVER_HOME}/build/build_versions
+TARGET_NAME=seldonio_kafka_k8s
+IMAGE_NAME=seldonio/kafka-k8s
+IMAGE_VERSION=${SELDON_KAFKA_K8S_IMAGE_VERSION}
 
 if [ "${DRY_RUN}" = "false" ]; then
     log "[BUILD_EVENT:BEGIN] Publishing ${TARGET_NAME}"
