@@ -82,8 +82,8 @@
                                         "value": "impressions:2:1,ctr_full:2:1,actions:2:1,events:2:1,predictions:2:1"
                                     }
                                 ],
-                                "image": "wurstmeister/kafka",
-                                "imagePullPolicy": "Always",
+                                "image": "seldonio/kafka-k8s:%SELDON_KAFKA_K8S_IMAGE_VERSION%",
+                                "imagePullPolicy": "IfNotPresent",
                                 "name": "kafka",
                                 "ports": [
                                     {

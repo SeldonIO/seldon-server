@@ -150,17 +150,10 @@ public class PredictionsToInfluxDb {
 		});
 		
         
-        
-        
-        
-        
-        //TimeWindows.of("PredictionWindow", 5 * 1000L)
-        
+
         KafkaStreams streams = new KafkaStreams(builder, props);
         streams.start();
         
-        Thread.sleep(50000);
-
 	}
 	
     public static void main(String[] args) throws Exception {
