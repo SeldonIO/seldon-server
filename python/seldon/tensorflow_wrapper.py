@@ -9,7 +9,7 @@ class TensorFlowWrapper(BasePandasEstimator,BaseEstimator):
                  session,
                  tf_input,
                  tf_output,
-                 tf_constants,
+                 tf_constants=(),
                  tmp_model="/tmp",
                  target=None,
                  target_readable=None,
@@ -27,7 +27,7 @@ class TensorFlowWrapper(BasePandasEstimator,BaseEstimator):
             Variable used as the model input
         tf_output : tensorflow variable
             Variable used as the model output
-        tf_constant : list
+        tf_constant : iterable
             List of tuples (tensorflow variable, value) to be used as constant for the model when doing predictions
         tmp_model : string
             url to folder where the model will be temporarily saved
