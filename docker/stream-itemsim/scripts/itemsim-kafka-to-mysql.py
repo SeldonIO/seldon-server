@@ -6,6 +6,9 @@ from kafka import KafkaConsumer
 import MySQLdb
 
 INSERT_SQL = "insert into item_similarity_new (item_id,item_id2,score) values (%(item_id)s,%(item_id2)s,%(score)s)"
+ADD_PREV_RESULTS_SQL = "insert ignore into item_similarity_new select item_id,item_id2,score-0.01 from item_similarity"
+REMOVE_OLD_RESULTS_SQL = "delete from item_similarity_new where score<0"
+RENAME_TABLE_SQL = "rename table item_similarity to item_similarity_tmp,item_similarity_new to item_similarity,item_similarity_tmp to item_similarity_new"
 BATCH_SIZE = 3000
 
 class KafkaToMysql(object):
@@ -34,7 +37,9 @@ class KafkaToMysql(object):
         if len(self.inserts) > 0:
             self.batch += 1
             self.run_inserts(self.inserts,self.batch)
-        self.dbc.execute("rename table item_similarity to item_similarity_tmp,item_similarity_new to item_similarity,item_similarity_tmp to item_similarity_new")
+        self.dbc.execute(ADD_PREV_RESULTS_SQL)
+        self.dbc.execute(REMOVE_OLD_RESULTS_SQL)
+        self.dbc.execute(RENAME_TABLE_SQL)
         self.db.commit()
         self.dbc.close()
 
