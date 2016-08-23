@@ -8,15 +8,20 @@ RUN \
     apt-get -y -q install build-essential automake autoconf libxmu-dev g++ gcc libpthread-stubs0-dev libtool libboost-program-options-dev libboost-python-dev zlib1g-dev libc6 libgcc1 libstdc++6 libblas-dev liblapack-dev git telnet procps memcached libmemcached-dev mysql-client-5.5 mysql-common libmysqlclient-dev
 
 RUN pip install xgboost
+RUN cd /tmp/ && \
+    TF_WHL_FILE=tensorflow-0.10.0rc0-cp27-none-linux_x86_64.whl && \
+    wget https://storage.googleapis.com/tensorflow/linux/cpu/${TF_WHL_FILE} && \
+    pip install ${TF_WHL_FILE} && \
+    rm ${TF_WHL_FILE}
 
 #RUN cd /usr/local/src && mkdir xgboost && cd xgboost && \
 #    git clone https://github.com/dmlc/xgboost.git && cd xgboost && \
 #    git checkout tags/v0.40 && \
-#    ./build.sh && \ 
+#    ./build.sh && \
 #    cd python-package  && python setup.py install && \
 #    cp -R /usr/local/src/xgboost/xgboost/wrapper/ /opt/conda/lib/python2.7/site-packages/xgboost-0.4-py2.7.egg/xgboost
 
-# Install and make vw (Vowpal Wabbit) 
+# Install and make vw (Vowpal Wabbit)
 
 RUN cd /usr/local/src;git clone https://github.com/JohnLangford/vowpal_wabbit.git;cd vowpal_wabbit;git checkout 8.1 ;./autogen.sh;./configure;make;make test;make install
 
