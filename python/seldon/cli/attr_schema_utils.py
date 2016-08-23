@@ -135,6 +135,16 @@ def outputDimensionsToFile(file, db):
 		rows = cur.fetchall()
 		json.dump(rows, file)
 
+def outputDimensions(db):
+
+	with db:
+		cur = db.cursor()
+		cur.execute("SELECT d.dim_id, e.value_name from DIMENSION d, ITEM_ATTR_ENUM e where d.attr_id = e.attr_id and d.value_id = e.value_id and e.value_name != \'article\'")
+		rows = cur.fetchall()
+                print "{h_dim_id:>8} {h_value_name}".format(h_dim_id="dim_id",h_value_name="value_name")
+                for row in rows:
+                    print "{v_dim_id:>8} {v_value_name}".format(v_dim_id=row[0], v_value_name=row[1])
+
 def readTypes(types):
     for theType in types:
         validateType(theType)
@@ -176,10 +186,15 @@ def create_schema(client_name, dbSettings, scheme_file_path, clean=False):
         print "Finished cleaning attributes successfully"
     else:
         addToDb(db, types)
-        f = open('dimensions.json','w')
-        outputDimensionsToFile(f,db)
+        #f = open('dimensions.json','w')
+        #outputDimensionsToFile(f,db)
+        outputDimensions(db)
 
         print 'Finished applying attributes successfully'
 
         json_data.close()
+
+def show_dimensions(client_name, dbSettings):
+    db = MySQLdb.connect(user=dbSettings["user"],db=client_name,passwd=dbSettings["password"], host=dbSettings["host"])
+    outputDimensions(db)
 
