@@ -64,7 +64,7 @@ class Recommender(BaseEstimator):
         """
         return self
 
-class Recommender_wrapper(object):
+class RecommenderWrapper(object):
     """
     Wrapper to allow recommenders to be easily saved and loaded
     """
@@ -163,7 +163,7 @@ class Extension(object):
         return self
 
 
-class Extension_wrapper(object):
+class ExtensionWrapper(object):
 
     def __init__(self,work_folder="/tmp",aws_key=None,aws_secret=None):
         self.work_folder=work_folder

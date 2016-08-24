@@ -5,11 +5,11 @@ import pandas as pd
 import logging
 
 
-class Test_kfolds(unittest.TestCase):
+class Test_SeldonKFold(unittest.TestCase):
 
     def test_kfold(self):
         x = xgb.XGBoostClassifier(target="target",learning_rate=0.1,silent=0,objective='binary:logistic')
-        t = cf.Seldon_KFold(x,3)
+        t = cf.SeldonKFold(x,3)
         f1 = {"target":0,"b":1.0,"c":0}
         f2 = {"target":1,"b":0,"c":2.0}
         fs = []

@@ -7,7 +7,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 import logging
 
-class Test_xgb(unittest.TestCase):
+class Test_XGBoostClassifier(unittest.TestCase):
 
     def test_set_params(self):
         t = xgb.XGBoostClassifier(target="target",learning_rate=0.1,silent=0,objective='binary:logistic')

@@ -1,5 +1,5 @@
 import unittest
-from seldon import Recommender,Recommender_wrapper
+from seldon import Recommender,RecommenderWrapper
 import sys
 import logging
 
@@ -12,14 +12,14 @@ class SimpleRecommender(Recommender):
         return self.res
 
     
-class Test_util(unittest.TestCase):
+class Test_RecommenderWrapper(unittest.TestCase):
 
     def test_save_load(self):
         sr1 = SimpleRecommender()
         res1 = sr1.recommend(1,None,None,"test",2)
         self.assertEqual(len(res1),2)
         
-        rr = Recommender_wrapper()
+        rr = RecommenderWrapper()
         rr.save_recommender(sr1,"/tmp/simplerec")
 
         sr2 = rr.load_recommender("/tmp/simplerec")

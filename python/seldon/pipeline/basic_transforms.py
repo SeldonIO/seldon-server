@@ -10,7 +10,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-class Binary_transform(BaseEstimator,TransformerMixin):
+class BinaryTransform(BaseEstimator,TransformerMixin):
     """
     Create a binary feature based on existence of another feature
     
@@ -51,7 +51,7 @@ class Binary_transform(BaseEstimator,TransformerMixin):
 
 ################
 
-class Include_features_transform(BaseEstimator,TransformerMixin):
+class IncludeFeaturesTransform(BaseEstimator,TransformerMixin):
     """
     Filter a dataset and include only specided set of features
 
@@ -89,7 +89,7 @@ class Include_features_transform(BaseEstimator,TransformerMixin):
 
 ################
 
-class Exclude_features_transform(BaseEstimator,TransformerMixin):
+class ExcludeFeaturesTransform(BaseEstimator,TransformerMixin):
     """
     Filter a dataset and exclude specided set of features
 
@@ -127,7 +127,7 @@ class Exclude_features_transform(BaseEstimator,TransformerMixin):
 
 #############
 
-class Split_transform(BaseEstimator,TransformerMixin):
+class SplitTransform(BaseEstimator,TransformerMixin):
     """
     Split a set of string input features on an expression and create a new feature which has a list of values
 
@@ -144,7 +144,7 @@ class Split_transform(BaseEstimator,TransformerMixin):
        output feature 
     """
     def __init__(self,split_expression=" ",ignore_numbers=False,input_features=[],output_feature=None):
-        super(Split_transform, self).__init__()
+        super(SplitTransform, self).__init__()
         self.split_expression=split_expression
         self.ignore_numbers=ignore_numbers
         self.input_features=input_features
@@ -190,7 +190,7 @@ class Split_transform(BaseEstimator,TransformerMixin):
 
 #############
 
-class Exist_features_transform(BaseEstimator,TransformerMixin):
+class ExistFeaturesTransform(BaseEstimator,TransformerMixin):
     """Filter rows based on whether a specified set of features exists
 
     Parameters
@@ -199,7 +199,7 @@ class Exist_features_transform(BaseEstimator,TransformerMixin):
        list of features that need to exist
     """
     def __init__(self,included=None):
-        super(Exist_features_transform, self).__init__()
+        super(ExistFeaturesTransform, self).__init__()
         self.included = included
 
     def fit(self,objs):
@@ -224,7 +224,7 @@ class Exist_features_transform(BaseEstimator,TransformerMixin):
 
 #############
 
-class Svmlight_transform(BaseEstimator,TransformerMixin):
+class SvmlightTransform(BaseEstimator,TransformerMixin):
     """
     Take a set of features and transform into a sorted dictionary of numeric id:value features
 
@@ -239,7 +239,7 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
        set of features to exclude
     """
     def __init__(self,included=None,zero_based=False,excluded=[],id_map={},output_feature=None,id_map_file=None):
-        super(Svmlight_transform, self).__init__()
+        super(SvmlightTransform, self).__init__()
         self.included = included
         self.excluded = excluded
         self.id_map = id_map
@@ -362,7 +362,7 @@ class Svmlight_transform(BaseEstimator,TransformerMixin):
 #############
 
 
-class Feature_id_transform(BaseEstimator,TransformerMixin):
+class FeatureIdTransform(BaseEstimator,TransformerMixin):
     """create a numeric feature id
 
     Parameters

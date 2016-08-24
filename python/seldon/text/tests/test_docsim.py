@@ -6,7 +6,7 @@ from gensim.corpora.dictionary import Dictionary
 import copy
 
 
-class Test_docsim(unittest.TestCase):
+class Test_DocumentSimilarity(unittest.TestCase):
 
     def get_docs(self):
         return [{"id":1,"text":"an article about sports and football, Arsenel, Liverpool","tags":"football"},

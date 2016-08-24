@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Auto_transform(BaseEstimator,TransformerMixin):
+class AutoTransform(BaseEstimator,TransformerMixin):
     """
     Automatically transform a set of features into normalzied numeric or categorical features or dates
 
@@ -52,7 +52,7 @@ class Auto_transform(BaseEstimator,TransformerMixin):
        limit numeric cols to min and max seen in fit
     """
     def __init__(self,exclude=[],include=None,max_values_numeric_categorical=0,date_cols=[],custom_date_formats=None,ignore_vals=None,force_categorical=[],min_cat_percent=0.0,max_cat_percent=1.0,bool_map={"true":1,"false":0,"1":1,"0":0,"yes":1,"no":0,"1.0":1,"0.0":0},cat_missing_val="UKN",date_transforms=[True,True,True,True],create_date_differences=False,nan_threshold=None,drop_constant_features=True,drop_duplicate_cols=True,min_max_limit=False):
-        super(Auto_transform, self).__init__()
+        super(AutoTransform, self).__init__()
         self.exclude = exclude
         self.include = include
         self.max_values_numeric_categorical = max_values_numeric_categorical

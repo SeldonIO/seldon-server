@@ -51,7 +51,7 @@ class BayesOptimizer(BaseEstimator):
         for v in self.param_int:
             params[v] = int(params[v])
         self.clf.set_params(**params)
-        cv = cf.Seldon_KFold(self.clf,self.cv_folds)
+        cv = cf.SeldonKFold(self.clf,self.cv_folds)
         cv.fit(self.X,self.y)
         return cv.get_score()
 

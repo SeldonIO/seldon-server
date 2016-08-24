@@ -7,7 +7,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-class Seldon_KFold(BaseEstimator):
+class SeldonKFold(BaseEstimator):
     """
     Simple wrapper to provide cross validation test using estimator with input from pandas dataframe
 

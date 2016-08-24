@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
 
-class sklearn_transform(BaseEstimator,TransformerMixin):
+class SklearnTransform(BaseEstimator,TransformerMixin):
     """
     Allow sklearn transformers to be run on Pandas dataframes.
 

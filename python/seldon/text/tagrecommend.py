@@ -7,7 +7,7 @@ import operator
 logger = logging.getLogger(__name__)
 
 
-class Tag_Recommender(BaseEstimator):
+class TagRecommender(BaseEstimator):
 
     def __init__(self,max_s2_size=0.1,min_s2_size=25,min_score=0.0):
         """
@@ -40,7 +40,7 @@ class Tag_Recommender(BaseEstimator):
         Returns
         -------
         
-        trained Tag_Recommender object
+        trained TagRecommender object
 
         """
         processed = 0

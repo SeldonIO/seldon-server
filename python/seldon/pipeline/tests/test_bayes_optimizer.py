@@ -5,7 +5,7 @@ import pandas as pd
 import logging
 
 
-class Test_bopt(unittest.TestCase):
+class Test_BayesOptimizer(unittest.TestCase):
 
     def test_kfold(self):
         x = xgb.XGBoostClassifier(target="target",learning_rate=0.1,silent=0,objective='binary:logistic')

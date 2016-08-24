@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 import logging
 
-class Test_vw(unittest.TestCase):
+class Test_VWClassifier(unittest.TestCase):
 
     def test_sklearn_pipeline(self):
         t = vw.VWClassifier(target="target")

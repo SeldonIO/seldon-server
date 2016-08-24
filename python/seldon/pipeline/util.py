@@ -13,7 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Pipeline_wrapper(object):
+class PipelineWrapper(object):
     """
     Wrapper to allow dataframes to be created and saved from external data sources.
     Data sources:AWS s3 and file system
