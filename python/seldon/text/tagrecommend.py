@@ -3,6 +3,7 @@ from seldon.pipeline.pandas_pipelines import BasePandasEstimator
 from sklearn.base import BaseEstimator,ClassifierMixin
 import logging
 import operator
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
@@ -168,3 +169,5 @@ class TagRecommender(BaseEstimator):
                 scores[tag_recommended] += score
         sorted_scores = sorted(scores.items(), key=operator.itemgetter(1),reverse=True)
         return sorted_scores[:k]
+
+Tag_Recommender = DeprecationHelper(TagRecommender)

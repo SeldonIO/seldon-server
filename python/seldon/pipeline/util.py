@@ -10,6 +10,7 @@ import random
 import string
 from sklearn.externals import joblib
 import logging
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +203,7 @@ class PipelineWrapper(object):
         futil.copy(pipeline_folder,local_pipeline_folder)
         return joblib.load(local_pipeline_folder+"/p")
 
-
+Pipeline_wrapper = DeprecationHelper(PipelineWrapper)
 
 
             

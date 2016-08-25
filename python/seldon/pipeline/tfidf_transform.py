@@ -5,6 +5,7 @@ from sklearn.base import BaseEstimator,TransformerMixin
 import logging 
 import time
 import logging
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
@@ -126,5 +127,5 @@ class TfidfTransform(BaseEstimator,TransformerMixin):
         df[self.output_feature] = df[self.input_feature].apply(self._create_tfidf)
         return df
 
-
+Tfidf_transform = DeprecationHelper(TfidfTransform)
 

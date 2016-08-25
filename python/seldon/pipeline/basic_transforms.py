@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
 import time
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,8 @@ class BinaryTransform(BaseEstimator,TransformerMixin):
         df[self.output_feature] = df.apply(lambda row: 1 if (not pd.isnull(row[self.input_feature])) and (not row[self.input_feature] == "0") and (not row[self.input_feature] == 0) and (not row[self.input_feature] == "") else 0,axis=1)
         return df
 
+Binary_transform = DeprecationHelper(BinaryTransform)
+
 ################
 
 class IncludeFeaturesTransform(BaseEstimator,TransformerMixin):
@@ -87,6 +90,8 @@ class IncludeFeaturesTransform(BaseEstimator,TransformerMixin):
         df =  df[list(set(self.included).intersection(df.columns))]
         return df
 
+Include_features_transform = DeprecationHelper(IncludeFeaturesTransform)
+
 ################
 
 class ExcludeFeaturesTransform(BaseEstimator,TransformerMixin):
@@ -124,6 +129,7 @@ class ExcludeFeaturesTransform(BaseEstimator,TransformerMixin):
         df = df.drop(self.excluded, axis=1,errors='ignore')
         return df
 
+Exclude_features_transform = DeprecationHelper(ExcludeFeaturesTransform)
 
 #############
 
@@ -188,6 +194,8 @@ class SplitTransform(BaseEstimator,TransformerMixin):
         df[self.output_feature] = df.apply(self._split,axis=1)
         return df
 
+Split_transform = DeprecationHelper(SplitTransform)
+
 #############
 
 class ExistFeaturesTransform(BaseEstimator,TransformerMixin):
@@ -221,6 +229,8 @@ class ExistFeaturesTransform(BaseEstimator,TransformerMixin):
         """
         df.dropna(subset=self.included,inplace=True)
         return df
+
+Exist_features_transform = DeprecationHelper(ExistFeaturesTransform)
 
 #############
 
@@ -359,6 +369,8 @@ class SvmlightTransform(BaseEstimator,TransformerMixin):
         df[self.output_feature] = df.apply(self._set_id,axis=1,reduce=True)
         return df
 
+Svmlight_transform = DeprecationHelper(SvmlightTransform)
+
 #############
 
 
@@ -448,6 +460,6 @@ class FeatureIdTransform(BaseEstimator,TransformerMixin):
                 df[self.output_feature] = df[self.output_feature].fillna(-1).astype(int)
         return df
 
-
+Feature_id_transform = DeprecationHelper(FeatureIdTransform)
 
 

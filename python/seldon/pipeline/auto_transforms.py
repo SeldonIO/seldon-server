@@ -8,6 +8,7 @@ import math
 import itertools
 from sklearn.base import BaseEstimator,TransformerMixin
 import logging
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
@@ -343,3 +344,4 @@ class AutoTransform(BaseEstimator,TransformerMixin):
             df[col] = df[col].apply(self._scale,col=col)
         return df
 
+Auto_transform = DeprecationHelper(AutoTransform)

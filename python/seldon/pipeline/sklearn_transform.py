@@ -2,6 +2,7 @@ from collections import defaultdict
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator,TransformerMixin
+from seldon.util import DeprecationHelper
 
 class SklearnTransform(BaseEstimator,TransformerMixin):
     """
@@ -62,3 +63,4 @@ class SklearnTransform(BaseEstimator,TransformerMixin):
         df_2 = pd.concat([df,df_Y],axis=1)
         return df_2
 
+sklearn_transform = DeprecationHelper(SklearnTransform)
