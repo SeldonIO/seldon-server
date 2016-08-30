@@ -5,17 +5,6 @@ from sklearn.utils import check_array
 import tensorflow as tf
 
 class TensorFlowWrapper(BasePandasEstimator,BaseEstimator):
-    def __init__(self,
-                 session,
-                 tf_input,
-                 tf_output,
-                 tf_constants=(),
-                 tmp_model="/tmp",
-                 target=None,
-                 target_readable=None,
-                 included=None,
-                 excluded=None,
-                 id_map={}):
         """
         Wrapper for tensorflow with pandas support
     
@@ -42,6 +31,17 @@ class TensorFlowWrapper(BasePandasEstimator,BaseEstimator):
         id_map : dict (int,str), optional
            map of class ids to high level names
         """
+    def __init__(self,
+                 session,
+                 tf_input,
+                 tf_output,
+                 tf_constants=(),
+                 tmp_model="/tmp",
+                 target=None,
+                 target_readable=None,
+                 included=None,
+                 excluded=None,
+                 id_map={}):
         super(TensorFlowWrapper, self).__init__(target,target_readable,included,excluded,id_map)
         self.target = target
         self.target_readable = target_readable
