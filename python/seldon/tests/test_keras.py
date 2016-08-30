@@ -13,7 +13,7 @@ from keras.wrappers.scikit_learn import KerasClassifier
 import logging
 
 
-class Test_keras(unittest.TestCase):
+class Test_KerasClassifier(unittest.TestCase):
 
     def test_sklearn_pipeline(self):
         t = keras.KerasClassifier(target="target",verbose=1)

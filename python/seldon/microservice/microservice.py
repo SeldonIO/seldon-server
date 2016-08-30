@@ -36,7 +36,7 @@ class Microservices(object):
         app = Flask(__name__)
                    
         rint = random.randint(1,999999)
-        pw = sutl.Pipeline_wrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
+        pw = sutl.PipelineWrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
         pipeline = pw.load_pipeline(pipeline_folder)
         
         app.config["seldon_pipeline_wrapper"] = pw
@@ -70,9 +70,9 @@ class Microservices(object):
             app.config["seldon_memcache"] = _mc_pool
             
         if self.aws_key:
-            rw = seldon.Recommender_wrapper(aws_key=self.aws_key,aws_secret=self.aws_secret)
+            rw = seldon.RecommenderWrapper(aws_key=self.aws_key,aws_secret=self.aws_secret)
         else:
-            rw = seldon.Recommender_wrapper()
+            rw = seldon.RecommenderWrapper()
         recommender = rw.load_recommender(recommender_folder)
         app.config["seldon_recommender"] = recommender
  
@@ -95,7 +95,7 @@ class Microservices(object):
         app = Flask(__name__)
                    
         rint = random.randint(1,999999)
-        ew = seldon.Extension_wrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
+        ew = seldon.ExtensionWrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
         extension = ew.load_extension(extension_folder)
 
         app.config["seldon_extension_wrapper"] = ew

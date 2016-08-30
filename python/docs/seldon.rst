@@ -66,6 +66,13 @@ seldon.xgb module
     :undoc-members:
     :show-inheritance:
 
+seldon.tensorflow_wrapper module
+--------------------------------
+
+.. automodule:: seldon.tensorflow_wrapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

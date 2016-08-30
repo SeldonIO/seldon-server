@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 import logging
 
-class Test_wrapper(unittest.TestCase):
+class Test_PipelineWrapper(unittest.TestCase):
 
     def _create_test_json(self,fname,as_list=False):
         f = open(fname,"w")
@@ -33,7 +33,7 @@ class Test_wrapper(unittest.TestCase):
         f.close()
 
     def test_load_json_folders(self):
-        w = sutils.Pipeline_wrapper()
+        w = sutils.PipelineWrapper()
         data_folder = w.get_work_folder()+"/events"
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
@@ -43,14 +43,14 @@ class Test_wrapper(unittest.TestCase):
         print df
 
     def test_load_json_file(self):
-        w = sutils.Pipeline_wrapper()
+        w = sutils.PipelineWrapper()
         fname = w.get_work_folder()+"/"+"test.json"
         self._create_test_json(fname,as_list=True)
         df = w.create_dataframe(fname)
         print df
 
     def test_save_dataframe(self):
-        w = sutils.Pipeline_wrapper()
+        w = sutils.PipelineWrapper()
         df = pd.DataFrame.from_dict([{"a":"a b","b":"c d","c":3},{"a":"word1","b":"word2"}])
         fname = w.get_work_folder()+"/"+"saved.json"
         w.save_dataframe(df,fname,"csv",csv_index=False)
@@ -59,8 +59,8 @@ class Test_wrapper(unittest.TestCase):
         assert_frame_equal(df.sort(axis=1), df2.sort(axis=1), check_names=True)
 
     def test_save_pipeline(self):
-        w = sutils.Pipeline_wrapper()
-        t = bt.Include_features_transform(included=["a","b"])
+        w = sutils.PipelineWrapper()
+        t = bt.IncludeFeaturesTransform(included=["a","b"])
         transformers = [("include_features",t)]
         p = Pipeline(transformers)
         df = pd.DataFrame.from_dict([{"a":1,"b":2,"c":3}])

@@ -10,10 +10,11 @@ import random
 import string
 from sklearn.externals import joblib
 import logging
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
-class Pipeline_wrapper(object):
+class PipelineWrapper(object):
     """
     Wrapper to allow dataframes to be created and saved from external data sources.
     Data sources:AWS s3 and file system
@@ -202,7 +203,7 @@ class Pipeline_wrapper(object):
         futil.copy(pipeline_folder,local_pipeline_folder)
         return joblib.load(local_pipeline_folder+"/p")
 
-
+Pipeline_wrapper = DeprecationHelper(PipelineWrapper)
 
 
             
