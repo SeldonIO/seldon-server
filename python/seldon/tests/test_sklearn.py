@@ -7,7 +7,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 from sklearn.linear_model import LogisticRegression
 
-class Test_keras(unittest.TestCase):
+class Test_SKLearnClassifier(unittest.TestCase):
 
     def test_sklearn_pipeline(self):
         t = ske.SKLearnClassifier(clf=LogisticRegression(),target="target")

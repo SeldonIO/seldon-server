@@ -4,10 +4,11 @@ from sklearn import metrics
 from sklearn.base import BaseEstimator
 import logging
 import numpy as np
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
-class Seldon_KFold(BaseEstimator):
+class SeldonKFold(BaseEstimator):
     """
     Simple wrapper to provide cross validation test using estimator with input from pandas dataframe
 
@@ -99,3 +100,6 @@ class Seldon_KFold(BaseEstimator):
 
     def set_params(self,**params):
         self.clf.set_params(params)
+
+
+Seldon_KFold = DeprecationHelper(SeldonKFold)

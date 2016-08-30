@@ -1,6 +1,6 @@
 import logging
 
-from .util import Recommender_wrapper,Recommender,Extension,Extension_wrapper
+from .util import RecommenderWrapper,Recommender,Extension,ExtensionWrapper,Recommender_wrapper,Extension_wrapper
 
 __version__ = '2.0.5'
 

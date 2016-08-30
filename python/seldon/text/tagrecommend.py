@@ -3,11 +3,12 @@ from seldon.pipeline.pandas_pipelines import BasePandasEstimator
 from sklearn.base import BaseEstimator,ClassifierMixin
 import logging
 import operator
+from seldon.util import DeprecationHelper
 
 logger = logging.getLogger(__name__)
 
 
-class Tag_Recommender(BaseEstimator):
+class TagRecommender(BaseEstimator):
 
     def __init__(self,max_s2_size=0.1,min_s2_size=25,min_score=0.0):
         """
@@ -40,7 +41,7 @@ class Tag_Recommender(BaseEstimator):
         Returns
         -------
         
-        trained Tag_Recommender object
+        trained TagRecommender object
 
         """
         processed = 0
@@ -168,3 +169,5 @@ class Tag_Recommender(BaseEstimator):
                 scores[tag_recommended] += score
         sorted_scores = sorted(scores.items(), key=operator.itemgetter(1),reverse=True)
         return sorted_scores[:k]
+
+Tag_Recommender = DeprecationHelper(TagRecommender)

@@ -10,6 +10,23 @@ from sklearn.base import BaseEstimator
 logger = logging.getLogger(__name__)
 
 
+class DeprecationHelper(object):
+    def __init__(self, new_target):
+        self.new_target = new_target
+
+    def _warn(self):
+        from warnings import warn
+        warn("This class is deprecated. Please use {} instead".format(str(self.new_target)))
+
+    def __call__(self, *args, **kwargs):
+        self._warn()
+        return self.new_target(*args,**kwargs)
+
+    def __getattr__(self,attr):
+        self._warn()
+        return getattr(self.new_target, attr)
+
+
 class Recommender(BaseEstimator):
     """
     General recommendation interface
@@ -64,7 +81,7 @@ class Recommender(BaseEstimator):
         """
         return self
 
-class Recommender_wrapper(object):
+class RecommenderWrapper(object):
     """
     Wrapper to allow recommenders to be easily saved and loaded
     """
@@ -128,6 +145,7 @@ class Recommender_wrapper(object):
         recommender.load(local_recommender_folder)
         return recommender
 
+Recommender_wrapper = DeprecationHelper(RecommenderWrapper)
 
 class Extension(object):
 
@@ -163,7 +181,7 @@ class Extension(object):
         return self
 
 
-class Extension_wrapper(object):
+class ExtensionWrapper(object):
 
     def __init__(self,work_folder="/tmp",aws_key=None,aws_secret=None):
         self.work_folder=work_folder
@@ -204,4 +222,4 @@ class Extension_wrapper(object):
         futil = fu.FileUtil(aws_key=self.aws_key,aws_secret=self.aws_secret)
         futil.copy(extension_folder,location)
 
-
+Extension_wrapper = DeprecationHelper(ExtensionWrapper)
