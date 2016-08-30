@@ -1,5 +1,5 @@
 import unittest
-from .. import SklearnTransform as ssk
+from .. import sklearn_transform as ssk
 import pandas as pd
 import json
 import os.path

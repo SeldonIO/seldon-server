@@ -1,5 +1,5 @@
 import unittest
-from  .. import AutoTransforms as at
+from  .. import auto_transforms as at
 import pandas as pd
 import numpy as np
 from sklearn.pipeline import Pipeline

@@ -145,7 +145,7 @@ class RecommenderWrapper(object):
         recommender.load(local_recommender_folder)
         return recommender
 
-Recommender_wrapper = DeprecationHelper(RecommenderHelper)
+Recommender_wrapper = DeprecationHelper(RecommenderWrapper)
 
 class Extension(object):
 

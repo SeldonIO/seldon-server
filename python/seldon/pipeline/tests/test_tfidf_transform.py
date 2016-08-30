@@ -1,5 +1,5 @@
 import unittest
-from seldon.pipeline import TfidfTransform as tf
+from seldon.pipeline import tfidf_transform as tf
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
