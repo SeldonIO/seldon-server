@@ -5,32 +5,33 @@ from sklearn.utils import check_array
 import tensorflow as tf
 
 class TensorFlowWrapper(BasePandasEstimator,BaseEstimator):
-        """
-        Wrapper for tensorflow with pandas support
+    """
+    Wrapper for tensorflow with pandas support
+
+    Parameters
+    ----------
     
-        Parameters
-        ----------
-        session : tensorflow session
-            Contains the tensorflow model
-        tf_input : tensorflow variable
-            Variable used as the model input
-        tf_output : tensorflow variable
-            Variable used as the model output
-        tf_constant : iterable
-            List of tuples (tensorflow variable, value) to be used as constant for the model when doing predictions
-        tmp_model : string
-            url to folder where the model will be temporarily saved
-        target : str
-           Target column
-        target_readable : str
-           More descriptive version of target variable
-        included : list str, optional
-           columns to include
-        excluded : list str, optional
-           columns to exclude
-        id_map : dict (int,str), optional
-           map of class ids to high level names
-        """
+    session : tensorflow session
+        Contains the tensorflow model
+    tf_input : tensorflow variable
+        Variable used as the model input
+    tf_output : tensorflow variable
+        Variable used as the model output
+    tf_constant : iterable
+        List of tuples (tensorflow variable, value) to be used as constant for the model when doing predictions
+    tmp_model : string
+        url to folder where the model will be temporarily saved
+    target : str
+       Target column
+    target_readable : str
+       More descriptive version of target variable
+    included : list str, optional
+       columns to include
+    excluded : list str, optional
+       columns to exclude
+    id_map : dict (int,str), optional
+       map of class ids to high level names
+    """
     def __init__(self,
                  session,
                  tf_input,
