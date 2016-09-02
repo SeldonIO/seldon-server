@@ -4,24 +4,25 @@ import tensorflow as tf
 from seldon.tensorflow_wrapper import TensorFlowWrapper
 from sklearn.pipeline import Pipeline
 import seldon.pipeline.util as sutl
+import argparse
 
 def weight_variable(shape):
-  initial = tf.truncated_normal(shape, stddev=0.1)
-  return tf.Variable(initial)
+    initial = tf.truncated_normal(shape, stddev=0.1)
+    return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(0.1, shape=shape)
-  return tf.Variable(initial)
+    initial = tf.constant(0.1, shape=shape)
+    return tf.Variable(initial)
 
 def conv2d(x, W):
-  return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
 def max_pool_2x2(x):
-  return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                         strides=[1, 2, 2, 1], padding='SAME')
 
-if __name__ == '__main__':
-    
+def create_pipeline(load=None):
+
     x = tf.placeholder(tf.float32, [None,784])
 
     W_conv1 = weight_variable([5, 5, 1, 32])
@@ -65,15 +66,26 @@ if __name__ == '__main__':
     init = tf.initialize_all_variables()
 
     sess = tf.Session()
-    sess.run(init)
+    
 
-    for i in range(20000):
-        batch_xs, batch_ys = mnist.train.next_batch(50)
-        if i%100 == 0:
+    if not load:
 
-            train_accuracy = accuracy.eval(session=sess,feed_dict={x:batch_xs, y_: batch_ys, keep_prob: 1.0})
-            print("step %d, training accuracy %.3f"%(i, train_accuracy))
-        sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+        print 'Training model'
+
+        sess.run(init)
+        for i in range(20000):
+            batch_xs, batch_ys = mnist.train.next_batch(50)
+            if i%100 == 0:
+
+                train_accuracy = accuracy.eval(session=sess,feed_dict={x:batch_xs, y_: batch_ys, keep_prob: 1.0})
+                print("step %d, training accuracy %.3f"%(i, train_accuracy))
+            sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+
+    else:
+
+        print 'Loading pre-trained model'
+        saver = tf.train.Saver()
+        saver.restore(sess,load)
 
     print("test accuracy %g"%accuracy.eval(session=sess,feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
@@ -81,10 +93,21 @@ if __name__ == '__main__':
 
     tfw = TensorFlowWrapper(sess,tf_input=x,tf_output=y_conv,tf_constants=[(keep_prob,1.0)],target="y",target_readable="class",excluded=['class'])
 
-    p = Pipeline([('deep_classifier',tfw)])
+    return Pipeline([('deep_classifier',tfw)])
 
-    pw = sutl.Pipeline_wrapper()
 
-    pw.save_pipeline(p,'deep_mnist_pipeline')
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(prog='pipeline_example')
+    parser.add_argument('-m','--model', help='model output folder', required=True)
+    parser.add_argument('-l','--load',help='Load pretrained model from file')
+    
+    args = parser.parse_args()
+
+    p = create_pipeline(args.load)
+
+    pw = sutl.PipelineWrapper()
+
+    pw.save_pipeline(p,args.model)
 
 
