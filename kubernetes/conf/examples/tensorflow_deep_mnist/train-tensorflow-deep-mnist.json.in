@@ -1,0 +1,37 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "train-tensorflow-deep-mnist"
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "train-tensorflow-deep-mnist"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "train-tensorflow-deep-mnist",
+                        "image": "seldonio/tensorflow_deep_mnist:%SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION%",
+			"command": ["/home/seldon/train_model.sh","/seldon-data/seldon-models/tensorflow_deep_mnist/1","0.1"
+			    ],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}

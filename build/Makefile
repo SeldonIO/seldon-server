@@ -26,7 +26,8 @@ ALL_LIST=\
 	seldonio_iris_vw \
 	seldonio_iris_xgboost \
 	seldonio_finefoods_xgboost \
-	seldonio_stream_itemsim
+	seldonio_stream_itemsim \
+	seldonio_tensorflow_deep_mnist
 
 
 NO_PUBLISH_LIST=\
@@ -80,6 +81,8 @@ build_seldonio_finefoods_xgboost: build_versions_generated
 	@./dobuild seldonio_finefoods_xgboost
 build_seldonio_stream_itemsim: build_versions_generated
 	@./dobuild seldonio_stream_itemsim
+build_seldonio_tensorflow_deep_mnist: build_versions_generated
+	@./dobuild seldonio_tensorflow_deep_mnist
 
 #publish
 publish_seldonio_pyseldon: build_versions_generated
@@ -124,6 +127,8 @@ publish_seldonio_finefoods_xgboost: build_versions_generated
 	@./dopublish seldonio_finefoods_xgboost
 publish_seldonio_stream_itemsim: build_versions_generated
 	@./dopublish seldonio_stream_itemsim
+publish_seldonio_tensorflow_deep_mnist: build_versions_generated
+	@./dopublish seldonio_tensorflow_deep_mnist
 
 build_all:
 	@for item in $(ALL_LIST) ; do \

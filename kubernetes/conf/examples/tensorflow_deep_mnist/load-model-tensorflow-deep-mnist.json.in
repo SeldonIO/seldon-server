@@ -1,0 +1,37 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "load-model-tensorflow-deep-mnist"
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "load-model-tensorflow-deep-mnist"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "load-model-tensorflow-deep-mnist",
+                        "image": "seldonio/tensorflow_deep_mnist:%SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION%",
+			"command": ["/home/seldon/load_model.sh","http://static.seldon.io/demos/tensorflow-deep-mnist","/seldon-data/seldon-models/tensorflow_deep_mnist/1","0.1"
+			    ],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}
