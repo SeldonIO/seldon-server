@@ -27,7 +27,7 @@ ALL_LIST=\
 	seldonio_iris_xgboost \
 	seldonio_finefoods_xgboost \
 	seldonio_stream_itemsim \
-	seldonio_tensorflow_deep_mnist
+	seldonio_examples_tensorflow_deep_mnist
 
 
 NO_PUBLISH_LIST=\
