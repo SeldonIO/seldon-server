@@ -20,7 +20,7 @@
                     {
                         "name": "load-model-tensorflow-deep-mnist",
                         "image": "seldonio/tensorflow_deep_mnist:%SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION%",
-			"command": ["/home/seldon/load_model.sh","http://static.seldon.io/demos/tensorflow-deep-mnist","/seldon-data/seldon-models/tensorflow_deep_mnist/1","0.1"
+			"command": ["/home/seldon/load_model.sh","http://static.seldon.io/demos/tensorflow-deep-mnist/saved_model.ckpt","/seldon-data/seldon-models/tensorflow_deep_mnist/1"
 			    ],
 			"volumeMounts": [
 			    {
