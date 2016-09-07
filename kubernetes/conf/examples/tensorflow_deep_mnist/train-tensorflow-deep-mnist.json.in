@@ -20,7 +20,7 @@
                     {
                         "name": "train-tensorflow-deep-mnist",
                         "image": "seldonio/tensorflow_deep_mnist:%SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION%",
-			"command": ["/home/seldon/train_model.sh","/seldon-data/seldon-models/tensorflow_deep_mnist/1","0.1"
+			"command": ["/home/seldon/train_model.sh","/seldon-data/seldon-models/tensorflow_deep_mnist/1"
 			    ],
 			"volumeMounts": [
 			    {
