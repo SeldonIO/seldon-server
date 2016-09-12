@@ -73,12 +73,16 @@ class BaseVisualizer():
       for color, ll in zip(colors,sorted(labeled_points.keys())):
         x = [t[0] for t in labeled_points[ll]]
         y = [t[1] for t in labeled_points[ll]]
-        plt.plot(x,y,'.', color = color, markersize = 2)
+        if ll!=0:
+          plt.plot(x,y,'.', color = color, markersize = 2)
+        elif ll==0:
+          plt.plot(x,y,'o', color = color, markersize = 2)
       if img_path_fout!='':
         plt.savefig(img_path_fout)
       plt.show()
   
-  def _contour_plot(self, points, labels='', img_path_fout='', contour_values=''):
+  def _contour_plot(self, points, labels='', img_path_fout='', contour_values='',
+                    show_points = True):
     #TO BE COMPLETED
     """
     """
@@ -95,11 +99,15 @@ class BaseVisualizer():
     zi = griddata(x,y,z,xi,yi,interp='linear')
 #    CS = plt.contour(xi, yi, zi, 15, linewidths=0.5, colors='k')
     CS = plt.contourf(xi, yi, zi, 15, cmap=plt.cm.gray, vmax=abs(zi).max(), vmin=-abs(zi).max())
-    plt.colorbar()  
-    for color, ll in zip(colors,sorted(labeled_points.keys())):
-      x_1 = [t[0] for t in labeled_points[ll]]
-      y_1 = [t[1] for t in labeled_points[ll]]
-      plt.plot(x_1,y_1,'.', color = color, markersize = 2)
+    plt.colorbar()
+    if show_points:
+      for color, ll in zip(colors,sorted(labeled_points.keys())):
+        x_1 = [t[0] for t in labeled_points[ll]]
+        y_1 = [t[1] for t in labeled_points[ll]]
+        if ll!=0:
+          plt.plot(x_1,y_1,'.', color = color, markersize = 2)
+        elif ll==0:
+          plt.plot(x_1,y_1,'^', color = color, markersize = 2)
     plt.title('title')
   
     if img_path_fout!='':
