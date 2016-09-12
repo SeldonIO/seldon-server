@@ -66,11 +66,11 @@ class HighDVisualizer(BaseVisualizer):
     else:
       self._scatter_plot(points=self.X_low_dim, labels=labels, img_path_fout=img_path_fout)
 
-  def visualize_with_contour(self, labels='', img_path_fout='', contour_values=''):
+  def visualize_with_contour(self, labels='', img_path_fout='', contour_values='', show_points=True):
     #TO BE COMPLETED
     """
     """
-    self._contour_plot(self.X_low_dim, labels, img_path_fout, contour_values)
+    self._contour_plot(self.X_low_dim, labels, img_path_fout, contour_values, show_points)
   
 
 
