@@ -78,7 +78,7 @@ class BaseVisualizer():
         elif ll==0:
           plt.plot(x,y,'o', color = color, markersize = 2)
       if img_path_fout!='':
-        plt.savefig(img_path_fout)
+        plt.savefig(img_path_fout, format='eps')
       plt.show()
   
   def _contour_plot(self, points, labels='', img_path_fout='', contour_values='',
@@ -111,5 +111,5 @@ class BaseVisualizer():
     plt.title('title')
   
     if img_path_fout!='':
-      plt.savefig(img_path_fout)
+      plt.savefig(img_path_foutt, format='eps')
     plt.show()
