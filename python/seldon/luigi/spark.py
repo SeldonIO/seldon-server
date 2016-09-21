@@ -23,7 +23,7 @@ class ItemSimilaritySparkJob(luigi.Task):
     minUsersPerItem = luigi.IntParameter(default=0)    
     maxUsersPerItem = luigi.IntParameter(default=2000000)
     dimsumThreshold =luigi.FloatParameter(default=0.1)
-    sample = luigi.FloatParameter()
+    sample = luigi.FloatParameter(default=1.0)
 
     def output(self):
         return luigi.LocalTarget("{}/{}/item-similarity/{}".format(self.outputPath,self.client,self.startDay))
