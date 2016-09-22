@@ -106,7 +106,8 @@ public class ItemSimilarityProcessor {
 	public void process(final Namespace ns) throws InterruptedException
 	{
 		Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-item-similarity");
+		final String app_id = "stream-item-similarity-" +ns.getString("client");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, app_id);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ns.getString("kafka"));
         props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
