@@ -22,6 +22,7 @@
 package io.seldon.prediction;
 
 import io.seldon.api.APIException;
+import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.state.PredictionAlgorithmStore;
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
@@ -48,10 +49,12 @@ public class PredictionService {
 	
 	public PredictionsResult predict(String client,JsonNode json)
 	{
-		PredictionStrategy strategy = algStore.retrieveStrategy(client);
-		if (strategy == null) {
+		PredictionStrategy strategyTop = algStore.retrieveStrategy(client);
+		if (strategyTop == null) {
 	            throw new APIException(APIException.NOT_VALID_STRATEGY);
 		}
+		
+		SimplePredictionStrategy strategy = strategyTop.configure();
 		
 		// transform features
 		for(FeatureTransformerStrategy transStr : strategy.getFeatureTansformers())
@@ -66,7 +69,10 @@ public class PredictionService {
 			PredictionsResult res = algStr.algorithm.predict(client, json, optsHolder);
 			//FIXME enforces first successful combiner at present
 			if (res != null && res.predictions.size() > 0)
+			{
+				PredictLogger.log(client,algStr.name, json, res,strategy.label);
 				return res;
+			}
 		}
 		
 		logger.warn("No prediction for client "+client+" with json "+json);
