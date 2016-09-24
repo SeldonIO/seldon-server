@@ -112,7 +112,7 @@ public class PredictionsToInfluxDb {
 				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
 				Random r = new Random();
 				Prediction imp = new Prediction(value);
-				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.model+"_"+imp.predictedClass+"_"+imp.time+"_"+r.nextInt();;
+				String ikey = imp.consumer+"_"+imp.variation+"_"+imp.model+"_"+imp.predictedClass+"_"+imp.time+"_"+r.nextInt();;
 				return new KeyValue<String,Prediction>(ikey,imp);
 			}
         	
@@ -136,9 +136,9 @@ public class PredictionsToInfluxDb {
 				Point point = Point.measurement(ns.getString("influx_measurement"))
                 .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)
-                .tag("rectag", value.rectag)
                 .tag("variation", value.variation)
                 .tag("model", value.model)
+                .tag("class",value.predictedClass)
                 .addField("score", value.score/(double) value.count)
                 .addField("count", value.count)
                 .build();

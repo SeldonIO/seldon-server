@@ -42,7 +42,7 @@ public class PredictLogger {
 		topNode.put("input", input);
 		topNode.put("prediction", prediction);
 		topNode.put("algorithm", algKey);
-		topNode.put("label", label);
+		topNode.put("abkey", label);
 		predictLogger.info(topNode.toString());
 	}
 }

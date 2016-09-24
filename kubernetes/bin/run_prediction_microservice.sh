@@ -35,8 +35,25 @@ function run_microservice {
 
 function configure_seldon {
 
-    ${STARTUP_DIR}/seldon-cli predict_alg --action delete --client-name ${CLIENT} --predictor-name externalPredictionServer
-    ${STARTUP_DIR}/seldon-cli predict_alg  --action add --client-name ${CLIENT} --predictor-name externalPredictionServer --config io.seldon.algorithm.external.url=http://${NAME}:5000/predict --config io.seldon.algorithm.external.name=${NAME}
+    cat <<EOF | ${STARTUP_DIR}/seldon-cli predict_alg --action create --client-name ${CLIENT} -f -
+{
+                "algorithms": [
+                    {
+                        "config": [
+                            {
+                                "name": "io.seldon.algorithm.external.url",
+                                "value": "http://${NAME}:5000/predict"
+                            },
+                            {
+                                "name": "io.seldon.algorithm.external.name",
+                                "value": "${NAME}"
+                            }
+                        ],
+                        "name": "externalPredictionServer"
+                    }
+                ]
+}
+EOF
     ${STARTUP_DIR}/seldon-cli predict_alg --action commit --client-name ${CLIENT}
 
 }
