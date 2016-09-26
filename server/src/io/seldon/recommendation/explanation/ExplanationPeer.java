@@ -24,7 +24,13 @@
 package io.seldon.recommendation.explanation;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import io.seldon.memcache.DogpileHandler;
+import io.seldon.memcache.ExceptionSwallowingMemcachedClient;
+import io.seldon.memcache.MemCacheKeys;
+import io.seldon.memcache.UpdateRetriever;
 
 @Component
 public class ExplanationPeer {
@@ -35,7 +41,11 @@ public class ExplanationPeer {
 
     private ExplanationProvider defaultExplanationProvider;
 
-    public ExplanationPeer() {
+    final private ExceptionSwallowingMemcachedClient memcacheClient;
+
+    @Autowired
+    public ExplanationPeer(ExceptionSwallowingMemcachedClient memcacheClient) {
+        this.memcacheClient = memcacheClient;
         logger.info("initialized");
     }
 
@@ -50,7 +60,16 @@ public class ExplanationPeer {
         if (defaultExplanationProvider != null) {
             explanation = defaultExplanationProvider.getExplanation(algKey, locale);
         } else {
-            ExplanationProvider explanationProvider = new SqlExplanationProvider(clientName);
+
+            boolean isCacheEnabled = true;
+
+            ExplanationProvider explanationProvider;
+            if (isCacheEnabled) {
+                explanationProvider = new CachedExplanationProvider(clientName, this.memcacheClient);
+            } else {
+                explanationProvider = new SqlExplanationProvider(clientName);
+
+            }
             explanation = explanationProvider.getExplanation(algKey, locale);
         }
 
@@ -60,5 +79,46 @@ public class ExplanationPeer {
 
     public void setExplanationProvider(ExplanationProvider explanationProvider) {
         defaultExplanationProvider = explanationProvider;
+    }
+
+    public static class CachedExplanationProvider implements ExplanationProvider {
+
+        final private String clientName;
+        final static int EXPLANATION_CACHE_TIME_SECS = 20; //3600;
+        final private ExceptionSwallowingMemcachedClient memcacheClient;
+
+        public CachedExplanationProvider(String clientName, ExceptionSwallowingMemcachedClient memcacheClient) {
+            this.clientName = clientName;
+            this.memcacheClient = memcacheClient;
+        }
+
+        @Override
+        public String getExplanation(final String recommender, final String locale) {
+            logger.debug("cached explanations enabled");
+
+            String memKey = MemCacheKeys.getExplanationsKey(this.clientName, recommender, locale);
+            String recommendationExplanation = (String) memcacheClient.get(memKey);
+            logger.debug(String.format("memKey[%s], recommendationExplanation[%s]", memKey, recommendationExplanation));
+
+            String newRes = null;
+            try {
+                newRes = DogpileHandler.get().retrieveUpdateIfRequired(memKey, recommendationExplanation, new UpdateRetriever<String>() {
+                    @Override
+                    public String retrieve() throws Exception {
+                        SqlExplanationProvider sqlExplanationProvider = new SqlExplanationProvider(clientName);
+                        return sqlExplanationProvider.getExplanation(recommender, locale);
+                    }
+                }, EXPLANATION_CACHE_TIME_SECS);
+            } catch (Exception e) {
+                logger.warn("Error when retrieving static recommendations in dogpile handler ", e);
+            }
+            if (newRes != null) {
+                memcacheClient.set(memKey, EXPLANATION_CACHE_TIME_SECS, newRes);
+                recommendationExplanation = newRes;
+            }
+
+            return recommendationExplanation;
+        }
+
     }
 }
