@@ -177,7 +177,10 @@ public class RecommendationService {
             
             final RecommendationResult recResult = recResultPair.left;
             final String algKey = recResultPair.right;
-            final String recExplanation = explanationPeer.explainRecommendationResult(shortName, algKey, locale);
+            String recExplanation = null;
+            if (explanationPeer.isExplanationNeededForClient(shortName)) {
+                recExplanation = explanationPeer.explainRecommendationResult(shortName, algKey, locale);
+            }
             List<Recommendation> recommendations = recResult.getRecs();
             List<ItemBean> itemRecs = new ArrayList<>();
             for (Recommendation recommendation : recommendations) {
@@ -190,10 +193,10 @@ public class RecommendationService {
                 }
                 if (recommendedItemId != null) {
                     final ItemBean itemBean = itemService.getItemLocalized(consumerBean, recommendedItemId, full,locale);
+                    addExplanationAttribute(itemBean, recExplanation);
                     //filter the item
                     ItemBean resItem = ItemService.filter(itemBean, attributeList);
                     addUuidAttribute(resItem, recResult);
-                    addExplanationAttribute(resItem, recExplanation);
                     itemRecs.add(resItem);
                 }
             }
