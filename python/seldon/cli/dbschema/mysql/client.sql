@@ -1090,3 +1090,11 @@ CREATE TABLE `recommendations_new` (
   `score` double DEFAULT '0',
   PRIMARY KEY (`user_id`,`item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `recommendation_explanation` (
+  `recommender` varchar(255) NOT NULL,
+  `locale` varchar(16) NOT NULL,
+  `explanation` varchar(255) NOT NULL,
+  PRIMARY KEY (`recommender`,`locale`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
