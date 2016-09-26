@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -86,7 +87,7 @@ public class RecommendationPeer {
     }
 
 
-	public RecommendationResult getRecommendations(long user, String client, String clientUserId, Integer type,
+	public ImmutablePair<RecommendationResult, String> getRecommendations(long user, String client, String clientUserId, Integer type,
                                                    Set<Integer> dimensions, int numRecommendationsAsked,
                                                    String lastRecListUUID,
                                                    Long currentItemId, String referrer, String recTag, List<String> algorithmOverride,Set<Long> scoreItems) {
@@ -187,16 +188,21 @@ public class RecommendationPeer {
 			List<Long> recommendationsFinal = CollectionTools.sortMapAndLimitToList(recommenderScores, numRecommendations, true);
 			if (logger.isDebugEnabled())
 				logger.debug("recommendationsFinal size was " +recommendationsFinal.size());
-            return createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimensions,
-                    lastRecListUUID, recommendationsFinal, combinedResults.algKey,
-                    currentItemId, numRecentActions, diversityLevel,strategy,recTag);
+			
+			
+			final RecommendationResult recommendationResult = createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimensions,
+			            lastRecListUUID, recommendationsFinal, combinedResults.algKey, currentItemId, numRecentActions, diversityLevel,strategy,recTag);
+			final ImmutablePair<RecommendationResult, String> retVal = new ImmutablePair<>(recommendationResult, combinedResults.algKey);
+			return retVal;
 		}
 		else
 		{
 			logger.warn("Returning no recommendations for user with client id "+clientUserId);
-			return createFinalRecResult(numRecommendationsAsked,client, clientUserId,
-					dimensions, lastRecListUUID, new ArrayList<Long>(),"",currentItemId,
-					numRecentActions, diversityLevel,strategy, recTag);
+			final RecommendationResult recommendationResult = createFinalRecResult(numRecommendationsAsked,client, clientUserId, dimensions,
+			            lastRecListUUID, new ArrayList<Long>(),"",currentItemId, numRecentActions, diversityLevel,strategy, recTag);
+			final String algKey = "";
+			final ImmutablePair<RecommendationResult, String> retVal = new ImmutablePair<>(recommendationResult, algKey);
+			return retVal;
 		}
 	}
 

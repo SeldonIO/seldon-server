@@ -41,6 +41,7 @@ import io.seldon.recommendation.LastRecommendationBean;
 import io.seldon.recommendation.Recommendation;
 import io.seldon.recommendation.RecommendationPeer;
 import io.seldon.recommendation.RecommendationResult;
+import io.seldon.recommendation.explanation.ExplanationPeer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +54,7 @@ import java.util.Set;
 import javax.jdo.JDODataStoreException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,6 +68,7 @@ public class RecommendationService {
     private static Logger logger = Logger.getLogger(RecommendationService.class.getName());
 
     private static final String RECOMMENDATION_UUID_ATTR = "recommendationUuid";
+    private static final String EXPLANATION_ATTR = "_explanation";
     
     public static final String KEYWORD_PAR = "keywords";
 
@@ -79,7 +82,8 @@ public class RecommendationService {
     private UserService userService;
     @Autowired
     private ActionHistoryCache actionCache;
-
+    @Autowired
+    private ExplanationPeer explanationPeer;
 
     public static RecommendationBean findRecommendationBean(String itemId,ListBean list) {
         for(ResourceBean r : list.getList()) {
@@ -166,10 +170,14 @@ public class RecommendationService {
                 attributeList = Arrays.asList(attributes.split(","));
             }
 
-            RecommendationResult recResult = recommender.getRecommendations(
-                    internalUserId, consumerBean.getShort_name(), userId, typeId, dimensions, limit,
-                    lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms, scoreItems
-                    );
+            
+            final ImmutablePair<RecommendationResult, String> recResultPair = recommender.getRecommendations(
+                        internalUserId, consumerBean.getShort_name(), userId, typeId, dimensions, limit,
+                        lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms, scoreItems);
+            
+            final RecommendationResult recResult = recResultPair.left;
+            final String algKey = recResultPair.right;
+            final String recExplanation = explanationPeer.explainRecommendationResult(shortName, algKey, locale);
             List<Recommendation> recommendations = recResult.getRecs();
             List<ItemBean> itemRecs = new ArrayList<>();
             for (Recommendation recommendation : recommendations) {
@@ -185,6 +193,7 @@ public class RecommendationService {
                     //filter the item
                     ItemBean resItem = ItemService.filter(itemBean, attributeList);
                     addUuidAttribute(resItem, recResult);
+                    addExplanationAttribute(resItem, recExplanation);
                     itemRecs.add(resItem);
                 }
             }
@@ -205,6 +214,14 @@ public class RecommendationService {
             attributesName = new HashMap<>();
         }
         attributesName.put(RECOMMENDATION_UUID_ATTR, recResult.getUuid());
+    }
+    
+    private static void addExplanationAttribute(ItemBean itemBean, String recExplanation) {
+        Map<String,String> attributesName = itemBean.getAttributesName();
+        if ( attributesName == null ) {
+            attributesName = new HashMap<>();
+        }
+        attributesName.put(EXPLANATION_ATTR, recExplanation);
     }
 
     private static String recommendedItemsKey(String userId, CFAlgorithm cfAlgorithm, int typeId, int dimensionId,

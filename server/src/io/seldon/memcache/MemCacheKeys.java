@@ -50,7 +50,7 @@ public class MemCacheKeys {
 			RecentRecsForUsers, RecentItemsJSON, RecentItemsDimJSON, RecentItemsWithTagsJSON, ItemCluster, RecommendationUserMaxCounter, DBPediaHasBeenSearched, SocialPredictRecommendedItems,
 			DimensionForAttrName,ItemTags,UserTags,ElphPrediction, itemRecommender, itemSimilarity, TagsForItem, TagItemCount, TagsItemCounts, SimilarUsers, InteractionBean, InteractionsBean,
             FacebookUsersAlgRecKey, FacebookUsersRecKey, FacebookUsersDecayFunctionKey, SharingRecommendationForKeywords, MostPopularItems,  PopularItemsJSON, ActionFullHistory, ExplicitItemsIncluder,
-            ItemAttrAndDims, ItemBeanLocale, StaticRecommendations
+            ItemAttrAndDims, ItemBeanLocale, StaticRecommendations, Explanations
 			};
 
 	
@@ -571,5 +571,11 @@ public class MemCacheKeys {
 	{
 		return ""+keys.StaticRecommendations+":"+client+":"+userId+":"+StringUtils.join(dimensions, ",")+":"+max;
 	}
+    
+    public static String getExplanationsKey(String clientName, String algKey, String locale)
+    {
+        return ""+keys.Explanations+":"+clientName+":"+algKey+":"+locale;
+    }
+
 }
 
