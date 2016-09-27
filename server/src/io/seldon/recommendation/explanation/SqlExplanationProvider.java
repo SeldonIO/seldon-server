@@ -69,7 +69,7 @@ public class SqlExplanationProvider implements ExplanationProvider {
             args.add(locale);
             List<Object> results = (List<Object>) query.executeWithArray(args.toArray());
             if (results.size() == 0) {
-                retVal = "Unknown Explanation!"; // TODO
+                // Will return null
                 logger.debug(String.format("Failed explanation from db for recommender[%s] locale[%s]", recommender, locale));
             } else {
                 retVal = (String) results.get(0);
