@@ -88,7 +88,9 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
         return retVal;
     }
 
-    public String explainRecommendationResult(final String clientName, final String algKey, String localeIn) {
+    public String explainRecommendationResult(final String clientName, String recommenderIn, String localeIn) {
+
+        final String recommender = normalizeRecommender(recommenderIn);
 
         RecommendationExplanationConfig recommendationExplanationConfig = client_recommendation_explanation_configs.get(clientName);
         if ((recommendationExplanationConfig == null) || (!recommendationExplanationConfig.explanations_enabled)) {
@@ -105,12 +107,12 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
 
         String explanation;
         if (defaultExplanationProvider != null) {
-            explanation = defaultExplanationProvider.getExplanation(algKey, locale);
+            explanation = defaultExplanationProvider.getExplanation(recommender, locale);
         } else {
 
             ExplanationProvider explanationProvider;
             if (recommendationExplanationConfig.cache_enabled) {
-                String memKey = MemCacheKeys.getExplanationsKey(clientName, algKey, locale);
+                String memKey = MemCacheKeys.getExplanationsKey(clientName, recommender, locale);
                 explanation = (String) memcacheClient.get(memKey);
                 logger.debug(String.format("memKey[%s], recommendationExplanation[%s]", memKey, explanation));
 
@@ -120,7 +122,7 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
                         @Override
                         public String retrieve() throws Exception {
                             SqlExplanationProvider sqlExplanationProvider = new SqlExplanationProvider(clientName);
-                            return sqlExplanationProvider.getExplanation(algKey, locale);
+                            return sqlExplanationProvider.getExplanation(recommender, locale);
                         }
                     }, EXPLANATION_CACHE_TIME_SECS);
                 } catch (Exception e) {
@@ -133,11 +135,11 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
 
             } else {
                 explanationProvider = new SqlExplanationProvider(clientName);
-                explanation = explanationProvider.getExplanation(algKey, locale);
+                explanation = explanationProvider.getExplanation(recommender, locale);
             }
         }
 
-        logger.debug(String.format("explaining [%s] as [%s]", algKey, explanation));
+        logger.debug(String.format("explaining [%s] as [%s]", recommender, explanation));
         return explanation;
     }
 
@@ -183,4 +185,14 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
 
     }
 
+    public static String normalizeRecommender(String recommender) {
+        String retVal = recommender;
+
+        int n = recommender.indexOf(':');
+        if (n >= 0) {
+            retVal = retVal.substring(0, n);
+        }
+
+        return retVal;
+    }
 }
