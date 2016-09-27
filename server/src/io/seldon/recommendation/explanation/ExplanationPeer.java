@@ -68,6 +68,8 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
 
     private Map<String, RecommendationExplanationConfig> client_recommendation_explanation_configs = new ConcurrentHashMap<>();
 
+    private final static String DEFAULT_EXPLANATION = "recommended due to your recent activity";
+
     @Autowired
     public ExplanationPeer(ExceptionSwallowingMemcachedClient memcacheClient, ClientConfigHandler configHandler) {
         this.memcacheClient = memcacheClient;
@@ -137,6 +139,10 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
                 explanationProvider = new SqlExplanationProvider(clientName);
                 explanation = explanationProvider.getExplanation(recommender, locale);
             }
+        }
+
+        if (explanation == null) {
+            explanation = DEFAULT_EXPLANATION;
         }
 
         logger.debug(String.format("explaining [%s] as [%s]", recommender, explanation));
