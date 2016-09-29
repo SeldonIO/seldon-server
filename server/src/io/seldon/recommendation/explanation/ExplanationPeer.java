@@ -68,7 +68,7 @@ public class ExplanationPeer implements ClientConfigUpdateListener {
 
     private Map<String, RecommendationExplanationConfig> client_recommendation_explanation_configs = new ConcurrentHashMap<>();
 
-    private final static String DEFAULT_EXPLANATION = "recommended due to your recent activity";
+    private final static String DEFAULT_EXPLANATION = "recommended based on your recent activity";
 
     @Autowired
     public ExplanationPeer(ExceptionSwallowingMemcachedClient memcacheClient, ClientConfigHandler configHandler) {
