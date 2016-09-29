@@ -3,16 +3,15 @@
 set -o nounset
 set -o errexit
 
-if [ "$#" -ne 4 ]; then
-    echo "need <microservice_name> <microservice_image> <microservice_version> <client>"
+if [ "$#" -ne 3 ]; then
+    echo "need <microservice_name> <microservice_image> <client>"
     exit -1
 fi
 
 STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 NAME=$1
 IMAGE=$2
-VERSION=$3
-CLIENT=$4
+CLIENT=$3
 
 function create_microservice_conf {
     
@@ -22,7 +21,7 @@ function create_microservice_conf {
 	echo "The microservice already exists. Will make a backup to .prev";
 	cp ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json.prev
     fi
-    cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" | sed -e "s|%VERSION%|${VERSION}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json
+    cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json
 
 }
 
