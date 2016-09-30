@@ -21,10 +21,11 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli predict_alg', description='Seldon CLI')
-    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show','add','delete','commit'])
+    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show','add','delete','commit','create'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--predictor-name', help="the name of predictor", required=False)
     parser.add_argument('--config', help="algorithm specific config in the form x=y", required=False, action='append')
+    parser.add_argument('-f','--json-file', help="the json file to use for creating algs or '-' for stdin", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -251,6 +252,45 @@ def action_commit(command_data, opts):
     node_path = gdata["all_clients_node_path"] + "/" + client_name + "/predict_algs"
     zk_utils.node_set(zk_client, node_path, data_json)
 
+
+def action_create(command_data, opts):
+    zkroot = command_data["zkdetails"]["zkroot"]
+
+    #check_valid_client_name
+    client_name = opts.client_name
+    if client_name == None:
+        print "Need client name to create algs for"
+        sys.exit(1)
+    if not is_existing_client(zkroot, client_name):
+        print "Invalid client[{client_name}]".format(**locals())
+        sys.exit(1)
+
+    #check_valid_json_file
+    json_file_contents = ""
+    json_file = opts.json_file
+    if json_file == None:
+        print "Need json-file to use for creating algs"
+        sys.exit(1)
+    if json_file == "-":
+        json_file_contents = sys.stdin.read()
+    else:
+        if not os.path.isfile(json_file):
+            print "Unable find file[{json_file}]".format(**locals())
+            sys.exit(1)
+        f = open(json_file)
+        json_file_contents = f.read()
+        f.close()
+
+    # ensure valid data
+    data = json_to_dict(json_file_contents)
+
+    #save to zkoot
+    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/predict_algs/_data_"
+    write_data_to_file(data_fpath, data)
+
+    print "Added prediction algs for {client_name}".format(**locals())
+
+
 def cmd_pred(gopts,command_data, command_args):
     actions = {
         "list" : action_list,
@@ -258,6 +298,7 @@ def cmd_pred(gopts,command_data, command_args):
         "add" : action_add,
         "delete" : action_delete,
         "commit" : action_commit,
+        "create" : action_create,
     }
 
     opts = getOpts(command_args)

@@ -25,6 +25,7 @@ import java.util.List;
 
 public class SimplePredictionStrategy implements PredictionStrategy {
 
+	public final String label;
 	public final List<FeatureTransformerStrategy> featureTransformerStrategies;
 	public final List<PredictionAlgorithmStrategy> algorithmsStrategies;
 	
@@ -34,10 +35,11 @@ public class SimplePredictionStrategy implements PredictionStrategy {
 
 
 
-	public SimplePredictionStrategy(
+	public SimplePredictionStrategy(String label,
 			List<FeatureTransformerStrategy> featureTransformerStrategies,
 			List<PredictionAlgorithmStrategy> algorithmsStrategies) {
 		super();
+		this.label = label;
 		this.featureTransformerStrategies = featureTransformerStrategies;
 		this.algorithmsStrategies = algorithmsStrategies;
 	}
@@ -52,6 +54,12 @@ public class SimplePredictionStrategy implements PredictionStrategy {
 	@Override
 	public List<FeatureTransformerStrategy> getFeatureTansformers() {
 		return featureTransformerStrategies;
+	}
+
+
+	@Override
+	public SimplePredictionStrategy configure() {
+		return this;
 	}
 
 }

@@ -27,8 +27,10 @@ import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionAlgorithmStrategy;
 import io.seldon.prediction.PredictionStrategy;
 import io.seldon.prediction.SimplePredictionStrategy;
+import io.seldon.prediction.VariationPredictionStrategy;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,11 +50,12 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 @Component
 public class PredictionAlgorithmStore implements ApplicationContextAware,ClientConfigUpdateListener,GlobalConfigUpdateListener {
 	protected static Logger logger = Logger.getLogger(PredictionAlgorithmStore.class.getName());
-	private static final String ALG_KEY = "predict_algs";
+	public static final String ALG_KEY = "predict_algs";
 	
 	private ConcurrentMap<String, PredictionStrategy> predictionStore = new ConcurrentHashMap<>();
 	private ConcurrentMap<String, FeatureTransformerStrategy> transformerStore = new ConcurrentHashMap<>();
@@ -76,7 +79,7 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 		 configHandler.addListener(this);
 	     globalConfigHandler.addSubscriber("default_prediction_strategy", this);
 	    }
-
+	 
 	 public PredictionStrategy retrieveStrategy(String client)
 	 {
 		 PredictionStrategy strategy = predictionStore.get(client);
@@ -110,7 +113,7 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 					 FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
 					 featureTransformerStrategies.add(strategy);
 				 }
-				 defaultStrategy =  new SimplePredictionStrategy(Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies));
+				 defaultStrategy =  new SimplePredictionStrategy(PredictionStrategy.DEFAULT_NAME,Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies));
 				 logger.info("Successfully added new default prediction strategy");
 			 } catch (IOException | BeansException e) {
 				 logger.error("Couldn't update default prediction strategy", e);
@@ -120,37 +123,79 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 	 
 	@Override
 	public void configUpdated(String client, String configKey,String configValue) {
+		SimpleModule module = new SimpleModule("PredictionStrategyDeserializerModule");
+        module.addDeserializer(Strategy.class, new PredictionStrategyDeserializer());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(module);
 		if (configKey.equals(ALG_KEY)){
 			logger.info("Received new algorithm config for "+ client+": "+ configValue);
 			try {
-				ObjectMapper mapper = new ObjectMapper();
-				List<PredictionAlgorithmStrategy> strategies = new ArrayList<>();
-				AlgorithmConfig config = mapper.readValue(configValue, AlgorithmConfig.class);
-				for (Algorithm algorithm : config.algorithms) {
-	                    PredictionAlgorithmStrategy strategy = toAlgorithmStrategy(algorithm);
-	                    strategies.add(strategy);
+				Strategy configStrategy = mapper.readValue(configValue, Strategy.class);
+				if (configStrategy instanceof AlgorithmConfig)
+				{
+					List<PredictionAlgorithmStrategy> strategies = new ArrayList<>();
+					AlgorithmConfig config = (AlgorithmConfig) configStrategy;
+					for (Algorithm algorithm : config.algorithms) {
+							PredictionAlgorithmStrategy strategy = toAlgorithmStrategy(algorithm);
+	                    	strategies.add(strategy);
+	                	}
+					List<FeatureTransformerStrategy> featureTransformerStrategies = new ArrayList<>();
+					if (config.transformers != null)
+						for (Transformer transformer : config.transformers)
+						{
+							FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
+							featureTransformerStrategies.add(strategy);
+						}
+					predictionStore.put(client, new SimplePredictionStrategy(PredictionStrategy.DEFAULT_NAME,Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies)));
+					logger.info("Successfully added new algorithm config for "+client);
+				}
+				else if (configStrategy instanceof TestConfig)
+				{
+					TestConfig config = (TestConfig) configStrategy;
+					//TestConfig config = mapper.readValue(configValue, TestConfig.class);
+	                
+	                List<VariationPredictionStrategy.Variation> variations = new ArrayList<>();
+	                for (TestVariation var : config.variations){
+	                    List<PredictionAlgorithmStrategy> strategies = new ArrayList<>();
+	                    for (Algorithm alg : var.config.algorithms){
+	                        PredictionAlgorithmStrategy strategy = toAlgorithmStrategy(alg);
+	                        strategies.add(strategy);
+	                    }
+	                    List<FeatureTransformerStrategy> featureTransformerStrategies = new ArrayList<>();
+	    				if (var.config.transformers != null)
+	    					for (Transformer transformer : var.config.transformers)
+	    					{
+	    						FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
+	    						featureTransformerStrategies.add(strategy);
+	    					}
+	    				//Need to add combiner here 
+	                    variations.add(new VariationPredictionStrategy.Variation(
+	                            new SimplePredictionStrategy(var.label,Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies)),
+	                            new BigDecimal(var.ratio)));
+
 	                }
-				List<FeatureTransformerStrategy> featureTransformerStrategies = new ArrayList<>();
-				if (config.transformers != null)
-					for (Transformer transformer : config.transformers)
-					{
-						FeatureTransformerStrategy strategy = toFeatureTransformerStrategy(transformer);
-						featureTransformerStrategies.add(strategy);
-					}
-				predictionStore.put(client, new SimplePredictionStrategy(Collections.unmodifiableList(featureTransformerStrategies),Collections.unmodifiableList(strategies)));
-				logger.info("Successfully added new algorithm config for "+client);
+	                predictionStore.put(client,VariationPredictionStrategy.build(variations));
+	                logger.info("Succesfully added " + variations.size() + " variation test for "+ client);
+				}
+				else
+				{
+					logger.error("Unknown type for algorithm config");
+				}
 	            } catch (IOException | BeansException e) {
 	                logger.error("Couldn't update algorithms for client " +client, e);
 	            }
 		}
+		
 	}
 	
 	@Override
 	public void configRemoved(String client, String configKey) {
 		if (configKey.equals(ALG_KEY)){
 			predictionStore.remove(client);
-			logger.info("Removed client "+client);
+			logger.info("Removed client "+client+" from "+ALG_KEY);
 		}
+		else
+			logger.warn("Ignored unknown config remove for "+client+" with key "+configKey);
 	}
 
 	@Override
@@ -196,7 +241,21 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 		return configMap;
 	}
 	
-	 public static class AlgorithmConfig {
+	public abstract static class Strategy {}
+	
+    // classes for json translation
+    public static class TestConfig extends Strategy {
+        public List<TestVariation> variations;
+    }
+    
+    public static class TestVariation{
+        public String label;
+        public String ratio;
+        public AlgorithmConfig config;
+    }
+
+	
+	 public static class AlgorithmConfig extends Strategy {
 	        public List<Algorithm> algorithms;
 	        public List<Transformer> transformers;
 	        public String combiner;

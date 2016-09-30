@@ -31,7 +31,6 @@ public class Prediction {
 	//Prediction(consumer: String, rectag : String, variation : String, predictedClass : String, score : Double, time : Long, count : Int)
 	
 	String consumer;
-	String rectag;
 	String variation;
 	String predictedClass;
 	String model;
@@ -45,10 +44,6 @@ public class Prediction {
 	{
 		consumer = j.get("consumer").asText();
 		time = j.get("time").asLong();
-		if (j.has("rectag"))
-			rectag = j.get("rectag").asText();
-		else
-			rectag = "default";
 		if (j.has("abkey"))
 			variation = j.get("abkey").asText();
 		else
@@ -85,7 +80,7 @@ public class Prediction {
 
 	@Override
 	public String toString() {
-		return "Prediction [consumer=" + consumer + ", rectag=" + rectag
+		return "Prediction [consumer=" + consumer 
 				+ ", variation=" + variation + ", predictedClass="
 				+ predictedClass + ", model=" + model + ", score=" + score
 				+ ", time=" + time + ", count=" + count + "]";

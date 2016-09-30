@@ -25,7 +25,9 @@ import java.util.List;
 
 public interface PredictionStrategy {
 
-	  List<PredictionAlgorithmStrategy> getAlgorithms();
-	  List<FeatureTransformerStrategy> getFeatureTansformers();
+	String DEFAULT_NAME = "default";
+	List<PredictionAlgorithmStrategy> getAlgorithms();
+	List<FeatureTransformerStrategy> getFeatureTansformers();
+	SimplePredictionStrategy configure();
 	
 }
