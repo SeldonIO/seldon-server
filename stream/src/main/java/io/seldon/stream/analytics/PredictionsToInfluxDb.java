@@ -132,7 +132,6 @@ public class PredictionsToInfluxDb {
 				Random r = new Random();
 				long time = value.time * 1000000;
 				time = time + r.nextInt(1000000);
-				
 				Point point = Point.measurement(ns.getString("influx_measurement"))
                 .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)
