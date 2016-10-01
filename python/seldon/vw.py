@@ -83,7 +83,9 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         self.vw = None
         self.tailq = Queue.Queue(maxsize=1000)      
         self.raw_predictions_thread_running=False
-
+        if not self.model is None:
+            self._start_vw_if_needed("test")
+            
     def _wait_model_saved(self,fname):
         """
         Hack to wait for vw model to finish saving. It creates a file <model>.writing during this process
