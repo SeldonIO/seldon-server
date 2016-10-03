@@ -52,7 +52,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	private static final String JSON_KEY = "json";
 	private static final String CLIENT_KEY = "client";
 	private static final String TIMESTAMP_KEY = "timestamp";
-	private static final String PUID_KEY = "puid";
+	public static final String PUID_KEY = "puid";
 	
 	@Autowired
 	PredictionService predictionService;
