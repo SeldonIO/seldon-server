@@ -23,11 +23,15 @@ package io.seldon.prediction;
 
 import io.seldon.api.APIException;
 import io.seldon.api.logging.PredictLogger;
+import io.seldon.api.resource.PredictionBean;
+import io.seldon.api.resource.PredictionsBean;
 import io.seldon.api.state.PredictionAlgorithmStore;
 import io.seldon.api.state.options.DefaultOptions;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
+import io.seldon.memcache.SecurityHashPeer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonNode;
@@ -47,7 +51,7 @@ public class PredictionService {
     }
 
 	
-	public PredictionsResult predict(String client,JsonNode json)
+	public PredictionsBean predict(String client,String puid, JsonNode json)
 	{
 		PredictionStrategy strategyTop = algStore.retrieveStrategy(client);
 		if (strategyTop == null) {
@@ -62,21 +66,29 @@ public class PredictionService {
 			json = transStr.transformer.transform(client, json, transStr);
 		}
 		
+		if (puid == null)
+			puid = SecurityHashPeer.getNewId();
+	
 		// apply prediction algorithm(s)
 		for(PredictionAlgorithmStrategy algStr : strategy.getAlgorithms())
 		{
 			OptionsHolder optsHolder = new OptionsHolder(defaultOptions, algStr.config);
 			PredictionsResult res = algStr.algorithm.predict(client, json, optsHolder);
-			//FIXME enforces first successful combiner at present
+			//FIXME enforces first successful combiner at present			
 			if (res != null && res.predictions.size() > 0)
 			{
-				PredictLogger.log(client,algStr.name, json, res,strategy.label);
-				return res;
+				PredictLogger.log(client,algStr.name, json, res,strategy.label,puid);
+				List<PredictionBean> pbeans = new ArrayList<>();
+				for(PredictionResult r : res.predictions)
+				{
+					pbeans.add(new PredictionBean(r.prediction, r.predictedClass,r.confidence));
+				}
+				return new PredictionsBean(res.model,strategy.label,puid,pbeans);
 			}
 		}
 		
 		logger.warn("No prediction for client "+client+" with json "+json);
-		return new PredictionsResult(new ArrayList<PredictionResult>());
+		return new PredictionsBean("",strategy.label,"",new ArrayList<PredictionBean>());
 	}
 	
 }

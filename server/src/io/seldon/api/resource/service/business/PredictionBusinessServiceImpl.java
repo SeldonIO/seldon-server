@@ -27,13 +27,9 @@ import io.seldon.api.logging.EventLogger;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.EventBean;
-import io.seldon.api.resource.ListBean;
-import io.seldon.api.resource.PredictionBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.service.ApiLoggerServer;
-import io.seldon.prediction.PredictionResult;
 import io.seldon.prediction.PredictionService;
-import io.seldon.prediction.PredictionsResult;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -56,6 +52,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	private static final String JSON_KEY = "json";
 	private static final String CLIENT_KEY = "client";
 	private static final String TIMESTAMP_KEY = "timestamp";
+	private static final String PUID_KEY = "puid";
 	
 	@Autowired
 	PredictionService predictionService;
@@ -66,6 +63,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 					Constants.CONSUMER_SECRET.equals(key) ||
 					Constants.OAUTH_TOKEN.equals(key) ||
 					CLIENT_KEY.equals(key) ||
+					PUID_KEY.equals(key) || 
 					"jsonpCallback".equals(key)));
 		
 	}
@@ -180,20 +178,13 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	}
 
 	@Override
-	public ResourceBean predict(ConsumerBean consumer, String jsonRaw) {
+	public ResourceBean predict(ConsumerBean consumer, String puid, String jsonRaw) {
 		ResourceBean responseBean;
 		try
 		{
 			logger.info("Json raw "+jsonRaw);
 			JsonNode jsonNode = getValidatedJson(consumer, jsonRaw, false); // used to check valid json but we don't use result
-			PredictionsResult res = predictionService.predict(consumer.getShort_name(), jsonNode);
-			ListBean listBean = new ListBean();
-			for(PredictionResult r : res.predictions)
-			{
-				listBean.addBean(new PredictionBean(r.prediction, r.predictedClass,r.confidence));
-			}
-			listBean.setSize(res.predictions.size());
-			responseBean = listBean;
+			responseBean = predictionService.predict(consumer.getShort_name(), puid, jsonNode);
 	    } 
 		catch (IOException e) 
 		{
@@ -211,10 +202,13 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 
 	@Override
 	public ResourceBean predict(ConsumerBean consumerBean, Map<String, String[]> parameters) {
+		String puid = null;
+		if (parameters.containsKey(PUID_KEY))
+			puid = parameters.get(PUID_KEY)[0];
 		if (parameters.containsKey(JSON_KEY))
 		{
 			String jsonRaw = parameters.get(JSON_KEY)[0];
-			return predict(consumerBean, jsonRaw);
+			return predict(consumerBean, puid, jsonRaw);
 		}
 		else
 		{
@@ -236,7 +230,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 			ObjectMapper mapper = new ObjectMapper();
 			try {
 				String jsonRaw = mapper.writeValueAsString(keyVals);
-				return predict(consumerBean, jsonRaw);
+				return predict(consumerBean, puid, jsonRaw);
 			} catch (IOException e) {
 				ApiLoggerServer.log(this, e);
 				APIException apiEx = new APIException(APIException.INVALID_JSON);
