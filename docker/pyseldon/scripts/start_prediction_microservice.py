@@ -20,5 +20,5 @@ if __name__ == "__main__":
     m = Microservices(aws_key=args.aws_key,aws_secret=args.aws_secret)
     app = m.create_prediction_microservice(args.pipeline,args.model_name)
 
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=False)
 
