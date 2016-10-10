@@ -83,6 +83,8 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         self.vw = None
         self.tailq = Queue.Queue(maxsize=1000)      
         self.raw_predictions_thread_running=False
+        if not self.model is None:
+            self._start_vw_if_needed("test")
             
     def _wait_model_saved(self,fname):
         """
@@ -307,6 +309,7 @@ class VWClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
                 self.vw =  VW(server_mode=True,pid_file=self.pid_file,port=29742,num_children=1,oaa=self.num_classes,**self.vw_args)
             logger.info(self.vw.command)
             self.vw_mode = mode
+            logger.info("Created vw in mode %s",mode)
 
 
     def predict_proba(self,X):

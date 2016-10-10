@@ -106,15 +106,15 @@ public class ItemSimilarityProcessor {
 	public void process(final Namespace ns) throws InterruptedException
 	{
 		Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-item-similarity");
+		final String app_id = "stream-item-similarity-" +ns.getString("client");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, app_id);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ns.getString("kafka"));
         props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
 
-        // setting offset reset to earliest so that we can re-run the demo code with the same pre-loaded data
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         
         KStreamBuilder builder = new KStreamBuilder();
         

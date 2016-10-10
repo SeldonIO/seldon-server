@@ -22,7 +22,6 @@
 package io.seldon.external;
 
 import io.seldon.api.APIException;
-import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
@@ -155,7 +154,6 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     					PredictionsResult res = reader.readValue(resp.getEntity().getContent());
     					if (logger.isDebugEnabled())
     						logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
-    					PredictLogger.log(client,name, jsonNode, res);
     					return res;
     				} 
     				else 

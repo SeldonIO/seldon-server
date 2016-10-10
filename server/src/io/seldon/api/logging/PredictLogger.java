@@ -33,7 +33,7 @@ public class PredictLogger {
 
 	private static Logger predictLogger = Logger.getLogger( "PredictLogger" );
 	
-	public static void log(String client,String algKey,JsonNode input,PredictionsResult response)
+	public static void log(String client,String algKey,JsonNode input,PredictionsResult response,String label,String puid)
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode prediction = mapper.valueToTree(response);
@@ -42,6 +42,8 @@ public class PredictLogger {
 		topNode.put("input", input);
 		topNode.put("prediction", prediction);
 		topNode.put("algorithm", algKey);
+		topNode.put("abkey", label);
+		topNode.put("puid", puid);
 		predictLogger.info(topNode.toString());
 	}
 }

@@ -86,7 +86,7 @@ class SimilarItems(private val sc : SparkContext,config : SimilarItemsConfig) {
   }
   
   def sortAndLimit(similarities : org.apache.spark.rdd.RDD[MatrixEntry],limit : Int) = {
-    val v = similarities.map{me => (me.i,(me.j,me.value))}.groupByKey().mapValues(_.toSeq.sortBy{ case (domain, count) => count }(Ordering[Double].reverse).take(100)).flatMapValues(v => v)
+    val v = similarities.map{me => (me.i,(me.j,me.value))}.groupByKey().mapValues(_.toSeq.sortBy{ case (domain, count) => count }(Ordering[Double].reverse).take(limit)).flatMapValues(v => v)
     v
   }
   
