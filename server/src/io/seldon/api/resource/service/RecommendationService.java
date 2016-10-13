@@ -40,6 +40,7 @@ import io.seldon.recommendation.CFAlgorithm;
 import io.seldon.recommendation.LastRecommendationBean;
 import io.seldon.recommendation.Recommendation;
 import io.seldon.recommendation.RecommendationPeer;
+import io.seldon.recommendation.RecommendationPeer.RecResultContext;
 import io.seldon.recommendation.RecommendationResult;
 import io.seldon.recommendation.explanation.ExplanationPeer;
 
@@ -171,22 +172,39 @@ public class RecommendationService {
             }
 
             
-            final ImmutablePair<RecommendationResult, String> recResultPair = recommender.getRecommendations(
+            final ImmutablePair<RecommendationResult, RecResultContext> recResultPair = recommender.getRecommendations(
                         internalUserId, consumerBean.getShort_name(), userId, typeId, dimensions, limit,
                         lastRecommendationListUuid, currentItemId, referrer, recTag,actualAlgorithms, scoreItems);
             
             final RecommendationResult recResult = recResultPair.left;
-            final String algKey = recResultPair.right;
-            String recExplanation = null;
-            final boolean isExplanationNeeded = explanationPeer.isExplanationNeededForClient(shortName);
-            if (isExplanationNeeded) {
-                recExplanation = explanationPeer.explainRecommendationResult(shortName, algKey, locale);
-            }
+            final String algKey = recResultPair.right.algKey;
+            final Map<Long,String> item_recommender_lookup = recResultPair.right.item_recommender_lookup;
             List<Recommendation> recommendations = recResult.getRecs();
             List<ItemBean> itemRecs = new ArrayList<>();
+            final boolean isExplanationNeeded = explanationPeer.isExplanationNeededForClient(shortName);
             for (Recommendation recommendation : recommendations) {
-                String recommendedItemId = null;
                 long internalId = recommendation.getContent();
+                String recExplanation = null;
+                if (isExplanationNeeded) {
+                    if (item_recommender_lookup != null) { ///
+                        String recommender_used = item_recommender_lookup.get(internalId);
+                        if (recommender_used != null) {
+                            if (logger.isDebugEnabled()) {
+                                String msg = String.format("explanation (per item) using recommender[%s] for item[%d]", recommender_used,internalId);
+                                logger.debug(msg);
+                            }
+                            recExplanation = explanationPeer.explainRecommendationResult(shortName, recommender_used, locale);
+                        }
+                    }
+                    if (recExplanation == null) {
+                        if (logger.isDebugEnabled()) {
+                            String msg = String.format("explanation (per set) using recommender[%s] for item[%d]", algKey,internalId);
+                            logger.debug(msg);
+                        }
+                        recExplanation = explanationPeer.explainRecommendationResult(shortName, algKey, locale);
+                    }
+                }
+                String recommendedItemId = null;
                 try {
                     recommendedItemId = itemService.getClientItemId(consumerBean, internalId);
                 } catch (APIException e) {

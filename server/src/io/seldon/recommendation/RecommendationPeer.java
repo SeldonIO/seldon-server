@@ -87,7 +87,7 @@ public class RecommendationPeer {
     }
 
 
-	public ImmutablePair<RecommendationResult, String> getRecommendations(long user, String client, String clientUserId, Integer type,
+	public ImmutablePair<RecommendationResult, RecResultContext> getRecommendations(long user, String client, String clientUserId, Integer type,
                                                    Set<Integer> dimensions, int numRecommendationsAsked,
                                                    String lastRecListUUID,
                                                    Long currentItemId, String referrer, String recTag, List<String> algorithmOverride,Set<Long> scoreItems) {
@@ -192,7 +192,7 @@ public class RecommendationPeer {
 			
 			final RecommendationResult recommendationResult = createFinalRecResult(numRecommendationsAsked, client, clientUserId, dimensions,
 			            lastRecListUUID, recommendationsFinal, combinedResults.algKey, currentItemId, numRecentActions, diversityLevel,strategy,recTag);
-			final ImmutablePair<RecommendationResult, String> retVal = new ImmutablePair<>(recommendationResult, combinedResults.algKey);
+			final ImmutablePair<RecommendationResult, RecResultContext> retVal = new ImmutablePair<>(recommendationResult, combinedResults);
 			return retVal;
 		}
 		else
@@ -201,7 +201,7 @@ public class RecommendationPeer {
 			final RecommendationResult recommendationResult = createFinalRecResult(numRecommendationsAsked,client, clientUserId, dimensions,
 			            lastRecListUUID, new ArrayList<Long>(),"",currentItemId, numRecentActions, diversityLevel,strategy, recTag);
 			final String algKey = "";
-			final ImmutablePair<RecommendationResult, String> retVal = new ImmutablePair<>(recommendationResult, algKey);
+			final ImmutablePair<RecommendationResult, RecResultContext> retVal = new ImmutablePair<>(recommendationResult, combinedResults);
 			return retVal;
 		}
 	}
@@ -232,6 +232,7 @@ public class RecommendationPeer {
         public static final RecResultContext EMPTY = new RecResultContext(new ItemRecommendationResultSet("UNKNOWN"), "UNKNOWN");
         public final ItemRecommendationResultSet resultSet;
         public final String algKey;
+        public Map<Long,String> item_recommender_lookup = null;
 
         public RecResultContext(ItemRecommendationResultSet resultSet, String algKey) {
             this.resultSet = resultSet;
