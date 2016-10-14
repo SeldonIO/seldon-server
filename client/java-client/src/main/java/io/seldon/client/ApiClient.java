@@ -41,7 +41,7 @@ import java.util.List;
 
 /**
  * Seldon IO API client.
- * <p/>
+ * <p></p>
  * Please see {@link DefaultApiClient} for the default implementation.
  */
 public interface ApiClient {
@@ -155,7 +155,7 @@ public interface ApiClient {
 
     /**
      * If the user already has an opinion of the given item, this method will return it.
-     * <p/>
+     * <p></p>
      * Otherwise, it will return a prediction on the basis of past user behaviour.
      *
      * @param uid A user ID
