@@ -19,47 +19,87 @@
  *
  ********************************************************************************************** 
 */
-package io.seldon.prediction;
+package io.seldon.api.resource;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class SimplePredictionStrategy implements PredictionStrategy {
+public class PredictionsBean extends ResourceBean {
 
-	public final String label;
-	public final List<FeatureTransformerStrategy> featureTransformerStrategies;
-	public final List<PredictionAlgorithmStrategy> algorithmsStrategies;
+	String model;
+	String abkey;
+	String upid;
+	List<PredictionBean> results;
+	
+	public PredictionsBean()
+	{
+		results = new ArrayList<PredictionBean>();
+	}
 	
 	
 	
-	
-
-
-
-	public SimplePredictionStrategy(String label,
-			List<FeatureTransformerStrategy> featureTransformerStrategies,
-			List<PredictionAlgorithmStrategy> algorithmsStrategies) {
+	public PredictionsBean(String model, String abkey, String upid,
+			List<PredictionBean> results) {
 		super();
-		this.label = label;
-		this.featureTransformerStrategies = featureTransformerStrategies;
-		this.algorithmsStrategies = algorithmsStrategies;
+		this.model = model;
+		this.abkey = abkey;
+		this.upid = upid;
+		this.results = results;
 	}
 
 
-	@Override
-	public List<PredictionAlgorithmStrategy> getAlgorithms() {
-		return algorithmsStrategies;
+
+	public String getModel() {
+		return model;
 	}
 
 
-	@Override
-	public List<FeatureTransformerStrategy> getFeatureTansformers() {
-		return featureTransformerStrategies;
+
+	public void setModel(String model) {
+		this.model = model;
 	}
 
 
+
+	public String getAbkey() {
+		return abkey;
+	}
+
+
+
+	public void setAbkey(String abkey) {
+		this.abkey = abkey;
+	}
+
+
+
+	public String getUpid() {
+		return upid;
+	}
+
+
+
+	public void setUpid(String upid) {
+		this.upid = upid;
+	}
+
+
+
+	public List<PredictionBean> getResults() {
+		return results;
+	}
+
+
+
+	public void setResults(List<PredictionBean> results) {
+		this.results = results;
+	}
+
+
+
 	@Override
-	public SimplePredictionStrategy configure() {
-		return this;
+	public String toKey() {
+		return this.hashCode()+"";
 	}
 
 }

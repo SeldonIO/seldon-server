@@ -28,7 +28,7 @@
                         "containers": [
                             {
                                 "name": "%NAME%",
-                                "image": "%IMAGE%:%VERSION%",
+                                "image": "%IMAGE%",
                                 "ports": [
                                     {
                                         "containerPort": 5000,

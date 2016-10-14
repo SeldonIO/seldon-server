@@ -25,6 +25,7 @@ import io.seldon.api.logging.ApiLogger;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.business.PredictionBusinessService;
+import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
 import io.seldon.api.service.ResourceServer;
 
 import java.util.Date;
@@ -72,7 +73,8 @@ public class PredictionController {
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) 
 		{
-            responseBean = predictionBusinessService.predict((ConsumerBean)con, json);
+			String puid = req.getParameter(PredictionBusinessServiceImpl.PUID_KEY);
+            responseBean = predictionBusinessService.predict((ConsumerBean)con, puid,json);
         }
 		else {
 			responseBean = con;

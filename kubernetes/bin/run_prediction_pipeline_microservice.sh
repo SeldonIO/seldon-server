@@ -2,7 +2,6 @@
 
 set -o nounset
 set -o errexit
-set -v
 
 if [ "$#" -ne 4 ]; then
     echo "need <microservice_name> <pipeline_model_folder> <client> <num_replicas>"

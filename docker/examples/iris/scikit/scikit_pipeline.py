@@ -2,8 +2,9 @@ import sys, getopt, argparse
 import seldon.pipeline.basic_transforms as bt
 import seldon.pipeline.util as sutl
 import seldon.pipeline.auto_transforms as pauto
+import seldon.sklearn_estimator as ske
 from sklearn.pipeline import Pipeline
-import seldon.xgb as xg
+from sklearn.ensemble import RandomForestClassifier
 import seldon.pipeline.cross_validation as cf
 import sys
 import logging
@@ -12,8 +13,10 @@ def run_pipeline(events,models):
 
     tNameId = bt.Feature_id_transform(min_size=0,exclude_missing=True,zero_based=True,input_feature="name",output_feature="nameId")
     tAuto = pauto.Auto_transform(max_values_numeric_categorical=2,exclude=["nameId","name"])
-    xgb = xg.XGBoostClassifier(target="nameId",target_readable="name",excluded=["name"],learning_rate=0.1,silent=1)
-    cv = cf.Seldon_KFold(xgb,5)
+    sk_classifier = RandomForestClassifier(verbose=1)
+    classifier = ske.SKLearnClassifier(clf=sk_classifier,target="nameId",excluded=["name"])
+
+    cv = cf.Seldon_KFold(classifier,5)
     logger.info("cross validation scores %s",cv.get_scores())
 
     transformers = [("tName",tNameId),("tAuto",tAuto),("cv",cv)]

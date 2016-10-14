@@ -102,6 +102,11 @@ seldon_iris_xgboost_image_version() {
     echo ${SELDON_IRIS_XGBOOST_IMAGE_VERSION}
 }
 
+seldon_iris_scikit_image_version() {
+    local SELDON_IRIS_SCIKIT_IMAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION}
+    echo ${SELDON_IRIS_SCIKIT_IMAGE_VERSION}
+}
+
 seldon_finefoods_xgboost_image_version() {
     local SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION}
     echo ${SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION}
@@ -139,6 +144,7 @@ write_version "SELDON_SERVER_IMAGE_VERSION" "$(seldon_server_image_version)"
 write_version "SELDON_REUTERS_EXAMPLE_IMAGE_VERSION" "$(seldon_reuters_example_image_version)"
 write_version "SELDON_IRIS_VW_IMAGE_VERSION" "$(seldon_iris_vw_image_version)"
 write_version "SELDON_IRIS_XGBOOST_IMAGE_VERSION" "$(seldon_iris_xgboost_image_version)"
+write_version "SELDON_IRIS_SCIKIT_IMAGE_VERSION" "$(seldon_iris_scikit_image_version)"
 write_version "SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION" "$(seldon_finefoods_xgboost_image_version)"
 write_version "SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION" "$(seldon_examples_tensorflow_deep_mnist_image_version)"
 
