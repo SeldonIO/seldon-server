@@ -57,18 +57,20 @@ public class ItemSimilarityProcessor {
 	Timer outputTimer;
 	long lastTime = 0;
 	AtomicLong outputSimilaritiesTime = new AtomicLong(0);
-	int window;
+	int windowSecs;
+	int windowProcessed;
 	String outputTopic;
 	int count = 0;
 	final String kafkaServers;
 
 	public ItemSimilarityProcessor(final Namespace ns)
 	{
-		this.window = ns.getInt("window_secs");
+		this.windowSecs = ns.getInt("window_secs");
+		this.windowProcessed = ns.getInt("window_processed");
 		this.outputTopic = ns.getString("output_topic");
 		this.kafkaServers = ns.getString("kafka");
 		System.out.println(ns);
-		this.streamJaccard = new StreamingJaccardSimilarity(window, ns.getInt("hashes"), ns.getInt("min_activity"));
+		this.streamJaccard = new StreamingJaccardSimilarity(windowSecs, ns.getInt("hashes"), ns.getInt("min_activity"));
 		//createOutputSimilaritiesTimer(ns);
 	}
 	
@@ -164,7 +166,7 @@ public class ItemSimilarityProcessor {
 				if (ItemSimilarityProcessor.this.lastTime == 0)
 					ItemSimilarityProcessor.this.lastTime = time;
 				long diff = time - ItemSimilarityProcessor.this.lastTime;
-				if (diff >= window)
+				if ((windowSecs > -1 && diff >= windowSecs) || (windowProcessed > -1 && ItemSimilarityProcessor.this.count % windowProcessed == 0))
 				{
 					//ItemSimilarityProcessor.this.outputSimilaritiesTime.compareAndSet(0, time);
 					//ItemSimilarityProcessor.this.lastTime = time;
@@ -181,7 +183,7 @@ public class ItemSimilarityProcessor {
 				ItemSimilarityProcessor.this.count++;
 				if (ItemSimilarityProcessor.this.count % 1000 == 0)
 				{
-					System.out.println("Processed "+count+" time diff is "+diff+" window is "+window);
+					System.out.println("Processed "+count+" time diff is "+diff+" window is "+windowSecs);
 				}
 			}
 		});
@@ -227,7 +229,8 @@ public class ItemSimilarityProcessor {
     	parser.addArgument("-o", "--output-topic").required(true).help("Output topic");
     	parser.addArgument("-k", "--kafka").setDefault("localhost:9092").help("Kafka server and port");
     	parser.addArgument("-z", "--zookeeper").setDefault("localhost:2181").help("Zookeeper server and port");
-    	parser.addArgument("-w", "--window-secs").type(Integer.class).setDefault(3600*5).help("streaming window size in secs");
+    	parser.addArgument("-w", "--window-secs").type(Integer.class).setDefault(3600*5).help("streaming window size in secs, -1 means ignore");
+    	parser.addArgument("-u", "--window-processed").type(Integer.class).setDefault(-1).help("streaming window size in processed count, -1 means ignore");
     	parser.addArgument("--output-poll-secs").type(Integer.class).setDefault(60).help("output timer polling period in secs");
     	parser.addArgument("--hashes").type(Integer.class).setDefault(100).help("number of hashes");
     	parser.addArgument("-m", "--min-activity").type(Integer.class).setDefault(200).help("min activity");

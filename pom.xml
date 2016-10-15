@@ -27,6 +27,7 @@
         <module>client/java-client</module>
         <module>offline-jobs/spark</module>
         <module>web-item-importer</module>
+        <module>stream</module>
     </modules>
     <properties>
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>

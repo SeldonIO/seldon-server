@@ -52,11 +52,17 @@ public class MinHashCollections {
 		List<State> states = new ArrayList<>();
 		for(Long id : mhcs.keySet())
 		{
-			if (mhcs.get(id).getCount(time) >= minActivity)
+			int count = mhcs.get(id).getCount(time);
+			if (count >= minActivity)
 			{
 				List<Long> mh = mhcs.get(id).getMinHashes(time);
 				if (mh != null && mh.size() > 0)
 					states.add(new State(id,mh));
+			}
+			else if (count == 0)
+			{
+				mhcs.remove(id);
+				//System.out.println("removed "+id);
 			}
 		}
 		System.out.println("Raw number of minHashes "+mhcs.size()+" but will return "+states.size()+" with minActiviy filter at "+minActivity);
