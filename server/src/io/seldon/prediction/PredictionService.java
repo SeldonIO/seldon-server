@@ -21,22 +21,24 @@
 */
 package io.seldon.prediction;
 
-import io.seldon.api.APIException;
-import io.seldon.api.logging.PredictLogger;
-import io.seldon.api.resource.PredictionBean;
-import io.seldon.api.resource.PredictionsBean;
-import io.seldon.api.state.PredictionAlgorithmStore;
-import io.seldon.api.state.options.DefaultOptions;
-import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
-import io.seldon.memcache.SecurityHashPeer;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import io.seldon.api.APIException;
+import io.seldon.api.logging.PredictLogger;
+import io.seldon.api.resource.PredictionBean;
+import io.seldon.api.state.PredictionAlgorithmStore;
+import io.seldon.api.state.options.DefaultOptions;
+import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
+import io.seldon.memcache.SecurityHashPeer;
 
 @Component
 public class PredictionService {
@@ -51,7 +53,7 @@ public class PredictionService {
     }
 
 	
-	public PredictionsBean predict(String client,String puid, JsonNode json)
+	public JsonNode predict(String client,String puid, JsonNode json)
 	{
 		PredictionStrategy strategyTop = algStore.retrieveStrategy(client);
 		if (strategyTop == null) {
@@ -73,7 +75,8 @@ public class PredictionService {
 		for(PredictionAlgorithmStrategy algStr : strategy.getAlgorithms())
 		{
 			OptionsHolder optsHolder = new OptionsHolder(defaultOptions, algStr.config);
-			PredictionsResult res = algStr.algorithm.predict(client, json, optsHolder);
+			PredictionServiceResult predictionServiceResult = algStr.algorithm.predictFromJSON(client, json, optsHolder);
+			PredictionsResult res = predictionServiceResult.predictions;
 			//FIXME enforces first successful combiner at present			
 			if (res != null && res.predictions.size() > 0)
 			{
@@ -83,12 +86,27 @@ public class PredictionService {
 				{
 					pbeans.add(new PredictionBean(r.prediction, r.predictedClass,r.confidence));
 				}
-				return new PredictionsBean(res.model,strategy.label,puid,pbeans);
+				
+				//TODO clean this up
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode prediction = mapper.valueToTree(res);
+				ObjectNode topNode = mapper.createObjectNode();
+				topNode.put("prediction",prediction);
+				if (predictionServiceResult.extra != null)
+					topNode.put("extra", predictionServiceResult.extra);
+				PredictionMetadata meta = new PredictionMetadata(res.model, strategy.label, puid);
+				JsonNode metaJson = mapper.valueToTree(meta);
+				topNode.put("meta", metaJson);
+				logger.error(topNode.toString());
+				return topNode;
 			}
 		}
 		
 		logger.warn("No prediction for client "+client+" with json "+json);
-		return new PredictionsBean("",strategy.label,"",new ArrayList<PredictionBean>());
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode topNode = mapper.createObjectNode();
+		PredictionMetadata meta = new PredictionMetadata("", strategy.label, puid);
+		return topNode;
 	}
 	
 }

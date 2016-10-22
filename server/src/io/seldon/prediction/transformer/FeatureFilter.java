@@ -21,15 +21,16 @@
 */
 package io.seldon.prediction.transformer;
 
-import io.seldon.prediction.FeatureTransformer;
-import io.seldon.prediction.FeatureTransformerStrategy;
-
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import io.seldon.prediction.FeatureTransformer;
+import io.seldon.prediction.FeatureTransformerStrategy;
 
 @Component
 public class FeatureFilter implements FeatureTransformer {
@@ -46,7 +47,7 @@ public class FeatureFilter implements FeatureTransformer {
 		{
 		case "inclusive":
 		{
-			Iterator<String> it = input.getFieldNames();
+			Iterator<String> it = input.fieldNames();
 			for (String fieldName; it.hasNext();)
 			{
 				fieldName = it.next();
@@ -59,7 +60,7 @@ public class FeatureFilter implements FeatureTransformer {
 		}
 		case "exclusive":
 		{
-			Iterator<String> it = input.getFieldNames();
+			Iterator<String> it = input.fieldNames();
 			for (String fieldName; it.hasNext();)
 			{
 				fieldName = it.next();

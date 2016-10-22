@@ -21,13 +21,6 @@
 */
 package io.seldon.api.controller;
 
-import io.seldon.api.logging.ApiLogger;
-import io.seldon.api.resource.ConsumerBean;
-import io.seldon.api.resource.ResourceBean;
-import io.seldon.api.resource.service.business.PredictionBusinessService;
-import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
-import io.seldon.api.service.ResourceServer;
-
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +31,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.seldon.api.logging.ApiLogger;
+import io.seldon.api.resource.ConsumerBean;
+import io.seldon.api.resource.ResourceBean;
+import io.seldon.api.resource.service.business.PredictionBusinessService;
+import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
+import io.seldon.api.service.ResourceServer;
 
 @Controller
 public class PredictionController {
@@ -67,19 +70,23 @@ public class PredictionController {
 	
 	@RequestMapping(value="/predict", method = RequestMethod.POST)
 	public @ResponseBody
-    ResourceBean prediction(@RequestBody String json, HttpServletRequest req) {
+    JsonNode prediction(@RequestBody String json, HttpServletRequest req) {
 		Date start = new Date();
 		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) 
 		{
 			String puid = req.getParameter(PredictionBusinessServiceImpl.PUID_KEY);
-            responseBean = predictionBusinessService.predict((ConsumerBean)con, puid,json);
+            return predictionBusinessService.predict((ConsumerBean)con, puid,json);
         }
 		else {
 			responseBean = con;
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode response = mapper.valueToTree(responseBean);
+			return response;
 		}
-		ApiLogger.log("events",start,new Date(),con,responseBean,req);
-        return responseBean;
+		//FIXME
+		//ApiLogger.log("events",start,new Date(),con,responseBean,req);
+
 	}
 }

@@ -46,6 +46,6 @@ def do_predict():
             "predictedClass": indexName,
             "confidence" : str(proba)
         })
-    ret = { "predictions": formatted_recs_list , "model" : current_app.config['seldon_model_name'] }
+    ret = { "prediction" :{"predictions": formatted_recs_list , "model" : current_app.config['seldon_model_name'] } }
     json = jsonify(ret)
     return json

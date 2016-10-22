@@ -21,7 +21,7 @@
 */
 package io.seldon.prediction;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public interface FeatureTransformer {
 	

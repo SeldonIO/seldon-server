@@ -21,21 +21,25 @@
 */
 package io.seldon.vw;
 
-import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
-import io.seldon.prediction.PredictionAlgorithm;
-import io.seldon.prediction.PredictionResult;
-import io.seldon.prediction.PredictionsResult;
-import io.seldon.vw.VwFeatureExtractor.Namespace;
-import io.seldon.vw.VwModelManager.VwModel;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import io.seldon.api.rpc.PredictReply;
+import io.seldon.api.rpc.PredictRequest;
+import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
+import io.seldon.prediction.PredictionAlgorithm;
+import io.seldon.prediction.PredictionResult;
+import io.seldon.prediction.PredictionServiceResult;
+import io.seldon.prediction.PredictionsResult;
+import io.seldon.vw.VwFeatureExtractor.Namespace;
+import io.seldon.vw.VwModelManager.VwModel;
 
 @Component
 public class VwClassifier implements PredictionAlgorithm {
@@ -66,13 +70,13 @@ public class VwClassifier implements PredictionAlgorithm {
 	}
 	
 	@Override
-	public PredictionsResult predict(String client, JsonNode jsonNode,OptionsHolder options) {
+	public PredictionServiceResult predictFromJSON(String client, JsonNode jsonNode,OptionsHolder options) {
 
 		VwModel model = modelManager.getClientStore(client,options);
 		if (model == null)
 		{
 			logger.warn("No model found for client"+client);
-			return new PredictionsResult();
+			return null;
 		}
 		else
 		{
@@ -108,8 +112,15 @@ public class VwClassifier implements PredictionAlgorithm {
 					predictions.get(0).predictedClass = "-1";
 					
 			
-			return new PredictionsResult(normalise(predictions));
+			PredictionsResult pr = new PredictionsResult(normalise(predictions));
+			return new PredictionServiceResult(pr,null);
 		}
+	}
+
+	@Override
+	public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

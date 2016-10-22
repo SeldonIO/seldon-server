@@ -21,13 +21,6 @@
 */
 package io.seldon.external;
 
-import io.seldon.api.APIException;
-import io.seldon.api.state.GlobalConfigHandler;
-import io.seldon.api.state.GlobalConfigUpdateListener;
-import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
-import io.seldon.prediction.PredictionAlgorithm;
-import io.seldon.prediction.PredictionsResult;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,12 +35,26 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+
+import io.seldon.api.APIException;
+import io.seldon.api.rpc.PredictReply;
+import io.seldon.api.rpc.PredictRequest;
+import io.seldon.api.state.GlobalConfigHandler;
+import io.seldon.api.state.GlobalConfigUpdateListener;
+import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
+import io.seldon.prediction.PredictionAlgorithm;
+import io.seldon.prediction.PredictionServiceResult;
+import io.seldon.prediction.PredictionsResult;
+import io.seldon.rpc.ClientRPCStore;
+
 
 @Component
 public class ExternalPredictionServer implements GlobalConfigUpdateListener, PredictionAlgorithm  {
@@ -64,6 +71,8 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     private static final int DEFAULT_CON_TIMEOUT = 500;
     private static final int DEFAULT_SOCKET_TIMEOUT = 2000;
     
+    private final ClientRPCStore rpcStore;
+    
     public String getName()
     {
     	return name;
@@ -74,7 +83,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     }
     
     @Autowired
-    public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler){
+    public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler,ClientRPCStore rpcStore){
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(150);
         cm.setDefaultMaxPerRoute(150);
@@ -89,6 +98,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
                 .setDefaultRequestConfig(requestConfig)
                 .build();
         globalConfigHandler.addSubscriber(ZK_CONFIG_TEMP, this);
+        this.rpcStore = rpcStore;
     }
     
 
@@ -121,8 +131,8 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
 		
 	}
 
-    
-    public PredictionsResult predict(String client, JsonNode jsonNode, OptionsHolder options) 
+    @Override
+    public PredictionServiceResult predictFromJSON(String client, JsonNode jsonNode, OptionsHolder options) 
     {
     		long timeNow = System.currentTimeMillis();
     		URI uri = URI.create(options.getStringOption(URL_PROPERTY_NAME));
@@ -150,11 +160,27 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     			{
     				if(resp.getStatusLine().getStatusCode() == 200) 
     				{
-    					ObjectReader reader = mapper.reader(PredictionsResult.class);
-    					PredictionsResult res = reader.readValue(resp.getEntity().getContent());
+    					ObjectMapper mapper = new ObjectMapper();
+    				    JsonFactory factory = mapper.getJsonFactory();
+    				    JsonParser parser = factory.createJsonParser(resp.getEntity().getContent());
+    				    JsonNode actualObj = mapper.readTree(parser);
+    				    
+    				    PredictionsResult res = null;
+    				    JsonNode extraData = null;
+    				    if (actualObj.has("prediction"))
+    				    {
+        					ObjectReader reader = mapper.reader(PredictionsResult.class);
+    				    	String predictionStr = actualObj.get("prediction").toString();
+    				    	res = reader.readValue(predictionStr);
+    				    }
+    				    if (actualObj.has("extra"))
+    				    {
+    				    	extraData = actualObj.get("extra");
+    				    }
+    					
     					if (logger.isDebugEnabled())
     						logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
-    					return res;
+    					return new PredictionServiceResult(res, extraData);
     				} 
     				else 
     				{
@@ -184,6 +210,13 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     		}
 
     }
+
+
+	@Override
+	public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) 
+	{
+		return null;
+	}
 
     
 }

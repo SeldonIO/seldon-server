@@ -24,6 +24,24 @@ package io.seldon.prediction;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import io.seldon.api.rpc.PredictReply;
+import io.seldon.api.rpc.PredictRequest;
 import io.seldon.api.state.PredictionAlgorithmStore;
 import io.seldon.api.state.PredictionAlgorithmStore.Algorithm;
 import io.seldon.api.state.PredictionAlgorithmStore.AlgorithmConfig;
@@ -32,23 +50,7 @@ import io.seldon.api.state.PredictionAlgorithmStore.TestConfig;
 import io.seldon.api.state.PredictionAlgorithmStore.TestVariation;
 import io.seldon.api.state.PredictionStrategyDeserializer;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import junit.framework.Assert;
-
-import org.codehaus.jackson.JsonNode;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
 public class VariationPredictionStrategyTest {
 
@@ -123,8 +125,14 @@ public class VariationPredictionStrategyTest {
 		PredictionAlgorithm palg = new PredictionAlgorithm() {
 			
 			@Override
-			public PredictionsResult predict(String client, JsonNode json,
+			public PredictionServiceResult predictFromJSON(String client, JsonNode json,
 					OptionsHolder options) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -166,8 +174,14 @@ public class VariationPredictionStrategyTest {
 		PredictionAlgorithm palg = new PredictionAlgorithm() {
 			
 			@Override
-			public PredictionsResult predict(String client, JsonNode json,
+			public PredictionServiceResult predictFromJSON(String client, JsonNode json,
 					OptionsHolder options) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
 				// TODO Auto-generated method stub
 				return null;
 			}

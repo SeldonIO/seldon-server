@@ -24,7 +24,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <exclude.tests>no-exclusions</exclude.tests>
         <config.version>local</config.version>
-    </properties>
+	    <grpc.version>1.0.0</grpc.version><!-- CURRENT_GRPC_VERSION -->
+      </properties>
 
     <build>
         <!-- Custom source directory (move to conventional layout in phase 2) -->
@@ -38,6 +39,13 @@
             </testResource>
         </testResources>
         
+       <extensions>
+      	<extension>
+        	<groupId>kr.motd.maven</groupId>
+        	<artifactId>os-maven-plugin</artifactId>
+        	<version>1.4.1.Final</version>
+      	</extension>
+       </extensions>
 
         <resources>
             <resource>
@@ -159,7 +167,30 @@
                 </executions>
             </plugin>
 
+
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>0.5.0</version>
+        <configuration>
+          <protocArtifact>com.google.protobuf:protoc:3.0.0:exe:${os.detected.classifier}</protocArtifact>
+          <pluginId>grpc-java</pluginId>
+          <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+          <clearOutputDirectory>false</clearOutputDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>compile-custom</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
         </plugins>
+        
+        
     </build>
 
     <dependencies>
@@ -449,6 +480,31 @@
     		<type>jar</type>
     		<scope>compile</scope>
 		</dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+	<dependency>
+    	<groupId>com.google.protobuf</groupId>
+    	<artifactId>protobuf-java</artifactId>
+    	<version>3.1.0</version>
+	</dependency>
+	<dependency>
+    	<groupId>javassist</groupId>
+    	<artifactId>javassist</artifactId>
+    	<version>3.12.1.GA</version>
+	</dependency>
 
     </dependencies>
 

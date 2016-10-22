@@ -71,6 +71,7 @@ ENV SELDON_ZKSERVERS zookeeper
 
 ADD scripts/server.xml $CATALINA_HOME/conf/server.xml
 ADD scripts/context.xml $CATALINA_HOME/conf/context.xml
+ADD scripts/catalina.policy $CATALINA_HOME/conf/catalina.policy
 ADD scripts/start-server.sh $SELDON_HOME/start-server.sh
 ADD scripts/start-server-debug.sh $SELDON_HOME/start-server-debug.sh
 

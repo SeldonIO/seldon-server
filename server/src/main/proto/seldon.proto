@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_package = "io.seldon.api.rpc";
+option java_outer_classname = "PredictionAPI";
+
+package io.seldon.api.rpc;
+
+service Classifier {
+  rpc Predict (PredictRequest) returns (PredictReply) {}
+}
+
+message PredictRequest {
+ string puid = 1;
+ google.protobuf.Any custom = 2;
+}
+
+message PredictReply {
+ string model = 1;
+ string puid = 2;
+ repeated ClassificationResult predictions = 3;
+ google.protobuf.Any custom = 4;
+}
+
+message ClassificationResult {
+  double prediction  = 1;
+  string predictedClass = 2;
+  double confidence = 3;
+}
+
+
+

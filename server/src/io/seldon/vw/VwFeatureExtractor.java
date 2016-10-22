@@ -27,8 +27,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonNode;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 @Component
 public class VwFeatureExtractor {
@@ -39,7 +40,7 @@ public class VwFeatureExtractor {
 		List<Namespace> namespaces = new ArrayList<Namespace>();
 		
 		Map<String,Float> features = new HashMap<String,Float>();
-		for(Iterator<String> it = json.getFieldNames();it.hasNext();)
+		for(Iterator<String> it = json.fieldNames();it.hasNext();)
 		{
 			String field = it.next();
 			JsonNode jnode = json.get(field);
@@ -60,7 +61,7 @@ public class VwFeatureExtractor {
 	private Namespace extractNamespace(String name,JsonNode json)
 	{
 		Map<String,Float> features = new HashMap<String,Float>();
-		for(Iterator<String> it = json.getFieldNames();it.hasNext();)
+		for(Iterator<String> it = json.fieldNames();it.hasNext();)
 		{
 			String field = it.next();
 			JsonNode jnode = json.get(field);
