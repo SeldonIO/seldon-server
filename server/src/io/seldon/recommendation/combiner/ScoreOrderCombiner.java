@@ -52,6 +52,7 @@ public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
 
     @Override
     public RecommendationPeer.RecResultContext combine(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
+        Map<Long,String> item_recommender_lookup = new HashMap<>();
         List<String> validAlgs = new ArrayList<>();
         Map<ItemRecommendationResultSet.ItemRecommendationResult, Float> scores = new HashMap<>();
         List<ItemRecommendationResultSet.ItemRecommendationResult> ordered = new ArrayList<>();
@@ -63,13 +64,24 @@ public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
                 if(previousResult!=null){
                     if(previousResult< itemRecommendationResult.score)
                         scores.put(itemRecommendationResult, itemRecommendationResult.score);
+                        capture_recommender_used_for_item(item_recommender_lookup, itemRecommendationResult, set);
                 } else {
                     scores.put(itemRecommendationResult, itemRecommendationResult.score);
+                    capture_recommender_used_for_item(item_recommender_lookup, itemRecommendationResult, set);
                 }
             }
         }
         ordered.addAll(scores.keySet());
         Collections.sort(ordered, Collections.reverseOrder());
-        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(ordered, StringUtils.join(validAlgs, ':')), StringUtils.join(validAlgs, ':'));
+        RecommendationPeer.RecResultContext recResultContext = new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(ordered, StringUtils.join(validAlgs, ':')), StringUtils.join(validAlgs, ':'));
+        recResultContext.item_recommender_lookup = item_recommender_lookup;
+        return recResultContext;
+    }
+    
+    private static void capture_recommender_used_for_item(Map<Long,String> item_recommender_lookup, ItemRecommendationResultSet.ItemRecommendationResult itemRecommendationResult, RecommendationPeer.RecResultContext recResultContext) {
+        String original_value = item_recommender_lookup.put(itemRecommendationResult.item, recResultContext.resultSet.getRecommenderName());
+        if (original_value != null) {
+            item_recommender_lookup.put(itemRecommendationResult.item, original_value);
+        }
     }
 }
