@@ -63,8 +63,9 @@ public class ScoreOrderCombiner implements AlgorithmResultsCombiner {
                 if(previousResult!=null){
                     if(previousResult< itemRecommendationResult.score)
                         scores.put(itemRecommendationResult, itemRecommendationResult.score);
+                } else {
+                    scores.put(itemRecommendationResult, itemRecommendationResult.score);
                 }
-                scores.put(itemRecommendationResult, itemRecommendationResult.score);
             }
         }
         ordered.addAll(scores.keySet());
