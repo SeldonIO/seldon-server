@@ -24,6 +24,7 @@
 package io.seldon.recommendation.explanation;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.jdo.PersistenceManager;
@@ -62,18 +63,29 @@ public class SqlExplanationProvider implements ExplanationProvider {
 
         String retVal = null;
         {
-            String sql = "select explanation from recommendation_explanation where recommender=? and locale=?";
+            String sql = "select re1.explanation as default_explanation,re2.explanation as explanation from recommendation_explanation re1 LEFT join recommendation_explanation re2 on re1.locale=re2.locale and re2.recommender=? where re1.locale=? and re1.recommender ='_DEFAULT_'";
             Query query = getPM().newQuery("javax.jdo.query.SQL", sql);
             List<Object> args = new ArrayList<>();
             args.add(recommender);
             args.add(locale);
-            List<Object> results = (List<Object>) query.executeWithArray(args.toArray());
-            if (results.size() == 0) {
+            Collection<Object[]> results = (Collection<Object[]>) query.executeWithArray(args.toArray());
+            if (results.size() != 1) {
                 // Will return null
                 logger.debug(String.format("Failed explanation from db for recommender[%s] locale[%s]", recommender, locale));
             } else {
-                retVal = (String) results.get(0);
-                logger.debug(String.format("Retrieved explanation from db for recommender[%s] locale[%s] as[%s]", recommender, locale, retVal));
+                for (Object[] r : results) { // we just want the first item (there should be only 1)
+                    String default_explanation = (String) r[0];
+                    String explanation = (String) r[1];
+
+                    if (explanation != null) {
+                        retVal = explanation;
+                        logger.debug(String.format("Retrieved explanation from db for recommender[%s] locale[%s] as[%s]", recommender, locale, retVal));
+                    } else {
+                        retVal = default_explanation;
+                        logger.debug(String.format("Retrieved default_explanation from db for recommender[%s] locale[%s] as[%s]", recommender, locale, retVal));
+                    }
+                    break;
+                }
             }
         }
 
