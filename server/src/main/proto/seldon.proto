@@ -14,7 +14,7 @@ service Classifier {
 
 message PredictRequest {
  string puid = 1;
- google.protobuf.Any custom = 2;
+ google.protobuf.Any data = 2;
 }
 
 message PredictReply {

@@ -1,12 +1,19 @@
 from flask import Flask
+from concurrent import futures
+import time
 from seldon.microservice.predict import predict_blueprint
 from seldon.microservice.recommend import recommend_blueprint
 from seldon.microservice.extension import extension_blueprint
+from seldon.microservice.rpc import RpcClassifier
 import seldon
 from sklearn.pipeline import Pipeline
 import seldon.pipeline.util as sutl
 import random
 import pylibmc
+from seldon.rpc import seldon_pb2
+import grpc
+
+_ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 class Microservices(object):
     """
@@ -47,6 +54,22 @@ class Microservices(object):
 
         # other setup tasks
         return app
+
+    def create_prediction_rpc_microservice(self,pipeline_folder,model_name,custom_data_handler):
+        rint = random.randint(1,999999)
+        pw = sutl.PipelineWrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
+        pipeline = pw.load_pipeline(pipeline_folder)
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        seldon_pb2.add_ClassifierServicer_to_server(RpcClassifier(pipeline,model_name,custom_data_handler), server)
+        server.add_insecure_port('[::]:50051')
+        server.start()
+        try:
+            while True:
+                time.sleep(_ONE_DAY_IN_SECONDS)
+        except KeyboardInterrupt:
+            server.stop(0)
+
+
 
     def create_recommendation_microservice(self,recommender_folder,memcache_servers=None,memcache_pool_size=2):
         """

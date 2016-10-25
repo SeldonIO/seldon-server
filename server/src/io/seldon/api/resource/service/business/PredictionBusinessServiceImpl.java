@@ -77,8 +77,8 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	private JsonNode getValidatedJson(ConsumerBean consumer,String jsonRaw,boolean addExtraFeatures) throws JsonParseException, IOException
 	{
 		ObjectMapper mapper = new ObjectMapper();
-	    JsonFactory factory = mapper.getJsonFactory();
-	    JsonParser parser = factory.createJsonParser(jsonRaw);
+	    JsonFactory factory = mapper.getFactory();
+	    JsonParser parser = factory.createParser(jsonRaw);
 	    JsonNode actualObj = mapper.readTree(parser);
 	    if (addExtraFeatures)
 	    {

@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -131,8 +132,8 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
 		
 	}
 
-    @Override
-    public PredictionServiceResult predictFromJSON(String client, JsonNode jsonNode, OptionsHolder options) 
+	
+    public JsonNode predict(String client, JsonNode jsonNode, OptionsHolder options) 
     {
     		long timeNow = System.currentTimeMillis();
     		URI uri = URI.create(options.getStringOption(URL_PROPERTY_NAME));
@@ -161,26 +162,11 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     				if(resp.getStatusLine().getStatusCode() == 200) 
     				{
     					ObjectMapper mapper = new ObjectMapper();
-    				    JsonFactory factory = mapper.getJsonFactory();
-    				    JsonParser parser = factory.createJsonParser(resp.getEntity().getContent());
+    				    JsonFactory factory = mapper.getFactory();
+    				    JsonParser parser = factory.createParser(resp.getEntity().getContent());
     				    JsonNode actualObj = mapper.readTree(parser);
     				    
-    				    PredictionsResult res = null;
-    				    JsonNode extraData = null;
-    				    if (actualObj.has("prediction"))
-    				    {
-        					ObjectReader reader = mapper.reader(PredictionsResult.class);
-    				    	String predictionStr = actualObj.get("prediction").toString();
-    				    	res = reader.readValue(predictionStr);
-    				    }
-    				    if (actualObj.has("extra"))
-    				    {
-    				    	extraData = actualObj.get("extra");
-    				    }
-    					
-    					if (logger.isDebugEnabled())
-    						logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
-    					return new PredictionServiceResult(res, extraData);
+    				    return actualObj;
     				} 
     				else 
     				{
@@ -192,6 +178,8 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     			{
     				if (resp != null)
     					resp.close();
+    				if (logger.isDebugEnabled())
+    					logger.debug("External prediction server took "+(System.currentTimeMillis()-timeNow) + "ms");
     			}
     		} 
     		catch (IOException e) 
@@ -211,11 +199,42 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
 
     }
 
+    @Override
+    public PredictionServiceResult predictFromJSON(String client, JsonNode jsonNode, OptionsHolder options) 
+    {
+    	try
+    	{
+    		JsonNode actualObj = predict(client, jsonNode, options);
+    		PredictionsResult res = null;
+    		JsonNode extraData = null;
+    		if (actualObj.has("prediction"))
+    		{
+    			ObjectReader reader = mapper.reader(PredictionsResult.class);
+    			String predictionStr = actualObj.get("prediction").toString();
+    			res = reader.readValue(predictionStr);
+    		}
+    		if (actualObj.has("custom"))
+    		{
+    			extraData = actualObj.get("custom");
+    		}
+		
+		
+    		return new PredictionServiceResult(res, extraData);
+    		} catch (JsonProcessingException e) {
+    			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
+    			throw new APIException(APIException.GENERIC_ERROR);
+    		} catch (IOException e) {
+    			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
+    			throw new APIException(APIException.GENERIC_ERROR);
+    		}
+    }
 
 	@Override
 	public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) 
 	{
-		return null;
+		JsonNode jsonNode = rpcStore.getJSONForRequest(client, request);
+		JsonNode jsonReply = predict(client, jsonNode, options);
+		return rpcStore.getPredictReplyFromJson(client, jsonReply);
 	}
 
     

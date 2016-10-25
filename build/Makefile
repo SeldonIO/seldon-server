@@ -25,6 +25,7 @@ ALL_LIST=\
 	seldonio_tdagent_node \
 	seldonio_iris_vw \
 	seldonio_iris_xgboost \
+	seldonio_iris_xgboost_rpc \
 	seldonio_iris_scikit \
 	seldonio_finefoods_xgboost \
 	seldonio_stream_itemsim \
@@ -78,6 +79,8 @@ build_seldonio_iris_vw: build_versions_generated
 	@./dobuild seldonio_iris_vw
 build_seldonio_iris_xgboost: build_versions_generated
 	@./dobuild seldonio_iris_xgboost
+build_seldonio_iris_xgboost_rpc: build_versions_generated
+	@./dobuild seldonio_iris_xgboost_rpc
 build_seldonio_iris_scikit: build_versions_generated
 	@./dobuild seldonio_iris_scikit
 build_seldonio_finefoods_xgboost: build_versions_generated
@@ -126,6 +129,8 @@ publish_seldonio_iris_vw: build_versions_generated
 	@./dopublish seldonio_iris_vw
 publish_seldonio_iris_xgboost: build_versions_generated
 	@./dopublish seldonio_iris_xgboost
+publish_seldonio_iris_xgboost_rpc: build_versions_generated
+	@./dopublish seldonio_iris_xgboost_rpc
 publish_seldonio_iris_scikit: build_versions_generated
 	@./dopublish seldonio_iris_scikit
 publish_seldonio_finefoods_xgboost: build_versions_generated

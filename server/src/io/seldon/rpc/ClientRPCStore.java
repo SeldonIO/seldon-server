@@ -27,7 +27,6 @@ import com.google.protobuf.util.JsonFormat.TypeRegistry;
 import io.seldon.api.rpc.PredictReply;
 import io.seldon.api.rpc.PredictRequest;
 import io.seldon.mf.PerClientExternalLocationListener;
-import io.seldon.resources.external.ExternalResourceStreamer;
 import io.seldon.resources.external.NewResourceNotifier;
 
 @Component
@@ -37,7 +36,10 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     public static final String FILTER_NEW_RPC_PATTERN = "rpc";
     public final NewResourceNotifier notifier;
     
-    ConcurrentHashMap<String,RPCConfigMap> services = new ConcurrentHashMap<String, ClientRPCStore.RPCConfigMap>();
+    public static final String REQUEST_CUSTOM_DATA_FIELD = "data";
+    public static final String REPLY_CUSTOM_DATA_FIELD = "custom";
+    
+    ConcurrentHashMap<String,RPCConfig> services = new ConcurrentHashMap<String, ClientRPCStore.RPCConfig>();
 
     @Autowired
     public ClientRPCStore(NewResourceNotifier notifier) {
@@ -46,80 +48,133 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
 		notifier.addListener(FILTER_NEW_RPC_PATTERN, this);
 	}
     
-    public RPCConfig getRPCConfig(String client,String rpcName)
+    public RPCConfig getRPCConfig(String client)
     {
     	if (services.containsKey(client))
     	{
-    		return services.get(client).nameMap.get(rpcName);
+    		return services.get(client);
     	}
     	else
     		return null;
     }
     
-    void add(String client,String rpcName,Class<?> requestClass,Class<?> responseClass)
+    void add(String client,Class<?> requestClass,Class<?> responseClass)
     {
     	RPCConfig config = new RPCConfig();
     	config.requestClass = requestClass;
     	config.responseClass = responseClass;
-    	if (!services.containsKey(client))
-			services.putIfAbsent(client, new RPCConfigMap());
-		services.get(client).nameMap.put(rpcName, config);
+    	services.put(client, config);
     }
     
-    private JsonNode getJSONFromMethod(Method m,Message request) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonParseException, IOException
+    private JsonNode getJSONFromMethod(Method m,Message msg,String fieldname) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonParseException, IOException
     {
     	Message.Builder o2 = (Message.Builder) m.invoke(null);
     	TypeRegistry registry = TypeRegistry.newBuilder().add(o2.getDescriptorForType()).build();
     	
     	JsonFormat.Printer jPrinter = JsonFormat.printer();
-    	String result = jPrinter.usingTypeRegistry(registry).print(request);
+    	String result = jPrinter.usingTypeRegistry(registry).print(msg);
     	ObjectMapper mapper = new ObjectMapper();
     	JsonFactory factory = mapper.getFactory();
     	JsonParser parser = factory.createParser(result);
     	JsonNode jNode = mapper.readTree(parser);
-    	if (jNode.has("custom") && jNode.get("custom").has("@type"))
-    		((ObjectNode) jNode.get("custom")).remove("@type");
+    	System.out.println(jNode);
+    	if (jNode.has(fieldname) && jNode.get(fieldname).has("@type"))
+    		((ObjectNode) jNode.get(fieldname)).remove("@type");
     	return jNode;
     }
     
-    public JsonNode getJSONForRequest(String client,String rpcName,PredictRequest request)
+    public JsonNode getJSONForRequest(String client,PredictRequest request)
     {
-    	RPCConfig config = getRPCConfig(client, rpcName);
+    	RPCConfig config = services.get(client);
     	if (config != null)
     	{
     		try
     		{
     			Method m = config.requestClass.getMethod("newBuilder");
-    			return getJSONFromMethod(m, request);
+    			return getJSONFromMethod(m, request, REQUEST_CUSTOM_DATA_FIELD);
     		} catch (Exception e) {
-    			logger.error("Failed to create JSON request for client "+client+" for rpc "+rpcName,e);
+    			logger.error("Failed to create JSON request for client "+client,e);
     			return null;
     		}
     	}
     	else
     	{
-    		logger.warn("Failed to get RPC config for client "+client+" for rpc "+rpcName);
+    		logger.warn("Failed to get RPC config for client "+client);
     		return null;
     	}
     }
     
-    public JsonNode getJSONForReply(String client,String rpcName,PredictReply request)
+    public JsonNode getJSONForReply(String client,PredictReply request)
     {
-    	RPCConfig config = getRPCConfig(client, rpcName);
+    	RPCConfig config = services.get(client);
     	if (config != null)
     	{
     		try
     		{
     			Method m = config.responseClass.getMethod("newBuilder");
-    			return getJSONFromMethod(m, request);
+    			return getJSONFromMethod(m, request, REPLY_CUSTOM_DATA_FIELD);
     		} catch (Exception e) {
-    			logger.error("Failed to create JSON reply for client "+client+" for rpc "+rpcName,e);
+    			logger.error("Failed to create JSON reply for client "+client,e);
     			return null;
     		}
     	}
     	else
     	{
-    		logger.warn("Failed to get RPC config for client "+client+" for rpc "+rpcName);
+    		logger.warn("Failed to get RPC config for client "+client);
+    		return null;
+    	}
+    }
+    
+    public PredictReply getPredictReplyFromJson(String client,JsonNode json)
+    {
+    	RPCConfig config = services.get(client);
+    	if (config != null)
+    	{
+    		try
+    		{
+    			PredictReply.Builder builder = PredictReply.newBuilder();
+    			Method m = config.responseClass.getMethod("newBuilder");
+    			Message.Builder o = (Message.Builder) m.invoke(null);
+    			TypeRegistry registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
+    			JsonFormat.Parser jFormatter = JsonFormat.parser().usingTypeRegistry(registry);
+    			jFormatter.merge(json.toString(), builder);
+    			PredictReply reply = builder.build();
+    			return reply;
+    		} catch (Exception e) {
+    			logger.error("Failed to convert json "+json.toString()+" to PredictReply",e);
+    			return null;
+			}
+    	}
+		else
+    	{
+    		logger.warn("Failed to get RPC config for client "+client);
+    		return null;
+    	}
+    }
+    
+    public PredictRequest getPredictRequestFromJson(String client,JsonNode json)
+    {
+    	RPCConfig config = services.get(client);
+    	if (config != null)
+    	{
+    		try
+    		{
+    			PredictRequest.Builder builder = PredictRequest.newBuilder();
+    			Method m = config.requestClass.getMethod("newBuilder");
+    			Message.Builder o = (Message.Builder) m.invoke(null);
+    			TypeRegistry registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
+    			JsonFormat.Parser jFormatter = JsonFormat.parser().usingTypeRegistry(registry);
+    			jFormatter.merge(json.toString(), builder);
+    			PredictRequest request = builder.build();
+    			return request;
+    		} catch (Exception e) {
+    			logger.error("Failed to convert json "+json.toString()+" to PredictRequest",e);
+    			return null;
+			}
+    	}
+		else
+    	{
+    		logger.warn("Failed to get RPC config for client "+client);
     		return null;
     	}
     }
@@ -128,8 +183,6 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     {
     	try
     	{
-    		String rpcName = key.split("/")[1];
-    	
     		ObjectMapper mapper = new ObjectMapper();
     		RPCZkConfig config = mapper.readValue(data, RPCZkConfig.class);
 
@@ -141,7 +194,7 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     			URLClassLoader cLoader = new URLClassLoader (urls, this.getClass().getClassLoader());
     			Class<?> requestClass = Class.forName(config.requestClassName,true,cLoader);
     			Class<?> responseClass = Class.forName(config.responseClassName,true,cLoader);
-    			this.add(client, rpcName, requestClass, responseClass);
+    			this.add(client, requestClass, responseClass);
     		} catch (MalformedURLException e) 
     		{
     			logger.error("Bad url "+config.jarUrl,e);
@@ -167,15 +220,7 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
 		logger.info("New client location "+client+" at "+data+" node pattern "+nodePattern);
 		if (org.apache.commons.lang.StringUtils.isNotEmpty(data))
 		{
-			String parts[] = nodePattern.split("/");
-			if (parts.length == 2)
-			{
-				this.createClientConfig(client, nodePattern, data);
-			}
-			else
-			{
-				logger.warn("Invalid node pattern "+nodePattern+" for client "+client);
-			}
+			this.createClientConfig(client, nodePattern, data);
 		}
 		else
 		{
