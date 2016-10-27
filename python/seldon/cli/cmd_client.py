@@ -23,6 +23,9 @@ def getOpts(args):
     parser.add_argument('--db-name', help="the name of the db", required=False)
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--input-date-string', help="The date to process in YYYYMMDD format", required=False)
+    parser.add_argument('--set-js-key', help="the key to use for the js scope", required=False)
+    parser.add_argument('--set-all-key', help="the key to use for the all scope", required=False)
+    parser.add_argument('--set-all-secret', help="the secret to use for the all scope", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
     opts = parser.parse_args(args)
     return opts
@@ -82,7 +85,7 @@ def add_client(gopts,command_data,zk_client, zkroot, client_name, db_name, consu
     dbSettings["user"]=db_info["user"]
     dbSettings["password"]=db_info["password"]
     seldon_utils.addApiDb(db_name, dbSettings)
-    seldon_utils.addClientDb(client_name, dbSettings, consumer_details=None)
+    seldon_utils.addClientDb(client_name, dbSettings, consumer_details)
     # write to local file
     data_fpath = get_data_fpath(zkroot, client_name)
     data = {'DB_JNDI_NAME': db_name}
@@ -102,7 +105,7 @@ def add_client_dashboard(gopts,command_data,client_name):
             dashboard_template = None
         if not (grafana is None or grafana == ""):
             seldon_utils.add_grafana_dashboard(grafana,client_name,gopts.quiet,dashboard_template)
-    
+
 def action_list(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]
     zk_client = command_data["zkdetails"]["zk_client"]
@@ -152,13 +155,19 @@ def action_setup(gopts,command_data, opts):
         print "Need client name to setup"
         sys.exit(1)
 
+    consumer_details = {
+        'js_consumer_key': opts.set_js_key,
+        'all_consumer_key': opts.set_all_key,
+        'all_consumer_secret': opts.set_all_secret,
+    }
+
     # check if this client exists
     zkroot = command_data["zkdetails"]["zkroot"]
     zk_client = command_data["zkdetails"]["zk_client"]
     data_fpath = get_data_fpath(zkroot, client_name_to_setup)
     if not os.path.isfile(data_fpath):
         print "Trying to create the client"
-        add_client(gopts,command_data,zk_client, zkroot, client_name_to_setup, db_name_to_use)
+        add_client(gopts,command_data,zk_client, zkroot, client_name_to_setup, db_name_to_use, consumer_details)
         add_client_dashboard(gopts,command_data,client_name_to_setup)
     else:
         add_client_dashboard(gopts,command_data,client_name_to_setup)
