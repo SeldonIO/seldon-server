@@ -46,15 +46,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import io.seldon.api.APIException;
-import io.seldon.api.rpc.PredictReply;
-import io.seldon.api.rpc.PredictRequest;
+import io.seldon.api.rpc.ClassificationReply;
+import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.api.state.GlobalConfigHandler;
 import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionServiceResult;
 import io.seldon.prediction.PredictionsResult;
-import io.seldon.rpc.ClientRPCStore;
+import io.seldon.rpc.ClientRpcStore;
 
 
 @Component
@@ -72,7 +72,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     private static final int DEFAULT_CON_TIMEOUT = 500;
     private static final int DEFAULT_SOCKET_TIMEOUT = 2000;
     
-    private final ClientRPCStore rpcStore;
+    private final ClientRpcStore rpcStore;
     
     public String getName()
     {
@@ -84,7 +84,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     }
     
     @Autowired
-    public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler,ClientRPCStore rpcStore){
+    public ExternalPredictionServer(GlobalConfigHandler globalConfigHandler,ClientRpcStore rpcStore){
         cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(150);
         cm.setDefaultMaxPerRoute(150);
@@ -207,7 +207,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     		JsonNode actualObj = predict(client, jsonNode, options);
     		PredictionsResult res = null;
     		JsonNode extraData = null;
-    		if (actualObj.has("prediction"))
+    		if (actualObj.has("predictions"))
     		{
     			ObjectReader reader = mapper.reader(PredictionsResult.class);
     			String predictionStr = actualObj.get("prediction").toString();
@@ -230,7 +230,7 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     }
 
 	@Override
-	public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) 
+	public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) 
 	{
 		JsonNode jsonNode = rpcStore.getJSONForRequest(client, request);
 		JsonNode jsonReply = predict(client, jsonNode, options);

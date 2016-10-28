@@ -61,7 +61,7 @@ class Microservices(object):
         pipeline = pw.load_pipeline(pipeline_folder)
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         seldon_pb2.add_ClassifierServicer_to_server(RpcClassifier(pipeline,model_name,custom_data_handler), server)
-        server.add_insecure_port('[::]:50051')
+        server.add_insecure_port('[::]:5000')
         server.start()
         try:
             while True:

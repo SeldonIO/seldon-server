@@ -13,9 +13,9 @@ import io.grpc.ManagedChannelBuilder;
  *
  */
 @Component
-public class SimpleRPCChannelHandlerImpl implements RPCChannelHandler {
+public class SimpleRpcChannelHandlerImpl implements RpcChannelHandler {
 
-	ConcurrentHashMap<String,ManagedChannel> channels;
+	ConcurrentHashMap<String,ManagedChannel> channels = new ConcurrentHashMap<String, ManagedChannel>();
 	
 	@Override
 	public ManagedChannel getChannel(String host,int port)

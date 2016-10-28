@@ -9,19 +9,31 @@ option java_outer_classname = "PredictionAPI";
 package io.seldon.api.rpc;
 
 service Classifier {
-  rpc Predict (PredictRequest) returns (PredictReply) {}
+  rpc Predict (ClassificationRequest) returns (ClassificationReply) {}
 }
 
-message PredictRequest {
- string puid = 1;
+//Classification Request
+
+message ClassificationRequest {
+ ClassificationRequestMeta meta = 1;
  google.protobuf.Any data = 2;
 }
 
-message PredictReply {
- string model = 1;
- string puid = 2;
- repeated ClassificationResult predictions = 3;
- google.protobuf.Any custom = 4;
+message ClassificationRequestMeta {
+  string puid = 1;
+}
+
+// Classification Reply
+
+message ClassificationReply {
+ ClassificationReplyMeta meta = 1;
+ repeated ClassificationResult predictions = 2;
+ google.protobuf.Any custom = 3;
+}
+
+message ClassificationReplyMeta {
+  string puid = 1;
+  string modelName = 2;
 }
 
 message ClassificationResult {

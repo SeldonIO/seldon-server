@@ -24,25 +24,25 @@ import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.JsonFormat.TypeRegistry;
 
-import io.seldon.api.rpc.PredictReply;
-import io.seldon.api.rpc.PredictRequest;
+import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
+import io.seldon.api.rpc.ClassificationReply;
+import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.mf.PerClientExternalLocationListener;
 import io.seldon.resources.external.NewResourceNotifier;
 
+
 @Component
-public class ClientRPCStore implements PerClientExternalLocationListener  {
+public class ClientRpcStore implements PerClientExternalLocationListener  {
 	
-	private static Logger logger = Logger.getLogger(ClientRPCStore.class.getName());
+	private static Logger logger = Logger.getLogger(ClientRpcStore.class.getName());
     public static final String FILTER_NEW_RPC_PATTERN = "rpc";
     public final NewResourceNotifier notifier;
     
-    public static final String REQUEST_CUSTOM_DATA_FIELD = "data";
-    public static final String REPLY_CUSTOM_DATA_FIELD = "custom";
-    
-    ConcurrentHashMap<String,RPCConfig> services = new ConcurrentHashMap<String, ClientRPCStore.RPCConfig>();
+     
+    ConcurrentHashMap<String,RPCConfig> services = new ConcurrentHashMap<String, ClientRpcStore.RPCConfig>();
 
     @Autowired
-    public ClientRPCStore(NewResourceNotifier notifier) {
+    public ClientRpcStore(NewResourceNotifier notifier) {
 		logger.info("starting up");
 		this.notifier = notifier;
 		notifier.addListener(FILTER_NEW_RPC_PATTERN, this);
@@ -78,20 +78,37 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     	JsonParser parser = factory.createParser(result);
     	JsonNode jNode = mapper.readTree(parser);
     	System.out.println(jNode);
-    	if (jNode.has(fieldname) && jNode.get(fieldname).has("@type"))
-    		((ObjectNode) jNode.get(fieldname)).remove("@type");
+    	//if (jNode.has(fieldname) && jNode.get(fieldname).has("@type"))
+    	//	((ObjectNode) jNode.get(fieldname)).remove("@type");
+    	return jNode;
+    }
+
+    private JsonNode getJSON(Message msg,String fieldname) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonParseException, IOException
+    {
+    	JsonFormat.Printer jPrinter = JsonFormat.printer();
+    	String result = jPrinter.print(msg);
+    	ObjectMapper mapper = new ObjectMapper();
+    	JsonFactory factory = mapper.getFactory();
+    	JsonParser parser = factory.createParser(result);
+    	JsonNode jNode = mapper.readTree(parser);
+    	System.out.println(jNode);
     	return jNode;
     }
     
-    public JsonNode getJSONForRequest(String client,PredictRequest request)
+    public JsonNode getJSONForRequest(String client,ClassificationRequest request)
     {
     	RPCConfig config = services.get(client);
     	if (config != null)
     	{
     		try
     		{
-    			Method m = config.requestClass.getMethod("newBuilder");
-    			return getJSONFromMethod(m, request, REQUEST_CUSTOM_DATA_FIELD);
+    			if (config.requestClass != null)
+    			{
+    				Method m = config.requestClass.getMethod("newBuilder");
+    				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD);
+    			}
+    			else
+    				return getJSON(request, PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD);
     		} catch (Exception e) {
     			logger.error("Failed to create JSON request for client "+client,e);
     			return null;
@@ -104,15 +121,20 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     	}
     }
     
-    public JsonNode getJSONForReply(String client,PredictReply request)
+    public JsonNode getJSONForReply(String client,ClassificationReply request)
     {
     	RPCConfig config = services.get(client);
     	if (config != null)
     	{
     		try
     		{
-    			Method m = config.responseClass.getMethod("newBuilder");
-    			return getJSONFromMethod(m, request, REPLY_CUSTOM_DATA_FIELD);
+    			if (config.responseClass != null)
+    			{
+    				Method m = config.responseClass.getMethod("newBuilder");
+    				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
+    			}
+    			else
+    				return getJSON(request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
     		} catch (Exception e) {
     			logger.error("Failed to create JSON reply for client "+client,e);
     			return null;
@@ -125,20 +147,28 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     	}
     }
     
-    public PredictReply getPredictReplyFromJson(String client,JsonNode json)
+    public ClassificationReply getPredictReplyFromJson(String client,JsonNode json)
     {
     	RPCConfig config = services.get(client);
     	if (config != null)
     	{
     		try
     		{
-    			PredictReply.Builder builder = PredictReply.newBuilder();
-    			Method m = config.responseClass.getMethod("newBuilder");
-    			Message.Builder o = (Message.Builder) m.invoke(null);
-    			TypeRegistry registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
-    			JsonFormat.Parser jFormatter = JsonFormat.parser().usingTypeRegistry(registry);
+    			TypeRegistry registry = null;
+    			if (config.responseClass != null && json.has(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD))
+    			{
+    				if (!json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD).has("@type"))
+    					((ObjectNode) json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.responseClass.getName());
+    				Method m = config.responseClass.getMethod("newBuilder");
+    				Message.Builder o = (Message.Builder) m.invoke(null);
+    				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
+    			}
+    			ClassificationReply.Builder builder = ClassificationReply.newBuilder();
+    			JsonFormat.Parser jFormatter = JsonFormat.parser();
+    			if (registry != null)
+    				jFormatter = jFormatter.usingTypeRegistry(registry);
     			jFormatter.merge(json.toString(), builder);
-    			PredictReply reply = builder.build();
+    			ClassificationReply reply = builder.build();
     			return reply;
     		} catch (Exception e) {
     			logger.error("Failed to convert json "+json.toString()+" to PredictReply",e);
@@ -152,20 +182,29 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     	}
     }
     
-    public PredictRequest getPredictRequestFromJson(String client,JsonNode json)
+    public ClassificationRequest getPredictRequestFromJson(String client,JsonNode json)
     {
     	RPCConfig config = services.get(client);
     	if (config != null)
     	{
     		try
     		{
-    			PredictRequest.Builder builder = PredictRequest.newBuilder();
-    			Method m = config.requestClass.getMethod("newBuilder");
-    			Message.Builder o = (Message.Builder) m.invoke(null);
-    			TypeRegistry registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
-    			JsonFormat.Parser jFormatter = JsonFormat.parser().usingTypeRegistry(registry);
+    			TypeRegistry registry = null;
+    			if (config.requestClass != null && json.has(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD))
+    			{
+    				if (!json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD).has("@type"))
+    					((ObjectNode) json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.requestClass.getName());
+    				System.out.println(json);
+    				Method m = config.requestClass.getMethod("newBuilder");
+    				Message.Builder o = (Message.Builder) m.invoke(null);
+    				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
+    			}
+				ClassificationRequest.Builder builder = ClassificationRequest.newBuilder();
+    			JsonFormat.Parser jFormatter = JsonFormat.parser();
+    			if (registry != null)
+    				jFormatter = jFormatter.usingTypeRegistry(registry);
     			jFormatter.merge(json.toString(), builder);
-    			PredictRequest request = builder.build();
+    			ClassificationRequest request = builder.build();
     			return request;
     		} catch (Exception e) {
     			logger.error("Failed to convert json "+json.toString()+" to PredictRequest",e);
@@ -192,8 +231,12 @@ public class ClientRPCStore implements PerClientExternalLocationListener  {
     			URL myURL = f.toURI().toURL();
     			URL[] urls = {myURL};
     			URLClassLoader cLoader = new URLClassLoader (urls, this.getClass().getClassLoader());
-    			Class<?> requestClass = Class.forName(config.requestClassName,true,cLoader);
-    			Class<?> responseClass = Class.forName(config.responseClassName,true,cLoader);
+    			Class<?> requestClass = null;
+    			Class<?> responseClass = null;
+    			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.requestClassName))
+    				requestClass = Class.forName(config.requestClassName,true,cLoader);
+    			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.responseClassName))
+    				responseClass = Class.forName(config.responseClassName,true,cLoader);
     			this.add(client, requestClass, responseClass);
     		} catch (MalformedURLException e) 
     		{

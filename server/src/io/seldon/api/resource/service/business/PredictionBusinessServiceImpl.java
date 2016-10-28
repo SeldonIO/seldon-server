@@ -54,6 +54,9 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	private static final String CLIENT_KEY = "client";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	public static final String PUID_KEY = "puid";
+	public static final String REQUEST_CUSTOM_DATA_FIELD = "data";
+	public static final String REPLY_CUSTOM_DATA_FIELD = "custom";
+
 	
 	@Autowired
 	PredictionService predictionService;
@@ -80,7 +83,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	    JsonFactory factory = mapper.getFactory();
 	    JsonParser parser = factory.createParser(jsonRaw);
 	    JsonNode actualObj = mapper.readTree(parser);
-	    if (addExtraFeatures)
+	    if (addExtraFeatures) // only for events not at predict time
 	    {
 	    	((ObjectNode) actualObj).put(CLIENT_KEY,consumer.getShort_name());
 	    	if (actualObj.get(TIMESTAMP_KEY) == null)

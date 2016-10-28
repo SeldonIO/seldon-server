@@ -40,8 +40,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import io.seldon.api.rpc.PredictReply;
-import io.seldon.api.rpc.PredictRequest;
+import io.seldon.api.rpc.ClassificationReply;
+import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.api.state.PredictionAlgorithmStore;
 import io.seldon.api.state.PredictionAlgorithmStore.Algorithm;
 import io.seldon.api.state.PredictionAlgorithmStore.AlgorithmConfig;
@@ -132,7 +132,7 @@ public class VariationPredictionStrategyTest {
 			}
 
 			@Override
-			public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
+			public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -181,7 +181,7 @@ public class VariationPredictionStrategyTest {
 			}
 
 			@Override
-			public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
+			public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
 				// TODO Auto-generated method stub
 				return null;
 			}

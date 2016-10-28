@@ -36,6 +36,7 @@ class RpcClassifier(seldon_pb2.ClassifierServicer):
             else:
                 indexName = str(index)
             recs_list.append(seldon_pb2.ClassificationResult(prediction=float(proba),predictedClass=indexName,confidence=float(proba)))
-        predictions = seldon_pb2.PredictReply(model=self.model_name,predictions=recs_list)
+        meta = seldon_pb2.ClassificationReplyMeta(modelName=self.model_name)
+        predictions = seldon_pb2.ClassificationReply(meta=meta,predictions=recs_list)
         return predictions
 

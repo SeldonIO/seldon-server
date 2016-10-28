@@ -31,8 +31,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import io.seldon.api.rpc.PredictReply;
-import io.seldon.api.rpc.PredictRequest;
+import io.seldon.api.rpc.ClassificationReply;
+import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionResult;
@@ -118,7 +118,7 @@ public class VwClassifier implements PredictionAlgorithm {
 	}
 
 	@Override
-	public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
+	public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
 		// TODO Auto-generated method stub
 		return null;
 	}

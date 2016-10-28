@@ -9,7 +9,8 @@ stub = seldon_pb2.ClassifierStub(channel)
 data = iris_pb2.IrisPredictRequest(f1=1.0,f2=0.2,f3=2.1,f4=1.2)
 dataAny = any_pb2.Any()
 dataAny.Pack(data)
-request = seldon_pb2.PredictRequest(puid="12345",data=dataAny)
+meta = seldon_pb2.ClassificationRequestMeta(puid="12345")
+request = seldon_pb2.ClassificationRequest(meta=meta,data=dataAny)
 reply = stub.Predict(request)
 print reply
 

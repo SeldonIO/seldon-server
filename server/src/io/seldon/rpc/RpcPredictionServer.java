@@ -1,7 +1,6 @@
 package io.seldon.rpc;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,49 +10,52 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.protobuf.Message;
-import com.google.protobuf.util.JsonFormat;
-import com.google.protobuf.util.JsonFormat.TypeRegistry;
 
 import io.grpc.ManagedChannel;
+import io.seldon.api.rpc.ClassificationReply;
+import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.api.rpc.ClassifierGrpc;
 import io.seldon.api.rpc.ClassifierGrpc.ClassifierBlockingStub;
-import io.seldon.api.rpc.PredictReply;
-import io.seldon.api.rpc.PredictRequest;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionServiceResult;
 import io.seldon.prediction.PredictionsResult;
 
 @Component
-public class RPCPredictionServer implements PredictionAlgorithm {
-	private static Logger logger = Logger.getLogger(RPCPredictionServer.class.getName());
+public class RpcPredictionServer implements PredictionAlgorithm {
+	private static Logger logger = Logger.getLogger(RpcPredictionServer.class.getName());
+	private static final String name = RpcPredictionServer.class.getName();
 	private static final String HOST_PROPERTY_NAME="io.seldon.rpc.microservice.host";
 	private static final String PORT_PROPERTY_NAME="io.seldon.rpc.microservice.port";
 
-	final ClientRPCStore rpcStore;
-	RPCChannelHandler channelHandler;
+	final ClientRpcStore rpcStore;
+	RpcChannelHandler channelHandler;
 	
 	@Autowired
-	public RPCPredictionServer(ClientRPCStore rpcStore,RPCChannelHandler channelHandler){
+	public RpcPredictionServer(ClientRpcStore rpcStore,RpcChannelHandler channelHandler){
         this.rpcStore = rpcStore;
         this.channelHandler = channelHandler;
     }
+	
+	 public String getName()
+	 {
+		 return name;
+	 }
 	
 	@Override
 	public PredictionServiceResult predictFromJSON(String client, JsonNode json, OptionsHolder options) {
 		try
 		{
-			PredictRequest request = rpcStore.getPredictRequestFromJson(client, json);
-			PredictReply reply = predictFromProto(client, request, options);
+			ClassificationRequest request = rpcStore.getPredictRequestFromJson(client, json);
+			ClassificationReply reply = predictFromProto(client, request, options);
 			JsonNode actualObj = rpcStore.getJSONForReply(client, reply);
 			PredictionsResult res = null;
 			JsonNode extraData = null;
 			ObjectMapper mapper = new ObjectMapper();
-			if (actualObj.has("prediction"))
+			if (actualObj.has("predictions"))
 			{
 				ObjectReader reader = mapper.reader(PredictionsResult.class);
-				String predictionStr = actualObj.get("prediction").toString();
+				String predictionStr = actualObj.get("predictions").toString();
 				res = reader.readValue(predictionStr);
 			}
 			if (actualObj.has("custom"))
@@ -68,14 +70,19 @@ public class RPCPredictionServer implements PredictionAlgorithm {
 			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
 			return null;
 		}
+		catch (Exception e)
+		{
+			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
+			return null;
+		}
 		finally{}
 	}
 
 	@Override
-	public PredictReply predictFromProto(String client, PredictRequest request, OptionsHolder options) {
+	public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
 			ManagedChannel channel = channelHandler.getChannel(options.getStringOption(HOST_PROPERTY_NAME), options.getIntegerOption(PORT_PROPERTY_NAME));
 			ClassifierBlockingStub stub =  ClassifierGrpc.newBlockingStub(channel);
-			PredictReply reply =  stub.predict(request);
+			ClassificationReply reply =  stub.predict(request);
 			return reply;
 	}
 
