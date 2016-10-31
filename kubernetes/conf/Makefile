@@ -219,6 +219,13 @@ dev/iago.json :dev/iago.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				> dev/iago.json
 
+rpc/create-proto-jar-job.template.json :rpc/create-proto-jar-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat rpc/create-proto-jar-job.json.in | sed \
+				-e "s|%SELDON_GRPC_UTIL_IMAGE_VERSION%|$${SELDON_GRPC_UTIL_IMAGE_VERSION}|" \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				> rpc/create-proto-jar-job.template.json
+
 
 #
 # glusterfs
@@ -230,7 +237,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json
 
 
 #
@@ -277,3 +284,4 @@ clean:
 	rm -f microservice_pipeline.template
 	rm -f models/stream-itemsim-create.json
 	rm -f models/stream-itemsim-dbupload.json
+	rm -f rpc/create-proto-jar-job.template.json

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+DRY_RUN=${DRY_RUN-false}
+
+ts() {
+    date +"%Y%m%d_%H%M%S"
+}
+
+log() {
+    echo "$(ts) $1"
+}
+
+#From Env
+#${SELDON_SERVER_HOME}
+
+source ${SELDON_SERVER_HOME}/build/build_versions
+TARGET_NAME=seldonio_grpc_util
+IMAGE_NAME=seldonio/grpc-util
+IMAGE_VERSION=${SELDON_GRPC_UTIL_IMAGE_VERSION}
+
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Publishing ${TARGET_NAME}"
+
+    BUILT_IMAGE=$(docker images|grep "${IMAGE_NAME}" | grep ${IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+
+    log "attempting to publish [${BUILT_IMAGE}]"
+
+    docker push ${IMAGE_NAME}:${IMAGE_VERSION}
+
+    log "[BUILD_EVENT:END] published [${BUILT_IMAGE}]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Publishing ${TARGET_NAME}"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished ${TARGET_NAME}"
+fi
+

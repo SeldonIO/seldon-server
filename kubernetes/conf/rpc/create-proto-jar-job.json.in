@@ -1,0 +1,40 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "grpc-util",
+        "labels": {
+            "name": "grpc-util",
+	    "service" : "seldon"
+        }
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "grpc-util"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "grpc-util",
+                        "image": "seldonio/grpc-util:%SELDON_GRPC_UTIL_IMAGE_VERSION%",
+			"command": ["/home/seldon/grpc-util/create-proto-jar.sh","%PROTO_FILE%","%JAR_FILE%"],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}

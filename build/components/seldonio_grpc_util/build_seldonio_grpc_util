@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+DRY_RUN=${DRY_RUN-false}
+
+ts() {
+    date +"%Y%m%d_%H%M%S"
+}
+
+log() {
+    echo "$(ts) $1"
+}
+
+#From Env
+#${SELDON_SERVER_HOME}
+
+if [ "${DRY_RUN}" = "false" ]; then
+    log "[BUILD_EVENT:BEGIN] Building seldonio_grpc_util"
+
+    source ${SELDON_SERVER_HOME}/build/build_versions
+
+    cd ${SELDON_SERVER_HOME}/docker/grpc-util
+    make clean
+    make \
+        SELDON_GRPC_UTIL_IMAGE_VERSION=${SELDON_GRPC_UTIL_IMAGE_VERSION} \
+        build_image
+    make clean
+
+    BUILT_IMAGE=$(docker images|grep seldonio/grpc-util|grep ${SELDON_GRPC_UTIL_IMAGE_VERSION}|awk '{printf "%s:%s",$1,$2}')
+    log "[BUILD_EVENT:END]  Finished seldonio_grpc_util, built[$BUILT_IMAGE]"
+else
+    log "[BUILD_EVENT:BEGIN] [DRY_RUN] Building seldonio_grpc_util"
+    log "[BUILD_EVENT:END] [DRY_RUN] Finished seldonio_grpc_util"
+fi
+
+
