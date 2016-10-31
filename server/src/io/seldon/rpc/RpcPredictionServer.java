@@ -18,6 +18,7 @@ import io.seldon.api.rpc.ClassifierGrpc;
 import io.seldon.api.rpc.ClassifierGrpc.ClassifierBlockingStub;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
+import io.seldon.prediction.PredictionMetadata;
 import io.seldon.prediction.PredictionServiceResult;
 import io.seldon.prediction.PredictionsResult;
 
@@ -49,20 +50,12 @@ public class RpcPredictionServer implements PredictionAlgorithm {
 			ClassificationRequest request = rpcStore.getPredictRequestFromJson(client, json);
 			ClassificationReply reply = predictFromProto(client, request, options);
 			JsonNode actualObj = rpcStore.getJSONForReply(client, reply);
-			PredictionsResult res = null;
-			JsonNode extraData = null;
+			PredictionServiceResult res = null;
 			ObjectMapper mapper = new ObjectMapper();
-			if (actualObj.has("predictions"))
-			{
-				ObjectReader reader = mapper.reader(PredictionsResult.class);
-				String predictionStr = actualObj.get("predictions").toString();
-				res = reader.readValue(predictionStr);
-			}
-			if (actualObj.has("custom"))
-			{
-				extraData = actualObj.get("custom");
-			}
-			return new PredictionServiceResult(res, extraData);
+			ObjectReader reader = mapper.reader(PredictionServiceResult.class);
+			res = reader.readValue(actualObj);
+			return res;
+			
 		} catch (JsonProcessingException e) {
 			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
 			return null;

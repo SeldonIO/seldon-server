@@ -32,7 +32,7 @@ def do_predict():
     print input
     pw = current_app.config["seldon_pipeline_wrapper"]
     pipeline = current_app.config["seldon_pipeline"]
-    df = pw.create_dataframe(input["json"])
+    df = pw.create_dataframe(input["json"]["data"])
     preds = pipeline.predict_proba(df)
     idMap = pipeline._final_estimator.get_class_id_map()
     formatted_recs_list=[]
@@ -46,6 +46,6 @@ def do_predict():
             "predictedClass": indexName,
             "confidence" : str(proba)
         })
-    ret = { "prediction" :{"predictions": formatted_recs_list , "model" : current_app.config['seldon_model_name'] } }
+    ret = { "predictions": formatted_recs_list , "meta": {"modelName" : current_app.config['seldon_model_name']}}
     json = jsonify(ret)
     return json

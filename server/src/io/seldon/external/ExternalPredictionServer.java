@@ -205,21 +205,10 @@ public class ExternalPredictionServer implements GlobalConfigUpdateListener, Pre
     	try
     	{
     		JsonNode actualObj = predict(client, jsonNode, options);
-    		PredictionsResult res = null;
-    		JsonNode extraData = null;
-    		if (actualObj.has("predictions"))
-    		{
-    			ObjectReader reader = mapper.reader(PredictionsResult.class);
-    			String predictionStr = actualObj.get("prediction").toString();
-    			res = reader.readValue(predictionStr);
-    		}
-    		if (actualObj.has("custom"))
-    		{
-    			extraData = actualObj.get("custom");
-    		}
-		
-		
-    		return new PredictionServiceResult(res, extraData);
+    		ObjectMapper mapper = new ObjectMapper();
+			ObjectReader reader = mapper.reader(PredictionServiceResult.class);
+			PredictionServiceResult res = reader.readValue(actualObj);
+			return res;
     		} catch (JsonProcessingException e) {
     			logger.error("Couldn't retrieve prediction from external prediction server - ", e);
     			throw new APIException(APIException.GENERIC_ERROR);

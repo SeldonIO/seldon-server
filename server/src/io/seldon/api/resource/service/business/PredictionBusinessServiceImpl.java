@@ -45,6 +45,7 @@ import io.seldon.api.resource.EventBean;
 import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.service.ApiLoggerServer;
 import io.seldon.prediction.PredictionService;
+import io.seldon.prediction.PredictionServiceResult;
 
 @Component
 public class PredictionBusinessServiceImpl implements PredictionBusinessService {
@@ -182,7 +183,7 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	}
 
 	@Override
-	public JsonNode predict(ConsumerBean consumer, String puid, String jsonRaw) {
+	public PredictionServiceResult predict(ConsumerBean consumer, String puid, String jsonRaw) {
 		
 		
 		try
@@ -194,25 +195,30 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		catch (IOException e) 
 		{
 			ApiLoggerServer.log(this, e);
+			/*
 			APIException apiEx = new APIException(APIException.INVALID_JSON);
 			ResourceBean responseBean = new ErrorBean(apiEx);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode response = mapper.valueToTree(responseBean);
 			return response;
+			*/
+			return new PredictionServiceResult();
 		}
 		catch (APIException e)
 		{
+			/*
 			ApiLoggerServer.log(this, e);
 			ResourceBean responseBean = new ErrorBean(e);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode response = mapper.valueToTree(responseBean);
 			return response;
-
+			*/
+			return new PredictionServiceResult();
 		}
 	}
 
 	@Override
-	public JsonNode predict(ConsumerBean consumerBean, Map<String, String[]> parameters) {
+	public PredictionServiceResult predict(ConsumerBean consumerBean, Map<String, String[]> parameters) {
 		String puid = null;
 		if (parameters.containsKey(PUID_KEY))
 			puid = parameters.get(PUID_KEY)[0];
@@ -242,12 +248,16 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 			try {
 				String jsonRaw = mapper.writeValueAsString(keyVals);
 				return predict(consumerBean, puid, jsonRaw);
-			} catch (IOException e) {
+			} catch (IOException e) 
+			{
 				ApiLoggerServer.log(this, e);
+				/*
 				APIException apiEx = new APIException(APIException.INVALID_JSON);
 				ResourceBean responseBean = new ErrorBean(apiEx);
 				JsonNode response = mapper.valueToTree(responseBean);
 				return response;
+				*/
+				return new PredictionServiceResult();
 			}
 		}
 	}

@@ -78,8 +78,8 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     	JsonParser parser = factory.createParser(result);
     	JsonNode jNode = mapper.readTree(parser);
     	System.out.println(jNode);
-    	//if (jNode.has(fieldname) && jNode.get(fieldname).has("@type"))
-    	//	((ObjectNode) jNode.get(fieldname)).remove("@type");
+    	if (jNode.has(fieldname) && jNode.get(fieldname).has("@type"))
+    		((ObjectNode) jNode.get(fieldname)).remove("@type");
     	return jNode;
     }
 

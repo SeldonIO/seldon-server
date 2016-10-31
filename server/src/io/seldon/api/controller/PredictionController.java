@@ -41,6 +41,7 @@ import io.seldon.api.resource.ResourceBean;
 import io.seldon.api.resource.service.business.PredictionBusinessService;
 import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
 import io.seldon.api.service.ResourceServer;
+import io.seldon.prediction.PredictionServiceResult;
 
 @Controller
 public class PredictionController {
@@ -70,7 +71,7 @@ public class PredictionController {
 	
 	@RequestMapping(value="/predict", method = RequestMethod.POST)
 	public @ResponseBody
-    JsonNode prediction(@RequestBody String json, HttpServletRequest req) {
+    PredictionServiceResult prediction(@RequestBody String json, HttpServletRequest req) {
 		Date start = new Date();
 		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean responseBean;
@@ -80,10 +81,13 @@ public class PredictionController {
             return predictionBusinessService.predict((ConsumerBean)con, puid,json);
         }
 		else {
+			/*
 			responseBean = con;
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode response = mapper.valueToTree(responseBean);
 			return response;
+			*/
+			return new PredictionServiceResult();
 		}
 		//FIXME
 		//ApiLogger.log("events",start,new Date(),con,responseBean,req);

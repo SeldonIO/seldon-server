@@ -175,9 +175,14 @@ public class ItemSimilarityProcessor {
 					String date = sdf.format(time*1000);
 					System.out.println("getting similarities at "+date);
 					List<JaccardSimilarity> res = streamJaccard.getSimilarity(time);
-					System.out.println("Results size "+res.size()+" Sending messages..");
-					sendMessages(res, time);
-					System.out.println("Sent messages");
+					if (res.size() > 0)
+					{
+						System.out.println("Results size "+res.size()+" Sending messages..");
+						sendMessages(res, time);
+						System.out.println("Sent messages");
+					}
+					else
+						System.out.println("Results size "+res.size()+" Not sending messages");
 					ItemSimilarityProcessor.this.lastTime = time;
 				}
 				ItemSimilarityProcessor.this.count++;

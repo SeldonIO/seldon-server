@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ResourceBean;
+import io.seldon.prediction.PredictionServiceResult;
 
 
 
@@ -35,6 +36,6 @@ public interface PredictionBusinessService {
 
 	ResourceBean addEvent(ConsumerBean consumerBean,Map<String,String[]> parameters);
 	ResourceBean addEvent(ConsumerBean consumerBean,String json);
-	JsonNode predict(ConsumerBean consumerBean,Map<String,String[]> parameters);
-	JsonNode predict(ConsumerBean consumerBean,String puid,String json);
+	PredictionServiceResult predict(ConsumerBean consumerBean,Map<String,String[]> parameters);
+	PredictionServiceResult predict(ConsumerBean consumerBean,String puid,String json);
 }

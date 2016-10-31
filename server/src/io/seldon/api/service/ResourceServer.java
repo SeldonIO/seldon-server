@@ -47,6 +47,14 @@ public class ResourceServer {
 
 	@Autowired
 	private AuthorizationServer authorizationServer;
+	
+	
+	public ConsumerBean validateResourceFromToken(String tokenKey)
+	{
+		TokenBean t = authorizationServer.getTokenBeanFromKey(tokenKey);
+		return new ConsumerBean(t);
+	}
+	
 	/**
 	 * @return Resource r
 	 * @throws io.seldon.api.APIException

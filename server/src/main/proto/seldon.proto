@@ -34,6 +34,7 @@ message ClassificationReply {
 message ClassificationReplyMeta {
   string puid = 1;
   string modelName = 2;
+  string variation = 3;
 }
 
 message ClassificationResult {

@@ -112,8 +112,7 @@ public class VwClassifier implements PredictionAlgorithm {
 					predictions.get(0).predictedClass = "-1";
 					
 			
-			PredictionsResult pr = new PredictionsResult(normalise(predictions));
-			return new PredictionServiceResult(pr,null);
+			return new PredictionServiceResult(null,normalise(predictions),null);
 		}
 	}
 

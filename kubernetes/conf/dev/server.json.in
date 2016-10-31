@@ -50,12 +50,17 @@
                                 "ports": [
                                     {
                                         "name": "api",
-                                                            "containerPort": 8080,
-                                                            "protocol": "TCP"
-                                                        },
-                                                        {
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    },
+                                    {
                                         "name": "debug",
                                         "containerPort": 8000,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "name": "rpc",
+                                        "containerPort": 5000,
                                         "protocol": "TCP"
                                     }
                                 ],
@@ -144,6 +149,13 @@
                         "port": 8000,
                         "targetPort": 8000,
 			"nodePort": %SELDON_SERVER_DEBUG_NODEPORT%
+                    },
+                    {
+			"name":"rpc",
+                        "protocol": "TCP",
+                        "port": 5000,
+                        "targetPort": 5000,
+			"nodePort": %SELDON_SERVER_RPC_NODEPORT%
                     }
                 ],
                 "selector": {

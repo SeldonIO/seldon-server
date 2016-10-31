@@ -207,6 +207,25 @@ public class AuthorizationServer implements DbConfigListener {
 		return consumer;
 	}
 	
+	public TokenBean getTokenBeanFromKey(String tokenKey)
+	{
+		TokenBean res = (TokenBean) MemCachePeer.get(MemCacheKeys.getTokenBeanKey(tokenKey));
+		if(res==null) {
+			Token t = tokenPeer.findToken(tokenKey);
+			//if token not existing
+			if(t == null) {
+				throw new APIException(APIException.NOT_VALID_TOKEN_KEY);
+			}
+			
+			//if token expired or no longer valid
+			if(tokenPeer.isExpired(t)) {
+				throw new APIException(APIException.NOT_VALID_TOKEN_EXPIRED);
+			}
+			res = new TokenBean(t);
+		}
+		return res;
+	}
+	
 	public TokenBean isTokenValid(HttpServletRequest req) throws APIException {
 		//init
 		String tokenKey = null;
