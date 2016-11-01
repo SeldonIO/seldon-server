@@ -88,6 +88,8 @@ def action_show(command_data, opts):
     data_keys.sort()
     for data_key in data_keys:
         data_value = data[data_key]
+        data_value = "true" if data_value == True else data_value
+        data_value = "false" if data_value == False else data_value
         line = "    {data_key}: {data_value}".format(**locals())
         print line
 
