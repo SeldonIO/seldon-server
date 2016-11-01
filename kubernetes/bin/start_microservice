@@ -1,0 +1,249 @@
+#!/usr/bin/env python
+import os
+import sys, getopt, argparse
+import logging
+import json
+from subprocess import call
+import collections
+
+REC_VARIATIONS_CONFIG = """
+{
+    "defaultStrategy": {
+        "variations":[
+         ]
+     },
+    "recTagToStrategy": {}
+}
+"""
+
+
+REC_ALG_CONFIG = """
+{
+   "config": {
+   "algorithms": [
+   {
+    "config": [
+         {
+           "name": "io.seldon.algorithm.inclusion.itemsperincluder",
+           "value": 1000
+         },
+         {
+           "name": "io.seldon.algorithm.external.url",
+           "value": "http://${NAME}:5000/recommend"
+         },
+         {
+           "name": "io.seldon.algorithm.external.name",
+           "value": "${NAME}"
+         }
+       ],
+      "filters": [],
+      "includers": [
+         "recentItemsIncluder"
+       ],
+       "name": "externalItemRecommendationAlgorithm"
+       }
+     ],
+    "combiner": "firstSuccessfulCombiner"
+    },
+   "label": "${NAME}",
+   "ratio": 1.0
+}
+"""
+
+REC_CMD_SET = """cat <<EOF | seldon-cli rec_alg --action create --client-name ${CLIENT} -f -
+${JSON}
+EOF
+"""
+
+REC_CMD_COMMIT = "seldon-cli rec_alg --action commit --client-name ${CLIENT}"
+
+PRED_VARIATIONS_CONFIG = """
+{
+    "variations": 
+    [
+    ]
+}
+"""
+
+PRED_ALG_REST_CONFIG = """
+        {
+            "config": {
+                "algorithms": [
+                    {
+                        "config": [
+                            {
+                                "name": "io.seldon.algorithm.external.url",
+                                "value": "http://${NAME}:5000/predict"
+                            },
+                            {
+                                "name": "io.seldon.algorithm.external.name",
+                                "value": "${NAME}"
+                            }
+                        ],
+                        "name": "${TYPE}"
+                    }
+                ]
+            },
+            "label": "${NAME1}",
+            "ratio": 1.0
+        }
+"""
+
+PRED_ALG_RPC_CONFIG = """
+        {
+            "config": {
+                "algorithms": [
+                    {
+                        "config": [
+                            {
+                                "name": "io.seldon.rpc.microservice.host",
+                                "value": "${NAME}"
+                            },
+                            {
+                                "name": "io.seldon.rpc.microservice.port",
+                                "value": "5000"
+                            }
+                        ],
+                        "name": "${TYPE}"
+                    }
+                ]
+            },
+            "label": "${NAME}",
+            "ratio": 1.0
+        }
+"""
+
+PRED_CMD_SET = """cat <<EOF | seldon-cli predict_alg --action create --client-name ${CLIENT} -f -
+${JSON}
+EOF
+"""
+PRED_CMD_COMMIT = "seldon-cli predict_alg --action commit --client-name ${CLIENT}"
+
+predAlgsConfig = {"rest" : json.loads(PRED_ALG_REST_CONFIG), "rpc" : json.loads(PRED_ALG_RPC_CONFIG) }
+predAlgClass = {"rest" : "externalPredictionServer", "rpc" : "rpcPredictionServer" }
+
+MICRO_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
+
+KUBECTL_CMD_APPLY = 'kubectl apply -f ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
+
+class MicroserviceError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class MicroserviceRunner(object):
+
+    def __init__(self):
+        self.script_folder = os.path.dirname(os.path.realpath(__file__))
+    
+    def kubectl_create_microservice(self,name,image):
+        cmd = MICRO_JSON_CMD.replace("${NAME}",name).replace("${IMAGE}",image).replace("${STARTUP_DIR}",self.script_folder)
+        retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise MicroserviceError("failed to create JSON for "+name)
+        cmd = KUBECTL_CMD_APPLY.replace("${NAME}",name).replace("${STARTUP_DIR}",self.script_folder)
+        retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise MicroserviceError("failed to run kubectl apply for "+name)
+
+    def checkArgs(self,args):
+        ratio_sum = 0
+        for service in args.i:
+            ratio_sum += service.ratio
+        if not ratio_sum == 1.0:
+            raise ValueError("The ratio sum must add up to 1.0")
+
+    def recommendCreate(self,client,microservices):
+        variations = json.loads(REC_VARIATIONS_CONFIG)
+        for service in microservices:
+            alg_config = json.loads(REC_ALG_CONFIG)
+            alg_config["ratio"] = service.ratio
+            alg_config["label"] = service.name
+            alg_config["config"]["algorithms"][0]["config"][1]["value"] = alg_config["config"]["algorithms"][0]["config"][1]["value"].replace("${NAME}",service.name)
+            alg_config["config"]["algorithms"][0]["config"][2]["value"] = service.name
+            variations["defaultStrategy"]["variations"].append(alg_config)
+        cmd = REC_CMD_SET.replace("${CLIENT}",client).replace("${JSON}",json.dumps(variations))
+        retcode = call(cmd, shell=True)
+
+    def recommendCommit(self,client):
+        cmd = REC_CMD_COMMIT.replace("${CLIENT}",client)
+        retcode = call(cmd, shell=True)
+
+    def predictCreate(self,client,microservices):
+        variations = json.loads(PRED_VARIATIONS_CONFIG)
+
+        for service in microservices:
+            self.kubectl_create_microservice(service.name,service.image)
+            alg_config = predAlgsConfig[service.type]
+            alg_config["ratio"] = service.ratio
+            alg_config["label"] = service.name
+            alg_config["config"]["algorithms"][0]["name"] = predAlgClass[service.type]
+            if service.type == "rpc":
+                alg_config["config"]["algorithms"][0]["config"][0]["value"] = service.name
+            elif service.type == "rest":
+                alg_config["config"]["algorithms"][0]["config"][0]["value"] = alg_config["config"]["algorithms"][0]["config"][0]["value"].replace("${NAME}",service.name)
+                alg_config["config"]["algorithms"][0]["config"][1]["value"] = service.name
+            variations["variations"].append(alg_config)
+        cmd = PRED_CMD_SET.replace("${CLIENT}",client).replace("${JSON}",json.dumps(variations))
+        retcode = call(cmd, shell=True)
+
+    def predictCommit(self,client):
+        cmd = PRED_CMD_COMMIT.replace("${CLIENT}",client)
+        retcode = call(cmd, shell=True)
+
+    def run(self,type,client,microservices):
+        if type == "recommendation":
+            self.recommendCreate(client,microservices)
+            self.recommendCommit(client)
+        else:
+            self.predictCreate(client,microservices)
+            self.predictCommit(client)
+
+class Microservice(object):
+
+    def __init__(self,name,image,type,ratio):
+        self.name = name
+        self.image = image
+        self.type = type
+        self.ratio = ratio
+
+    def __repr__(self):
+        return "Microservice(%s,%s,%s,%f)" % (self.name,self.image,self.type,self.ratio)
+
+    def __str__(self):
+        return "Microservice(%s,%s,%s,%f)" % (self.name,self.image,self.type,self.ratio)
+
+
+class ValidateDefn(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        valid_types = ('rest', 'rpc')
+        name, image, mtype, ratio = values
+        if mtype not in valid_types:
+            raise ValueError('invalid microservice API {s!r}'.format(s=subject))
+        ratio = float(ratio)
+        microservice = Microservice(name, image, mtype, ratio)
+        current = getattr(args, self.dest)
+        if current is None:
+            current = []
+        current.append(microservice)
+        setattr(args, self.dest, current)
+
+if __name__ == '__main__':
+    import logging
+    logger = logging.getLogger()
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
+    logger.setLevel(logging.INFO)
+
+    parser = argparse.ArgumentParser(prog='create_replay')
+    parser.add_argument('-i', help='microservice defn: name image API ratio',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateDefn)
+    parser.add_argument('--client', help='client name',required=True)
+    parser.add_argument('--type', help='microservice type',choices=['recommendation','prediction'],required=True)
+
+    args = parser.parse_args()
+    opts = vars(args)
+
+    
+    runner = MicroserviceRunner()
+    runner.checkArgs(args)
+    runner.run(args.type,args.client,args.i)

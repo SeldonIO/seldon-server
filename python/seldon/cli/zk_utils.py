@@ -97,3 +97,7 @@ def node_get(zk_client, node_path):
         theValue = theValue[0]
     return theValue.strip() if theValue != None else theValue
 
+def node_delete(zk_client, node_path):
+    if zk_client.exists(node_path):
+        retVal = zk_client.delete(node_path)
+        print "deleted zk node[{node_path}]".format(node_path=node_path)

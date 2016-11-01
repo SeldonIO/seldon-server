@@ -27,25 +27,23 @@ import com.google.protobuf.util.JsonFormat.TypeRegistry;
 import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
 import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationRequest;
-import io.seldon.mf.PerClientExternalLocationListener;
-import io.seldon.resources.external.NewResourceNotifier;
+import io.seldon.api.state.ClientConfigHandler;
+import io.seldon.api.state.ClientConfigUpdateListener;
 
 
 @Component
-public class ClientRpcStore implements PerClientExternalLocationListener  {
+public class ClientRpcStore implements ClientConfigUpdateListener  {
 	
 	private static Logger logger = Logger.getLogger(ClientRpcStore.class.getName());
-    public static final String FILTER_NEW_RPC_PATTERN = "rpc";
-    public final NewResourceNotifier notifier;
-    
+    public static final String RPC_KEY = "rpc";
+
      
     ConcurrentHashMap<String,RPCConfig> services = new ConcurrentHashMap<String, ClientRpcStore.RPCConfig>();
 
     @Autowired
-    public ClientRpcStore(NewResourceNotifier notifier) {
+    public ClientRpcStore(ClientConfigHandler configHandler) {
 		logger.info("starting up");
-		this.notifier = notifier;
-		notifier.addListener(FILTER_NEW_RPC_PATTERN, this);
+		configHandler.addListener(this);
 	}
     
     public RPCConfig getRPCConfig(String client)
@@ -62,7 +60,7 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     {
     	RPCConfig config = new RPCConfig();
     	config.requestClass = requestClass;
-    	config.responseClass = responseClass;
+    	config.replyClass = responseClass;
     	services.put(client, config);
     }
     
@@ -128,9 +126,9 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     	{
     		try
     		{
-    			if (config.responseClass != null)
+    			if (config.replyClass != null)
     			{
-    				Method m = config.responseClass.getMethod("newBuilder");
+    				Method m = config.replyClass.getMethod("newBuilder");
     				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
     			}
     			else
@@ -155,11 +153,11 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     		try
     		{
     			TypeRegistry registry = null;
-    			if (config.responseClass != null && json.has(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD))
+    			if (config.replyClass != null && json.has(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD))
     			{
     				if (!json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD).has("@type"))
-    					((ObjectNode) json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.responseClass.getName());
-    				Method m = config.responseClass.getMethod("newBuilder");
+    					((ObjectNode) json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.replyClass.getName());
+    				Method m = config.replyClass.getMethod("newBuilder");
     				Message.Builder o = (Message.Builder) m.invoke(null);
     				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
     			}
@@ -218,14 +216,14 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     	}
     }
     
-    private void createClientConfig(String client,String key,String data) 
+    private void createClientConfig(String client,String data) 
     {
     	try
     	{
     		ObjectMapper mapper = new ObjectMapper();
     		RPCZkConfig config = mapper.readValue(data, RPCZkConfig.class);
 
-    		File f = new File(config.jarUrl);
+    		File f = new File(config.jarFilename);
     		try
     		{
     			URL myURL = f.toURI().toURL();
@@ -235,12 +233,12 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     			Class<?> responseClass = null;
     			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.requestClassName))
     				requestClass = Class.forName(config.requestClassName,true,cLoader);
-    			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.responseClassName))
-    				responseClass = Class.forName(config.responseClassName,true,cLoader);
+    			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.replyClassName))
+    				responseClass = Class.forName(config.replyClassName,true,cLoader);
     			this.add(client, requestClass, responseClass);
     		} catch (MalformedURLException e) 
     		{
-    			logger.error("Bad url "+config.jarUrl,e);
+    			logger.error("Bad url "+config.jarFilename,e);
 			} catch (ClassNotFoundException e) {
 				logger.error("Failed to load class ",e);
 			}
@@ -255,28 +253,33 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
     	finally{}
     }
     
-	
+    @Override
+	public void configUpdated(String client, String configKey, String configValue) {
+    	if (configKey.equals(RPC_KEY))
+    	{
+    		logger.info("New client location "+client+" at "+configKey+" value "+configValue);
+    		if (org.apache.commons.lang.StringUtils.isNotEmpty(configValue))
+    		{
+    			this.createClientConfig(client, configValue);
+    		}
+    		else
+    		{
+    			logger.warn("Ignoring as no data provided "+configValue+" for client "+client);
+    		}
+    	}
 
-	@Override
-	public void newClientLocation(String client, String data, String nodePattern) 
-	{
-		logger.info("New client location "+client+" at "+data+" node pattern "+nodePattern);
-		if (org.apache.commons.lang.StringUtils.isNotEmpty(data))
-		{
-			this.createClientConfig(client, nodePattern, data);
-		}
-		else
-		{
-			logger.warn("Ignoring as no data provided "+nodePattern+" for client "+client);
-		}
 	}
 
 	@Override
-	public void clientLocationDeleted(String client, String nodePattern) 
-	{
-		logger.info("Client location deleted "+client+" at "+nodePattern);
+	public void configRemoved(String client, String configKey) {
+
+    	if (configKey.equals(RPC_KEY))
+    	{
+    		logger.info("Removing client "+client);
+    		services.remove(client);
+    	}		
 	}
-	
+
 	public static class RPCConfigMap
 	{
 		public ConcurrentHashMap<String, RPCConfig> nameMap;
@@ -290,13 +293,15 @@ public class ClientRpcStore implements PerClientExternalLocationListener  {
 
 	public static class RPCConfig {
 		public Class<?> requestClass;
-		public Class<?> responseClass;
+		public Class<?> replyClass;
 	}
 	
 	public static class RPCZkConfig {
-		public String jarUrl;
+		public String jarFilename;
 		public String requestClassName;
-		public String responseClassName;
+		public String replyClassName;
 		
 	}
+
+	
 }

@@ -194,8 +194,6 @@ public class PredictionAlgorithmStore implements ApplicationContextAware,ClientC
 			predictionStore.remove(client);
 			logger.info("Removed client "+client+" from "+ALG_KEY);
 		}
-		else
-			logger.warn("Ignored unknown config remove for "+client+" with key "+configKey);
 	}
 
 	@Override

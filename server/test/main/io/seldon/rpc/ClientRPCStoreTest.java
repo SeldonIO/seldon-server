@@ -22,28 +22,29 @@ import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.api.rpc.ClassificationRequestMeta;
 import io.seldon.api.rpc.example.CustomPredictReply;
 import io.seldon.api.rpc.example.CustomPredictRequest;
+import io.seldon.api.state.ClientConfigHandler;
+import io.seldon.api.state.ClientConfigUpdateListener;
 import io.seldon.mf.PerClientExternalLocationListener;
-import io.seldon.resources.external.NewResourceNotifier;
 import junit.framework.Assert;
 
 public class ClientRPCStoreTest {
 	
-	private NewResourceNotifier mockNewResourceNotifier;
+	private ClientConfigHandler mockClientConfigHandler;
 	
 	@Before
 	public void createMocks()
 	{
-		mockNewResourceNotifier = createMock(NewResourceNotifier.class);
+		mockClientConfigHandler = createMock(ClientConfigHandler.class);
 	}
 	
 	@Test
 	public void testGetPredictReplyFromJson() throws JsonParseException, IOException
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		final String json = "{\"meta\":{\"modelName\":\"some-name\"},\"custom\":{\"@type\":\"type.googleapis.com/io.seldon.api.rpc.example.CustomPredictReply\",\"data\":\"some custom data\"}}";
 		ObjectMapper mapper = new ObjectMapper();
 	    JsonFactory factory = mapper.getFactory();
@@ -58,11 +59,11 @@ public class ClientRPCStoreTest {
 	@Test
 	public void testGetPredictReplyFromJsonWithNoType() throws JsonParseException, IOException
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		final String json = "{\"meta\":{\"modelName\":\"some-name\"},\"custom\":{\"data\":\"some custom data\"}}";
 		ObjectMapper mapper = new ObjectMapper();
 	    JsonFactory factory = mapper.getFactory();
@@ -78,11 +79,11 @@ public class ClientRPCStoreTest {
 	@Test
 	public void testGetPredictRequestFromJson() throws JsonParseException, IOException
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		final String json = "{\"meta\":{\"puid\":1234},\"data\":{\"@type\":\"type.googleapis.com/io.seldon.api.rpc.example.CustomPredictRequest\",\"data\":[1.2]}}";
 		ObjectMapper mapper = new ObjectMapper();
 	    JsonFactory factory = mapper.getFactory();
@@ -97,11 +98,11 @@ public class ClientRPCStoreTest {
 	@Test
 	public void testGetPredictRequestFromJsonWithNoType() throws JsonParseException, IOException
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		final String json = "{\"meta\":{\"puid\":1234},\"data\":{\"data\":[1.2]}}";
 		ObjectMapper mapper = new ObjectMapper();
 	    JsonFactory factory = mapper.getFactory();
@@ -115,11 +116,11 @@ public class ClientRPCStoreTest {
 	@Test 
 	public void testRequestToJSON() throws JsonParseException, IOException
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictRequest customRequest =  CustomPredictRequest.newBuilder().addData(1.0f).build();
 		store.add(client, customRequest.getClass(), null);
 		Any anyMsg = Any.pack(customRequest);
@@ -139,11 +140,11 @@ public class ClientRPCStoreTest {
 	@Test 
 	public void testMissingCustomRequesToJSON() throws JsonParseException, IOException
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictRequest customRequest =  CustomPredictRequest.newBuilder().addData(1.0f).build();
 		store.add(client, customRequest.getClass(), null);
 		ClassificationRequestMeta meta = ClassificationRequestMeta.newBuilder().setPuid("1234").build();
@@ -157,11 +158,11 @@ public class ClientRPCStoreTest {
 	@Test 
 	public void testResponseToJSON()
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictReply customResponse =  CustomPredictReply.newBuilder().setData("some value").build();
 		store.add(client, null, customResponse.getClass());
 		Any anyMsg = Any.pack(customResponse);
@@ -176,11 +177,11 @@ public class ClientRPCStoreTest {
 	@Test 
 	public void testMissingCustomResponse()
 	{
-		mockNewResourceNotifier.addListener((String) EasyMock.anyObject(), (PerClientExternalLocationListener) EasyMock.anyObject());
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
-		replay(mockNewResourceNotifier);
+		replay(mockClientConfigHandler);
 		final String client = "test";
-		ClientRpcStore store = new ClientRpcStore(mockNewResourceNotifier);
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictReply customResponse =  CustomPredictReply.newBuilder().setData("some value").build();
 		store.add(client, null, customResponse.getClass());
 		ClassificationReplyMeta meta = ClassificationReplyMeta.newBuilder().setPuid("1234").build();
