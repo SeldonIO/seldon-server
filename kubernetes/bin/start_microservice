@@ -227,6 +227,7 @@ class ValidateDefn(argparse.Action):
         if current is None:
             current = []
         current.append(microservice)
+        print current
         setattr(args, self.dest, current)
 
 if __name__ == '__main__':

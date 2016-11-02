@@ -3,6 +3,8 @@ FROM continuumio/anaconda:4.1.1
 ENV HOME /root
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN conda install  -f  numpy
+
 RUN \
     apt-get update && \
     apt-get -y -q install build-essential automake autoconf libxmu-dev g++ gcc libpthread-stubs0-dev libtool libboost-program-options-dev libboost-python-dev zlib1g-dev libc6 libgcc1 libstdc++6 libblas-dev liblapack-dev git telnet procps memcached libmemcached-dev mysql-client-5.5 mysql-common libmysqlclient-dev unzip

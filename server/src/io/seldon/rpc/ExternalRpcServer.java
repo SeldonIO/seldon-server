@@ -135,7 +135,7 @@ public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase impleme
 	 /** Start serving requests. */
 	  public void start() throws IOException {
 	    server.start();
-	    System.out.println("Server started, listening on ");
+	    logger.info("Server started");
 	    Runtime.getRuntime().addShutdownHook(new Thread() {
 	      @Override
 	      public void run() 

@@ -38,7 +38,7 @@ public class ClientRPCStoreTest {
 	}
 	
 	@Test
-	public void testGetPredictReplyFromJson() throws JsonParseException, IOException
+	public void testGetPredictReplyFromJson() throws JsonParseException, IOException, NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -50,14 +50,14 @@ public class ClientRPCStoreTest {
 	    JsonFactory factory = mapper.getFactory();
 	    JsonParser parser = factory.createParser(json);
 	    JsonNode actualObj = mapper.readTree(parser);
-		store.add(client, null, CustomPredictReply.class);			
+		store.add(client, null, CustomPredictReply.class,null,CustomPredictReply.class.getMethod("newBuilder"));			
 		ClassificationReply reply = store.getPredictReplyFromJson(client, actualObj);
 		Assert.assertNotNull(reply);
 		System.out.println(reply);
 	}
 	
 	@Test
-	public void testGetPredictReplyFromJsonWithNoType() throws JsonParseException, IOException
+	public void testGetPredictReplyFromJsonWithNoType() throws JsonParseException, IOException, NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -69,7 +69,7 @@ public class ClientRPCStoreTest {
 	    JsonFactory factory = mapper.getFactory();
 	    JsonParser parser = factory.createParser(json);
 	    JsonNode actualObj = mapper.readTree(parser);
-		store.add(client, null, CustomPredictReply.class);			
+		store.add(client, null, CustomPredictReply.class,null,CustomPredictReply.class.getMethod("newBuilder"));			
 		ClassificationReply reply = store.getPredictReplyFromJson(client, actualObj);
 		Assert.assertNotNull(reply);
 		System.out.println(reply);
@@ -77,7 +77,7 @@ public class ClientRPCStoreTest {
 	
 	
 	@Test
-	public void testGetPredictRequestFromJson() throws JsonParseException, IOException
+	public void testGetPredictRequestFromJson() throws JsonParseException, IOException, NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -89,14 +89,14 @@ public class ClientRPCStoreTest {
 	    JsonFactory factory = mapper.getFactory();
 	    JsonParser parser = factory.createParser(json);
 	    JsonNode actualObj = mapper.readTree(parser);
-		store.add(client, CustomPredictRequest.class,null);			
+		store.add(client, CustomPredictRequest.class,null,CustomPredictRequest.class.getMethod("newBuilder"),null);			
 		ClassificationRequest request = store.getPredictRequestFromJson(client, actualObj);
 		Assert.assertNotNull(request);
 		System.out.println(request);
 	}
 	
 	@Test
-	public void testGetPredictRequestFromJsonWithNoType() throws JsonParseException, IOException
+	public void testGetPredictRequestFromJsonWithNoType() throws JsonParseException, IOException, NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -108,13 +108,13 @@ public class ClientRPCStoreTest {
 	    JsonFactory factory = mapper.getFactory();
 	    JsonParser parser = factory.createParser(json);
 	    JsonNode actualObj = mapper.readTree(parser);
-		store.add(client, CustomPredictRequest.class,null);			
+		store.add(client, CustomPredictRequest.class,null,CustomPredictRequest.class.getMethod("newBuilder"),null);			
 		ClassificationRequest request = store.getPredictRequestFromJson(client, actualObj);
 		Assert.assertNotNull(request);
 		System.out.println(request);
 	}
 	@Test 
-	public void testRequestToJSON() throws JsonParseException, IOException
+	public void testRequestToJSON() throws JsonParseException, IOException, NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -122,7 +122,7 @@ public class ClientRPCStoreTest {
 		final String client = "test";
 		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictRequest customRequest =  CustomPredictRequest.newBuilder().addData(1.0f).build();
-		store.add(client, customRequest.getClass(), null);
+		store.add(client, customRequest.getClass(), null,customRequest.getClass().getMethod("newBuilder"),null);
 		Any anyMsg = Any.pack(customRequest);
 		ClassificationRequestMeta meta = ClassificationRequestMeta.newBuilder().setPuid("1234").build();
 		ClassificationRequest request = ClassificationRequest.newBuilder().setMeta(meta).setData(anyMsg).build();
@@ -138,7 +138,7 @@ public class ClientRPCStoreTest {
 	}
 	
 	@Test 
-	public void testMissingCustomRequesToJSON() throws JsonParseException, IOException
+	public void testMissingCustomRequesToJSON() throws JsonParseException, IOException, NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -146,7 +146,7 @@ public class ClientRPCStoreTest {
 		final String client = "test";
 		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictRequest customRequest =  CustomPredictRequest.newBuilder().addData(1.0f).build();
-		store.add(client, customRequest.getClass(), null);
+		store.add(client, customRequest.getClass(), null,customRequest.getClass().getMethod("newBuilder"),null);
 		ClassificationRequestMeta meta = ClassificationRequestMeta.newBuilder().setPuid("1234").build();
 		ClassificationRequest request = ClassificationRequest.newBuilder().setMeta(meta).build();
 		JsonNode json = store.getJSONForRequest(client,request);
@@ -156,7 +156,7 @@ public class ClientRPCStoreTest {
 	}
 	
 	@Test 
-	public void testResponseToJSON()
+	public void testResponseToJSON() throws NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -164,7 +164,7 @@ public class ClientRPCStoreTest {
 		final String client = "test";
 		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictReply customResponse =  CustomPredictReply.newBuilder().setData("some value").build();
-		store.add(client, null, customResponse.getClass());
+		store.add(client, null, customResponse.getClass(),null,customResponse.getClass().getMethod("newBuilder"));
 		Any anyMsg = Any.pack(customResponse);
 		ClassificationReplyMeta meta = ClassificationReplyMeta.newBuilder().setPuid("1234").build();
 		ClassificationReply request = ClassificationReply.newBuilder().setMeta(meta).setCustom(anyMsg).build();
@@ -175,7 +175,7 @@ public class ClientRPCStoreTest {
 	
 	
 	@Test 
-	public void testMissingCustomResponse()
+	public void testMissingCustomResponse() throws NoSuchMethodException, SecurityException
 	{
 		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
 		EasyMock.expectLastCall().once();
@@ -183,7 +183,7 @@ public class ClientRPCStoreTest {
 		final String client = "test";
 		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
 		CustomPredictReply customResponse =  CustomPredictReply.newBuilder().setData("some value").build();
-		store.add(client, null, customResponse.getClass());
+		store.add(client, null, customResponse.getClass(),null,customResponse.getClass().getMethod("newBuilder"));
 		ClassificationReplyMeta meta = ClassificationReplyMeta.newBuilder().setPuid("1234").build();
 		ClassificationReply request = ClassificationReply.newBuilder().setMeta(meta).build();
 		JsonNode json = store.getJSONForReply(client,request);

@@ -1,6 +1,7 @@
 package io.seldon.rpc;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,7 @@ public class RpcPredictionServer implements PredictionAlgorithm {
 	@Override
 	public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
 			ManagedChannel channel = channelHandler.getChannel(options.getStringOption(HOST_PROPERTY_NAME), options.getIntegerOption(PORT_PROPERTY_NAME));
-			ClassifierBlockingStub stub =  ClassifierGrpc.newBlockingStub(channel);
+			ClassifierBlockingStub stub =  ClassifierGrpc.newBlockingStub(channel).withDeadlineAfter(5, TimeUnit.SECONDS);
 			ClassificationReply reply =  stub.predict(request);
 			return reply;
 	}

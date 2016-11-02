@@ -47,7 +47,13 @@
                                 ],
                                 "ports": [
                                     {
+                                        "name": "api",
                                         "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "name": "rpc",
+                                        "containerPort": 5000,
                                         "protocol": "TCP"
                                     }
                                 ],
@@ -133,10 +139,18 @@
             "spec": {
                 "ports": [
                     {
+			"name":"api",
                         "protocol": "TCP",
                         "port": 80,
                         "targetPort": 8080,
 			"nodePort": %SELDON_SERVER_NODEPORT%
+                    },
+                    {
+			"name":"rpc",
+                        "protocol": "TCP",
+                        "port": 5000,
+                        "targetPort": 5000,
+			"nodePort": %SELDON_SERVER_RPC_NODEPORT%
                     }
                 ],
                 "selector": {

@@ -56,14 +56,8 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     		return null;
     }
     
-    void add(String client,Class<?> requestClass,Class<?> responseClass)
-    {
-    	RPCConfig config = new RPCConfig();
-    	config.requestClass = requestClass;
-    	config.replyClass = responseClass;
-    	services.put(client, config);
-    }
-    
+   
+   
     private JsonNode getJSONFromMethod(Method m,Message msg,String fieldname) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonParseException, IOException
     {
     	Message.Builder o2 = (Message.Builder) m.invoke(null);
@@ -102,7 +96,7 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     		{
     			if (config.requestClass != null)
     			{
-    				Method m = config.requestClass.getMethod("newBuilder");
+    				Method m = config.requestBuilder;
     				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD);
     			}
     			else
@@ -128,7 +122,7 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     		{
     			if (config.replyClass != null)
     			{
-    				Method m = config.replyClass.getMethod("newBuilder");
+    				Method m = config.replyBuilder;
     				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
     			}
     			else
@@ -157,7 +151,7 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     			{
     				if (!json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD).has("@type"))
     					((ObjectNode) json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.replyClass.getName());
-    				Method m = config.replyClass.getMethod("newBuilder");
+    				Method m = config.replyBuilder;
     				Message.Builder o = (Message.Builder) m.invoke(null);
     				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
     			}
@@ -193,7 +187,7 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     				if (!json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD).has("@type"))
     					((ObjectNode) json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.requestClass.getName());
     				System.out.println(json);
-    				Method m = config.requestClass.getMethod("newBuilder");
+    				Method m = config.requestBuilder;
     				Message.Builder o = (Message.Builder) m.invoke(null);
     				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
     			}
@@ -216,6 +210,17 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	}
     }
     
+    void add(String client,Class<?> requestClass,Class<?> responseClass,Method requestBuilder,Method replyBuilder)
+    {
+    	RPCConfig config = new RPCConfig();
+    	config.requestClass = requestClass;
+    	config.replyClass = responseClass;
+    	config.requestBuilder = requestBuilder;
+    	config.replyBuilder = replyBuilder;
+    	services.put(client, config);
+    }
+    
+    
     private void createClientConfig(String client,String data) 
     {
     	try
@@ -231,15 +236,27 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     			URLClassLoader cLoader = new URLClassLoader (urls, this.getClass().getClassLoader());
     			Class<?> requestClass = null;
     			Class<?> responseClass = null;
+    			Method requestBuilder = null;
+    			Method replyBuilder = null;
     			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.requestClassName))
+    			{
     				requestClass = Class.forName(config.requestClassName,true,cLoader);
+    				requestBuilder = requestClass.getMethod("newBuilder");
+    			}
     			if (org.apache.commons.lang.StringUtils.isNotEmpty(config.replyClassName))
+    			{
     				responseClass = Class.forName(config.replyClassName,true,cLoader);
-    			this.add(client, requestClass, responseClass);
+    				replyBuilder = requestClass.getMethod("newBuilder");
+    			}
+    			this.add(client, requestClass, responseClass,requestBuilder,replyBuilder);
     		} catch (MalformedURLException e) 
     		{
     			logger.error("Bad url "+config.jarFilename,e);
 			} catch (ClassNotFoundException e) {
+				logger.error("Failed to load class ",e);
+			} catch (NoSuchMethodException e) {
+				logger.error("Failed to load class ",e);
+			} catch (SecurityException e) {
 				logger.error("Failed to load class ",e);
 			}
     		finally{}
@@ -293,7 +310,9 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
 
 	public static class RPCConfig {
 		public Class<?> requestClass;
+		public Method requestBuilder;
 		public Class<?> replyClass;
+		public Method replyBuilder;
 	}
 	
 	public static class RPCZkConfig {
