@@ -74,9 +74,14 @@ public class RpcPredictionServer implements PredictionAlgorithm {
 
 	@Override
 	public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
-			ManagedChannel channel = channelHandler.getChannel(options.getStringOption(HOST_PROPERTY_NAME), options.getIntegerOption(PORT_PROPERTY_NAME));
+			ManagedChannel channel = channelHandler.getChannel(client,options.getStringOption(HOST_PROPERTY_NAME), options.getIntegerOption(PORT_PROPERTY_NAME));
 			ClassifierBlockingStub stub =  ClassifierGrpc.newBlockingStub(channel).withDeadlineAfter(5, TimeUnit.SECONDS);
+			long t1 = System.currentTimeMillis();
+			logger.info("call start");
 			ClassificationReply reply =  stub.predict(request);
+			long t2 = System.currentTimeMillis();
+			long duration = t2-t1;
+			logger.info("call end "+duration);
 			return reply;
 	}
 
