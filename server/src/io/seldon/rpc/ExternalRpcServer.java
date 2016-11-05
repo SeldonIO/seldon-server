@@ -42,14 +42,18 @@ public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase impleme
 	private ResourceServer resourceServer;
 	final Metadata.Key<String> authKey = Metadata.Key.of(Constants.OAUTH_TOKEN,Metadata.ASCII_STRING_MARSHALLER);
 	
-	ThreadLocal<String> clientThreadLocal = new ThreadLocal<String>();
+	ThreadLocal<String> clientThreadLocal = new ThreadLocal<String>();	
 	
 	public static class SeldonServerCallListener<R> extends ForwardingServerCallListener<R>
 	{
 		ServerCall.Listener<R> delegate;
+		ExternalRpcServer server;
+		String client;
 		
-		public SeldonServerCallListener(ServerCall.Listener<R> delegate) {
+		public SeldonServerCallListener(ServerCall.Listener<R> delegate,String client,ExternalRpcServer server) {
 			this.delegate = delegate;
+			this.server = server;
+			this.client = client;
 		}
 		
 		@Override
@@ -59,7 +63,7 @@ public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase impleme
 		
 		@Override
 		public void onMessage(R request) {
-			logger.info("on message called");
+			server.clientThreadLocal.set(client);
 		    super.onMessage(request);
 		}
 		
@@ -96,22 +100,18 @@ public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase impleme
 			{
 				logger.info("Token "+token);
 				ConsumerBean consumer = resourceServer.validateResourceFromToken(token);
-				clientThreadLocal.set(consumer.getShort_name());
 				logger.info("Setting call to client "+consumer.getShort_name());
-				//return new SeldonServerCallListener<ReqT>(next.startCall(call, headers));
-				return next.startCall(call, headers);
+				return new SeldonServerCallListener<ReqT>(next.startCall(call, headers),consumer.getShort_name(),this);
 			}
 			catch (APIException e)
 			{
 				logger.warn("API exception on getting token ",e);
-				clientThreadLocal.set(null);
 				return next.startCall(call, headers);
 			}
 		}
 		else
 		{
 			logger.warn("Empty token ignoring call");
-			clientThreadLocal.set(null);
 			return next.startCall(call, headers);
 		}
 	}
@@ -128,6 +128,7 @@ public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase impleme
 		}
 		else
 		{
+			logger.info("Failed to get token");
 			responseObserver.onError(new StatusException(io.grpc.Status.PERMISSION_DENIED.withDescription("Could not determine client from oauth_token")));
 		}
 	}
