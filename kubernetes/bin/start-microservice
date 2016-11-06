@@ -122,7 +122,9 @@ PRED_CMD_COMMIT = "seldon-cli predict_alg --action commit --client-name ${CLIENT
 predAlgsConfig = {"rest" : json.loads(PRED_ALG_REST_CONFIG), "rpc" : json.loads(PRED_ALG_RPC_CONFIG) }
 predAlgClass = {"rest" : "externalPredictionServer", "rpc" : "rpcPredictionServer" }
 
-MICRO_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
+MICRO_IMAGE_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
+
+MICRO_PIPELINE_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice_pipeline.template | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%PIPELINE_FOLDER%|${PIPELINE_FOLDER}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
 
 KUBECTL_CMD_APPLY = 'kubectl apply -f ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
 
@@ -134,29 +136,40 @@ class MicroserviceError(Exception):
 
 class MicroserviceRunner(object):
 
-    def __init__(self):
+    def __init__(self,replicas=1):
         self.script_folder = os.path.dirname(os.path.realpath(__file__))
+        self.replicas = replicas
+        print "Replicas is ",self.replicas
     
-    def kubectl_create_microservice(self,name,image):
-        cmd = MICRO_JSON_CMD.replace("${NAME}",name).replace("${IMAGE}",image).replace("${STARTUP_DIR}",self.script_folder)
+    def kubectl_create_microservice(self,micro):
+        if type(micro) is Microservice:
+            cmd = MICRO_IMAGE_JSON_CMD.replace("${NAME}",micro.name).replace("${IMAGE}",micro.image).replace("${REPLICAS}",str(self.replicas)).replace("${STARTUP_DIR}",self.script_folder)
+        elif type(micro) is Pipeline:
+            cmd = MICRO_PIPELINE_JSON_CMD.replace("${NAME}",micro.name).replace("${PIPELINE_FOLDER}",micro.folder).replace("${REPLICAS}",str(self.replicas)).replace("${STARTUP_DIR}",self.script_folder)
+        else:
+            raise MicroserviceError("unknown microservice type"+ty)
         retcode = call(cmd, shell=True)
         if not retcode == 0:
-            raise MicroserviceError("failed to create JSON for "+name)
-        cmd = KUBECTL_CMD_APPLY.replace("${NAME}",name).replace("${STARTUP_DIR}",self.script_folder)
+            raise MicroserviceError("failed to create JSON for "+micro.name)
+        cmd = KUBECTL_CMD_APPLY.replace("${NAME}",micro.name).replace("${STARTUP_DIR}",self.script_folder)
+        print cmd
         retcode = call(cmd, shell=True)
         if not retcode == 0:
-            raise MicroserviceError("failed to run kubectl apply for "+name)
+            raise MicroserviceError("failed to run kubectl apply for "+micro.name)
 
     def checkArgs(self,args):
         ratio_sum = 0
         for service in args.i:
             ratio_sum += service.ratio
+        for service in args.p:
+            ratio_sum += service.ratio
         if not ratio_sum == 1.0:
             raise ValueError("The ratio sum must add up to 1.0")
 
-    def recommendCreate(self,client,microservices):
+    def recommendCreate(self,client,services):
         variations = json.loads(REC_VARIATIONS_CONFIG)
-        for service in microservices:
+        for service in services:
+            self.kubectl_create_microservice(service)
             alg_config = json.loads(REC_ALG_CONFIG)
             alg_config["ratio"] = service.ratio
             alg_config["label"] = service.name
@@ -165,16 +178,18 @@ class MicroserviceRunner(object):
             variations["defaultStrategy"]["variations"].append(alg_config)
         cmd = REC_CMD_SET.replace("${CLIENT}",client).replace("${JSON}",json.dumps(variations))
         retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise MicroserviceError("failed to run seldon cli to create conf"+name)
+
 
     def recommendCommit(self,client):
         cmd = REC_CMD_COMMIT.replace("${CLIENT}",client)
         retcode = call(cmd, shell=True)
 
-    def predictCreate(self,client,microservices):
+    def predictCreate(self,client,services):
         variations = json.loads(PRED_VARIATIONS_CONFIG)
-
-        for service in microservices:
-            self.kubectl_create_microservice(service.name,service.image)
+        for service in services:
+            self.kubectl_create_microservice(service)
             alg_config = predAlgsConfig[service.type]
             alg_config["ratio"] = service.ratio
             alg_config["label"] = service.name
@@ -187,18 +202,22 @@ class MicroserviceRunner(object):
             variations["variations"].append(alg_config)
         cmd = PRED_CMD_SET.replace("${CLIENT}",client).replace("${JSON}",json.dumps(variations))
         retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise MicroserviceError("failed to run seldon cli to create conf"+name)
 
     def predictCommit(self,client):
         cmd = PRED_CMD_COMMIT.replace("${CLIENT}",client)
         retcode = call(cmd, shell=True)
 
-    def run(self,type,client,microservices):
+    def run(self,type,client,services):
         if type == "recommendation":
-            self.recommendCreate(client,microservices)
+            self.recommendCreate(client,services)
             self.recommendCommit(client)
-        else:
-            self.predictCreate(client,microservices)
+        elif type == "prediction":
+            self.predictCreate(client,services)
             self.predictCommit(client)
+        else:
+            print "Unknown type. Stopping"
 
 class Microservice(object):
 
@@ -214,8 +233,22 @@ class Microservice(object):
     def __str__(self):
         return "Microservice(%s,%s,%s,%f)" % (self.name,self.image,self.type,self.ratio)
 
+class Pipeline(object):
 
-class ValidateDefn(argparse.Action):
+    def __init__(self,name,folder,type,ratio):
+        self.name = name
+        self.folder = folder
+        self.type = type
+        self.ratio = ratio
+
+    def __repr__(self):
+        return "Pipeline(%s,%s,%s,%f)" % (self.name,self.folder,self.type,self.ratio)
+
+    def __str__(self):
+        return "Pipeline(%s,%s,%s,%f)" % (self.name,self.folder,self.type,self.ratio)
+
+
+class ValidateImageDefn(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
         valid_types = ('rest', 'rpc')
         name, image, mtype, ratio = values
@@ -230,6 +263,18 @@ class ValidateDefn(argparse.Action):
         print current
         setattr(args, self.dest, current)
 
+class ValidatePipelineDefn(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        name, folder, ratio = values
+        ratio = float(ratio)
+        pipeline = Pipeline(name, folder, "rest", ratio)
+        current = getattr(args, self.dest)
+        if current is None:
+            current = []
+        current.append(pipeline)
+        print current
+        setattr(args, self.dest, current)
+
 if __name__ == '__main__':
     import logging
     logger = logging.getLogger()
@@ -237,14 +282,16 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(prog='create_replay')
-    parser.add_argument('-i', help='microservice defn: name image API ratio',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateDefn)
+    parser.add_argument('-i', help='microservice image defn: <name> <image> <API type> <ratio>',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateImageDefn, default=[])
+    parser.add_argument('-p', help='microservice from pipeline defn: <name> <folder> <ratio>',nargs=3, metavar=('name','folder','ratio'), action=ValidatePipelineDefn, default=[])
     parser.add_argument('--client', help='client name',required=True)
+    parser.add_argument('--replicas', help='number of replicas',type=int,default=1)
     parser.add_argument('--type', help='microservice type',choices=['recommendation','prediction'],required=True)
 
     args = parser.parse_args()
     opts = vars(args)
 
     
-    runner = MicroserviceRunner()
+    runner = MicroserviceRunner(args.replicas)
     runner.checkArgs(args)
-    runner.run(args.type,args.client,args.i)
+    runner.run(args.type,args.client,args.i + args.p)
