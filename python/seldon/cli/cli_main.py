@@ -18,6 +18,7 @@ import cmd_pred
 import cmd_keys
 import cmd_api
 import cmd_rpc
+import cmd_rec_exp
 
 gdata = {
     'zk_client': None,
@@ -35,6 +36,7 @@ gdata = {
         'model': cmd_model.cmd_model,
         'api': cmd_api.cmd_api,
         'rpc': cmd_rpc.cmd_rpc,
+        'rec_exp' : cmd_rec_exp.cmd_rec_exp,
     }
 }
 

@@ -12,7 +12,7 @@
   <artifactId>seldon-spark</artifactId>
   <name>Offline Spark jobs</name>
   <properties>
-        <scala.version>2.10</scala.version>
+        <scala.major>2.10</scala.major>
         <spark.version>1.6.0</spark.version>
         <curator.version>2.7.1</curator.version>
     </properties>
@@ -94,48 +94,48 @@
 
 	<dependency>
 		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-core_${scala.version}</artifactId>
+		<artifactId>spark-core_${scala.major}</artifactId>
 		<version>${spark.version}</version>
 		<scope>provided</scope>
 	</dependency>
 
 	<dependency>
 		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-mllib_${scala.version}</artifactId>
+		<artifactId>spark-mllib_${scala.major}</artifactId>
 		<version>${spark.version}</version>
 		<scope>provided</scope>
 	</dependency>
   
   <dependency>
 		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-graphx_${scala.version}</artifactId>
+		<artifactId>spark-graphx_${scala.major}</artifactId>
 		<version>${spark.version}</version>
 		<scope>provided</scope>
 	</dependency>
   
    <dependency>
 		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-streaming_${scala.version}</artifactId>
+		<artifactId>spark-streaming_${scala.major}</artifactId>
 		<version>${spark.version}</version>
 		<scope>provided</scope>
 	</dependency>
 
    <dependency>
 		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-streaming-kafka_${scala.version}</artifactId>
+		<artifactId>spark-streaming-kafka_${scala.major}</artifactId>
 		<version>${spark.version}</version>
 	</dependency>
   
    <dependency>
 		<groupId>org.apache.spark</groupId>
-		<artifactId>spark-sql_${scala.version}</artifactId>
+		<artifactId>spark-sql_${scala.major}</artifactId>
 		<version>${spark.version}</version>
 		<scope>provided</scope>
 	</dependency>
 	
   <dependency>
     <groupId>org.apache.spark</groupId>
-    <artifactId>spark-hive_${scala.version}</artifactId>
+    <artifactId>spark-hive_${scala.major}</artifactId>
     <version>${spark.version}</version>
     <scope>provided</scope>
   </dependency>
@@ -148,25 +148,25 @@
   
 <!--   	<dependency>
   		<groupId>org.json4s</groupId>
-  		<artifactId>json4s-native_${scala.version}</artifactId>
+  		<artifactId>json4s-native_${scala.major}</artifactId>
   		<version>3.2.10</version>
 	</dependency>
  -->	
   	<dependency>
   		<groupId>org.json4s</groupId>
-  		<artifactId>json4s-jackson_${scala.version}</artifactId>
+  		<artifactId>json4s-jackson_${scala.major}</artifactId>
   		<version>3.2.10</version>
 	</dependency>
 	
 	<dependency>
 		<groupId>com.github.scopt</groupId>
-		<artifactId>scopt_${scala.version}</artifactId>
+		<artifactId>scopt_${scala.major}</artifactId>
 		<version>3.1.0</version>
     </dependency>
 
     <dependency>
 	    <groupId>com.github.nscala-time</groupId>
-	    <artifactId>nscala-time_${scala.version}</artifactId>
+	    <artifactId>nscala-time_${scala.major}</artifactId>
 	    <version>1.4.0</version>
     </dependency>
 	 <dependency>
