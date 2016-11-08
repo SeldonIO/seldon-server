@@ -8,6 +8,7 @@ STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 build_dist() {
     cd /seldon-server
+    python -m grpc.tools.protoc -I server/src/main/proto/ --python_out=python/seldon/rpc --grpc_python_out=python/seldon/rpc/ server/src/main/proto/seldon.proto
     cd python
     make clean
     make dist
