@@ -4,7 +4,7 @@ import logging
 import json
 import grpc
 import iris_pb2
-import seldon.rpc.seldon_pb2 as seldon_pb2
+import seldon_pb2
 from google.protobuf import any_pb2
 import requests
 
@@ -30,11 +30,13 @@ class IrisRpcClient(object):
             print "failed call to get token"
             return None
 
-    def callRpc(self,token):
+    def callRpc(self,token,jStr):
+        j = json.loads(jStr)
+        
         channel = grpc.insecure_channel(self.host+':'+str(self.rpc_port))
         stub = seldon_pb2.ClassifierStub(channel)
 
-        data = iris_pb2.IrisPredictRequest(f1=1.0,f2=0.2,f3=2.1,f4=1.2)
+        data = iris_pb2.IrisPredictRequest(f1=j["f1"],f2=j["f2"],f3=j["f3"],f4=j["f4"])
         dataAny = any_pb2.Any()
         dataAny.Pack(data)
         meta = seldon_pb2.ClassificationRequestMeta(puid="12345")
@@ -56,13 +58,14 @@ if __name__ == '__main__':
     parser.add_argument('--rpc-port', help='rpc server port', type=int, default=30017)
     parser.add_argument('--key', help='oauth consumer key')
     parser.add_argument('--secret', help='oauth consumer secret')
+    parser.add_argument('--features-json', help='JSON features to use for prediction, should contain features f1,f2,f3,f4 as floats', required=True)
 
     args = parser.parse_args()
     opts = vars(args)
     rpc = IrisRpcClient(host=args.host,http_transport=args.http_transport,http_port=args.http_port,rpc_port=args.rpc_port)
     token = rpc.getToken(args.key,args.secret)
     if not token is None:
-        print token
-        rpc.callRpc(token)
+        print "Got token:",token
+        rpc.callRpc(token,args.features_json)
     else:
         print "failed to get token"
