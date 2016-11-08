@@ -119,7 +119,7 @@ EOF
 """
 PRED_CMD_COMMIT = "seldon-cli predict_alg --action commit --client-name ${CLIENT}"
 
-predAlgsConfig = {"rest" : json.loads(PRED_ALG_REST_CONFIG), "rpc" : json.loads(PRED_ALG_RPC_CONFIG) }
+predAlgsConfig = {"rest" : PRED_ALG_REST_CONFIG, "rpc" : PRED_ALG_RPC_CONFIG }
 predAlgClass = {"rest" : "externalPredictionServer", "rpc" : "rpcPredictionServer" }
 
 MICRO_IMAGE_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
@@ -157,14 +157,6 @@ class MicroserviceRunner(object):
         if not retcode == 0:
             raise MicroserviceError("failed to run kubectl apply for "+micro.name)
 
-    def checkArgs(self,args):
-        ratio_sum = 0
-        for service in args.i:
-            ratio_sum += service.ratio
-        for service in args.p:
-            ratio_sum += service.ratio
-        if not ratio_sum == 1.0:
-            raise ValueError("The ratio sum must add up to 1.0")
 
     def recommendCreate(self,client,services):
         variations = json.loads(REC_VARIATIONS_CONFIG)
@@ -190,7 +182,7 @@ class MicroserviceRunner(object):
         variations = json.loads(PRED_VARIATIONS_CONFIG)
         for service in services:
             self.kubectl_create_microservice(service)
-            alg_config = predAlgsConfig[service.type]
+            alg_config = json.loads(predAlgsConfig[service.type])
             alg_config["ratio"] = service.ratio
             alg_config["label"] = service.name
             alg_config["config"]["algorithms"][0]["name"] = predAlgClass[service.type]
@@ -218,6 +210,22 @@ class MicroserviceRunner(object):
             self.predictCommit(client)
         else:
             print "Unknown type. Stopping"
+
+
+    def checkArgs(self,args):
+        # Check ratio adds up to 1.0
+        ratio_sum = 0
+        for service in args.i:
+            ratio_sum += service.ratio
+        for service in args.p:
+            ratio_sum += service.ratio
+        if not ratio_sum == 1.0:
+            raise ValueError("The ratio sum must add up to 1.0")
+        # check RPC is only for prediction
+        if args.type == "recommendation":
+            for service in args.i:
+                if service.type == "rpc":
+                    raise ValueError("gRPC is presently only available for prediction microservices.")
 
 class Microservice(object):
 
@@ -282,7 +290,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(prog='create_replay')
-    parser.add_argument('-i', help='microservice image defn: <name> <image> <API type> <ratio>',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateImageDefn, default=[])
+    parser.add_argument('-i', help='microservice image defn: <name> <image> <API type (rest or rpc)> <ratio>',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateImageDefn, default=[])
     parser.add_argument('-p', help='microservice from pipeline defn: <name> <folder> <ratio>',nargs=3, metavar=('name','folder','ratio'), action=ValidatePipelineDefn, default=[])
     parser.add_argument('--client', help='client name',required=True)
     parser.add_argument('--replicas', help='number of replicas',type=int,default=1)

@@ -11,8 +11,6 @@ import pandas as pd
 from seldon.microservice.rpc import CustomDataHandler
 from seldon.microservice import Microservices
 
-_ONE_DAY_IN_SECONDS = 60 * 60 * 24
-
 class BadDataError(Exception):
     def __init__(self, value):
         self.value = value
