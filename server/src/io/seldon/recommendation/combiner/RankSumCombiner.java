@@ -70,6 +70,7 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
 
     @Override
     public RecommendationPeer.RecResultContext combine(int numRecsRequired, List<RecommendationPeer.RecResultContext> resultsSets) {
+        Map<Long,String> item_recommender_lookup = new HashMap<>();
         Map<ItemRecommendationResultSet.ItemRecommendationResult, Integer> rankSumMap = new HashMap<>();
         List<RecommendationPeer.RecResultContext> validResultSets = new ArrayList<>();
         List<String> validResultsAlgKeys = new ArrayList<>();
@@ -86,10 +87,18 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
                 Collections.sort(ordered, Collections.reverseOrder());
                 if (i<ordered.size())
                 {
-                	Integer rankSum = rankSumMap.get(ordered.get(i));
+                    final ItemRecommendationResultSet.ItemRecommendationResult itemRecommendationResult = ordered.get(i);
+                	Integer rankSum = rankSumMap.get(itemRecommendationResult);
                 	if(rankSum == null) rankSum = 0;
                 	rankSum += (numRecsRequired -i);
-                	rankSumMap.put(ordered.get(i), rankSum);
+                	rankSumMap.put(itemRecommendationResult, rankSum);
+                	
+                	{ // capture the recommender used for item
+                        String original_value = item_recommender_lookup.put(itemRecommendationResult.item, validResultSet.resultSet.getRecommenderName());
+                        if (original_value != null) {
+                            item_recommender_lookup.put(itemRecommendationResult.item, original_value);
+                        }
+                	}
                 }
             }
         }
@@ -103,7 +112,9 @@ public class RankSumCombiner implements AlgorithmResultsCombiner{
         }
 
         Collections.sort(orderedResults, Collections.reverseOrder());
-        return new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(orderedResults, StringUtils.join(validResultsAlgKeys,':')), StringUtils.join(validResultsAlgKeys,':'));
+        RecommendationPeer.RecResultContext recResultContext = new RecommendationPeer.RecResultContext(new ItemRecommendationResultSet(orderedResults, StringUtils.join(validResultsAlgKeys,':')), StringUtils.join(validResultsAlgKeys,':'));
+        recResultContext.item_recommender_lookup = item_recommender_lookup;
+        return recResultContext;
     }
 
 }
