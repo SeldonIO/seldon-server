@@ -6,6 +6,7 @@ import sys
 import errno
 import copy
 import shutil
+from subprocess import call
 
 import zk_utils
 
@@ -22,7 +23,7 @@ def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli rpc', description='Seldon Cli')
     parser.add_argument('--action', help="the action to use", required=False, choices=['show','set', 'remove'])
     parser.add_argument('--client-name', help="the name of the client", required=True)
-    parser.add_argument('--jar', help="the jar containing the protobug definitons of request and reply classes", required=False)
+    parser.add_argument('--proto', help="the proto buffer file with request and optional reply class", required=False)
     parser.add_argument('--request-class', help="the request class", required=False)
     parser.add_argument('--reply-class', help="the reply class", required=False)
     parser.add_argument('args', nargs=argparse.REMAINDER) # catch rest (non-options) as args
@@ -90,16 +91,27 @@ def action_show(command_data, opts):
         print "Unable to show rpc definition for client[{client_name}]".format(**locals())
 
 
+def create_jar(grpc_home,proto_file,jar_file):
+    cmd = grpc_home+"/create-proto-jar.sh "+proto_file+" "+jar_file
+    print "Creating jar file from proto file. This may take some time..."
+    sys.stdout.flush()
+    return call(cmd, shell=True)
 
 def action_set(command_data, opts):
+    if "grpc_util_home" in command_data["conf_data"]:
+        grpc_home = command_data["conf_data"]["grpc_util_home"]
+    else:
+        print "Need the location for grpc_util_home to create proto jar via maven"
+        sys.exit(1)
+
     client_name = opts.client_name
     if client_name == None:
         print "Need client name to show the rpc settings for"
         sys.exit(1)
 
-    jar_file = opts.jar
-    if jar_file == None:
-        print "Need protobuf jar file location to setup!"
+    proto_file = opts.proto
+    if proto_file == None:
+        print "Need --proto argument"
         sys.exit(1)
 
     request_class = opts.request_class
@@ -107,13 +119,18 @@ def action_set(command_data, opts):
         print "Need request class to setup!"
         sys.exit(1)
 
+    jar_file = "/seldon-data/rpc/jar/"+client_name+".jar"
+    if not create_jar(grpc_home,opts.proto,jar_file) == 0:
+        print "Failed to create jar file from proto"
+        sys.exit(1)
+
     zkroot = command_data["zkdetails"]["zkroot"]
     zk_client = command_data["zkdetails"]["zk_client"]
 
     if opts.reply_class == None:
-        data = {"jarFilename":opts.jar,"requestClassName":opts.request_class}
+        data = {"jarFilename":jar_file,"requestClassName":opts.request_class}
     else:
-        data = {"jarFilename":opts.jar,"requestClassName":opts.request_class,"replyClassName":opts.reply_class}
+        data = {"jarFilename":jar_file,"requestClassName":opts.request_class,"replyClassName":opts.reply_class}
 
     data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/rpc/_data_"
     node_path = gdata["all_clients_node_path"] + "/" + client_name + "/rpc"

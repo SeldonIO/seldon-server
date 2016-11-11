@@ -65,12 +65,6 @@ COPY ./seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar $SELDON_HO
 
 RUN ln -s $SELDON_HOME/libs/seldon-spark-${SELDON_SPARK_VERSION}-jar-with-dependencies.jar $SELDON_HOME/libs/seldon-spark.jar
 
-### TODO Remove seldon-server from docker-control after testing
-###COPY seldon-server.tar.gz ${SELDON_HOME}/
-###RUN cd ${SELDON_HOME} && \
-###    tar xfz seldon-server.tar.gz && \
-###    rm -fv seldon-server.tar.gz
-
 COPY seldon.conf /home/seldon
 RUN (mkdir /root/.seldon && ln -s /home/seldon/seldon.conf /root/.seldon/seldon.conf)
 
@@ -79,4 +73,25 @@ RUN mkdir -p /seldon-data/seldon-models
 VOLUME /seldon-data
 
 COPY client-dashboard.json $SELDON_HOME
+
+#
+# Add Maven
+#
+
+ARG MAVEN_VERSION=3.3.9
+ARG USER_HOME_DIR="/home/seldon"
+
+RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
+  && curl -fsSL http://apache.osuosl.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz \
+    | tar -xzC /usr/share/maven --strip-components=1 \
+  && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+
+ENV MAVEN_HOME /usr/share/maven
+ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+
+#COPY settings-docker.xml /usr/share/maven/ref/
+
+VOLUME "$USER_HOME_DIR/.m2"
+
+ADD grpc-util ${SELDON_HOME}/grpc-util
 
