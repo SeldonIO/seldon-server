@@ -25,13 +25,13 @@ import io.seldon.api.Constants;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationRequest;
-import io.seldon.api.rpc.ClassifierGrpc;
+import io.seldon.api.rpc.SeldonGrpc;
 import io.seldon.api.service.ResourceServer;
 import io.seldon.prediction.PredictionService;
 
 
 @Component
-public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase implements ServerInterceptor {
+public class ExternalRpcServer extends SeldonGrpc.SeldonImplBase implements ServerInterceptor {
 	private static Logger logger = Logger.getLogger(ExternalRpcServer.class.getName());
 	private static final int port = 5000;
 
@@ -117,7 +117,7 @@ public class ExternalRpcServer extends ClassifierGrpc.ClassifierImplBase impleme
 	}
 	
 	@Override
-	public void predict(ClassificationRequest request, StreamObserver<ClassificationReply> responseObserver)
+	public void classify(ClassificationRequest request, StreamObserver<ClassificationReply> responseObserver)
 	{
 		final String client = clientThreadLocal.get();
 		if (StringUtils.notEmpty(client))

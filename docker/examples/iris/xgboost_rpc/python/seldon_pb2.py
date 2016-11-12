@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='seldon.proto',
   package='io.seldon.api.rpc',
   syntax='proto3',
-  serialized_pb=_b('\n\x0cseldon.proto\x12\x11io.seldon.api.rpc\x1a\x19google/protobuf/any.proto\"w\n\x15\x43lassificationRequest\x12:\n\x04meta\x18\x01 \x01(\x0b\x32,.io.seldon.api.rpc.ClassificationRequestMeta\x12\"\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\")\n\x19\x43lassificationRequestMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\"\xb3\x01\n\x13\x43lassificationReply\x12\x38\n\x04meta\x18\x01 \x01(\x0b\x32*.io.seldon.api.rpc.ClassificationReplyMeta\x12<\n\x0bpredictions\x18\x02 \x03(\x0b\x32\'.io.seldon.api.rpc.ClassificationResult\x12$\n\x06\x63ustom\x18\x03 \x01(\x0b\x32\x14.google.protobuf.Any\"M\n\x17\x43lassificationReplyMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\x12\x11\n\tmodelName\x18\x02 \x01(\t\x12\x11\n\tvariation\x18\x03 \x01(\t\"V\n\x14\x43lassificationResult\x12\x12\n\nprediction\x18\x01 \x01(\x01\x12\x16\n\x0epredictedClass\x18\x02 \x01(\t\x12\x12\n\nconfidence\x18\x03 \x01(\x01\x32k\n\nClassifier\x12]\n\x07Predict\x12(.io.seldon.api.rpc.ClassificationRequest\x1a&.io.seldon.api.rpc.ClassificationReply\"\x00\x42$\n\x11io.seldon.api.rpcB\rPredictionAPIP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x0cseldon.proto\x12\x11io.seldon.api.rpc\x1a\x19google/protobuf/any.proto\"w\n\x15\x43lassificationRequest\x12:\n\x04meta\x18\x01 \x01(\x0b\x32,.io.seldon.api.rpc.ClassificationRequestMeta\x12\"\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\")\n\x19\x43lassificationRequestMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\"\xb3\x01\n\x13\x43lassificationReply\x12\x38\n\x04meta\x18\x01 \x01(\x0b\x32*.io.seldon.api.rpc.ClassificationReplyMeta\x12<\n\x0bpredictions\x18\x02 \x03(\x0b\x32\'.io.seldon.api.rpc.ClassificationResult\x12$\n\x06\x63ustom\x18\x03 \x01(\x0b\x32\x14.google.protobuf.Any\"M\n\x17\x43lassificationReplyMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\x12\x11\n\tmodelName\x18\x02 \x01(\t\x12\x11\n\tvariation\x18\x03 \x01(\t\"V\n\x14\x43lassificationResult\x12\x12\n\nprediction\x18\x01 \x01(\x01\x12\x16\n\x0epredictedClass\x18\x02 \x01(\t\x12\x12\n\nconfidence\x18\x03 \x01(\x01\x32h\n\x06Seldon\x12^\n\x08\x43lassify\x12(.io.seldon.api.rpc.ClassificationRequest\x1a&.io.seldon.api.rpc.ClassificationReply\"\x00\x42$\n\x11io.seldon.api.rpcB\rPredictionAPIP\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -287,7 +287,7 @@ from grpc.framework.common import cardinality
 from grpc.framework.interfaces.face import utilities as face_utilities
 
 
-class ClassifierStub(object):
+class SeldonStub(object):
 
   def __init__(self, channel):
     """Constructor.
@@ -295,69 +295,69 @@ class ClassifierStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.Predict = channel.unary_unary(
-        '/io.seldon.api.rpc.Classifier/Predict',
+    self.Classify = channel.unary_unary(
+        '/io.seldon.api.rpc.Seldon/Classify',
         request_serializer=ClassificationRequest.SerializeToString,
         response_deserializer=ClassificationReply.FromString,
         )
 
 
-class ClassifierServicer(object):
+class SeldonServicer(object):
 
-  def Predict(self, request, context):
+  def Classify(self, request, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
 
-def add_ClassifierServicer_to_server(servicer, server):
+def add_SeldonServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'Predict': grpc.unary_unary_rpc_method_handler(
-          servicer.Predict,
+      'Classify': grpc.unary_unary_rpc_method_handler(
+          servicer.Classify,
           request_deserializer=ClassificationRequest.FromString,
           response_serializer=ClassificationReply.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'io.seldon.api.rpc.Classifier', rpc_method_handlers)
+      'io.seldon.api.rpc.Seldon', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))
 
 
-class BetaClassifierServicer(object):
-  def Predict(self, request, context):
+class BetaSeldonServicer(object):
+  def Classify(self, request, context):
     context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
 
 
-class BetaClassifierStub(object):
-  def Predict(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
+class BetaSeldonStub(object):
+  def Classify(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
     raise NotImplementedError()
-  Predict.future = None
+  Classify.future = None
 
 
-def beta_create_Classifier_server(servicer, pool=None, pool_size=None, default_timeout=None, maximum_timeout=None):
+def beta_create_Seldon_server(servicer, pool=None, pool_size=None, default_timeout=None, maximum_timeout=None):
   request_deserializers = {
-    ('io.seldon.api.rpc.Classifier', 'Predict'): ClassificationRequest.FromString,
+    ('io.seldon.api.rpc.Seldon', 'Classify'): ClassificationRequest.FromString,
   }
   response_serializers = {
-    ('io.seldon.api.rpc.Classifier', 'Predict'): ClassificationReply.SerializeToString,
+    ('io.seldon.api.rpc.Seldon', 'Classify'): ClassificationReply.SerializeToString,
   }
   method_implementations = {
-    ('io.seldon.api.rpc.Classifier', 'Predict'): face_utilities.unary_unary_inline(servicer.Predict),
+    ('io.seldon.api.rpc.Seldon', 'Classify'): face_utilities.unary_unary_inline(servicer.Classify),
   }
   server_options = beta_implementations.server_options(request_deserializers=request_deserializers, response_serializers=response_serializers, thread_pool=pool, thread_pool_size=pool_size, default_timeout=default_timeout, maximum_timeout=maximum_timeout)
   return beta_implementations.server(method_implementations, options=server_options)
 
 
-def beta_create_Classifier_stub(channel, host=None, metadata_transformer=None, pool=None, pool_size=None):
+def beta_create_Seldon_stub(channel, host=None, metadata_transformer=None, pool=None, pool_size=None):
   request_serializers = {
-    ('io.seldon.api.rpc.Classifier', 'Predict'): ClassificationRequest.SerializeToString,
+    ('io.seldon.api.rpc.Seldon', 'Classify'): ClassificationRequest.SerializeToString,
   }
   response_deserializers = {
-    ('io.seldon.api.rpc.Classifier', 'Predict'): ClassificationReply.FromString,
+    ('io.seldon.api.rpc.Seldon', 'Classify'): ClassificationReply.FromString,
   }
   cardinalities = {
-    'Predict': cardinality.Cardinality.UNARY_UNARY,
+    'Classify': cardinality.Cardinality.UNARY_UNARY,
   }
   stub_options = beta_implementations.stub_options(host=host, metadata_transformer=metadata_transformer, request_serializers=request_serializers, response_deserializers=response_deserializers, thread_pool=pool, thread_pool_size=pool_size)
-  return beta_implementations.dynamic_stub(channel, 'io.seldon.api.rpc.Classifier', cardinalities, options=stub_options)
+  return beta_implementations.dynamic_stub(channel, 'io.seldon.api.rpc.Seldon', cardinalities, options=stub_options)
 # @@protoc_insertion_point(module_scope)

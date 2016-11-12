@@ -34,7 +34,7 @@ class IrisRpcClient(object):
         j = json.loads(jStr)
         
         channel = grpc.insecure_channel(self.host+':'+str(self.rpc_port))
-        stub = seldon_pb2.ClassifierStub(channel)
+        stub = seldon_pb2.SeldonStub(channel)
 
         data = iris_pb2.IrisPredictRequest(f1=j["f1"],f2=j["f2"],f3=j["f3"],f4=j["f4"])
         dataAny = any_pb2.Any()
@@ -42,7 +42,7 @@ class IrisRpcClient(object):
         meta = seldon_pb2.ClassificationRequestMeta(puid="12345")
         request = seldon_pb2.ClassificationRequest(meta=meta,data=dataAny)
         metadata = [(b'oauth_token', token)]
-        reply = stub.Predict(request,999,metadata=metadata)
+        reply = stub.Classify(request,999,metadata=metadata)
         print reply
 
 if __name__ == '__main__':

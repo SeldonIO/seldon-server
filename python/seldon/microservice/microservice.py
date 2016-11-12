@@ -60,7 +60,7 @@ class Microservices(object):
         pw = sutl.PipelineWrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
         pipeline = pw.load_pipeline(pipeline_folder)
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        seldon_pb2.add_ClassifierServicer_to_server(RpcClassifier(pipeline,model_name,custom_data_handler), server)
+        seldon_pb2.add_SeldonServicer_to_server(RpcClassifier(pipeline,model_name,custom_data_handler), server)
         server.add_insecure_port('[::]:5000')
         server.start()
         try:

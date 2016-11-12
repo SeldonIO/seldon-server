@@ -8,8 +8,8 @@ option java_outer_classname = "PredictionAPI";
 
 package io.seldon.api.rpc;
 
-service Classifier {
-  rpc Predict (ClassificationRequest) returns (ClassificationReply) {}
+service Seldon {
+  rpc Classify (ClassificationRequest) returns (ClassificationReply) {}
 }
 
 //Classification Request

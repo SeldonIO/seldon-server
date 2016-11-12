@@ -17,14 +17,14 @@ class CustomDataHandler():
         return pd.DataFrame()
 
 
-class RpcClassifier(seldon_pb2.ClassifierServicer):
+class RpcClassifier(seldon_pb2.SeldonServicer):
 
     def __init__(self,pipeline,model_name,custom_data_handler):
         self.pipeline = pipeline
         self.model_name = model_name
         self.custom_data_handler = custom_data_handler
 
-    def Predict(self, request, context):
+    def Classify(self, request, context):
         print request # custom prediction data
         df = self.custom_data_handler.getData(request)
         preds = self.pipeline.predict_proba(df)

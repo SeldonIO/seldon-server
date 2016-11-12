@@ -15,13 +15,11 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import io.grpc.ManagedChannel;
 import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationRequest;
-import io.seldon.api.rpc.ClassifierGrpc;
-import io.seldon.api.rpc.ClassifierGrpc.ClassifierBlockingStub;
+import io.seldon.api.rpc.SeldonGrpc;
+import io.seldon.api.rpc.SeldonGrpc.SeldonBlockingStub;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
-import io.seldon.prediction.PredictionMetadata;
 import io.seldon.prediction.PredictionServiceResult;
-import io.seldon.prediction.PredictionsResult;
 
 @Component
 public class RpcPredictionServer implements PredictionAlgorithm {
@@ -75,10 +73,10 @@ public class RpcPredictionServer implements PredictionAlgorithm {
 	@Override
 	public ClassificationReply predictFromProto(String client, ClassificationRequest request, OptionsHolder options) {
 			ManagedChannel channel = channelHandler.getChannel(client,options.getStringOption(HOST_PROPERTY_NAME), options.getIntegerOption(PORT_PROPERTY_NAME));
-			ClassifierBlockingStub stub =  ClassifierGrpc.newBlockingStub(channel).withDeadlineAfter(5, TimeUnit.SECONDS);
+			SeldonBlockingStub stub =  SeldonGrpc.newBlockingStub(channel).withDeadlineAfter(5, TimeUnit.SECONDS);
 			long t1 = System.currentTimeMillis();
 			logger.info("call start");
-			ClassificationReply reply =  stub.predict(request);
+			ClassificationReply reply =  stub.classify(request);
 			long t2 = System.currentTimeMillis();
 			long duration = t2-t1;
 			logger.info("call end "+duration);
