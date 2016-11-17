@@ -6,7 +6,7 @@ option java_package = "io.seldon.api.rpc.example";
 package io.seldon.api.rpc.example;
 
 message CustomPredictRequest {
-  repeated float data = 2;
+  repeated float data = 1;
 }
 
 message CustomPredictReply {

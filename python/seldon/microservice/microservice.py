@@ -5,6 +5,7 @@ from seldon.microservice.predict import predict_blueprint
 from seldon.microservice.recommend import recommend_blueprint
 from seldon.microservice.extension import extension_blueprint
 from seldon.microservice.rpc import RpcClassifier
+from seldon.microservice.rpc import DefaultCustomDataHandler
 import seldon
 from sklearn.pipeline import Pipeline
 import seldon.pipeline.util as sutl
@@ -55,7 +56,7 @@ class Microservices(object):
         # other setup tasks
         return app
 
-    def create_prediction_rpc_microservice(self,pipeline_folder,model_name,custom_data_handler):
+    def create_prediction_rpc_microservice(self,pipeline_folder,model_name,custom_data_handler=DefaultCustomDataHandler()):
         rint = random.randint(1,999999)
         pw = sutl.PipelineWrapper(work_folder='/tmp/pl_'+str(rint),aws_key=self.aws_key,aws_secret=self.aws_secret)
         pipeline = pw.load_pipeline(pipeline_folder)

@@ -44,4 +44,10 @@ message ClassificationResult {
 }
 
 
+// Default Custom Custom ClassificationRequest Data
+
+message DefaultCustomPredictRequest {
+  repeated float values = 1;
+}
+
 

@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='seldon.proto',
   package='io.seldon.api.rpc',
   syntax='proto3',
-  serialized_pb=_b('\n\x0cseldon.proto\x12\x11io.seldon.api.rpc\x1a\x19google/protobuf/any.proto\"w\n\x15\x43lassificationRequest\x12:\n\x04meta\x18\x01 \x01(\x0b\x32,.io.seldon.api.rpc.ClassificationRequestMeta\x12\"\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\")\n\x19\x43lassificationRequestMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\"\xb3\x01\n\x13\x43lassificationReply\x12\x38\n\x04meta\x18\x01 \x01(\x0b\x32*.io.seldon.api.rpc.ClassificationReplyMeta\x12<\n\x0bpredictions\x18\x02 \x03(\x0b\x32\'.io.seldon.api.rpc.ClassificationResult\x12$\n\x06\x63ustom\x18\x03 \x01(\x0b\x32\x14.google.protobuf.Any\"M\n\x17\x43lassificationReplyMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\x12\x11\n\tmodelName\x18\x02 \x01(\t\x12\x11\n\tvariation\x18\x03 \x01(\t\"V\n\x14\x43lassificationResult\x12\x12\n\nprediction\x18\x01 \x01(\x01\x12\x16\n\x0epredictedClass\x18\x02 \x01(\t\x12\x12\n\nconfidence\x18\x03 \x01(\x01\x32h\n\x06Seldon\x12^\n\x08\x43lassify\x12(.io.seldon.api.rpc.ClassificationRequest\x1a&.io.seldon.api.rpc.ClassificationReply\"\x00\x42$\n\x11io.seldon.api.rpcB\rPredictionAPIP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x0cseldon.proto\x12\x11io.seldon.api.rpc\x1a\x19google/protobuf/any.proto\"w\n\x15\x43lassificationRequest\x12:\n\x04meta\x18\x01 \x01(\x0b\x32,.io.seldon.api.rpc.ClassificationRequestMeta\x12\"\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\")\n\x19\x43lassificationRequestMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\"\xb3\x01\n\x13\x43lassificationReply\x12\x38\n\x04meta\x18\x01 \x01(\x0b\x32*.io.seldon.api.rpc.ClassificationReplyMeta\x12<\n\x0bpredictions\x18\x02 \x03(\x0b\x32\'.io.seldon.api.rpc.ClassificationResult\x12$\n\x06\x63ustom\x18\x03 \x01(\x0b\x32\x14.google.protobuf.Any\"M\n\x17\x43lassificationReplyMeta\x12\x0c\n\x04puid\x18\x01 \x01(\t\x12\x11\n\tmodelName\x18\x02 \x01(\t\x12\x11\n\tvariation\x18\x03 \x01(\t\"V\n\x14\x43lassificationResult\x12\x12\n\nprediction\x18\x01 \x01(\x01\x12\x16\n\x0epredictedClass\x18\x02 \x01(\t\x12\x12\n\nconfidence\x18\x03 \x01(\x01\"-\n\x1b\x44\x65\x66\x61ultCustomPredictRequest\x12\x0e\n\x06values\x18\x01 \x03(\x02\x32h\n\x06Seldon\x12^\n\x08\x43lassify\x12(.io.seldon.api.rpc.ClassificationRequest\x1a&.io.seldon.api.rpc.ClassificationReply\"\x00\x42$\n\x11io.seldon.api.rpcB\rPredictionAPIP\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -231,6 +231,37 @@ _CLASSIFICATIONRESULT = _descriptor.Descriptor(
   serialized_end=573,
 )
 
+
+_DEFAULTCUSTOMPREDICTREQUEST = _descriptor.Descriptor(
+  name='DefaultCustomPredictRequest',
+  full_name='io.seldon.api.rpc.DefaultCustomPredictRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='values', full_name='io.seldon.api.rpc.DefaultCustomPredictRequest.values', index=0,
+      number=1, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=575,
+  serialized_end=620,
+)
+
 _CLASSIFICATIONREQUEST.fields_by_name['meta'].message_type = _CLASSIFICATIONREQUESTMETA
 _CLASSIFICATIONREQUEST.fields_by_name['data'].message_type = google_dot_protobuf_dot_any__pb2._ANY
 _CLASSIFICATIONREPLY.fields_by_name['meta'].message_type = _CLASSIFICATIONREPLYMETA
@@ -241,6 +272,7 @@ DESCRIPTOR.message_types_by_name['ClassificationRequestMeta'] = _CLASSIFICATIONR
 DESCRIPTOR.message_types_by_name['ClassificationReply'] = _CLASSIFICATIONREPLY
 DESCRIPTOR.message_types_by_name['ClassificationReplyMeta'] = _CLASSIFICATIONREPLYMETA
 DESCRIPTOR.message_types_by_name['ClassificationResult'] = _CLASSIFICATIONRESULT
+DESCRIPTOR.message_types_by_name['DefaultCustomPredictRequest'] = _DEFAULTCUSTOMPREDICTREQUEST
 
 ClassificationRequest = _reflection.GeneratedProtocolMessageType('ClassificationRequest', (_message.Message,), dict(
   DESCRIPTOR = _CLASSIFICATIONREQUEST,
@@ -276,6 +308,13 @@ ClassificationResult = _reflection.GeneratedProtocolMessageType('ClassificationR
   # @@protoc_insertion_point(class_scope:io.seldon.api.rpc.ClassificationResult)
   ))
 _sym_db.RegisterMessage(ClassificationResult)
+
+DefaultCustomPredictRequest = _reflection.GeneratedProtocolMessageType('DefaultCustomPredictRequest', (_message.Message,), dict(
+  DESCRIPTOR = _DEFAULTCUSTOMPREDICTREQUEST,
+  __module__ = 'seldon_pb2'
+  # @@protoc_insertion_point(class_scope:io.seldon.api.rpc.DefaultCustomPredictRequest)
+  ))
+_sym_db.RegisterMessage(DefaultCustomPredictRequest)
 
 
 DESCRIPTOR.has_options = True

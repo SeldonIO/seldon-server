@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.JsonFormat.TypeRegistry;
@@ -27,6 +28,7 @@ import com.google.protobuf.util.JsonFormat.TypeRegistry;
 import io.seldon.api.resource.service.business.PredictionBusinessServiceImpl;
 import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationRequest;
+import io.seldon.api.rpc.DefaultCustomPredictRequest;
 import io.seldon.api.state.ClientConfigHandler;
 import io.seldon.api.state.ClientConfigUpdateListener;
 
@@ -69,7 +71,6 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	JsonFactory factory = mapper.getFactory();
     	JsonParser parser = factory.createParser(result);
     	JsonNode jNode = mapper.readTree(parser);
-    	System.out.println(jNode);
     	if (jNode.has(fieldname) && jNode.get(fieldname).has("@type"))
     		((ObjectNode) jNode.get(fieldname)).remove("@type");
     	return jNode;
@@ -83,9 +84,24 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	JsonFactory factory = mapper.getFactory();
     	JsonParser parser = factory.createParser(result);
     	JsonNode jNode = mapper.readTree(parser);
-    	System.out.println(jNode);
     	return jNode;
     }
+    
+    private JsonNode getDefaultRequestJSON(Message msg) throws JsonParseException, IOException
+    {
+    	Message.Builder o2 = DefaultCustomPredictRequest.newBuilder();
+    	TypeRegistry registry = TypeRegistry.newBuilder().add(o2.getDescriptorForType()).build();
+    	JsonFormat.Printer jPrinter = JsonFormat.printer();
+    	String result = jPrinter.usingTypeRegistry(registry).print(msg);
+    	ObjectMapper mapper = new ObjectMapper();
+    	JsonFactory factory = mapper.getFactory();
+    	JsonParser parser = factory.createParser(result);
+    	JsonNode jNode = mapper.readTree(parser);
+    	if (jNode.has(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD) && jNode.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD).has("@type"))
+    		((ObjectNode) jNode.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).remove("@type");
+    	return jNode;
+    }
+    
     
     public JsonNode getJSONForRequest(String client,ClassificationRequest request)
     {
@@ -100,7 +116,7 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD);
     			}
     			else
-    				return getJSON(request, PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD);
+    				return getDefaultRequestJSON(request);
     		} catch (Exception e) {
     			logger.error("Failed to create JSON request for client "+client,e);
     			return null;
@@ -108,8 +124,13 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	}
     	else
     	{
-    		logger.warn("Failed to get RPC config for client "+client);
-    		return null;
+    		try
+    		{
+    			return getDefaultRequestJSON(request);
+    		} catch (Exception e) {
+    			logger.error("Failed to create JSON request for client from default "+client,e);
+    			return null;
+    		}
     	}
     }
     
@@ -174,6 +195,20 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	}
     }
     
+    private ClassificationRequest getPredictRequestWithCustomDefaultFromJSON(JsonNode json) throws InvalidProtocolBufferException
+    {
+    	((ObjectNode) json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + DefaultCustomPredictRequest.class.getName());
+		Message.Builder o = DefaultCustomPredictRequest.newBuilder();
+		TypeRegistry registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
+		ClassificationRequest.Builder builder = ClassificationRequest.newBuilder();
+		JsonFormat.Parser jFormatter = JsonFormat.parser();
+		if (registry != null)
+			jFormatter = jFormatter.usingTypeRegistry(registry);
+		jFormatter.merge(json.toString(), builder);
+		ClassificationRequest request = builder.build();
+		return request;
+    }
+    
     public ClassificationRequest getPredictRequestFromJson(String client,JsonNode json)
     {
     	RPCConfig config = services.get(client);
@@ -186,7 +221,6 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     			{
     				if (!json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD).has("@type"))
     					((ObjectNode) json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.requestClass.getName());
-    				System.out.println(json);
     				Method m = config.requestBuilder;
     				Message.Builder o = (Message.Builder) m.invoke(null);
     				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
@@ -205,8 +239,13 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	}
 		else
     	{
-    		logger.warn("Failed to get RPC config for client "+client);
-    		return null;
+			try
+			{
+				return this.getPredictRequestWithCustomDefaultFromJSON(json);
+			} catch (Exception e) {
+    			logger.error("Failed to convert json "+json.toString()+" to PredictRequest using Default",e);
+    			return null;
+			}
     	}
     }
     

@@ -7,7 +7,7 @@ import seldon.rpc.seldon_pb2 as seldon_pb2
 import grpc
 import google.protobuf
 from google.protobuf import any_pb2
-import pandas as pd 
+import numpy as np
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -17,9 +17,31 @@ class CustomDataHandler():
         return pd.DataFrame()
 
 
+class BadDataError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class DefaultCustomDataHandler(CustomDataHandler):
+
+    def getData(self, request):
+        anyMsg = request.data
+        dc = seldon_pb2.DefaultCustomPredictRequest()
+        success = anyMsg.Unpack(dc)
+        if success:
+            x = np.array(dc.values)
+            x = x.reshape(1, -1)
+            return x
+        else:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details('Invalid data')
+            raise BadDataError('Invalid data')
+
+
 class RpcClassifier(seldon_pb2.SeldonServicer):
 
-    def __init__(self,pipeline,model_name,custom_data_handler):
+    def __init__(self,pipeline,model_name,custom_data_handler=DefaultCustomDataHandler()):
         self.pipeline = pipeline
         self.model_name = model_name
         self.custom_data_handler = custom_data_handler
