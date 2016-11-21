@@ -149,9 +149,7 @@ class PipelineWrapper(object):
                 futil.copy(data,local_file)
                 return self._convert_dataframe(local_file,df_format,csv_dates,index_col)
             elif isinstance(data,list):
-                local_file= self.work_folder+"/data"
-                self._copy_features_locally(data,local_file,df_format)
-                return self._convert_dataframe(local_file,df_format,csv_dates,index_col)
+                return np.array(data).reshape(1, -1)
             else:
                 raise ValueError("unknown argument type for data")
         

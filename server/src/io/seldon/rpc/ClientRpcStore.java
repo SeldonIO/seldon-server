@@ -97,8 +97,11 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     	JsonFactory factory = mapper.getFactory();
     	JsonParser parser = factory.createParser(result);
     	JsonNode jNode = mapper.readTree(parser);
-    	if (jNode.has(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD) && jNode.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD).has("@type"))
-    		((ObjectNode) jNode.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).remove("@type");
+    	if (jNode.has(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD))
+    	{
+    		JsonNode values = jNode.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD).get("values");
+    		((ObjectNode) jNode).set(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD, values);
+    	}
     	return jNode;
     }
     
@@ -137,25 +140,17 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     public JsonNode getJSONForReply(String client,ClassificationReply request)
     {
     	RPCConfig config = services.get(client);
-    	if (config != null)
+    	try
     	{
-    		try
+    		if (config != null && config.replyClass != null)
     		{
-    			if (config.replyClass != null)
-    			{
-    				Method m = config.replyBuilder;
-    				return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
-    			}
-    			else
-    				return getJSON(request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
-    		} catch (Exception e) {
-    			logger.error("Failed to create JSON reply for client "+client,e);
-    			return null;
+    			Method m = config.replyBuilder;
+    			return getJSONFromMethod(m, request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
     		}
-    	}
-    	else
-    	{
-    		logger.warn("Failed to get RPC config for client "+client);
+    		else
+    			return getJSON(request, PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD);
+    	} catch (Exception e) {
+    		logger.error("Failed to create JSON reply for client "+client,e);
     		return null;
     	}
     }
@@ -163,41 +158,37 @@ public class ClientRpcStore implements ClientConfigUpdateListener  {
     public ClassificationReply getPredictReplyFromJson(String client,JsonNode json)
     {
     	RPCConfig config = services.get(client);
-    	if (config != null)
+    	try
     	{
-    		try
+    		TypeRegistry registry = null;
+    		if (config != null && config.replyClass != null && json.has(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD))
     		{
-    			TypeRegistry registry = null;
-    			if (config.replyClass != null && json.has(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD))
-    			{
-    				if (!json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD).has("@type"))
-    					((ObjectNode) json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.replyClass.getName());
-    				Method m = config.replyBuilder;
-    				Message.Builder o = (Message.Builder) m.invoke(null);
-    				registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
-    			}
-    			ClassificationReply.Builder builder = ClassificationReply.newBuilder();
-    			JsonFormat.Parser jFormatter = JsonFormat.parser();
-    			if (registry != null)
-    				jFormatter = jFormatter.usingTypeRegistry(registry);
-    			jFormatter.merge(json.toString(), builder);
-    			ClassificationReply reply = builder.build();
-    			return reply;
-    		} catch (Exception e) {
-    			logger.error("Failed to convert json "+json.toString()+" to PredictReply",e);
-    			return null;
-			}
-    	}
-		else
-    	{
-    		logger.warn("Failed to get RPC config for client "+client);
+    			if (!json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD).has("@type"))
+    				((ObjectNode) json.get(PredictionBusinessServiceImpl.REPLY_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + config.replyClass.getName());
+    			Method m = config.replyBuilder;
+    			Message.Builder o = (Message.Builder) m.invoke(null);
+    			registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
+    		}
+    		ClassificationReply.Builder builder = ClassificationReply.newBuilder();
+    		JsonFormat.Parser jFormatter = JsonFormat.parser();
+    		if (registry != null)
+    			jFormatter = jFormatter.usingTypeRegistry(registry);
+    		jFormatter.merge(json.toString(), builder);
+    		ClassificationReply reply = builder.build();
+    		return reply;
+    	} catch (Exception e) {
+    		logger.error("Failed to convert json "+json.toString()+" to PredictReply",e);
     		return null;
     	}
     }
     
     private ClassificationRequest getPredictRequestWithCustomDefaultFromJSON(JsonNode json) throws InvalidProtocolBufferException
     {
-    	((ObjectNode) json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD)).put("@type", "type.googleapis.com/" + DefaultCustomPredictRequest.class.getName());
+    	ObjectMapper mapper = new ObjectMapper();
+    	ObjectNode data = mapper.createObjectNode();
+    	data.put("@type", "type.googleapis.com/" + DefaultCustomPredictRequest.class.getName());
+    	data.put("values", json.get(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD));
+    	((ObjectNode) json).put(PredictionBusinessServiceImpl.REQUEST_CUSTOM_DATA_FIELD, data);
 		Message.Builder o = DefaultCustomPredictRequest.newBuilder();
 		TypeRegistry registry = TypeRegistry.newBuilder().add(o.getDescriptorForType()).build();
 		ClassificationRequest.Builder builder = ClassificationRequest.newBuilder();

@@ -128,6 +128,7 @@ public class ClientRPCStoreTest {
 		Any anyMsg = Any.pack(customRequest);
 		ClassificationRequestMeta meta = ClassificationRequestMeta.newBuilder().setPuid("1234").build();
 		ClassificationRequest request = ClassificationRequest.newBuilder().setMeta(meta).setData(anyMsg).build();
+		System.out.println(request);
 		JsonNode json = store.getJSONForRequest(client, request);
 		Assert.assertNotNull(json);
 		System.out.println(json);
@@ -137,6 +138,7 @@ public class ClientRPCStoreTest {
 	    JsonNode actualObj = mapper.readTree(parser);
 	    ClassificationRequest req = store.getPredictRequestFromJson(client, actualObj);
 	    Assert.assertNotNull(req);
+	    System.out.println(req);
 	}
 	
 	@Test 

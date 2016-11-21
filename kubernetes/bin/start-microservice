@@ -124,7 +124,9 @@ predAlgClass = {"rest" : "externalPredictionServer", "rpc" : "rpcPredictionServe
 
 MICRO_IMAGE_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice.json.in | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%IMAGE%|${IMAGE}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
 
-MICRO_PIPELINE_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice_pipeline.template | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%PIPELINE_FOLDER%|${PIPELINE_FOLDER}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
+MICRO_PIPELINE_REST_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice_pipeline.rest.template | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%PIPELINE_FOLDER%|${PIPELINE_FOLDER}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
+
+MICRO_PIPELINE_RPC_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/microservice_pipeline.rpc.template | sed -e "s|%NAME%|${NAME}|" | sed -e "s|%PIPELINE_FOLDER%|${PIPELINE_FOLDER}|" | sed -e "s|%REPLICAS%|${REPLICAS}|" > ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
 
 KUBECTL_CMD_APPLY = 'kubectl apply -f ${STARTUP_DIR}/../conf/microservices/microservice-${NAME}.json'
 
@@ -145,7 +147,10 @@ class MicroserviceRunner(object):
         if type(micro) is Microservice:
             cmd = MICRO_IMAGE_JSON_CMD.replace("${NAME}",micro.name).replace("${IMAGE}",micro.image).replace("${REPLICAS}",str(self.replicas)).replace("${STARTUP_DIR}",self.script_folder)
         elif type(micro) is Pipeline:
-            cmd = MICRO_PIPELINE_JSON_CMD.replace("${NAME}",micro.name).replace("${PIPELINE_FOLDER}",micro.folder).replace("${REPLICAS}",str(self.replicas)).replace("${STARTUP_DIR}",self.script_folder)
+            if micro.type == "rest":
+                cmd = MICRO_PIPELINE_REST_JSON_CMD.replace("${NAME}",micro.name).replace("${PIPELINE_FOLDER}",micro.folder).replace("${REPLICAS}",str(self.replicas)).replace("${STARTUP_DIR}",self.script_folder)
+            else:
+                cmd = MICRO_PIPELINE_RPC_JSON_CMD.replace("${NAME}",micro.name).replace("${PIPELINE_FOLDER}",micro.folder).replace("${REPLICAS}",str(self.replicas)).replace("${STARTUP_DIR}",self.script_folder)
         else:
             raise MicroserviceError("unknown microservice type"+ty)
         retcode = call(cmd, shell=True)
@@ -261,7 +266,7 @@ class ValidateImageDefn(argparse.Action):
         valid_types = ('rest', 'rpc')
         name, image, mtype, ratio = values
         if mtype not in valid_types:
-            raise ValueError('invalid microservice API {s!r}'.format(s=subject))
+            raise ValueError('invalid microservice API {s!r}'.format(s=mtype))
         ratio = float(ratio)
         microservice = Microservice(name, image, mtype, ratio)
         current = getattr(args, self.dest)
@@ -273,9 +278,12 @@ class ValidateImageDefn(argparse.Action):
 
 class ValidatePipelineDefn(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
-        name, folder, ratio = values
+        valid_types = ('rest', 'rpc')
+        name, folder, mtype, ratio = values
+        if mtype not in valid_types:
+            raise ValueError('invalid microservice API {s!r}'.format(s=mtype))
         ratio = float(ratio)
-        pipeline = Pipeline(name, folder, "rest", ratio)
+        pipeline = Pipeline(name, folder, mtype, ratio)
         current = getattr(args, self.dest)
         if current is None:
             current = []
@@ -291,7 +299,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog='create_replay')
     parser.add_argument('-i', help='microservice image defn: <name> <image> <API type (rest or rpc)> <ratio>',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateImageDefn, default=[])
-    parser.add_argument('-p', help='microservice from pipeline defn: <name> <folder> <ratio>',nargs=3, metavar=('name','folder','ratio'), action=ValidatePipelineDefn, default=[])
+    parser.add_argument('-p', help='microservice from pipeline defn: <name> <folder> <API type (rest or rpc) <ratio>',nargs=4, metavar=('name','folder','microservice API','ratio'), action=ValidatePipelineDefn, default=[])
     parser.add_argument('--client', help='client name',required=True)
     parser.add_argument('--replicas', help='number of replicas',type=int,default=1)
     parser.add_argument('--type', help='microservice type',choices=['recommendation','prediction'],required=True)
