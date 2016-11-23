@@ -23,7 +23,7 @@ def run_pipeline(events,models):
     p = Pipeline(transformers)
 
     pw = sutl.Pipeline_wrapper()
-    df = pw.create_dataframe(events)
+    df = pw.create_dataframe_from_files(events)
     df2 = p.fit_transform(df)
     pw.save_pipeline(p,models)
     logger.info("cross validation scores %s",cv.get_scores())
