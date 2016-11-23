@@ -30,7 +30,8 @@ def run_pipeline(events,models):
     p = Pipeline(transformers)
 
     pw = sutl.Pipeline_wrapper()
-    df = pw.create_dataframe(events)
+    print events
+    df = pw.create_dataframe_from_files(events)
     df2 = p.fit(df)
     pw.save_pipeline(p,models)
 

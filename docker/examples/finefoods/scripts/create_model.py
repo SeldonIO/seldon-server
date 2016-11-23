@@ -38,7 +38,7 @@ class XGBoostModel(object):
         p = Pipeline(transformers)
 
         pw = sutl.Pipeline_wrapper()
-        df = pw.create_dataframe([self.data_folder],df_format="csv")
+        df = pw.create_dataframe_from_files([self.data_folder],df_format="csv")
         if sample < 1.0:
             logger.info("sampling dataset to size %s ",sample)
             df = df.sample(frac=sample,random_state=1)
