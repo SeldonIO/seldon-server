@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
 import io.seldon.api.logging.EventLogger;
+import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.resource.ErrorBean;
 import io.seldon.api.resource.EventBean;
@@ -61,6 +62,9 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 	
 	@Autowired
 	PredictionService predictionService;
+	
+	@Autowired
+	PredictLogger predictLogger;
 	
 	private boolean allowedKey(String key)
 	{
@@ -190,29 +194,17 @@ public class PredictionBusinessServiceImpl implements PredictionBusinessService 
 		{
 			logger.info("Json raw "+jsonRaw);
 			JsonNode jsonNode = getValidatedJson(consumer, jsonRaw, false); // used to check valid json but we don't use result
-			return predictionService.predict(consumer.getShort_name(), puid, jsonNode);
+			PredictionServiceResult res = predictionService.predict(consumer.getShort_name(), puid, jsonNode);
+			predictLogger.log(consumer.getShort_name(), jsonNode, res);
+			return res;
 	    } 
 		catch (IOException e) 
 		{
 			ApiLoggerServer.log(this, e);
-			/*
-			APIException apiEx = new APIException(APIException.INVALID_JSON);
-			ResourceBean responseBean = new ErrorBean(apiEx);
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode response = mapper.valueToTree(responseBean);
-			return response;
-			*/
 			return new PredictionServiceResult();
 		}
 		catch (APIException e)
 		{
-			/*
-			ApiLoggerServer.log(this, e);
-			ResourceBean responseBean = new ErrorBean(e);
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode response = mapper.valueToTree(responseBean);
-			return response;
-			*/
 			return new PredictionServiceResult();
 		}
 	}

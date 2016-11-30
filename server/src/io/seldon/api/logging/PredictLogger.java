@@ -22,20 +22,28 @@
 package io.seldon.api.logging;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.seldon.prediction.PredictionsResult;
+import io.seldon.api.rpc.ClassificationReply;
+import io.seldon.api.rpc.ClassificationRequest;
+import io.seldon.prediction.PredictionServiceResult;
+import io.seldon.rpc.ClientRpcStore;
 
 
-
+@Component
 public class PredictLogger {
 
 	private static Logger predictLogger = Logger.getLogger( "PredictLogger" );
 	
-	public static void log(String client,String algKey,JsonNode input,PredictionsResult response,String label,String puid)
+	@Autowired 
+	ClientRpcStore rpcStore;
+	
+	public void log(String client,JsonNode input,PredictionServiceResult response)
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode prediction = mapper.valueToTree(response);
@@ -43,9 +51,16 @@ public class PredictLogger {
 		topNode.put("consumer", client);
 		topNode.put("input", input);
 		topNode.put("prediction", prediction);
-		topNode.put("algorithm", algKey);
-		topNode.put("abkey", label);
-		topNode.put("puid", puid);
+		predictLogger.info(topNode.toString());
+	}
+	
+	public void log(String client,ClassificationRequest request,ClassificationReply reply)
+	{
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode topNode = mapper.createObjectNode();
+		topNode.put("consumer", client);
+		topNode.put("input", rpcStore.getJSONForRequest(client, request));
+		topNode.put("prediction", rpcStore.getJSONForReply(client, reply));
 		predictLogger.info(topNode.toString());
 	}
 }

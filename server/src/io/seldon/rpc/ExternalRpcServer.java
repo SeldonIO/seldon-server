@@ -22,6 +22,7 @@ import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import io.seldon.api.APIException;
 import io.seldon.api.Constants;
+import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.resource.ConsumerBean;
 import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationRequest;
@@ -40,6 +41,10 @@ public class ExternalRpcServer extends SeldonGrpc.SeldonImplBase implements Serv
 	
 	@Autowired
 	private ResourceServer resourceServer;
+	
+	@Autowired
+	PredictLogger predictLogger;
+	
 	final Metadata.Key<String> authKey = Metadata.Key.of(Constants.OAUTH_TOKEN,Metadata.ASCII_STRING_MARSHALLER);
 	
 	ThreadLocal<String> clientThreadLocal = new ThreadLocal<String>();	
@@ -123,8 +128,10 @@ public class ExternalRpcServer extends SeldonGrpc.SeldonImplBase implements Serv
 		if (StringUtils.notEmpty(client))
 		{
 			clientThreadLocal.set(null);
-			responseObserver.onNext(predictionService.predict(client, request));
+			ClassificationReply reply = predictionService.predict(client, request);
+			responseObserver.onNext(reply);
 			responseObserver.onCompleted();
+			predictLogger.log(client, request, reply);
 		}
 		else
 		{

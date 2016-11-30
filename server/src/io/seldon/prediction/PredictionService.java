@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import io.seldon.api.APIException;
+import io.seldon.api.logging.PredictLogger;
 import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationReplyMeta;
 import io.seldon.api.rpc.ClassificationRequest;
@@ -118,6 +119,7 @@ public class PredictionService {
 				if (predictionServiceResult.meta == null)
 				{
 					PredictionMetadata meta = new PredictionMetadata(algStr.name, strategy.label, puid);
+					predictionServiceResult.meta = meta;
 				}
 				else
 				{
@@ -130,7 +132,8 @@ public class PredictionService {
 		
 		logger.warn("No prediction for client "+client+" with json "+json);
 		PredictionMetadata meta = new PredictionMetadata("", strategy.label, puid);
-		return new PredictionServiceResult(meta,new ArrayList<PredictionResult>(),null);
+		PredictionServiceResult res =  new PredictionServiceResult(meta,new ArrayList<PredictionResult>(),null);
+		return res;
 	}
 	
 }

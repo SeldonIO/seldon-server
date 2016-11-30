@@ -1,5 +1,6 @@
 package io.seldon.prediction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,7 +13,7 @@ public class PredictionServiceResult {
 	
 	public PredictionServiceResult()
 	{
-		
+		predictions = new ArrayList<>();
 	}
 
 	public PredictionServiceResult(PredictionMetadata meta, List<PredictionResult> predictions, JsonNode custom) {

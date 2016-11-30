@@ -53,7 +53,6 @@ import io.seldon.api.state.GlobalConfigUpdateListener;
 import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionServiceResult;
-import io.seldon.prediction.PredictionsResult;
 import io.seldon.rpc.ClientRpcStore;
 
 

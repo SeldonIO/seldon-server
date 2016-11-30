@@ -37,7 +37,6 @@ import io.seldon.clustering.recommender.RecommendationContext.OptionsHolder;
 import io.seldon.prediction.PredictionAlgorithm;
 import io.seldon.prediction.PredictionResult;
 import io.seldon.prediction.PredictionServiceResult;
-import io.seldon.prediction.PredictionsResult;
 import io.seldon.vw.VwFeatureExtractor.Namespace;
 import io.seldon.vw.VwModelManager.VwModel;
 
