@@ -111,9 +111,10 @@ public class PredictionsToInfluxDb {
 			public KeyValue<String, Prediction> apply(String key, JsonNode value) {
 				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
 				Random r = new Random();
-				Prediction imp = new Prediction(value);
-				String ikey = imp.consumer+"_"+imp.variation+"_"+imp.model+"_"+imp.predictedClass+"_"+imp.time+"_"+r.nextInt();;
-				return new KeyValue<String,Prediction>(ikey,imp);
+				Prediction pred = new Prediction();
+				pred.parse(value);
+				String ikey = pred.consumer+"_"+pred.variation+"_"+pred.model+"_"+pred.predictedClass+"_"+pred.time+"_"+r.nextInt();;
+				return new KeyValue<String,Prediction>(ikey,pred);
 			}
         	
 		})
@@ -132,6 +133,7 @@ public class PredictionsToInfluxDb {
 				Random r = new Random();
 				long time = value.time * 1000000;
 				time = time + r.nextInt(1000000);
+				System.out.println("Value is "+value.toString());
 				Point point = Point.measurement(ns.getString("influx_measurement"))
                 .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)
@@ -143,7 +145,7 @@ public class PredictionsToInfluxDb {
                 .build();
 
 				
-				System.out.println("Value is "+value.toString());
+				
 				influxDB.write(ns.getString("influx_database"), "default", point);				
 			}
 		});

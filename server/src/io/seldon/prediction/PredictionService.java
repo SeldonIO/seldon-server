@@ -79,9 +79,12 @@ public class PredictionService {
 					if (!request.hasMeta() || StringUtils.isEmpty(request.getMeta().getPuid()))
 						metaBuilder.setPuid(SecurityHashPeer.getNewId());
 					else
-						metaBuilder.setPuid(res.getMeta().getPuid());
+						metaBuilder.setPuid(request.getMeta().getPuid());
 					ClassificationReplyMeta meta = 	metaBuilder.setVariation(strategy.label).setModelName(res.getMeta().getModelName()).build();
-					return ClassificationReply.newBuilder().setCustom(res.getCustom()).setMeta(meta).addAllPredictions(res.getPredictionsList()).build();
+					if (res.hasCustom()) 
+						return ClassificationReply.newBuilder().setCustom(res.getCustom()).setMeta(meta).addAllPredictions(res.getPredictionsList()).build();
+					else
+						return ClassificationReply.newBuilder().setMeta(meta).addAllPredictions(res.getPredictionsList()).build();
 				}
 			}
 		}

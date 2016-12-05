@@ -20,6 +20,7 @@ import io.seldon.api.rpc.ClassificationReply;
 import io.seldon.api.rpc.ClassificationReplyMeta;
 import io.seldon.api.rpc.ClassificationRequest;
 import io.seldon.api.rpc.ClassificationRequestMeta;
+import io.seldon.api.rpc.ClassificationResult;
 import io.seldon.api.rpc.DefaultCustomPredictRequest;
 import io.seldon.api.rpc.example.CustomPredictReply;
 import io.seldon.api.rpc.example.CustomPredictRequest;
@@ -218,5 +219,26 @@ public class ClientRPCStoreTest {
 		Assert.assertNotNull(json);
 		System.out.println(json);
 	}
+	
+	@Test 
+	public void testDefaultCustomResponse() throws NoSuchMethodException, SecurityException
+	{
+		mockClientConfigHandler.addListener((ClientConfigUpdateListener) EasyMock.anyObject());
+		EasyMock.expectLastCall().once();
+		replay(mockClientConfigHandler);
+		final String client = "test";
+		ClientRpcStore store = new ClientRpcStore(mockClientConfigHandler);
+		ClassificationReplyMeta meta = ClassificationReplyMeta.newBuilder().setPuid("1234").build();
+		ClassificationResult res1 = ClassificationResult.newBuilder().setConfidence(1.0).setPredictedClass("class1").setPrediction(1.0).build();
+		ClassificationReply reply = ClassificationReply.newBuilder().setMeta(meta).addPredictions(res1).build();
+		if (reply.hasCustom())
+		{
+			System.out.println("has custom");
+		}
+		JsonNode json = store.getJSONForReply(client,reply);
+		Assert.assertNotNull(json);
+		System.out.println(json);
+	}
+	
 	
 }

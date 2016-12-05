@@ -38,21 +38,41 @@ public class Prediction {
 	Long time;
 	Integer count;
 	
-	public Prediction() {}
+	public Prediction() 
+	{
+		consumer = "unknown";
+		variation = "unknown";
+		predictedClass = "unknown";
+		model = "unknown";
+	}
 	
-	public Prediction(JsonNode j)
+	public void parse(JsonNode j)
 	{
 		consumer = j.get("consumer").asText();
 		time = j.get("time").asLong();
-		if (j.has("abkey"))
-			variation = j.get("abkey").asText();
-		else
-			variation = "all";
 		count = 1;
 		if (j.has("prediction"))
 		{
-			model = j.get("prediction").get("model").asText();
-			Iterator<JsonNode> iter = j.get("prediction").get("predictions").elements();
+			JsonNode prediction = j.get("prediction"); 
+			if (prediction.has("meta"))
+			{
+				JsonNode meta = prediction.get("meta"); 
+				if (meta.has("variation"))
+					variation = meta.get("variation").asText();
+				else
+					variation = "default";
+				if (meta.has("modelName"))
+					model = meta.get("modelName").asText();
+				else
+					model = "default";
+			}
+			else
+			{
+				variation = "default";
+				model = "default";
+			}
+
+			Iterator<JsonNode> iter = prediction.get("predictions").elements();
 			double bestScore = 0;
 			String bestClass = null;
 			while (iter.hasNext())
