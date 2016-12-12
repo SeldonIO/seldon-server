@@ -73,11 +73,11 @@ class SeldonJsLocust(TaskSet):
         :return:
         """
         self.consumer_secret = self.getEnviron('SELDON_JS_SECRET',"jssecret")
+        self.data_size = int(self.getEnviron('SELDON_DATA_SIZE',"784"))
 
     @task
     def getPrediction(self):
-        print "get prediction"
-        fake_data = [round(random(),2) for i in range(0,784)]
+        fake_data = [round(random(),2) for i in range(0,self.data_size)]
         j = {"data":fake_data}
         jStr = json.dumps(j)
         r = self.client.get("/js/predict?consumer_key={}&json={}&jsonpCallback=j".format(self.consumer_secret, jStr),name="/js/predict")

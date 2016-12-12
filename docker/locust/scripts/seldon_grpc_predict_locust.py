@@ -65,15 +65,8 @@ events.slave_report += on_my_event # Register method in slaves report event
 
 
 class GrpcLocust(Locust):
-    """
-    This is the abstract Locust class which should be subclassed. It provides an XML-RPC client
-    that can be used to make XML-RPC requests that will be tracked in Locust's statistics.
-    """
     def __init__(self, *args, **kwargs):
         super(GrpcLocust, self).__init__(*args, **kwargs)
-        #self.client = XmlRpcClient(self.host)
-
-
 
 class ApiUser(GrpcLocust):
     
@@ -117,13 +110,13 @@ class ApiUser(GrpcLocust):
             self.oauth_endpoint = self.getEnviron('SELDON_OAUTH_ENDPOINT',"http://127.0.0.1:30015")
             self.token = self.getToken()
             self.grpc_endpoint = self.getEnviron('SELDON_GRPC_ENDPOINT',"127.0.0.1:30017")
-            
+            self.data_size = int(self.getEnviron('SELDON_DATA_SIZE',"784"))            
 
         @task
         def get_prediction(self):
             channel = grpc.insecure_channel(self.grpc_endpoint)
             stub = seldon_pb2.SeldonStub(channel)
-            fake_data = [random() for i in range(0,784)]
+            fake_data = [random() for i in range(0,self.data_size)]
             data = seldon_pb2.DefaultCustomPredictRequest(values=fake_data)
             dataAny = any_pb2.Any()
             dataAny.Pack(data)
