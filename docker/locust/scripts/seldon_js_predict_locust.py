@@ -72,8 +72,8 @@ class SeldonJsLocust(TaskSet):
         Executes for each user at the start
         :return:
         """
-        self.consumer_secret = self.getEnviron('SELDON_JS_SECRET',"jssecret")
-        self.data_size = int(self.getEnviron('SELDON_DATA_SIZE',"784"))
+        self.consumer_secret = self.getEnviron('SELDON_JS_KEY',"jssecret")
+        self.data_size = int(self.getEnviron('SELDON_DEFAULT_DATA_SIZE',"784"))            
 
     @task
     def getPrediction(self):

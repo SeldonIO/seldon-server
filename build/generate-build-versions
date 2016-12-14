@@ -122,6 +122,11 @@ seldon_examples_tensorflow_deep_mnist_image_version() {
     echo ${SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION}
 }
 
+seldon_locust_image_version() {
+    local SELDON_LOCUST_IMAGE_VERSION=${SELDON_PYTHON_PACKAGE_VERSION}
+    echo ${SELDON_LOCUST_IMAGE_VERSION}
+}
+
 
 # Versions needed by other versions
 SELDON_PYTHON_PACKAGE_VERSION=$(seldon_python_package_version)
@@ -153,4 +158,5 @@ write_version "SELDON_IRIS_XGBOOST_RPC_IMAGE_VERSION" "$(seldon_iris_xgboost_rpc
 write_version "SELDON_IRIS_SCIKIT_IMAGE_VERSION" "$(seldon_iris_scikit_image_version)"
 write_version "SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION" "$(seldon_finefoods_xgboost_image_version)"
 write_version "SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION" "$(seldon_examples_tensorflow_deep_mnist_image_version)"
+write_version "SELDON_LOCUST_IMAGE_VERSION" "$(seldon_locust_image_version)"
 

@@ -31,6 +31,7 @@ SELDON_SERVICE_TYPE=NodePort
 SELDON_SERVER_NODEPORT=30015
 SELDON_SERVER_DEBUG_NODEPORT=30016
 SELDON_SERVER_RPC_NODEPORT=30017
+LOCUST_NODEPORT=30018
 SELDON_SERVER_DEBUG_COMMAND="command":["/home/seldon/start-server-debug.sh"]
 
 # 
@@ -218,6 +219,21 @@ dev/iago.json :dev/iago.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				> dev/iago.json
+dev/locust-master.json.template :dev/locust-master.json.template.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(SELDON_HOME)/build/build_versions_generated; \
+		cat dev/locust-master.json.template.in | sed \
+				-e "s|%SELDON_LOCUST_IMAGE_VERSION%|$${SELDON_LOCUST_IMAGE_VERSION}|" \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
+				-e 's|%LOCUST_NODEPORT%|$(LOCUST_NODEPORT)|' \
+				> dev/locust-master.json.template
+
+dev/locust-slave.json.template :dev/locust-slave.json.template.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(SELDON_HOME)/build/build_versions_generated; \
+		cat dev/locust-slave.json.template.in | sed \
+				-e "s|%SELDON_LOCUST_IMAGE_VERSION%|$${SELDON_LOCUST_IMAGE_VERSION}|" \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				> dev/locust-slave.json.template
 
 rpc/create-proto-jar-job.template.json :rpc/create-proto-jar-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(SELDON_HOME)/build/build_versions; \
@@ -237,7 +253,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json
 
 
 #
@@ -287,6 +303,8 @@ clean:
 	rm -f dev/server.json
 	rm -f dev/control.json
 	rm -f dev/iago.json
+	rm -f dev/locust-slave.json.template
+	rm -f dev/locust-master.json.template
 	rm -f analytics/*.json
 	rm -f microservice_pipeline.rest.template
 	rm -f microservice_pipeline.rpc.template

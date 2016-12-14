@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+import os
+import sys, getopt, argparse
+import logging
+import json
+from subprocess import call, check_output
+import collections
+
+
+LOCUST_JSON_CMD = 'cat ${STARTUP_DIR}/../conf/dev/locust-${TYPE}.json.template | sed -e "s|%SELDON_JS_KEY%|${SELDON_JS_KEY}|" | sed -e "s|%SELDON_OAUTH_KEY%|${SELDON_OAUTH_KEY}|" | sed -e "s|%SELDON_OAUTH_SECRET%|${SELDON_OAUTH_SECRET}|" | sed -e "s|%LOCUST_HATCH_RATE%|${LOCUST_HATCH_RATE}|" | sed -e "s|%LOCUST_CLIENTS%|${LOCUST_CLIENTS}|" | sed -e "s|%LOCUST_SCRIPT%|${LOCUST_SCRIPT}|" | sed -e "s|%SELDON_OAUTH_ENDPOINT%|${SELDON_OAUTH_ENDPOINT}|" | sed -e "s|%SELDON_GRPC_ENDPOINT%|${SELDON_GRPC_ENDPOINT}|" | sed -e "s|%SELDON_DEFAULT_DATA_SIZE%|${SELDON_DEFAULT_DATA_SIZE}|" > ${STARTUP_DIR}/../conf/dev/locust-${TYPE}.json'
+
+
+KUBECTL_CMD_APPLY = 'kubectl apply -f ${STARTUP_DIR}/../conf/dev/locust-${TYPE}.json'
+
+CLI_JS_KEYS_CMD = "seldon-cli --quiet keys --client-name ${CLIENT} --scope js"
+CLI_OAUTH_KEYS_CMD = "seldon-cli --quiet keys --client-name ${CLIENT} --scope all"
+
+SCRIPT_MAP = {"js-predict":"seldon_js_predict_locust.py","rpc-predict":"seldon_grpc_predict_locust.py"}
+
+class LocustLaunchError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class LocustLauncher(object):
+
+    def __init__(self,replicas=1):
+        self.script_folder = os.path.dirname(os.path.realpath(__file__))
+    
+    def createLocustKubernetestConf(self,args):
+        (jsKey,oauthKey,oauthSecret) = self.getKeys(args.seldon_client)
+        cmd = LOCUST_JSON_CMD.replace("${TYPE}","master").replace("${STARTUP_DIR}",self.script_folder).replace("${LOCUST_HATCH_RATE}",str(args.locust_hatch_rate)).replace("${LOCUST_CLIENTS}",str(args.locust_clients)).replace("${SELDON_JS_KEY}",jsKey).replace("${SELDON_OAUTH_KEY}",oauthKey).replace("${SELDON_OAUTH_SECRET}",oauthSecret).replace("${LOCUST_SCRIPT}",SCRIPT_MAP[args.test_type]).replace("${SELDON_OAUTH_ENDPOINT}",args.seldon_oauth_endpoint).replace("${SELDON_GRPC_ENDPOINT}",args.seldon_grpc_endpoint).replace("${SELDON_DEFAULT_DATA_SIZE}",str(args.seldon_predict_default_data_size))
+        retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise LocustLaunchError("failed to create JSON for locust master")
+        cmd = LOCUST_JSON_CMD.replace("${TYPE}","slave").replace("${STARTUP_DIR}",self.script_folder).replace("${LOCUST_HATCH_RATE}",str(args.locust_hatch_rate)).replace("${LOCUST_CLIENTS}",str(args.locust_clients)).replace("${SELDON_JS_KEY}",jsKey).replace("${SELDON_OAUTH_KEY}",oauthKey).replace("${SELDON_OAUTH_SECRET}",oauthSecret).replace("${LOCUST_SCRIPT}",SCRIPT_MAP[args.test_type]).replace("${SELDON_OAUTH_ENDPOINT}",args.seldon_oauth_endpoint).replace("${SELDON_GRPC_ENDPOINT}",args.seldon_grpc_endpoint).replace("${SELDON_DEFAULT_DATA_SIZE}",str(args.seldon_predict_default_data_size))
+        retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise LocustLaunchError("failed to create JSON for locust master")
+
+
+
+    def launchLoadTest(self,args):
+        cmd = KUBECTL_CMD_APPLY.replace("${TYPE}","master").replace("${STARTUP_DIR}",self.script_folder)
+        retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise LocustLaunchError("failed to start locust master")
+        cmd = KUBECTL_CMD_APPLY.replace("${TYPE}","slave").replace("${STARTUP_DIR}",self.script_folder)
+        retcode = call(cmd, shell=True)
+        if not retcode == 0:
+            raise LocustLaunchError("failed to start locust slave")
+        
+
+    def getKeys(self,client):
+        cmd = CLI_JS_KEYS_CMD.replace("${CLIENT}",client)
+        jstr = check_output(cmd.split())
+        j = json.loads(jstr)
+        jsKey = j[0]["key"]
+        cmd = CLI_OAUTH_KEYS_CMD.replace("${CLIENT}",client)
+        jstr = check_output(cmd.split())
+        j = json.loads(jstr)
+        oauthKey = j[0]["key"]
+        oauthSecret = j[0]["secret"]
+        return (jsKey,oauthKey,oauthSecret)
+
+    def run(self,args):
+        self.createLocustKubernetestConf(args)
+        self.launchLoadTest(args)
+        print "Launched load test"
+
+
+    
+
+if __name__ == '__main__':
+    import logging
+    logger = logging.getLogger()
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
+    logger.setLevel(logging.INFO)
+
+    parser = argparse.ArgumentParser(prog='launch-locust-load-test')
+    parser.add_argument('--seldon-client', help='client name',required=True)
+    parser.add_argument('--locust-slaves', help='number of slaves to run',type=int,default=1)
+    parser.add_argument('--locust-hatch-rate', help='locust hatch rate',type=int,default=5)
+    parser.add_argument('--locust-clients', help='number of locust clients',type=int,default=50)
+    parser.add_argument('--test-type', help='type of test to run',choices=["js-predict","rpc-predict"],required=True)
+    parser.add_argument('--seldon-grpc-endpoint', help='seldon grpc endpoint',default="seldon-server:5000")
+    parser.add_argument('--seldon-oauth-endpoint', help='seldon oauth endpoint',default="http://seldon-server:80")
+    parser.add_argument('--seldon-predict-default-data-size', help='the size of the default list of random floats to send to predict endpoint',type=int,default=784)
+
+    args = parser.parse_args()
+    opts = vars(args)
+
+    
+    launcher = LocustLauncher()
+    launcher.run(args)

@@ -110,7 +110,7 @@ class ApiUser(GrpcLocust):
             self.oauth_endpoint = self.getEnviron('SELDON_OAUTH_ENDPOINT',"http://127.0.0.1:30015")
             self.token = self.getToken()
             self.grpc_endpoint = self.getEnviron('SELDON_GRPC_ENDPOINT',"127.0.0.1:30017")
-            self.data_size = int(self.getEnviron('SELDON_DATA_SIZE',"784"))            
+            self.data_size = int(self.getEnviron('SELDON_DEFAULT_DATA_SIZE',"784"))            
 
         @task
         def get_prediction(self):
