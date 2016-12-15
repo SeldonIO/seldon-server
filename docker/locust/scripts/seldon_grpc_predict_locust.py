@@ -126,7 +126,6 @@ class ApiUser(GrpcLocust):
             start_time = time.time()
             try:
                 reply = stub.Classify(request,999,metadata=metadata)
-                print reply
             except xmlrpclib.Fault as e:
                 total_time = int((time.time() - start_time) * 1000)
                 events.request_failure.fire(request_type="grpc", name=HOST, response_time=total_time, exception=e)
