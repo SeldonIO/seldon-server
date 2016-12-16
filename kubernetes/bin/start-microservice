@@ -297,7 +297,7 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
     logger.setLevel(logging.INFO)
 
-    parser = argparse.ArgumentParser(prog='create_replay')
+    parser = argparse.ArgumentParser(prog='start-microservice')
     parser.add_argument('-i', help='microservice image defn: <name> <image> <API type (rest or rpc)> <ratio>',nargs=4, metavar=('name','image','microservice API','ratio'), action=ValidateImageDefn, default=[])
     parser.add_argument('-p', help='microservice from pipeline defn: <name> <folder> <API type (rest or rpc) <ratio>',nargs=4, metavar=('name','folder','microservice API','ratio'), action=ValidatePipelineDefn, default=[])
     parser.add_argument('--client', help='client name',required=True)
