@@ -15,7 +15,7 @@ KUBECTL_CMD_APPLY = 'kubectl apply -f ${STARTUP_DIR}/../conf/dev/locust-${TYPE}.
 CLI_JS_KEYS_CMD = "seldon-cli --quiet keys --client-name ${CLIENT} --scope js"
 CLI_OAUTH_KEYS_CMD = "seldon-cli --quiet keys --client-name ${CLIENT} --scope all"
 
-SCRIPT_MAP = {"js-predict":"seldon_js_predict_locust.py","rpc-predict":"seldon_grpc_predict_locust.py"}
+SCRIPT_MAP = {"js-predict":"seldon_js_predict_locust.py","grpc-predict":"seldon_grpc_predict_locust.py"}
 
 class LocustLaunchError(Exception):
     def __init__(self, value):
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--locust-slaves', help='number of slaves to run',type=int,default=1)
     parser.add_argument('--locust-hatch-rate', help='locust hatch rate',type=int,default=5)
     parser.add_argument('--locust-clients', help='number of locust clients',type=int,default=50)
-    parser.add_argument('--test-type', help='type of test to run',choices=["js-predict","rpc-predict"],required=True)
+    parser.add_argument('--test-type', help='type of test to run',choices=["js-predict","grpc-predict"],required=True)
     parser.add_argument('--seldon-grpc-endpoint', help='seldon grpc endpoint',default="seldon-server:5000")
     parser.add_argument('--seldon-oauth-endpoint', help='seldon oauth endpoint',default="http://seldon-server:80")
     parser.add_argument('--seldon-predict-default-data-size', help='the size of the default list of random floats to send to predict endpoint',type=int,default=784)
