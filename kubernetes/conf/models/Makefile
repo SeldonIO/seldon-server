@@ -14,11 +14,19 @@ jobs/item-similarity-${CLIENT}-${DAY}.json:
 	cat item-similarity.json.in | sed -e 's|%CLIENT%|$(CLIENT)|' | sed -e 's|%DAY%|$(DAY)|' > jobs/item-similarity-${CLIENT}-${DAY}.json
 
 
+jobs/stream-itemsim-create-${CLIENT}.json:
+	mkdir -p jobs
+	cat stream-itemsim-create.json | sed -e "s|%CLIENT%|${CLIENT}|" > jobs/stream-itemsim-create-${CLIENT}.json
+
+jobs/stream-itemsim-dbupload-${CLIENT}.json:
+	cat stream-itemsim-dbupload.json | sed -e "s|%CLIENT%|${CLIENT}|" > jobs/stream-itemsim-dbupload-${CLIENT}.json
+
+
 matrix-factorization:jobs/matrix-factorization-${CLIENT}-${DAY}.json
 
 item-similarity:jobs/item-similarity-${CLIENT}-${DAY}.json
 
-
+streaming-itemsim:jobs/stream-itemsim-create-${CLIENT}.json jobs/stream-itemsim-dbupload-${CLIENT}.json
 
 clean_jobs:
 	rm jobs/*
