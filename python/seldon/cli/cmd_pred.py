@@ -17,7 +17,7 @@ def pp(o):
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli predict_alg', description='Seldon CLI')
-    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show','add','delete','commit','create'])
+    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show', 'commit','create'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--predictor-name', help="the name of predictor", required=False)
     parser.add_argument('--config', help="algorithm specific config in the form x=y", required=False, action='append')
@@ -125,7 +125,7 @@ def action_list(command_data, opts):
 def action_commit(command_data, opts):
     client_name = opts.client_name
     if client_name == None:
-        print "Need client name to add algs for"
+        print "Need client name to commit algs for"
         sys.exit(1)
 
     zkroot = command_data["zkdetails"]["zkroot"]
