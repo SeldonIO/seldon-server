@@ -586,6 +586,9 @@ public class CountRecommender {
 	
 	private List<UserCluster> getClusters(long userId,Integer group)
 	{
+		if (userClusters == null)
+			return null;
+		
 		List<UserCluster> clusters = null;
 		String memcacheKey = null;
 		if (userClusters.needsExternalCaching())
