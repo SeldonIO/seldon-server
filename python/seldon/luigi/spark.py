@@ -82,3 +82,29 @@ class SeldonMatrixFactorization(luigi.Task):
         params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization"]
         res = call(params)
         return res
+
+
+class SeldonMatrixFactorizationClusters(luigi.Task):
+    """
+    User Clustered Matrix factorization using Spark
+    """
+    inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    client = luigi.Parameter(default="test")
+    startDay = luigi.IntParameter(default=1)
+    days = luigi.IntParameter(default=1)
+
+    rank = luigi.IntParameter(default=30)
+    mf_lambda = luigi.FloatParameter(default=0.01)
+    alpha = luigi.FloatParameter(default=1)
+    iterations = luigi.IntParameter(default=5)
+
+    def output(self):
+        return luigi.LocalTarget("{}/{}/matrix-factorization-clusters/{}".format(self.outputPath,self.client,self.startDay))
+
+    def run(self):
+        params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","matrix-factorization-clusters","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--rank",str(self.rank),"--lambda",str(self.mf_lambda),"--alpha",str(self.alpha),"--iterations",str(self.iterations)]
+        res = call(params)
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization-clusters"]
+        res = call(params)
+        return res

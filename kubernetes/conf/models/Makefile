@@ -9,6 +9,10 @@ jobs/matrix-factorization-${CLIENT}-${DAY}.json:
 	mkdir -p jobs
 	cat matrix-factorization.json.in | sed -e 's|%CLIENT%|$(CLIENT)|' | sed -e 's|%DAY%|$(DAY)|' > jobs/matrix-factorization-${CLIENT}-${DAY}.json
 
+jobs/matrix-factorization-clusters-${CLIENT}-${DAY}.json:	
+	mkdir -p jobs
+	cat matrix-factorization-clusters.json.in | sed -e 's|%CLIENT%|$(CLIENT)|' | sed -e 's|%DAY%|$(DAY)|' > jobs/matrix-factorization-clusters-${CLIENT}-${DAY}.json
+
 jobs/item-similarity-${CLIENT}-${DAY}.json:	
 	mkdir -p jobs
 	cat item-similarity.json.in | sed -e 's|%CLIENT%|$(CLIENT)|' | sed -e 's|%DAY%|$(DAY)|' > jobs/item-similarity-${CLIENT}-${DAY}.json
@@ -23,6 +27,8 @@ jobs/stream-itemsim-dbupload-${CLIENT}.json:
 
 
 matrix-factorization:jobs/matrix-factorization-${CLIENT}-${DAY}.json
+
+matrix-factorization-clusters:jobs/matrix-factorization-clusters-${CLIENT}-${DAY}.json
 
 item-similarity:jobs/item-similarity-${CLIENT}-${DAY}.json
 

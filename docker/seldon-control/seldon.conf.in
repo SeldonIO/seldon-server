@@ -41,6 +41,10 @@
             "config": [],
             "zk_activate_node": "/config/mf"
         },
+        "mfUserClustersRecommender": {
+            "config": [],
+            "zk_activate_node": "/config/mfclusters"
+        },
         "mostPopularRecommender": {
             "config": []
         },
@@ -85,6 +89,36 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.MfModelCreation",
+                        "--master",
+                        "spark://spark-master:7077",
+                        "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                        "--client",
+                        "%CLIENT_NAME%",
+                        "--zookeeper",
+                        "%ZK_HOSTS%"
+                    ]
+                },
+                "job_type": "spark"
+            }
+        },
+        "matrix-factorization-clusters": {
+            "config": {
+                "activate": true,
+                "alpha": 1,
+                "days": 1,
+                "inputPath": "%SELDON_MODELS%",
+                "iterations": 5,
+                "lambda": 0.01,
+                "outputPath": "%SELDON_MODELS%",
+                "rank": 30,
+                "startDay": 1
+            },
+            "training": {
+                "job_info": {
+                    "cmd": "%SPARK_HOME%/bin/spark-submit",
+                    "cmd_args": [
+                        "--class",
+                        "io.seldon.spark.mllib.MfUserClusters",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",

@@ -45,7 +45,7 @@ public class MfUserClustersModelManager  extends ModelManager<MfUserClustersMode
 
 	private static Logger logger = Logger.getLogger(MfUserClustersModelManager.class.getName());
 	private final ExternalResourceStreamer featuresFileHandler;
-	public static final String LOC_PATTERN = "mfcluster";
+	public static final String LOC_PATTERN = "mfclusters";
 
 	@Autowired
 	public MfUserClustersModelManager(ExternalResourceStreamer featuresFileHandler,
