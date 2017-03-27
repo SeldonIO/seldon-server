@@ -11,7 +11,7 @@ import logging
 def run_pipeline(events,models):
 
     tAuto = pauto.Auto_transform(max_values_numeric_categorical=2,exclude=["label"])
-    detector = anod.iNNEDetector(sample_size=16)
+    detector = anod.iNNEDetector()
 
     wrapper = aw.AnomalyWrapper(clf=detector,excluded=["label"])
 
@@ -19,7 +19,8 @@ def run_pipeline(events,models):
     p = Pipeline(transformers)
 
     pw = sutl.Pipeline_wrapper()
-    df = pw.create_dataframe(events)
+    df = pw.create_dataframe_from_files(events)
+    logger.debug(df)
     df2 = p.fit_transform(df)
     pw.save_pipeline(p,models)
 
@@ -27,7 +28,7 @@ def run_pipeline(events,models):
 if __name__ == '__main__':
     logger = logging.getLogger()
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(name)s : %(message)s', level=logging.DEBUG)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     parser = argparse.ArgumentParser(prog='xgb_pipeline')
     parser.add_argument('--events', help='events folder', required=True)
