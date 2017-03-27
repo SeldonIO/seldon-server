@@ -3,6 +3,8 @@ import seldon.pipeline.basic_transforms as bt
 import seldon.pipeline.util as sutl
 import seldon.pipeline.auto_transforms as pauto
 from sklearn.pipeline import Pipeline
+#import anomaly_wrapper as aw
+#import AnomalyDetection as anod
 import seldon.anomaly_wrapper as aw
 import seldon.anomaly.AnomalyDetection as anod
 import sys
