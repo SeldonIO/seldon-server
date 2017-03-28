@@ -1,12 +1,12 @@
 import sys, getopt, argparse
+import seldon.anomaly_wrapper as aw
 import seldon.pipeline.basic_transforms as bt
 import seldon.pipeline.util as sutl
 import seldon.pipeline.auto_transforms as pauto
 from sklearn.pipeline import Pipeline
 #import anomaly_wrapper as aw
-#import AnomalyDetection as anod
-import seldon.anomaly_wrapper as aw
-import seldon.anomaly.AnomalyDetection as anod
+import AnomalyDetection as anod
+#import seldon.anomaly.AnomalyDetection as anod
 import sys
 import logging
 
@@ -22,7 +22,6 @@ def run_pipeline(events,models):
 
     pw = sutl.Pipeline_wrapper()
     df = pw.create_dataframe_from_files(events)
-    logger.debug(df)
     df2 = p.fit_transform(df)
     pw.save_pipeline(p,models)
 
