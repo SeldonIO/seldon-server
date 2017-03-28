@@ -6,12 +6,14 @@ Subpackages
 
 .. toctree::
 
+   seldon.anomaly
    seldon.cli
    seldon.luigi
    seldon.microservice
    seldon.misc
    seldon.pipeline
    seldon.text
+
 
 Submodules
 ----------
