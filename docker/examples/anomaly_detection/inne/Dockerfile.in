@@ -1,10 +1,6 @@
 FROM seldonio/pyseldon:%SELDON_PYTHON_PACKAGE_VERSION%
 
 ENV SELDON_HOME=/home/seldon
-ENV PYTHONPATH=/home/seldon
-
-COPY AnomalyDetection.py $SELDON_HOME/AnomalyDetection.py
-#COPY anomaly_wrapper.py $SELDON_HOME/anomaly_wrapper.py
 
 COPY inne_pipeline.py $SELDON_HOME/inne_pipeline.py
 COPY create-json.py $SELDON_HOME/create-json.py
