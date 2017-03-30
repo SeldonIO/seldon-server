@@ -52,10 +52,6 @@ public class JdoCountRecommenderUtils {
 		// get user clusters
 		UserClusterStore userClusters = null;
 		userClusters = UserClusterManager.get().getStore(client); // Hack until we always use this class
-		if (userClusters == null)
-		{
-			return null;
-		}
 		
 		return new CountRecommender(client,userClusters,counter,clusterFromReferrerPeer.get(client));
 	}

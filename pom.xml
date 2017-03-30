@@ -7,7 +7,7 @@
 
     <groupId>io.seldon</groupId>
     <artifactId>seldon-parent</artifactId>
-    <version>1.4</version>
+    <version>1.4.2</version>
     <packaging>pom</packaging>
     <name>Seldon Project Parent POM</name>
     <url>http://seldon.io/</url>

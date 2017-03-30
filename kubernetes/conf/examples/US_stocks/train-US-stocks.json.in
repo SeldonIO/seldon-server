@@ -1,0 +1,37 @@
+{
+    "kind": "Job",
+    "apiVersion": "batch/v1",
+    "metadata": {
+        "name": "train-us-stocks"
+    },
+    "spec": {
+        "template": {
+            "metadata": {
+                "name": "train-us-stocks"
+            },
+            "spec": {
+		"volumes": [
+		    {
+			"name": "data-volume",
+			%DATA_VOLUME%
+		    }
+		],
+                "containers": [
+                    {
+                        "name": "train-us-stocks",
+                        "image": "seldonio/us_stocks:01",
+			"command": ["/home/seldon/train_model.sh","/seldon-data/seldon-models/US_stocks/1"
+			    ],
+			"volumeMounts": [
+			    {
+				"name": "data-volume",
+				"mountPath": "/seldon-data"
+			    }
+			]
+                    }
+                ],
+                "restartPolicy": "Never"
+            }
+        }
+    }
+}

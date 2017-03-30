@@ -244,7 +244,7 @@ class MfUserClusters(private val sc : SparkContext,config : UCMfConfig) {
       val curator = new ZkCuratorHandler(zkServer)
       if(curator.getCurator.getZookeeperClient.blockUntilConnectedOrTimedOut())
       {
-        val zkPath = "/all_clients/"+client+"/mf"
+        val zkPath = "/all_clients/"+client+"/mfclusters"
         val ensurePath = new EnsurePath(zkPath)
         ensurePath.ensure(curator.getCurator.getZookeeperClient)
         curator.getCurator.setData().forPath(zkPath,(outputFilesLocation+date).getBytes())
@@ -297,7 +297,7 @@ object MfUserClusters {
     if (config.zkHosts.nonEmpty) 
      {
        val curator = new ZkCuratorHandler(config.zkHosts)
-       val path = "/all_clients/"+config.client+"/offline/matrix-factorization"
+       val path = "/all_clients/"+config.client+"/offline/matrix-factorization-clusters"
        if (curator.getCurator.checkExists().forPath(path) != null)
        {
          val bytes = curator.getCurator.getData().forPath(path)

@@ -1,5 +1,5 @@
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/", one_hot = True)
+#mnist = input_data.read_data_sets("MNIST_data/", one_hot = True)
 import tensorflow as tf
 from seldon.tensorflow_wrapper import TensorFlowWrapper
 from sklearn.pipeline import Pipeline
@@ -69,7 +69,7 @@ def create_pipeline(load=None):
     
 
     if not load:
-
+        mnist = input_data.read_data_sets("MNIST_data/", one_hot = True)
         print 'Training model'
 
         sess.run(init)
@@ -81,13 +81,15 @@ def create_pipeline(load=None):
                 print("step %d, training accuracy %.3f"%(i, train_accuracy))
             sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
 
+        print("test accuracy %g"%accuracy.eval(session=sess,feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+
     else:
 
         print 'Loading pre-trained model'
         saver = tf.train.Saver()
         saver.restore(sess,load)
 
-    print("test accuracy %g"%accuracy.eval(session=sess,feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+#    print("test accuracy %g"%accuracy.eval(session=sess,feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
     # print(sess.run(accuracy, feed_dict = {x: mnist.test.images, y_:mnist.test.labels}))
 

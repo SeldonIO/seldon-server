@@ -144,6 +144,28 @@ examples/ml10m/ml10m-import-matrix-factorization.json: examples/ml10m/ml10m-impo
 				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
 				> examples/ml10m/ml10m-import-matrix-factorization.json
 
+examples/anomaly/train-inne.json: examples/anomaly/train-inne.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/anomaly/train-inne.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_INNE_IMAGE_VERSION%|$${SELDON_INNE_IMAGE_VERSION}|" \
+				> examples/anomaly/train-inne.json && echo "created $@"
+
+examples/inception/load-inception.json: examples/inception/load-inception.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/inception/load-inception.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_INCEPTION_IMAGE_VERSION%|$${SELDON_INCEPTION_IMAGE_VERSION}|" \
+				> examples/inception/load-inception.json && echo "created $@"
+
+examples/US_stocks/train-US-stocks.json: examples/US_stocks/train-US-stocks.json.in $(BUILD_VERSIONS_GENERATED_FILE)
+	@source $(BUILD_VERSIONS_GENERATED_FILE); \
+		cat examples/US_stocks/train-US-stocks.json.in  | sed \
+				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
+				-e "s|%SELDON_US_STOCKS_IMAGE_VERSION%|$${SELDON_US_STOCKS_IMAGE_VERSION}|" \
+				> examples/US_stocks/train-US-stocks.json && echo "created $@"
+
+
 server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 	source $(SELDON_HOME)/build/build_versions; \
@@ -253,7 +275,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json examples/anomaly/train-inne.json examples/inception/load-inception.json examples/US_stocks/train-US-stocks.json
 
 
 #
@@ -311,3 +333,4 @@ clean:
 	rm -f models/stream-itemsim-create.json
 	rm -f models/stream-itemsim-dbupload.json
 	rm -f rpc/create-proto-jar-job.template.json
+	rm -f examples/anomaly/train-inne.json
