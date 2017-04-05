@@ -11,17 +11,13 @@ gdata = {
     'all_clients_node_path': "/all_clients",
 }
 
-CONFIG_MICROSERVICE_URL="io.seldon.algorithm.external.url"
-CONFIG_MICROSERVICE_NAME="io.seldon.algorithm.external.name"
-EXTERNAL_PREDICTOR="externalPredictionServer"
-
 def pp(o):
     p = pprint.PrettyPrinter(indent=4)
     p.pprint(o)
 
 def getOpts(args):
     parser = argparse.ArgumentParser(prog='seldon-cli predict_alg', description='Seldon CLI')
-    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show','add','delete','commit','create'])
+    parser.add_argument('--action', help="the action to use", required=True, choices=['list','show', 'commit','create'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--predictor-name', help="the name of predictor", required=False)
     parser.add_argument('--config', help="algorithm specific config in the form x=y", required=False, action='append')
@@ -120,108 +116,6 @@ def has_config(opts,name):
                 return True
     return False
 
-
-def action_add(command_data, opts):
-    client_name = opts.client_name
-    if client_name == None:
-        print "Need client name to add algs for"
-        sys.exit(1)
-
-    predictor_name = opts.predictor_name
-    if predictor_name == None:
-        print "Need predictor name"
-        sys.exit(1)
-
-    zkroot = command_data["zkdetails"]["zkroot"]
-    if not is_existing_client(zkroot, client_name):
-        print "Invalid client[{client_name}]".format(**locals())
-        sys.exit(1)
-
-    default_algorithms = command_data["conf_data"]["default_predictors"]
-    predictors = default_algorithms.keys()
-
-    if predictor_name not in predictors:
-        print "Invalid predictor[{predictor_name}]".format(**locals())
-        sys.exit(1)
-
-
-    if predictor_name == EXTERNAL_PREDICTOR:
-        if not (has_config(opts,CONFIG_MICROSERVICE_URL) and has_config(opts,CONFIG_MICROSERVICE_NAME)):
-            print "You must supply "+CONFIG_MICROSERVICE_URL+" and "+CONFIG_MICROSERVICE_NAME+" for "+EXTERNAL_PREDICTOR
-            sys.exit(1)
-        
-    zk_client = command_data["zkdetails"]["zk_client"]
-    ensure_client_has_algs(zkroot, zk_client, client_name)
-
-    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/predict_algs/_data_"
-    f = open(data_fpath)
-    json = f.read()
-    f.close()
-    data = json_to_dict(json)
-
-    algorithms = data["algorithms"]
-    predictor_data = {
-            'name': predictor_name,
-            'config': default_algorithms[predictor_name]["config"]
-    }
-
-    if not opts.config is None:
-        for nv in opts.config:
-            (name,value) = nv.split('=')
-            predictor_data['config'].append({"name":name,"value":value})
-
-    algorithms.append(predictor_data)
-    write_data_to_file(data_fpath, data)
-    print "Added [{predictor_name}]".format(**locals())
-    show_algs(data)
-
-def action_delete(command_data, opts):
-    client_name = opts.client_name
-    if client_name == None:
-        print "Need client name to add algs for"
-        sys.exit(1)
-
-    predictor_name = opts.predictor_name
-    if predictor_name == None:
-        print "Need predictor name"
-        sys.exit(1)
-
-    zkroot = command_data["zkdetails"]["zkroot"]
-    if not is_existing_client(zkroot, client_name):
-        print "Invalid client[{client_name}]".format(**locals())
-        sys.exit(1)
-
-    zk_client = command_data["zkdetails"]["zk_client"]
-    ensure_client_has_algs(zkroot, zk_client, client_name)
-
-    data_fpath = zkroot + gdata["all_clients_node_path"] + "/" + client_name + "/predict_algs/_data_"
-    f = open(data_fpath)
-    json = f.read()
-    f.close()
-    data = json_to_dict(json)
-
-    default_predictors = command_data["conf_data"]["default_predictors"]
-    predictors = default_predictors.keys()
-
-    if predictor_name not in predictors:
-        print "Invalid predictor[{predictor_name}]".format(**locals())
-        sys.exit(1)
-
-    algorithms = data["algorithms"]
-
-    length_before_removal = len(algorithms)
-    def predictor_filter(item):
-        if item["name"] == predictor_name:
-            return False
-        else:
-            return True
-    filtered_algorithms = filter(predictor_filter, algorithms)
-    length_after_removal = len(filtered_algorithms)
-    data["algorithms"] = filtered_algorithms
-    if length_after_removal < length_before_removal:
-        write_data_to_file(data_fpath, data)
-        print "Removed [{predictor_name}]".format(**locals())
-
 def action_list(command_data, opts):
     print "Default predictors:"
     default_algorithms = command_data["conf_data"]["default_predictors"]
@@ -231,7 +125,7 @@ def action_list(command_data, opts):
 def action_commit(command_data, opts):
     client_name = opts.client_name
     if client_name == None:
-        print "Need client name to add algs for"
+        print "Need client name to commit algs for"
         sys.exit(1)
 
     zkroot = command_data["zkdetails"]["zkroot"]
@@ -295,8 +189,6 @@ def cmd_pred(gopts,command_data, command_args):
     actions = {
         "list" : action_list,
         "show" : action_show,
-        "add" : action_add,
-        "delete" : action_delete,
         "commit" : action_commit,
         "create" : action_create,
     }
