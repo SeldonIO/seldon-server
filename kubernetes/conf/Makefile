@@ -319,4 +319,4 @@ clean:
 	rm -f models/stream-itemsim-create.json
 	rm -f models/stream-itemsim-dbupload.json
 	rm -f rpc/create-proto-jar-job.template.json
-	rm -f examples/anomaly/train-inne.json
+
