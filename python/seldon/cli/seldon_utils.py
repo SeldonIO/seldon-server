@@ -55,6 +55,7 @@ def addClientDb(clientName, dbSettings, consumer_details=None):
 	db = MySQLdb.connect(host=dbSettings["host"],
                      	user=dbSettings["user"],
                       passwd=dbSettings["password"])
+        db.autocommit(True)
 	cur = db.cursor()
 	dir = os.path.dirname(os.path.abspath(__file__))
 	filename = os.path.join(dir, "dbschema/mysql/client.sql")
@@ -91,6 +92,7 @@ def addApiDb(dbName, dbSettings):
 	db = MySQLdb.connect(host=dbSettings["host"],
                      	user=dbSettings["user"],
                       passwd=dbSettings["password"])
+        db.autocommit(True)
 	cur = db.cursor()
 	dir = os.path.dirname(os.path.abspath(__file__))
 	filename = os.path.join(dir, "dbschema/mysql/api.sql")
