@@ -18,15 +18,16 @@ BUILD_VERSIONS_GENERATED_FILE=$(SELDON_HOME)/build/build_versions_generated
 #
 # Example data volume conf for hostPath and glusterfs
 #
-DATA_VOLUME="hostPath": {"path": "/seldon-data"}
-#DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
+#DATA_VOLUME="hostPath": {"path": "/seldon-data"}
+DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
 
 #
 # Example seldon server service types. Change to the kubernetes type you need.
 #
-SELDON_SERVICE_TYPE=NodePort
-#SELDON_SERVICE_TYPE=LoadBalancer
+#SELDON_SERVICE_TYPE=NodePort
+SELDON_SERVICE_TYPE=LoadBalancer
 
+GOOGLE_SQL_INSTANCE=hpsc-164217:europe-west1:hpsql1
 
 SELDON_SERVER_NODEPORT=30015
 SELDON_SERVER_DEBUG_NODEPORT=30016
@@ -55,6 +56,12 @@ mysql.json:mysql.json.in
 				-e  's|%MYSQL_RESOURCES%|$(MYSQL_RESOURCES)|' \
 				-e  "s|%SELDON_MYSQL_IMAGE_VERSION%|$${SELDON_MYSQL_IMAGE_VERSION}|" \
 				> mysql.json && echo "created $@"
+
+mysql-google-cloudsql.json:mysql-google-cloudsql.json.in
+	@source $(SELDON_HOME)/build/build_versions; \
+		cat mysql-google-cloudsql.json.in | sed \
+				-e  's|%GOOGLE_SQL_INSTANCE%|${GOOGLE_SQL_INSTANCE}|' \
+				> mysql-google-cloudsql.json && echo "created $@"
 
 memcache.json:memcache.json.in
 	@cat memcache.json.in | sed \
@@ -261,7 +268,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json examples/US_stocks/train-US-stocks.json
+conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json examples/US_stocks/train-US-stocks.json mysql-google-cloudsql.json
 
 
 #
@@ -319,4 +326,4 @@ clean:
 	rm -f models/stream-itemsim-create.json
 	rm -f models/stream-itemsim-dbupload.json
 	rm -f rpc/create-proto-jar-job.template.json
-
+	rm -r mysql-google-cloudsql.json
