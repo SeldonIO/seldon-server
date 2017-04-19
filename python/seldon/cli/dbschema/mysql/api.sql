@@ -40,7 +40,7 @@ CREATE TABLE `consumer` (
   `secure` tinyint(1) DEFAULT NULL,
   `scope` varchar(25) DEFAULT NULL,
   PRIMARY KEY (`consumer_key`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -60,7 +60,7 @@ CREATE TABLE `token` (
   `consumer` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`token_key`),
   KEY `fk_consumer` (`consumer`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
