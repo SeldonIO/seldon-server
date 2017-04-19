@@ -59,15 +59,14 @@ def addClientDb(clientName, dbSettings, consumer_details=None):
 	dir = os.path.dirname(os.path.abspath(__file__))
 	filename = os.path.join(dir, "dbschema/mysql/client.sql")
 	f = open(filename, 'r')
-	query = " ".join(f.readlines())
+	queries = " ".join(f.readlines())
 	numrows = cur.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \'"+clientName+"\'")
 	if numrows < 1:
 		cur.execute("CREATE DATABASE "+clientName)
 		cur.execute("USE "+clientName)
-		cur.execute(query)
-		more = True
-		while more:
-			more = cur.nextset()
+                for query in queries.split(";"):
+                        if len(query.strip()) > 0:
+                                cur.execute(query+";")
 	else:
 		print("Client \'"+clientName+"\' has already been added to the DB")
 	cur.execute("USE API")
@@ -96,11 +95,13 @@ def addApiDb(dbName, dbSettings):
 	dir = os.path.dirname(os.path.abspath(__file__))
 	filename = os.path.join(dir, "dbschema/mysql/api.sql")
 	f = open(filename, 'r')
-	query = " ".join(f.readlines())
+	queries = " ".join(f.readlines())
 	numrows = cur.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \'api\'")
 	if numrows < 1:
 		print "Adding api DB to MySQL DB \'"+dbName+"\'"
-		cur.execute(query)
+                for query in queries.split(";"):
+                        if len(query.strip()) > 0:
+                                cur.execute(query+";")
 	else:
 		print "API DB has already been added to the MySQL DB \'"+dbName+"\'"
 
