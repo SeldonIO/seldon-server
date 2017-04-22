@@ -1,0 +1,60 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "labels": {
+                    "name": "redis",
+		    "service" : "seldon"
+                },
+                "name": "redis"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "redis",
+                        "name": "redis-container",
+                        "ports": [
+                            {
+                                "containerPort": 6379,
+                                "protocol": "TCP"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "name": "redis",
+                "labels": {
+                    "name": "redis",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "port": 6379,
+                        "protocol": "TCP",
+                        "targetPort": 6379
+                    }
+                ],
+                "selector": {
+                    "name": "redis"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {}
+}

@@ -1,8 +1,8 @@
 import luigi
-from luigi.s3 import S3FlagTarget
 from subprocess import call
 import logging
 from seldon.misc.item_similarity import *
+from luigi.contrib.spark import SparkSubmitTask
 
 #
 # Item Similarity
@@ -108,3 +108,20 @@ class SeldonMatrixFactorizationClusters(luigi.Task):
         params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization-clusters"]
         res = call(params)
         return res
+
+
+class SeldonSparkJob(SparkSubmitTask):
+
+    app = "/home/seldon/libs/seldon-spark.jar"
+    entry_class = "io.seldon.spark.mllib.SimilarItems"
+    master = "spark://spark-master:7077"
+    
+    outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    client = luigi.Parameter(default="test")
+    startDay = luigi.IntParameter(default=17278)
+                    
+    def app_options(self):
+        return ["--client",self.client,"--zookeeper","zookeeper-1"]
+
+    def output(self):
+        return luigi.LocalTarget("{}/{}/item-similarity/{}".format(self.outputPath,self.client,self.startDay))

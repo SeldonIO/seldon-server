@@ -13,7 +13,7 @@
 		"volumes": [
 		    {
 			"name": "data-volume",
-			"hostPath": {"path": "/seldon-data"}
+			%DATA_VOLUME%
 		    }
 		],
                 "containers": [
@@ -21,6 +21,12 @@
                         "name": "item-similarity",
                         "image": "seldonio/seldon-control:1.3_v5",
 			"command": ["luigi","--module","seldon.luigi.spark","SeldonItemSimilarity","--local-schedule","--client","%CLIENT%","--startDay","%DAY%"],
+			"env": [
+                            {
+                                "name": "LUIGI_CONFIG_PATH",
+                                "value": "%LUIGI_CONF_PATH%"
+                            }
+                        ],
 			"volumeMounts": [
 			    {
 				"name": "data-volume",

@@ -31,6 +31,7 @@ function start_core_services {
 	kubectl create -f ${STARTUP_DIR}/../conf/mysql.json
     fi
     kubectl create -f ${STARTUP_DIR}/../conf/memcache.json
+    kubectl create -f ${STARTUP_DIR}/../conf/redis.json
     kubectl create -f ${STARTUP_DIR}/../conf/zookeeper.json
     kubectl create -f ${STARTUP_DIR}/../conf/control.json
     kubectl create -f ${STARTUP_DIR}/../conf/influxdb-grafana.json
@@ -109,6 +110,7 @@ function start_spark {
             fi
         done
         kubectl create -f ${STARTUP_DIR}/../conf/spark-workers.json
+        kubectl create -f ${STARTUP_DIR}/../conf/spark-ui.json
     fi
 }
 
