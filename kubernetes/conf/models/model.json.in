@@ -2,25 +2,25 @@
     "kind": "Job",
     "apiVersion": "batch/v1",
     "metadata": {
-        "name": "matrix-factorization-clusters"
+        "name": "%NAME%"
     },
     "spec": {
         "template": {
             "metadata": {
-                "name": "matrix-factorization-clusters"
+                "name": "%NAME%"
             },
             "spec": {
 		"volumes": [
 		    {
 			"name": "data-volume",
-			"hostPath": {"path": "/seldon-data"}
+			%DATA_VOLUME%
 		    }
 		],
                 "containers": [
                     {
-                        "name": "matrix-factorization-clusters",
-                        "image": "seldonio/seldon-control:2.2_v1",
-			"command": ["luigi","--module","seldon.luigi.spark","SeldonMatrixFactorizationClusters","--local-schedule","--client","%CLIENT%","--startDay","%DAY%"],
+                        "name": "%NAME%",
+                        "image": "seldonio/seldon-control:%SELDON_CONTROL_IMAGE_VERSION%",
+			"command": ["luigi","--module","seldon.luigi.spark","%LUIGI_TASK%","--local-schedule","--client","%CLIENT%","--startDay","%DAY%"],
 			"env": [
                             {
                                 "name": "LUIGI_CONFIG_PATH",
