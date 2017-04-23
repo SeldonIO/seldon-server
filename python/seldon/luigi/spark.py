@@ -2,6 +2,7 @@ import luigi
 from subprocess import call
 import logging
 from seldon.misc.item_similarity import *
+from seldon.misc.most_popular import *
 from luigi.contrib.spark import SparkSubmitTask
 
 #
@@ -110,7 +111,76 @@ class SeldonMatrixFactorizationClusters(luigi.Task):
         return res
 
 
+class SeldonMostPopularDim(luigi.Task):
+    """
+    Most Popular by Dimension using Spark
+    """
+    inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    client = luigi.Parameter(default="test")
+    startDay = luigi.IntParameter(default=1)
+    days = luigi.IntParameter(default=1)
+
+    k = luigi.IntParameter(default=28)
+    db_host = luigi.Parameter(default="mysql")
+    db_port = luigi.IntParameter(default=3306)
+    db_user = luigi.Parameter(default="root")
+    db_pass = luigi.Parameter(default="mypass")
+    
+    def output(self):
+        return luigi.LocalTarget("{}/{}/mostpopulardim/{}".format(self.outputPath,self.client,self.startDay))
+
+    def run(self):
+        jdbc = "jdbc:mysql://"+self.db_host+":"+str(self.db_port)+"/"+self.client+"?characterEncoding=utf8&user="+self.db_user+"&password="+self.db_pass
+        params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","mostpopulardim","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--jdbc",jdbc,"--k",str(self.k)]
+        res = call(params)
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","mostpopulardim"]
+        res = call(params)
+        return res
+
+class MostPopularSparkJob(luigi.Task):
+    """
+    Most Popular using Spark
+    """
+    inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
+    client = luigi.Parameter(default="test")
+    startDay = luigi.IntParameter(default=1)
+    days = luigi.IntParameter(default=1)
+
+    def output(self):
+        return luigi.LocalTarget("{}/{}/mostpopular/{}".format(self.outputPath,self.client,self.startDay))
+
+    def run(self):
+        params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","mostpopular","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days)]
+        res = call(params)
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","mostpopular"]
+        res = call(params)
+        return res
+
+
+class SeldonMostPopular(luigi.Task):
+    """
+    Most Popular. Depends on spark job. Writes results to mysql db.
+    """
+    startDay = luigi.IntParameter(default=1)
+    client = luigi.Parameter(default="test")
+    db_host = luigi.Parameter(default="mysql")
+    db_user = luigi.Parameter(default="root")
+    db_pass = luigi.Parameter(default="mypass")
+
+    def requires(self):
+        return MostPopularSparkJob(client=self.client,startDay=self.startDay)
+    
+    def run(self):
+        u = MostPopularUploadMysql(self.client,self.db_host,self.db_user,self.db_pass)
+        u.stream_and_upload(self.input().path)
+
+
 class SeldonSparkJob(SparkSubmitTask):
+    """
+    Template for running a Spark Job
+    """
 
     app = "/home/seldon/libs/seldon-spark.jar"
     entry_class = "io.seldon.spark.mllib.SimilarItems"
@@ -125,3 +195,6 @@ class SeldonSparkJob(SparkSubmitTask):
 
     def output(self):
         return luigi.LocalTarget("{}/{}/item-similarity/{}".format(self.outputPath,self.client,self.startDay))
+
+
+

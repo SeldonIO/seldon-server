@@ -71,6 +71,60 @@
     },
     "default_models": {
         "cluster-by-dimension": {},
+        "mostpopulardim": {
+            "config": {
+                "activate": true,
+                "days": 1,
+                "inputPath": "%SELDON_MODELS%",
+                "outputPath": "%SELDON_MODELS%",
+                "startDay": 1,
+		"jdbc" : "jdbc:mysql://mysql:3306/test?characterEncoding=utf8&user=root&password=mypass",
+		"k" : 28
+            },
+            "training": {
+                "job_info": {
+                    "cmd": "%SPARK_HOME%/bin/spark-submit",
+                    "cmd_args": [
+                        "--class",
+                        "io.seldon.spark.recommend.MostPopularByDimJob",
+                        "--master",
+                        "spark://spark-master:7077",
+                        "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                        "--client",
+                        "%CLIENT_NAME%",
+                        "--zookeeper",
+                        "%ZK_HOSTS%"
+                    ]
+                },
+                "job_type": "spark"
+            }
+        },
+        "mostpopular": {
+            "config": {
+                "activate": true,
+                "days": 1,
+                "inputPath": "%SELDON_MODELS%",
+                "outputPath": "%SELDON_MODELS%",
+                "startDay": 1
+            },
+            "training": {
+                "job_info": {
+                    "cmd": "%SPARK_HOME%/bin/spark-submit",
+                    "cmd_args": [
+                        "--class",
+                        "io.seldon.spark.recommend.MostPopularJob",
+                        "--master",
+                        "spark://spark-master:7077",
+                        "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
+                        "--client",
+                        "%CLIENT_NAME%",
+                        "--zookeeper",
+                        "%ZK_HOSTS%"
+                    ]
+                },
+                "job_type": "spark"
+            }
+        },
         "matrix-factorization": {
             "config": {
                 "activate": true,
