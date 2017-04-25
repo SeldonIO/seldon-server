@@ -10,7 +10,6 @@ SELDON_WITH_SPARK=${SELDON_WITH_SPARK:-true}
 SELDON_WITH_GLUSTERFS=${SELDON_WITH_GLUSTERFS:-false}
 GOOGLE_CLOUDSQL=${GOOGLE_CLOUDSQL:-false}
 
-KCMD="kubectl exec seldon-control -i bash"
 DB_USER=${DB_USER:-root}
 DB_PASSWORD=${DB_PASSWORD:-mypass}
 
@@ -19,7 +18,8 @@ function normalize_version {
 }
 
 function check_zookeeper {
-    kubectl exec -i zookeeper-3 -- bash -c "echo srvr | nc localhost  2181 | grep Mode | cut -d' ' -f2"
+    ZOOKEEPER_POD=`kubectl get pods -l name=zookeeper3 | sed 1d | cut -d' ' -f1 |sed -e 's/^[ \t]*//'`
+    kubectl exec -i ${ZOOKEEPER_POD} -- bash -c "echo srvr | nc localhost  2181 | grep Mode | cut -d' ' -f2"
 }
 
 function start_core_services {
@@ -88,7 +88,7 @@ function setup_basic_conf {
     ${STARTUP_DIR}/seldon-cli memcached --action commit
     # Setup DB
     ${STARTUP_DIR}/seldon-cli db --action setup --db-name ClientDB --db-user ${DB_USER} --db-password ${DB_PASSWORD} --db-jdbc 'jdbc:mysql:replication://mysql:3306,mysql:3306/?characterEncoding=utf8&useServerPrepStmts=true&logger=com.mysql.jdbc.log.StandardLogger&roundRobinLoadBalance=true&transformedBitIsBoolean=true&rewriteBatchedStatements=true'
-    echo "seldon-cli db --action commit" | ${KCMD}
+    ${STARTUP_DIR}/seldon-cli db --action commit
     # Setup Test client
     ${STARTUP_DIR}/seldon-cli client --action setup --db-name ClientDB --client-name test
 

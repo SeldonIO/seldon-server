@@ -126,13 +126,28 @@
             }
         },
         {
-            "kind": "Pod",
-            "apiVersion": "v1",
+            "kind": "Deployment",
+	    "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "zookeeper1",
+                "labels": {
+                    "name": "zookeeper1",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "server-id": "1"
+                    }
+                },
+                "template": {
             "metadata": {
                 "name": "zookeeper-1",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "zookeeper",
+                    "name": "zookeeper1",
                     "server-id": "1",
 		    "service" : "seldon"
                 }
@@ -170,22 +185,33 @@
                         "terminationMessagePath": "/dev/termination-log",
                         "imagePullPolicy": "IfNotPresent"
                     }
-                ],
-                "restartPolicy": "Always",
-                "terminationGracePeriodSeconds": 30,
-                "dnsPolicy": "ClusterFirst",
-                "securityContext": {}
-            },
-            "status": {}
-        },
+                ]
+            }
+	    }
+	}},
         {
-            "kind": "Pod",
-            "apiVersion": "v1",
+            "kind": "Deployment",
+	    "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "zookeeper2",
+                "labels": {
+                    "name": "zookeeper2",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "server-id": "2"
+                    }
+                },
+                "template": {
             "metadata": {
                 "name": "zookeeper-2",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "zookeeper",
+                    "name": "zookeeper2",
                     "server-id": "2",
 		    "service" : "seldon"
                 }
@@ -223,22 +249,32 @@
                         "terminationMessagePath": "/dev/termination-log",
                         "imagePullPolicy": "IfNotPresent"
                     }
-                ],
-                "restartPolicy": "Always",
-                "terminationGracePeriodSeconds": 30,
-                "dnsPolicy": "ClusterFirst",
-                "securityContext": {}
-            },
-            "status": {}
+                ]
+            }}}
         },
         {
-            "kind": "Pod",
-            "apiVersion": "v1",
+            "kind": "Deployment",
+	    "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "zookeeper3",
+                "labels": {
+                    "name": "zookeeper3",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "server-id": "3"
+                    }
+                },
+                "template": {
             "metadata": {
                 "name": "zookeeper-3",
                 "creationTimestamp": null,
                 "labels": {
-                    "name": "zookeeper",
+                    "name": "zookeeper3",
                     "server-id": "3",
 		    "service": "seldon"
                 }
@@ -276,13 +312,8 @@
                         "terminationMessagePath": "/dev/termination-log",
                         "imagePullPolicy": "IfNotPresent"
                     }
-                ],
-                "restartPolicy": "Always",
-                "terminationGracePeriodSeconds": 30,
-                "dnsPolicy": "ClusterFirst",
-                "securityContext": {}
-            },
-            "status": {}
-        }
+                ]
+            }
+        }}}
     ]
 }

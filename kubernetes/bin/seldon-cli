@@ -3,5 +3,4 @@
 set -o nounset
 set -o errexit
 
-kubectl exec seldon-control -i -- seldon-cli "$@"
-
+kubectl exec -i `kubectl get pods | grep seldon-control | grep Running | cut -d' ' -f1` -- seldon-cli "$@"

@@ -2,9 +2,24 @@
     "kind": "List",
     "apiVersion": "v1",
     "items": [
-        {
-            "kind": "Pod",
-            "apiVersion": "v1",
+{
+    "kind": "Deployment",
+    "apiVersion": "extensions/v1beta1",
+    "metadata": {
+        "name": "td-agent-server",
+        "labels": {
+            "component": "td-agent-server",
+	    "service" : "seldon"
+        }
+    },
+    "spec": {
+        "replicas": 1,
+        "selector": {
+            "matchLabels": {
+                "name": "td-agent-server"
+            }
+        },
+        "template": {
             "metadata": {
                 "name": "td-agent-server",
                 "labels": {
@@ -38,7 +53,7 @@
                     }
                 ]
             }
-        },
+        }}},
         {
             "kind": "Service",
             "apiVersion": "v1",

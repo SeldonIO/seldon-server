@@ -4,8 +4,23 @@
     "metadata": {},
     "items": [
         {
-            "kind": "Pod",
-            "apiVersion": "v1",
+            "kind": "Deployment",
+	    "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "mysql",
+                "labels": {
+                    "name": "mysql",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "name": "mysql"
+                    }
+                },
+                "template": {
             "metadata": {
                 "name": "mysql",
                 "labels": {
@@ -49,7 +64,7 @@
                         ]
                     }
                 ]
-            }
+            }}}
         },
         {
             "kind": "Service",

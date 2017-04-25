@@ -1,37 +1,55 @@
 {
-    "kind": "Pod",
-    "apiVersion": "v1",
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Deployment",
     "metadata": {
-        "name": "seldon-control",
         "labels": {
+            "name": "seldon-control",
             "service": "seldon"
-        }
+        },
+        "name": "seldon-control"
     },
     "spec": {
-        "volumes": [
-            {
-                "name": "data-volume",
-                %DATA_VOLUME%
+        "replicas": 1,
+        "selector": {
+            "matchLabels": {
+                "name": "seldon-control"
             }
-        ],
-        "containers": [
-            {
-                "name": "seldon-shell",
-                "image": "seldonio/seldon-control:%SELDON_CONTROL_IMAGE_VERSION%",
-                "command": [
-                    "sleep",
-                    "infinity"
-                ],
-                "volumeMounts": [
+        },
+        "template": {
+            "metadata": {
+                "labels": {
+		    "name": "seldon-control",
+                    "service": "seldon"
+                },
+                "name": "seldon-control"
+            },
+            "spec": {
+                "containers": [
                     {
-                        "name": "data-volume",
-                        "mountPath": "/seldon-data"
+                        "command": [
+                            "sleep",
+                            "infinity"
+                        ],
+                        "image": "seldonio/seldon-control:%SELDON_CONTROL_IMAGE_VERSION%",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "seldon-shell",
+                        "terminationMessagePath": "/dev/termination-log",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/seldon-data",
+                                "name": "data-volume"
+                            }
+                        ]
                     }
                 ],
-                "terminationMessagePath": "/dev/termination-log",
-                "imagePullPolicy": "IfNotPresent"
+                "terminationGracePeriodSeconds": 0,
+                "volumes": [
+                    {
+                        "name": "data-volume",
+			%DATA_VOLUME%
+                    }
+                ]
             }
-        ],
-	"terminationGracePeriodSeconds": 0
+        }
     }
 }
