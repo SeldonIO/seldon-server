@@ -121,8 +121,11 @@ function start_analytics {
 
 function start_glusterfs_service {
     if $SELDON_WITH_GLUSTERFS ; then
-	echo 'Creating Glusterfs service'
+	echo 'Creating Glusterfs persistent volume'
 	kubectl create -f ${STARTUP_DIR}/../conf/glusterfs.json
+    else
+	echo 'Creating hostpath persistent volume'
+	kubectl create -f ${STARTUP_DIR}/../conf/hostpath.json
     fi
 }
 

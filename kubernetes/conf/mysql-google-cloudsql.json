@@ -40,7 +40,7 @@
                         "command": [
                             "/cloud_sql_proxy",
                             "--dir=/cloudsql",
-                            "-instances=hpsc-164217:europe-west1:hpsql1=tcp:0.0.0.0:3306",
+                            "-instances=hpsc-164217:europe-west1:hpsql2=tcp:0.0.0.0:3306",
                             "-credential_file=/secrets/cloudsql/credentials.json"
                         ],
                         "resources": {},

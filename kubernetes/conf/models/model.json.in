@@ -7,13 +7,19 @@
     "spec": {
         "template": {
             "metadata": {
-                "name": "%NAME%"
+                "name": "%NAME%",
+                "labels": {
+                    "name": "%NAME%",
+		    "service" : "seldon"
+                }
             },
             "spec": {
 		"volumes": [
 		    {
 			"name": "data-volume",
-			%DATA_VOLUME%
+			"persistentVolumeClaim": {
+			    "claimName": "seldon-claim"
+			}
 		    }
 		],
                 "containers": [

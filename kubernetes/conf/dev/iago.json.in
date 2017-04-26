@@ -52,7 +52,9 @@
                         "volumes": [
                             {
                                 "name": "storage",
-				%DATA_VOLUME%
+				"persistentVolumeClaim": {
+				    "claimName": "seldon-claim"
+				}
                             }
                         ]
                     }

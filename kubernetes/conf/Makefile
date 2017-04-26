@@ -16,12 +16,6 @@ BUILD_VERSIONS_GENERATED_FILE=$(SELDON_HOME)/build/build_versions_generated
 #
 
 #
-# Example data volume conf for hostPath and glusterfs
-#
-#DATA_VOLUME="hostPath": {"path": "/seldon-data"}
-DATA_VOLUME="glusterfs": {"endpoints": "glusterfs-cluster","path": "gv0","readOnly": false}
-
-#
 # Example seldon server service types. Change to the kubernetes type you need.
 #
 #SELDON_SERVICE_TYPE=NodePort
@@ -45,14 +39,12 @@ MEMCACHE_RESOURCES="requests":{ "memory" : "260Mi" }
 control.json:control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat control.json.in | sed \
-			-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 			-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
 			> control.json && echo "created $@"
 
 mysql.json:mysql.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat mysql.json.in | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e  's|%MYSQL_RESOURCES%|$(MYSQL_RESOURCES)|' \
 				-e  "s|%SELDON_MYSQL_IMAGE_VERSION%|$${SELDON_MYSQL_IMAGE_VERSION}|" \
 				> mysql.json && echo "created $@"
@@ -83,21 +75,19 @@ kafka.json:kafka.json.in
 td-agent-server.json:td-agent-server.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat td-agent-server.json.in | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e  "s|%SELDON_TDAGENT_SERVER_IMAGE_VERSION%|$${SELDON_TDAGENT_SERVER_IMAGE_VERSION}|" \
 				> td-agent-server.json && echo "created $@"
 
 spark-master.json: spark-master.json.in
-	@cat spark-master.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-master.json && echo "created $@"
+	@cat spark-master.json.in > spark-master.json && echo "created $@"
 
 spark-workers.json: spark-workers.json.in
-	@cat spark-workers.json.in | sed -e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' > spark-workers.json && echo "created $@"
+	@cat spark-workers.json.in > spark-workers.json && echo "created $@"
 
 influxdb-grafana.json: influxdb-grafana.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat influxdb-grafana.json.in | sed \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e  "s|%SELDON_INFLUXDB_IMAGE_VERSION%|$${SELDON_INFLUXDB_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_GRAFANA_IMAGE_VERSION%|$${SELDON_GRAFANA_IMAGE_VERSION}|" \
 				> influxdb-grafana.json && echo "created $@"
@@ -105,56 +95,48 @@ influxdb-grafana.json: influxdb-grafana.json.in
 examples/reuters/import-data-job.json: examples/reuters/import-data-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/reuters/import-data-job.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION%|$${SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION}|" \
 				> examples/reuters/import-data-job.json && echo "created $@"
 
 examples/finefoods/train-finefoods.json: examples/finefoods/train-finefoods.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/finefoods/train-finefoods.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION%|$${SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION}|" \
 				> examples/finefoods/train-finefoods.json && echo "created $@"
 
 examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json: examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION%|$${SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION}|" \
 				> examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json && echo "created $@"
 
 examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json: examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION%|$${SELDON_TENSORFLOW_DEEP_MNIST_IMAGE_VERSION}|" \
 				> examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json && echo "created $@"
 
 examples/ml100k/ml100k-import.json: examples/ml100k/ml100k-import.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/ml100k/ml100k-import.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML100K_IMAGE_VERSION}|" \
 				> examples/ml100k/ml100k-import.json && echo "created $@"
 
 examples/ml10m/ml10m-import-item-similarity.json: examples/ml10m/ml10m-import-item-similarity.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/ml10m/ml10m-import-item-similarity.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
 				> examples/ml10m/ml10m-import-item-similarity.json
 
 examples/ml10m/ml10m-import-matrix-factorization.json: examples/ml10m/ml10m-import-matrix-factorization.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/ml10m/ml10m-import-matrix-factorization.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%|$${SELDON_EXAMPLES_ML10M_IMAGE_VERSION}|" \
 				> examples/ml10m/ml10m-import-matrix-factorization.json
 
 examples/US_stocks/train-US-stocks.json: examples/US_stocks/train-US-stocks.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat examples/US_stocks/train-US-stocks.json.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_US_STOCKS_IMAGE_VERSION%|$${SELDON_US_STOCKS_IMAGE_VERSION}|" \
 				> examples/US_stocks/train-US-stocks.json && echo "created $@"
 
@@ -164,7 +146,6 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	source $(SELDON_HOME)/build/build_versions; \
 		cat server.json.in | sed \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_RPC_NODEPORT%|$(SELDON_SERVER_RPC_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
@@ -209,7 +190,6 @@ dev/server.json :dev/server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	source $(SELDON_HOME)/build/build_versions; \
 		cat dev/server.json.in | sed \
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e 's|%SELDON_SERVER_NODEPORT%|$(SELDON_SERVER_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_RPC_NODEPORT%|$(SELDON_SERVER_RPC_NODEPORT)|' \
 				-e 's|%SELDON_SERVER_DEBUG_NODEPORT%|$(SELDON_SERVER_DEBUG_NODEPORT)|' \
@@ -223,7 +203,6 @@ dev/control.json :dev/control.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat dev/control.json.in | sed \
 				-e 's|%SELDON_HOME%|$(SELDON_HOME)|' \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_CONTROL_IMAGE_VERSION%|$${SELDON_CONTROL_IMAGE_VERSION}|" \
 				> dev/control.json && echo "created $@"
 
@@ -231,14 +210,12 @@ dev/iago.json :dev/iago.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat dev/iago.json.in | sed \
 				-e "s|%SELDON_IAGO_IMAGE_VERSION%|$${SELDON_IAGO_IMAGE_VERSION}|" \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				> dev/iago.json
 dev/locust-master.json.template :dev/locust-master.json.template.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(SELDON_HOME)/build/build_versions_generated; \
 		cat dev/locust-master.json.template.in | sed \
 				-e "s|%SELDON_LOCUST_IMAGE_VERSION%|$${SELDON_LOCUST_IMAGE_VERSION}|" \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				-e 's|%LOCUST_NODEPORT%|$(LOCUST_NODEPORT)|' \
 				> dev/locust-master.json.template
@@ -247,14 +224,12 @@ dev/locust-slave.json.template :dev/locust-slave.json.template.in $(BUILD_VERSIO
 	@source $(SELDON_HOME)/build/build_versions_generated; \
 		cat dev/locust-slave.json.template.in | sed \
 				-e "s|%SELDON_LOCUST_IMAGE_VERSION%|$${SELDON_LOCUST_IMAGE_VERSION}|" \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				> dev/locust-slave.json.template
 
 rpc/create-proto-jar-job.template.json :rpc/create-proto-jar-job.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat rpc/create-proto-jar-job.json.in | sed \
 				-e "s|%SELDON_GRPC_UTIL_IMAGE_VERSION%|$${SELDON_GRPC_UTIL_IMAGE_VERSION}|" \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				> rpc/create-proto-jar-job.template.json
 
 
@@ -278,14 +253,12 @@ conf:control.json mysql.json memcache.json td-agent-server.json spark-master.jso
 microservice_pipeline.rest.template: microservice_pipeline.rest.template.in  $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat microservice_pipeline.rest.template.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_PYTHON_PACKAGE_VERSION%|$${SELDON_PYTHON_PACKAGE_VERSION}|" \
 				> microservice_pipeline.rest.template && echo "created $@"
 
 microservice_pipeline.rpc.template: microservice_pipeline.rpc.template.in  $(BUILD_VERSIONS_GENERATED_FILE)
 	@source $(BUILD_VERSIONS_GENERATED_FILE); \
 		cat microservice_pipeline.rpc.template.in  | sed \
-				-e 's|%DATA_VOLUME%|$(DATA_VOLUME)|' \
 				-e "s|%SELDON_PYTHON_PACKAGE_VERSION%|$${SELDON_PYTHON_PACKAGE_VERSION}|" \
 				> microservice_pipeline.rpc.template && echo "created $@"
 

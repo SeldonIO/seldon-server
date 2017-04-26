@@ -13,7 +13,9 @@
 		"volumes": [
 		    {
 			"name": "data-volume",
-			%DATA_VOLUME%
+			"persistentVolumeClaim": {
+			    "claimName": "seldon-claim"
+			}
 		    }
 		],
                 "containers": [

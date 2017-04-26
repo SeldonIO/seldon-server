@@ -11,7 +11,9 @@
         "volumes": [
             {
                 "name": "data-volume",
-                "hostPath": {"path": "/seldon-data"}
+		"persistentVolumeClaim": {
+		    "claimName": "seldon-claim"
+		}
             },
             {
                 "name": "python-volume",

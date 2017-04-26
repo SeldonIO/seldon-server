@@ -1,0 +1,42 @@
+{
+    "kind": "PersistentVolume",
+    "apiVersion": "v1",
+    "metadata": {
+	"name": "host-volume",
+	"labels": {
+	    "service" : "seldon"
+	}
+    },
+    "spec": {
+        "capacity": {
+            "storage": "50Gi"
+        },
+        "hostPath": {
+            "path": "/seldon-data"
+        },
+        "accessModes": [
+            "ReadWriteOnce"
+        ],
+        "persistentVolumeReclaimPolicy": "Retain"
+    }
+}
+{
+    "kind": "PersistentVolumeClaim",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "seldon-claim",
+	"labels": {
+	    "service" : "seldon"
+	}
+    },
+    "spec": {
+        "accessModes": [
+            "ReadWriteOnce"
+        ],
+        "resources": {
+            "requests": {
+                "storage": "50Gi"
+            }
+        }
+    }
+}
