@@ -151,7 +151,7 @@ def get_editor():
     return os.environ["EDITOR"] if os.environ.has_key("EDITOR") else "vim"
 
 
-def add_grafana_dashboard(grafana_endpoint,client,quiet,template):
+def add_grafana_dashboard(grafana_endpoint,client,quiet,template,admin_password):
         if template is None:
                 dir = os.path.dirname(os.path.abspath(__file__))
                 filename = os.path.join(dir, "grafana/client-dashboard.json")
@@ -162,6 +162,6 @@ def add_grafana_dashboard(grafana_endpoint,client,quiet,template):
         jStr = jStr.replace("%CLIENT%",client)
         headers = {}
         headers["content-type"] = "application/json"
-        r = requests.post(grafana_endpoint+"/api/dashboards/db",data=jStr,headers=headers)
+        r = requests.post(grafana_endpoint+"/api/dashboards/db",data=jStr,headers=headers,auth=('admin', admin_password))
         if not quiet:
                 print "Adding grafana dashboard, response code",r.status_code

@@ -53,12 +53,24 @@
                                         "value": "http://localhost:8086"
                                     },
                                     {
+                                        "name": "GF_SECURITY_ADMIN_USER",
+                                        "value": "admin"
+                                    },
+                                    {
+                                        "name": "GF_SECURITY_ADMIN_PASSWORD",
+                                        "value": "%GRAFANA_ADMIN_PASSWORD%"
+                                    },
+                                    {
                                         "name": "GF_AUTH_BASIC_ENABLED",
                                         "value": "false"
                                     },
                                     {
+                                        "name": "GF_USERS_ALLOW_SIGN_UP",
+                                        "value": "false"
+                                    },
+                                    {
                                         "name": "GF_AUTH_ANONYMOUS_ENABLED",
-                                        "value": "true"
+                                        "value": "false"
                                     },
                                     {
                                         "name": "GF_AUTH_ANONYMOUS_ORG_ROLE",

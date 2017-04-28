@@ -97,14 +97,15 @@ def add_client(gopts,command_data,zk_client, zkroot, client_name, db_name, consu
 
 
 def add_client_dashboard(gopts,command_data,client_name):
-    if "grafana_endpoint" in command_data["conf_data"]:
+    if "grafana_endpoint" in command_data["conf_data"] not (os.environ['GRAFANA_ADMIN_PASSWORD'] is None):
+        admin_password = os.environ['GRAFANA_ADMIN_PASSWORD']
         grafana = command_data["conf_data"]["grafana_endpoint"]
         if "grafana_dashboard_template" in command_data["conf_data"]:
             dashboard_template = command_data["conf_data"]["grafana_dashboard_template"]
         else:
             dashboard_template = None
         if not (grafana is None or grafana == ""):
-            seldon_utils.add_grafana_dashboard(grafana,client_name,gopts.quiet,dashboard_template)
+            seldon_utils.add_grafana_dashboard(grafana,client_name,gopts.quiet,dashboard_template,admin_password)
 
 def action_list(gopts,command_data, opts):
     zkroot = command_data["zkdetails"]["zkroot"]

@@ -33,6 +33,13 @@
                         "image": "seldonio/seldon-control:%SELDON_CONTROL_IMAGE_VERSION%",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "seldon-shell",
+			"env" :
+			[
+                            {
+                                "name": "GRAFANA_ADMIN_PASSWORD",
+                                "value": "%GRAFANA_ADMIN_PASSWORD%"
+                            }
+			],
                         "terminationMessagePath": "/dev/termination-log",
                         "volumeMounts": [
                             {
