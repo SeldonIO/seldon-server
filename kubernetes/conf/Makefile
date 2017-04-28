@@ -22,6 +22,8 @@ SELDON_SERVICE_TYPE=NodePort
 #SELDON_SERVICE_TYPE=LoadBalancer
 
 GRAFANA_ADMIN_PASSWORD=admin
+SPARK_UI_USERNAME=spark
+SPARK_UI_PASSWORD=spark
 
 GOOGLE_SQL_INSTANCE=hpsc-164217:europe-west1:hpsql1
 
@@ -30,6 +32,19 @@ SELDON_SERVER_DEBUG_NODEPORT=30016
 SELDON_SERVER_RPC_NODEPORT=30017
 LOCUST_NODEPORT=30018
 SELDON_SERVER_DEBUG_COMMAND="command":["/home/seldon/start-server-debug.sh"]
+
+spark.htpasswd:
+	htpasswd -bc spark.htpasswd ${SPARK_UI_USERNAME} ${SPARK_UI_PASSWORD}
+
+create_grafana_secret:
+	kubectl delete secret grafana-admin-password  > /dev/null 2>&1 || : && \
+	kubectl create secret generic grafana-admin-password --from-literal=grafana-admin-password.txt="${GRAFANA_ADMIN_PASSWORD}"
+
+create_sparkui_secret:spark.htpasswd
+	kubectl delete secret sparkui-secret  > /dev/null 2>&1 || : && \
+	kubectl create secret generic sparkui-secret --from-file=./spark.htpasswd
+
+
 
 # 
 # Default Resources (edit for your own needs)
@@ -260,7 +275,7 @@ GLUSTERFS_IP2=192.168.0.248
 glusterfs.json:glusterfs.json.in
 	@cat glusterfs.json.in | sed -e 's|%GLUSTERFS_IP1%|${GLUSTERFS_IP1}|'| sed -e 's|%GLUSTERFS_IP2%|${GLUSTERFS_IP2}|' > glusterfs.json && echo "created $@"
 
-conf:control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json examples/US_stocks/train-US-stocks.json mysql-google-cloudsql.json spark-ui.json proxy-server.json
+conf:create_grafana_secret create_sparkui_secret control.json mysql.json memcache.json td-agent-server.json spark-master.json spark-workers.json examples/reuters/import-data-job.json glusterfs.json server.json examples/ml100k/ml100k-import.json dev/server.json dev/control.json influxdb-grafana.json dev/iago.json dev/locust-master.json.template dev/locust-slave.json.template zookeeper.json kafka.json examples/ml10m/ml10m-import-item-similarity.json examples/ml10m/ml10m-import-matrix-factorization.json analytics/impressions-kafka-stream.json analytics/predictions-kafka-stream.json examples/finefoods/train-finefoods.json examples/tensorflow_deep_mnist/train-tensorflow-deep-mnist.json examples/tensorflow_deep_mnist/load-model-tensorflow-deep-mnist.json microservice_pipeline.rest.template microservice_pipeline.rpc.template models/stream-itemsim-create.json models/stream-itemsim-dbupload.json rpc/create-proto-jar-job.template.json examples/US_stocks/train-US-stocks.json mysql-google-cloudsql.json spark-ui.json proxy-server.json
 
 
 #
@@ -319,3 +334,4 @@ clean:
 	rm -f mysql-google-cloudsql.json
 	rm -f spark-ui.json
 	rm -f proxy-server.json
+	rm -f spark.htpasswd

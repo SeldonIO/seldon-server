@@ -58,11 +58,16 @@
                                     },
                                     {
                                         "name": "GF_SECURITY_ADMIN_PASSWORD",
-                                        "value": "%GRAFANA_ADMIN_PASSWORD%"
+					"valueFrom": {
+					    "secretKeyRef": {
+						"key": "grafana-admin-password.txt",
+						"name": "grafana-admin-password"
+					    }
+					}
                                     },
                                     {
                                         "name": "GF_AUTH_BASIC_ENABLED",
-                                        "value": "false"
+                                        "value": "true"
                                     },
                                     {
                                         "name": "GF_USERS_ALLOW_SIGN_UP",
@@ -119,14 +124,12 @@
             "spec": {
                 "ports": [
                     {
-                        "nodePort": 30003,
                         "name": "http",
                         "port": 8083,
                         "protocol": "TCP",
                         "targetPort": 8083
                     },
                     {
-                        "nodePort": 30004,
                         "name": "api",
                         "port": 8086,
                         "protocol": "TCP",
@@ -137,7 +140,7 @@
                     "name": "influxGrafana"
                 },
                 "sessionAffinity": "None",
-                "type": "%SERVICE_TYPE%"
+                "type": "ClusterIP"
             }
         },
         {

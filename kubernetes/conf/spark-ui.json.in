@@ -27,7 +27,44 @@
                         }
                     },
                     "spec": {
+			"volumes": [{
+			    "name": "sparkui-secret",
+			    "secret": {
+				"secretName": "sparkui-secret"
+			    }
+			}],
                         "containers": [
+			    {
+                                "name": "spark-ui-auth",
+                                "image": "seldonio/proxy-server:0.1",
+                                "imagePullPolicy": "IfNotPresent",
+				"env":
+				[
+                                    {
+                                        "name": "TARGET",
+                                        "value": "localhost"
+                                    },
+                                    {
+                                        "name": "NGINX_PORT",
+                                        "value": "8000"
+                                    },
+                                    {
+                                        "name": "BASIC_AUTH_FILE",
+                                        "value": "/etc/sparkuisecret/spark.htpasswd"
+                                    }
+				],
+				"volumeMounts": [{
+				    "name": "sparkui-secret",
+				    "mountPath": "/etc/sparkuisecret",
+				    "readOnly": true
+				}],
+                                "ports": [
+                                    {
+                                        "containerPort": 8000,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+			    },
                             {
                                 "args": [
                                     "spark-webui:8080"
@@ -83,9 +120,9 @@
                 "ports": [
                     {
                         "nodePort": 30005,
-                        "port": 80,
+                        "port": 8000,
                         "protocol": "TCP",
-                        "targetPort": 80
+                        "targetPort": 8000
                     }
                 ],
                 "selector": {

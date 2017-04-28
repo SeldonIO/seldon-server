@@ -37,7 +37,12 @@
 			[
                             {
                                 "name": "GRAFANA_ADMIN_PASSWORD",
-                                "value": "%GRAFANA_ADMIN_PASSWORD%"
+				"valueFrom": {
+				    "secretKeyRef": {
+					"key": "grafana-admin-password.txt",
+					"name": "grafana-admin-password"
+				    }
+				}
                             }
 			],
                         "terminationMessagePath": "/dev/termination-log",
