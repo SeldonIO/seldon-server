@@ -82,6 +82,7 @@
             "spec": {
                 "ports": [
                     {
+                        "nodePort": 30005,
                         "port": 80,
                         "protocol": "TCP",
                         "targetPort": 80
@@ -91,7 +92,7 @@
                     "component": "spark-ui-proxy"
                 },
                 "sessionAffinity": "None",
-                "type": "LoadBalancer"
+                "type": "%SERVICE_TYPE%"
             },
             "status": {
                 "loadBalancer": {}
