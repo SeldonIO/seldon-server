@@ -27,6 +27,18 @@
                         "name": "ml100k-create",
                         "image": "seldonio/examples-ml100k:%SELDON_EXAMPLES_ML100K_IMAGE_VERSION%",
 			"command": ["/create_ml100k_recommender.sh"],
+			"env" :
+			[
+                            {
+                                "name": "GRAFANA_ADMIN_PASSWORD",
+				"valueFrom": {
+				    "secretKeyRef": {
+					"key": "grafana-admin-password.txt",
+					"name": "grafana-admin-password"
+				    }
+				}
+                            }
+			],
 			"volumeMounts": [
 			    {
 				"name": "data-volume",

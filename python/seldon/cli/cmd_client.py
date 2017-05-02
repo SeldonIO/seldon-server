@@ -97,7 +97,7 @@ def add_client(gopts,command_data,zk_client, zkroot, client_name, db_name, consu
 
 
 def add_client_dashboard(gopts,command_data,client_name):
-    if "grafana_endpoint" in command_data["conf_data"] and not (os.environ['GRAFANA_ADMIN_PASSWORD'] is None):
+    if "grafana_endpoint" in command_data["conf_data"] and ('GRAFANA_ADMIN_PASSWORD' in os.environ):
         admin_password = os.environ['GRAFANA_ADMIN_PASSWORD']
         grafana = command_data["conf_data"]["grafana_endpoint"]
         if "grafana_dashboard_template" in command_data["conf_data"]:

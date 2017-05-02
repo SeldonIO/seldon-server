@@ -182,7 +182,7 @@ def import_items(client_name, db_settings, data_file_fpath):
     dbc.execute('SET NAMES utf8;')
     dbc.execute('SET CHARACTER SET utf8;')
     dbc.execute('SET character_set_connection=utf8;')
-    dbc.execute("SET GLOBAL max_allowed_packet=1073741824")
+    #dbc.execute("SET GLOBAL max_allowed_packet=1073741824")
     try:
             validateCSVAgainstDb(data_file_fpath, db)
             doItemInserts(data_file_fpath, db)
