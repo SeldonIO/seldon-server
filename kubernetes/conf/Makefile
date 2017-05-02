@@ -18,8 +18,8 @@ BUILD_VERSIONS_GENERATED_FILE=$(SELDON_HOME)/build/build_versions_generated
 #
 # Example seldon server service types. Change to the kubernetes type you need.
 #
-SELDON_SERVICE_TYPE=NodePort
-#SELDON_SERVICE_TYPE=LoadBalancer
+#SELDON_SERVICE_TYPE=NodePort
+SELDON_SERVICE_TYPE=LoadBalancer
 
 GRAFANA_ADMIN_PASSWORD=admin
 SPARK_UI_USERNAME=spark
@@ -120,6 +120,7 @@ spark-ui.json: spark-ui.json.in
 proxy-server.json: proxy-server.json.in
 	@source $(SELDON_HOME)/build/build_versions; \
 		cat proxy-server.json.in | sed \
+				-e  "s|%SELDON_PROXY_SERVER_IMAGE_VERSION%|$${SELDON_PROXY_SERVER_IMAGE_VERSION}|" \
 				-e 's|%SERVICE_TYPE%|$(SELDON_SERVICE_TYPE)|' \
 				> proxy-server.json && echo "created $@"
 

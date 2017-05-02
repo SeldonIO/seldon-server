@@ -30,7 +30,8 @@ ALL_LIST=\
 	seldonio_iris_scikit \
 	seldonio_finefoods_xgboost \
 	seldonio_stream_itemsim \
-	seldonio_examples_tensorflow_deep_mnist 
+	seldonio_examples_tensorflow_deep_mnist \
+	seldonio_proxy_server 
 
 
 NO_PUBLISH_LIST=\
@@ -92,6 +93,9 @@ build_seldonio_stream_itemsim: build_versions_generated
 	@./dobuild seldonio_stream_itemsim
 build_seldonio_examples_tensorflow_deep_mnist: build_versions_generated
 	@./dobuild seldonio_examples_tensorflow_deep_mnist
+build_seldonio_proxy_server: build_versions_generated
+	@./dobuild seldonio_proxy_server
+
 
 #publish
 publish_seldonio_pyseldon: build_versions_generated
@@ -144,6 +148,8 @@ publish_seldonio_stream_itemsim: build_versions_generated
 	@./dopublish seldonio_stream_itemsim
 publish_seldonio_examples_tensorflow_deep_mnist: build_versions_generated
 	@./dopublish seldonio_examples_tensorflow_deep_mnist
+publish_seldonio_proxy_server: build_versions_generated
+	@./dopublish seldonio_proxy_server
 
 build_all:
 	@for item in $(ALL_LIST) ; do \
