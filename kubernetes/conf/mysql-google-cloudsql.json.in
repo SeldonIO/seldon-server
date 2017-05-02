@@ -1,0 +1,105 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+	{    
+	    "kind": "Pod",
+	    "apiVersion": "v1",
+	    "metadata": {
+		"name": "mysql",
+		"labels": {
+                    "name": "mysql",
+		    "service": "seldon"
+		}
+	    },
+	    "spec": {
+		"volumes": [
+                    {
+                        "name": "cloudsql-instance-credentials",
+                        "secret": {
+                            "secretName": "cloudsql-instance-credentials",
+                            "defaultMode": 420
+                        }
+                    },
+                    {
+                        "name": "ssl-certs",
+                        "hostPath": {
+                            "path": "/etc/ssl/certs"
+                        }
+                    },
+                    {
+                        "name": "cloudsql",
+                        "emptyDir": {}
+                    }
+		],
+		"containers": [
+                    {
+                        "name": "cloudsql-proxy",
+                        "image": "gcr.io/cloudsql-docker/gce-proxy:1.09",
+                        "command": [
+                            "/cloud_sql_proxy",
+                            "--dir=/cloudsql",
+                            "-instances=%GOOGLE_SQL_INSTANCE%=tcp:0.0.0.0:3306",
+                            "-credential_file=/secrets/cloudsql/credentials.json"
+                        ],
+                        "resources": {},
+                        "volumeMounts": [
+                            {
+                                "name": "cloudsql-instance-credentials",
+                                "readOnly": true,
+                                "mountPath": "/secrets/cloudsql"
+                            },
+                            {
+                                "name": "ssl-certs",
+                                "mountPath": "/etc/ssl/certs"
+                            },
+                            {
+                                "name": "cloudsql",
+                                "mountPath": "/cloudsql"
+                            }
+                        ],
+                        "imagePullPolicy": "IfNotPresent",
+                        "ports": [
+                            {
+                                "name": "mysql",
+                                "containerPort": 3306,
+                                "protocol": "TCP"
+                            }
+                        ]
+
+                    }
+		],
+		"terminationGracePeriodSeconds": 0
+	    }
+	},
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mysql",
+                "labels": {
+                    "name": "mysql",
+		    "service" : "seldon"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": 3306,
+                        "targetPort": 3306
+                    }
+                ],
+                "selector": {
+                    "name": "mysql"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ]
+}
