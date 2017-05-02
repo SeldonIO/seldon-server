@@ -24,6 +24,18 @@
                         "image": "seldonio/us_stocks:01",
 			"command": ["/home/seldon/train_model.sh","/seldon-data/seldon-models/US_stocks/1"
 			    ],
+			"env" :
+			[
+                            {
+                                "name": "GRAFANA_ADMIN_PASSWORD",
+				"valueFrom": {
+				    "secretKeyRef": {
+					"key": "grafana-admin-password.txt",
+					"name": "grafana-admin-password"
+				    }
+				}
+                            }
+			],
 			"volumeMounts": [
 			    {
 				"name": "data-volume",

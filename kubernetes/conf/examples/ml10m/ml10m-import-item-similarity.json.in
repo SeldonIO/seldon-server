@@ -27,6 +27,18 @@
                         "name": "ml10m-create",
                         "image": "seldonio/examples-ml10m:%SELDON_EXAMPLES_ML10M_IMAGE_VERSION%",
 			"command": ["/create_ml10m_recommender.sh","item-similarity"],
+			"env" :
+			[
+                            {
+                                "name": "GRAFANA_ADMIN_PASSWORD",
+				"valueFrom": {
+				    "secretKeyRef": {
+					"key": "grafana-admin-password.txt",
+					"name": "grafana-admin-password"
+				    }
+				}
+                            }
+			],
 			"volumeMounts": [
 			    {
 				"name": "data-volume",

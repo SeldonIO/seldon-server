@@ -112,6 +112,7 @@ def validateFieldsAgainstDbFields(fields,attrs,  db):
 	return not failed
 
 def doItemInserts(csv_file, db):
+	insertNum = 0
 	with open(csv_file) as csvFile:
 		reader = unicodecsv.DictReader(csvFile,encoding='utf-8')
 		inserts = []
@@ -121,10 +122,17 @@ def doItemInserts(csv_file, db):
 			if 'name' in line:
 				name = line['name']
                         inserts.append({'name':name,'id':client_id, 'item_id':client_id})
-		cur = db.cursor()
-		print "inserting items into the db"
-		###cur.executemany(ITEM_INSERT, inserts)
-		cur.executemany(ITEM_INSERT_NO_AUTO_INCREMENT, inserts)
+                        insertNum+=1
+                        if insertNum >= DB_BATCH_SIZE:
+                            cur = db.cursor()
+                            print "inserting batch items into the db"
+                            cur.executemany(ITEM_INSERT_NO_AUTO_INCREMENT, inserts)
+                            insertNum = 0
+                            inserts = []
+                if insertNum > 0:
+                    cur = db.cursor()
+                    print "inserting final batch items into the db"
+                    cur.executemany(ITEM_INSERT_NO_AUTO_INCREMENT, inserts)
 		db.commit()
 		print 'finished item inserts'
 

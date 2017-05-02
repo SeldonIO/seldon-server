@@ -24,6 +24,18 @@
                         "image": "seldonio/finefoods_xgboost:%SELDON_FINEFOODS_XGBOOST_IMAGE_VERSION%",
 			"command": ["/home/seldon/create_model.sh","/seldon-data/seldon-models/finefoods/1","0.1"
 			    ],
+			"env" :
+			[
+                            {
+                                "name": "GRAFANA_ADMIN_PASSWORD",
+				"valueFrom": {
+				    "secretKeyRef": {
+					"key": "grafana-admin-password.txt",
+					"name": "grafana-admin-password"
+				    }
+				}
+                            }
+			],
 			"volumeMounts": [
 			    {
 				"name": "data-volume",

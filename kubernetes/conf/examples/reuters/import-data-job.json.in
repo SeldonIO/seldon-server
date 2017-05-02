@@ -22,6 +22,18 @@
                     {
                         "name": "reuters-import-data",
                         "image": "seldonio/examples-reuters-data:%SELDON_EXAMPLES_REUTERS_DATA_IMAGE_VERSION%",
+			"env" :
+			[
+                            {
+                                "name": "GRAFANA_ADMIN_PASSWORD",
+				"valueFrom": {
+				    "secretKeyRef": {
+					"key": "grafana-admin-password.txt",
+					"name": "grafana-admin-password"
+				    }
+				}
+                            }
+			],
 			"volumeMounts": [
 			    {
 				"name": "data-volume",
