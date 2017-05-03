@@ -44,7 +44,9 @@ function build_model_mf {
 function build_model_isim {
 
     rm -rf /seldon-data/seldon-models/ml10m/item-similarity/1
-    luigi --module seldon.luigi.spark SeldonItemSimilarity --local-schedule --client ml10m --startDay 1 --ItemSimilaritySparkJob-sample 0.25 --ItemSimilaritySparkJob-dimsumThreshold 0.5 --ItemSimilaritySparkJob-limit 100 
+    export DB_USER=`seldon-cli db --action show | grep user: | awk '{print $2}'`
+    export DB_PASSWORD=`seldon-cli db --action show | grep password: | awk '{print $2}'`
+    luigi --module seldon.luigi.spark SeldonItemSimilarity --local-schedule --client ml10m --startDay 1 --ItemSimilaritySparkJob-sample 0.25 --ItemSimilaritySparkJob-dimsumThreshold 0.5 --ItemSimilaritySparkJob-limit 100 --db-user ${DB_USER} --db-pass ${DB_PASSWORD}
 
 }
 
