@@ -96,6 +96,7 @@ public class ImpressionsToInfluxDb {
         			@Override
         			public boolean test(String key, JsonNode value)
         			{
+        				System.out.println("checking tag of "+value.get("tag").asText());
         				if (value.get("tag").asText().equals("restapi.ctralg"))
         				{
         					return true;
@@ -168,7 +169,7 @@ public class ImpressionsToInfluxDb {
                 .addField("clicks", value.click)
                 .build();
 				
-				//System.out.println(key.key()+"Window "+key.window().start()+" to "+key.window().end()+"Value is "+value.toString());
+				System.out.println(key.key()+"Window "+key.window().start()+" to "+key.window().end()+"Value is "+value.toString());
 				influxDB.write(ns.getString("influx_database"), "default", point);				
 			}
 		});

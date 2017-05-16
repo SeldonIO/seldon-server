@@ -1,0 +1,19 @@
+{
+    "kind": "Ingress",
+    "apiVersion": "extensions/v1beta1",
+    "metadata": {
+        "name": "seldon-server-ingress",
+	"annotations":{
+	    "kubernetes.io/ingress.global-static-ip-name": "hp-staging-ingress"
+	}
+    },
+    "spec": {
+	"tls":[
+	    { "secretName": "seldon-server-secret" }
+	],
+        "backend": {
+            "serviceName": "seldon-server",
+            "servicePort": 80
+        }
+    }
+}

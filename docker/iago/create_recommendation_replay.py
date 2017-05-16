@@ -20,7 +20,7 @@ class ReplayCreate(object):
                 j = json.loads(line)
                 self.key = j[0]["key"]
 
-    def get_items(self,filename):
+    def get_items(self,filename,item_type):
         self.items = {}
         i = 0
         with open(filename) as f:
@@ -30,8 +30,10 @@ class ReplayCreate(object):
                 items = j["list"]
                 for item in items:
                     idx = item['id']
-                    self.items[i] = idx
-                    i += 1
+                    itype = int(item['type'])
+                    if itype == item_type:
+                        self.items[i] = idx
+                        i += 1
 
 
     def create_replay(self,endpoint,filename,num_actions,num_users):
@@ -60,6 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('--endpoint', help='endpoint for seldon server', default="seldon-server")
     parser.add_argument('--key', help='file containing output of seldon-cli keys call', required=True)
     parser.add_argument('--items', help='file containing output of seldon-cli api /items call', required=True)
+    parser.add_argument('--item-type', help='limit to a certain iytem type', type=int, default=1)
     parser.add_argument('--replay', help='replay file to create', required=True)
     parser.add_argument('--num-actions', help='number of actions and recommendation pair calls to create', required=False, type=int, default=1000)
     parser.add_argument('--num-users', help='number of users to create recommendation calls for', required=False, type=int, default=10000)
@@ -69,5 +72,5 @@ if __name__ == '__main__':
 
     rc = ReplayCreate()
     rc.get_key(args.key)
-    rc.get_items(args.items)
+    rc.get_items(args.items,args.item_type)
     rc.create_replay(args.endpoint,args.replay,args.num_actions,args.num_users)

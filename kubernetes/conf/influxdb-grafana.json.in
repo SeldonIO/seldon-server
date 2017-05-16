@@ -66,6 +66,15 @@
 					}
                                     },
                                     {
+                                        "name": "GRAFANA_PASSWD",
+					"valueFrom": {
+					    "secretKeyRef": {
+						"key": "grafana-admin-password.txt",
+						"name": "grafana-admin-password"
+					    }
+					}
+                                    },
+                                    {
                                         "name": "GF_AUTH_BASIC_ENABLED",
                                         "value": "true"
                                     },
