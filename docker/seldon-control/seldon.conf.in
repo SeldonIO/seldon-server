@@ -45,6 +45,10 @@
             "config": [],
             "zk_activate_node": "/config/mfclusters"
         },
+	"mostPopularInSessionRecommender": {
+            "config": [],
+            "zk_activate_node": "/config/mostpopulardim"
+        },
         "mostPopularRecommender": {
             "config": []
         },
