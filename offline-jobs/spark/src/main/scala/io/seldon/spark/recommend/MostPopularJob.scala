@@ -104,7 +104,7 @@ object MostPopularJob
     if (config.zkHosts.nonEmpty) 
      {
        val curator = new ZkCuratorHandler(config.zkHosts)
-       val path = "/all_clients/"+config.client+"/offline/mostpopulardim"
+       val path = "/all_clients/"+config.client+"/offline/mostpopular"
        if (curator.getCurator.checkExists().forPath(path) != null)
        {
          val bytes = curator.getCurator.getData().forPath(path)

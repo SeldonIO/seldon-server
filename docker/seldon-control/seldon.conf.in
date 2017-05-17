@@ -207,6 +207,8 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.SimilarItems",
+			"--conf",
+			"spark.driver.maxResultSize=3g",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
