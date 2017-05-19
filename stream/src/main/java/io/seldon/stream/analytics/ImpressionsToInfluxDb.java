@@ -100,9 +100,9 @@ public class ImpressionsToInfluxDb {
         			@Override
         			public boolean test(String key, JsonNode value)
         			{
-        				logger.info("checking tag of "+value.get("tag").asText());
         				if (value.get("tag").asText().equals("restapi.ctralg"))
         				{
+        					logger.info("found message with tag "+value.get("tag").asText());
         					return true;
         				}
         				else
@@ -118,6 +118,7 @@ public class ImpressionsToInfluxDb {
         			{
         				if (value.get("tag").asText().equals("restapi.calls"))
         				{
+        					logger.info("found message with tag "+value.get("tag").asText());
         					return true;
         				}
         				else
@@ -186,7 +187,7 @@ public class ImpressionsToInfluxDb {
 		
         StateStoreSupplier requestsStore = Stores.create("requestStore")
                 .withKeys(Serdes.String())
-                .withValues(impressionSerde)
+                .withValues(requestSerde)
                 .persistent()
                 .build();
         

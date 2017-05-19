@@ -46,7 +46,10 @@ import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Reducer;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
+import org.apache.kafka.streams.state.Stores;
+import org.apache.log4j.Logger;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
@@ -54,13 +57,15 @@ import org.influxdb.dto.Point;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class PredictionsToInfluxDb {
+	private static Logger logger = Logger.getLogger(PredictionsToInfluxDb.class.getName());
+	
 	@SuppressWarnings("unchecked")
 	public static void process(final Namespace ns) throws InterruptedException
 	{
 		Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-predictions");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ns.getString("kafka"));
-        props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
+        //props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
@@ -82,10 +87,15 @@ public class PredictionsToInfluxDb {
         io.seldon.stream.serializer.JsonDeserializer<Prediction> predictionJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Prediction.class);
         Serde<Prediction> predictionSerde = Serdes.serdeFrom(predictionJsonSerializer,predictionJsonDeserializer);
 
-        System.out.println("Topic is "+ns.getString("topic"));
+        logger.info("Topic is "+ns.getString("topic"));
         KStream<String, JsonNode> source = builder.stream(stringSerde,jsonSerde,ns.getString("topic"));
      
-       
+        StateStoreSupplier predictionStore = Stores.create("predictionStore")
+                .withKeys(Serdes.String())
+                .withValues(predictionSerde)
+                .persistent()
+                .build();
+        
         
         source.filter(
         		new Predicate<String, JsonNode>()
@@ -93,9 +103,9 @@ public class PredictionsToInfluxDb {
     			@Override
     			public boolean test(String key, JsonNode value)
     			{
-    				System.out.println("checking tag of "+value.get("tag").asText());
     				if (value.get("tag").asText().equals("predict.live"))
     				{
+        				logger.info("found message with tag "+value.get("tag").asText());
     					return true;
     				}
     				else
@@ -124,7 +134,7 @@ public class PredictionsToInfluxDb {
 			public Prediction apply(Prediction value1, Prediction value2) {
 				return value1.add(value2);
 			}
-		}, "predReducer")
+		}, predictionStore)
 		.foreach(new ForeachAction<String, Prediction>() {
 			
 			@Override
@@ -133,7 +143,7 @@ public class PredictionsToInfluxDb {
 				Random r = new Random();
 				long time = value.time * 1000000;
 				time = time + r.nextInt(1000000);
-				System.out.println("Value is "+value.toString());
+				logger.info("Value is "+value.toString());
 				Point point = Point.measurement(ns.getString("influx_measurement"))
                 .time(time, TimeUnit.MICROSECONDS)
                 .tag("client", value.consumer)

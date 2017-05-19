@@ -1,24 +1,57 @@
 {
-    "kind": "Pod",
-    "apiVersion": "v1",
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Deployment",
     "metadata": {
-        "name": "kafka-stream-impressions",
         "labels": {
-	    "service" : "seldon"
-        }
+            "name": "kafka-stream-impressions",
+            "service": "seldon"
+        },
+        "name": "kafka-stream-impressions"
     },
     "spec": {
-        "containers": [
-            {
-                "name": "kafka-streaming-impressions",
-                "image": "seldonio/seldon-stream:%SELDON_STREAM_BUILD_IMAGE_VERSION%",
-                "command": [
-                    "java","-cp","seldon-stream-%SELDON_STREAM_VERSION%-jar-with-dependencies.jar","io.seldon.stream.analytics.ImpressionsToInfluxDb","--topic","ctr_full","--kafka","kafka-service:9092","--zookeeper","zookeeper-1:2181","--influxdb","monitoring-influxdb:8086","--influx-measurement-impressions","impressions","--influx-measurement-requests","requests"
-                ],
-                "terminationMessagePath": "/dev/termination-log",
-                "imagePullPolicy": "IfNotPresent"
+        "replicas": 1,
+        "selector": {
+            "matchLabels": {
+                "name": "kafka-stream-impressions"
             }
-        ],
-	"terminationGracePeriodSeconds": 0
+        },
+        "template": {
+            "metadata": {
+                "labels": {
+                    "name": "kafka-stream-impressions",
+                    "service": "seldon"
+                },
+                "name": "kafka-stream-impressions"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "java",
+                            "-cp",
+                            "seldon-stream-%SELDON_STREAM_VERSION%-jar-with-dependencies.jar",
+                            "io.seldon.stream.analytics.ImpressionsToInfluxDb",
+                            "--topic",
+                            "ctr_full",
+                            "--kafka",
+                            "kafka-service:9092",
+                            "--zookeeper",
+                            "zookeeper-1:2181",
+                            "--influxdb",
+                            "monitoring-influxdb:8086",
+                            "--influx-measurement-impressions",
+                            "impressions",
+                            "--influx-measurement-requests",
+                            "requests"
+                        ],
+                        "image": "seldonio/seldon-stream:%SELDON_STREAM_BUILD_IMAGE_VERSION%",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "kafka-streaming-impressions",
+                        "terminationMessagePath": "/dev/termination-log"
+                    }
+                ],
+                "terminationGracePeriodSeconds": 0
+            }
+        }
     }
 }
