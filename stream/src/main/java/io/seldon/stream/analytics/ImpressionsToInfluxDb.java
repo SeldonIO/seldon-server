@@ -150,7 +150,7 @@ public class ImpressionsToInfluxDb {
 				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
 				Random r = new Random();
 				Impression imp = new Impression(value);
-				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time;
+				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time+"_"+r.nextInt();
 				return new KeyValue<String,Impression>(ikey,imp);
 			}
         	
@@ -199,7 +199,7 @@ public class ImpressionsToInfluxDb {
 				Random r = new Random();
 
 				Request req = new Request(value);
-				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time;
+				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time+"_"+r.nextInt();
 				return new KeyValue<String,Request>(rkey,req);
 			}
         	

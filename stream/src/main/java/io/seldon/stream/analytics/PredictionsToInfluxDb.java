@@ -123,7 +123,7 @@ public class PredictionsToInfluxDb {
 				Random r = new Random();
 				Prediction pred = new Prediction();
 				pred.parse(value);
-				String ikey = pred.consumer+"_"+pred.variation+"_"+pred.model+"_"+pred.predictedClass+"_"+pred.time+"_"+r.nextInt();;
+				String ikey = pred.consumer+"_"+pred.variation+"_"+pred.model+"_"+pred.predictedClass+"_"+pred.time+"_"+r.nextInt();
 				return new KeyValue<String,Prediction>(ikey,pred);
 			}
         	
