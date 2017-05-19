@@ -117,18 +117,18 @@ public class PredictionsToInfluxDb {
 				return new KeyValue<String,Prediction>(ikey,pred);
 			}
         	
-		})
-		.reduceByKey(new Reducer<Prediction>() {
+		}).groupByKey()
+		.reduce(new Reducer<Prediction>() {
 			
 			@Override
 			public Prediction apply(Prediction value1, Prediction value2) {
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("PredictionWindow", 5000L),stringSerde, predictionSerde)
-		.foreach(new ForeachAction<Windowed<String>, Prediction>() {
+		}, "predReducer")
+		.foreach(new ForeachAction<String, Prediction>() {
 			
 			@Override
-			public void apply(Windowed<String> key, Prediction value) {
+			public void apply(String key, Prediction value) {
 			
 				Random r = new Random();
 				long time = value.time * 1000000;

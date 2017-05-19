@@ -25,11 +25,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
-
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -44,16 +39,24 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Reducer;
-import org.apache.kafka.streams.kstream.TimeWindows;
-import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
+import org.apache.kafka.streams.state.Stores;
+import org.apache.log4j.Logger;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
+
 public class ImpressionsToInfluxDb {
+	
+	private static Logger logger = Logger.getLogger(ImpressionsToInfluxDb.class.getName());
 	
 	@SuppressWarnings("unchecked")
 	public static void process(final Namespace ns) throws InterruptedException
@@ -61,7 +64,7 @@ public class ImpressionsToInfluxDb {
 		Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-impressions");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, ns.getString("kafka"));
-        props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
+        //props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, ns.getString("zookeeper"));
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class);
@@ -87,7 +90,8 @@ public class ImpressionsToInfluxDb {
         io.seldon.stream.serializer.JsonDeserializer<Request> requestJsonDeserializer = new io.seldon.stream.serializer.JsonDeserializer<>(Request.class);
         Serde<Request> requestSerde = Serdes.serdeFrom(requestJsonSerializer,requestJsonDeserializer);
         
-        System.out.println("Topic is "+ns.getString("topic"));
+        System.out.println("TOPIC is "+ns.getString("topic"));
+        logger.info("Topic is "+ns.getString("topic"));
         KStream<String, JsonNode> source = builder.stream(stringSerde,jsonSerde,ns.getString("topic"));
      
         KStream<String,JsonNode>[] branches = source.branch(
@@ -96,7 +100,7 @@ public class ImpressionsToInfluxDb {
         			@Override
         			public boolean test(String key, JsonNode value)
         			{
-        				System.out.println("checking tag of "+value.get("tag").asText());
+        				logger.info("checking tag of "+value.get("tag").asText());
         				if (value.get("tag").asText().equals("restapi.ctralg"))
         				{
         					return true;
@@ -131,6 +135,12 @@ public class ImpressionsToInfluxDb {
          * Impressions topology
          */
         
+        StateStoreSupplier impressionsStore = Stores.create("impressionsStore")
+                .withKeys(Serdes.String())
+                .withValues(impressionSerde)
+                .persistent()
+                .build();
+        
         impressionsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
 
 			@Override
@@ -139,22 +149,22 @@ public class ImpressionsToInfluxDb {
 				//Nasty hack until we get correct method to reduce and send non or final per second aggregations to influxdb
 				Random r = new Random();
 				Impression imp = new Impression(value);
-				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time+"_"+r.nextInt();
+				String ikey = imp.consumer+"_"+imp.rectag+"_"+imp.variation+"_"+imp.time;
 				return new KeyValue<String,Impression>(ikey,imp);
 			}
         	
-		})
-		.reduceByKey(new Reducer<Impression>() {
+		}).groupByKey(stringSerde,impressionSerde)
+		.reduce(new Reducer<Impression>() {
 			
 			@Override
 			public Impression apply(Impression value1, Impression value2) {
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("ImpressionWindow", 5000L),stringSerde, impressionSerde)
+		}, impressionsStore)
 		.foreach(
-				new ForeachAction<Windowed<String>, Impression>() {
+				new ForeachAction<String, Impression>() {
 			@Override
-			public void apply(Windowed<String> key, Impression value) {
+			public void apply(String key, Impression value) {
 			
 				Random r = new Random();
 				long time = value.time * 1000000;
@@ -169,12 +179,16 @@ public class ImpressionsToInfluxDb {
                 .addField("clicks", value.click)
                 .build();
 				
-				System.out.println(key.key()+"Window "+key.window().start()+" to "+key.window().end()+"Value is "+value.toString());
+				logger.info(key+"Value is "+value.toString());
 				influxDB.write(ns.getString("influx_database"), "default", point);				
 			}
 		});
 		
-        
+        StateStoreSupplier requestsStore = Stores.create("requestStore")
+                .withKeys(Serdes.String())
+                .withValues(impressionSerde)
+                .persistent()
+                .build();
         
         requestsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Request>>() {
 
@@ -184,22 +198,22 @@ public class ImpressionsToInfluxDb {
 				Random r = new Random();
 
 				Request req = new Request(value);
-				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time+"_"+r.nextInt();
+				String rkey = req.consumer+"_"+req.path+"_"+req.httpmethod+"_"+req.time;
 				return new KeyValue<String,Request>(rkey,req);
 			}
         	
-		})
-		.reduceByKey(new Reducer<Request>() {
+		}).groupByKey(stringSerde,requestSerde)
+		.reduce(new Reducer<Request>() {
 			
 			@Override
 			public Request apply(Request value1, Request value2) {
 				return value1.add(value2);
 			}
-		}, TimeWindows.of("RequestWindow", 5000L),stringSerde, requestSerde)
-		.foreach(new ForeachAction<Windowed<String>, Request>() {
+		}, requestsStore)
+		.foreach(new ForeachAction<String, Request>() {
 			
 			@Override
-			public void apply(Windowed<String> key, Request value) {
+			public void apply(String key, Request value) {
 			
 
 				Random r = new Random();
@@ -216,7 +230,7 @@ public class ImpressionsToInfluxDb {
                 .build();
 
 				
-				//System.out.println("Value is "+value.toString());
+				logger.info("Value is "+value.toString());
 				influxDB.write(ns.getString("influx_database"), "default", point);				
 			}
 		});
