@@ -64,7 +64,7 @@ def pull_all_nodes(zk_client,zkroot):
         get_all_nodes_list(zk_client, start_node, all_nodes_list)
     all_nodes_list = list(all_nodes_list)
     for node_path in all_nodes_list:
-        if node_path == "/config/topics " or node_path == "/config/clients" or node_path == "/config/changes" or node_path == "/config/users":
+        if node_path == "/config/topics" or node_path == "/config/clients" or node_path == "/config/changes" or node_path == "/config/users":
             print "Ignoring kafka data node ",node_path
         else:
             print "trying to sync ",node_path
