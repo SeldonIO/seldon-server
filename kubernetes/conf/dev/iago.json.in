@@ -48,7 +48,7 @@
                         "dnsPolicy": "ClusterFirst",
                         "restartPolicy": "Always",
                         "securityContext": {},
-                        "terminationGracePeriodSeconds": 30,
+                        "terminationGracePeriodSeconds": 0,
                         "volumes": [
                             {
                                 "name": "storage",
