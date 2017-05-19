@@ -18,6 +18,7 @@
         "template": {
             "metadata": {
                 "labels": {
+                    "name": "kafka-stream-predictions",
                     "service": "seldon"
                 },
                 "name": "kafka-stream-predictions"
