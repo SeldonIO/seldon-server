@@ -74,7 +74,7 @@
             "spec": {
                 "ports": [
                     {
-                        "nodePort": 30005,
+                        "nodePort": 30006,
                         "port": 9994,
                         "protocol": "TCP",
                         "targetPort": 9994

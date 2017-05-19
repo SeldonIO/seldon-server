@@ -7,7 +7,7 @@ STARTUP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 function seldon_down {
 
-    kubectl delete pods,services,deployments,replicationcontrollers,endpoints,persistentvolumes,persistentvolumeclaims -l service=seldon
+    kubectl delete deployments,replicationcontrollers,pods,services,endpoints,persistentvolumes,persistentvolumeclaims -l service=seldon
 }
 
 
