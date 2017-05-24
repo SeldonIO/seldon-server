@@ -4,7 +4,7 @@
     "metadata": {
         "name": "seldon-server-ingress",
 	"annotations":{
-	    "kubernetes.io/ingress.global-static-ip-name": "hp-staging-ingress"
+	    "kubernetes.io/ingress.global-static-ip-name": "server-ingress-static"
 	}
     },
     "spec": {
