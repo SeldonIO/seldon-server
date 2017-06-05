@@ -23,9 +23,9 @@ SELDON_SERVICE_TYPE=LoadBalancer
 
 SELDON_SERVER_SERVICE_TYPE=NodePort
 
-GRAFANA_ADMIN_PASSWORD=uY4nev2c
+GRAFANA_ADMIN_PASSWORD=admin
 SPARK_UI_USERNAME=spark
-SPARK_UI_PASSWORD=uY4nev2c
+SPARK_UI_PASSWORD=spark
 
 GOOGLE_SQL_INSTANCE=
 
@@ -51,7 +51,7 @@ create_sparkui_secret:spark.htpasswd
 # 
 # Default Resources (edit for your own needs)
 #
-SELDON_SERVER_RESOURCES="requests":{ "memory" : "3Gi" }
+SELDON_SERVER_RESOURCES="requests":{ "memory" : "3Gi" },"limits":{ "memory" : "3Gi"}
 MYSQL_RESOURCES="requests":{ "memory" : "3Gi" }
 MEMCACHE_RESOURCES="requests":{ "memory" : "260Mi" }
 

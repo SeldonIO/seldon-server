@@ -16,7 +16,7 @@ rm -f replay.txt
 ln -s ${REPLAY} replay.txt
 
 cat web.ramp-up.scala.in | sed 's/%REQ_RATE%/'${REQ_RATE}'/' > web.ramp-up.scala
-java -jar iago-0.6.14.jar -f web.ramp-up.scala
+java -Xmx3000M -jar iago-0.6.14.jar -f web.ramp-up.scala
 
 
 
