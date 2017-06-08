@@ -40,8 +40,10 @@ RUN (mkdir -p $SELDON_HOME/ROOT && \
     rm -rf $CATALINA_HOME/webapps/ROOT && ln -s $SELDON_HOME/ROOT $CATALINA_HOME/webapps/ROOT && \
     mkdir -p $SELDON_HOME/logs/base && \
     mkdir -p $SELDON_HOME/logs/actions && \
+    mkdir -p $SELDON_HOME/logs/tomcat && \
     mkdir -p $CATALINA_HOME/logs/seldon-server && \
     ln -s $SELDON_HOME/logs/base $CATALINA_HOME/logs/seldon-server/base  && \
+    ln -s $SELDON_HOME/logs/tomcat $CATALINA_HOME/logs/tomcat  && \
     ln -s $SELDON_HOME/logs/actions $CATALINA_HOME/logs/seldon-server/actions  )
 
 ENV SELDON_ZKSERVERS zookeeper
@@ -51,6 +53,8 @@ ADD scripts/context.xml $CATALINA_HOME/conf/context.xml
 ADD scripts/catalina.policy $CATALINA_HOME/conf/catalina.policy
 ADD scripts/start-server.sh $SELDON_HOME/start-server.sh
 ADD scripts/start-server-debug.sh $SELDON_HOME/start-server-debug.sh
+
+WORKDIR ${SELDON_HOME}
 
 # Define default command.
 CMD ["bash"]

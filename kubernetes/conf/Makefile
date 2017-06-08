@@ -185,6 +185,7 @@ server.json :server.json.in $(BUILD_VERSIONS_GENERATED_FILE)
 				-e 's|%SELDON_SERVER_RESOURCES%|$(SELDON_SERVER_RESOURCES)|' \
 				-e "s|%SELDON_SERVER_IMAGE_VERSION%|$${SELDON_SERVER_IMAGE_VERSION}|" \
 				-e  "s|%SELDON_TDAGENT_NODE_IMAGE_VERSION%|$${SELDON_TDAGENT_NODE_IMAGE_VERSION}|" \
+				-e  "s|%SELDON_SERVER_MAINTENANCE_IMAGE_VERSION%|$${SELDON_SERVER_MAINTENANCE_IMAGE_VERSION}|" \
 				> server.json && echo "created $@"
 
 analytics/impressions-kafka-stream.json: analytics/impressions-kafka-stream.json.in $(BUILD_VERSIONS_GENERATED_FILE)
