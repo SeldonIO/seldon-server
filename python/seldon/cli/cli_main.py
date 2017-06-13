@@ -132,6 +132,10 @@ def get_default_conf():
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.MfModelCreation",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -166,6 +170,10 @@ def get_default_conf():
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.SimilarItems",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -187,6 +195,10 @@ def get_default_conf():
             "cmd_args": [
                 "--class",
                 "io.seldon.spark.actions.GroupActionsJob",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                 "--master",
                 "spark://spark-master:7077",
                 "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -207,6 +219,10 @@ def get_default_conf():
             "cmd_args": [
                 "--class",
                 "io.seldon.spark.events.ProcessEventsJob",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                 "--master",
                 "spark://spark-master:7077",
                 "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -229,7 +245,9 @@ def get_default_conf():
     "spark_home": "/opt/spark",
     "zk_hosts": "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181",
     "zkroot": "/seldon-data/conf/zkroot",
-    "grafana_endpoint" : "http://monitoring-grafana"
+    "grafana_endpoint" : "http://monitoring-grafana",
+    "spark_executor_memory" : "1g",
+    "spark_driver_memory" : "1g"
 }
 '''
 

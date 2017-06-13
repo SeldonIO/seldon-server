@@ -1,4 +1,6 @@
 #!/bin/sh
+now=`date` 
+echo "START rm logs on ${now}"
 
 gzip  /home/seldon/logs/base/api.log.`date  --date='1 days ago' --iso-8601`
 rm  /home/seldon/logs/base/api.log.`date  --date='2 days ago' --iso-8601`.gz
@@ -13,3 +15,6 @@ gzip  /home/seldon/logs/tomcat/localhost_access_log.`date  --date='1 days ago' -
 rm  /home/seldon/logs/tomcat/localhost_access_log.`date  --date='2 days ago' --iso-8601`.txt.gz
 
 rm  /home/seldon/logs/actions/actions.log.`date  --date='2 days ago' --iso-8601`
+
+now=`date` 
+echo "END rm logs on ${now}"

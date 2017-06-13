@@ -91,6 +91,10 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.recommend.MostPopularByDimJob",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -117,6 +121,10 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.recommend.MostPopularJob",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -147,6 +155,10 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.MfModelCreation",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -177,6 +189,10 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.MfUserClusters",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
                         "--master",
                         "spark://spark-master:7077",
                         "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -211,6 +227,10 @@
                     "cmd_args": [
                         "--class",
                         "io.seldon.spark.mllib.SimilarItems",
+                        "--executor-memory",
+                        "%SPARK_EXECUTOR_MEMORY%",
+                        "--driver-memory",
+                        "%SPARK_DRIVER_MEMORY%",
 			"--conf",
 			"spark.driver.maxResultSize=3g",
                         "--master",
@@ -239,6 +259,10 @@
             "cmd_args": [
                 "--class",
                 "io.seldon.spark.actions.GroupActionsJob",
+                "--executor-memory",
+                "%SPARK_EXECUTOR_MEMORY%",
+                "--driver-memory",
+                "%SPARK_DRIVER_MEMORY%",
                 "--master",
                 "spark://spark-master:7077",
                 "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -259,6 +283,10 @@
             "cmd_args": [
                 "--class",
                 "io.seldon.spark.events.ProcessEventsJob",
+		"--executor-memory",
+                "%SPARK_EXECUTOR_MEMORY%",
+                "--driver-memory",
+                "%SPARK_DRIVER_MEMORY%",
                 "--master",
                 "spark://spark-master:7077",
                 "%SELDON_SPARK_HOME%/seldon-spark-%SELDON_VERSION%-jar-with-dependencies.jar",
@@ -283,5 +311,7 @@
     "zkroot": "/seldon-data/conf/zkroot",
     "grafana_endpoint" : "http://monitoring-grafana",
     "grafana_dashboard_template" : "/home/seldon/client-dashboard.json",
-    "grpc_util_home" : "/home/seldon/grpc-util"
+    "grpc_util_home" : "/home/seldon/grpc-util",
+    "spark_executor_memory" : "1g",
+    "spark_driver_memory" : "1g"
 }
