@@ -141,6 +141,7 @@ public class ImpressionsToInfluxDb {
                 .withKeys(Serdes.String())
                 .withValues(impressionSerde)
                 .persistent()
+                .windowed(1000, 5000, 1, false)
                 .build();
         
         impressionsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
@@ -190,6 +191,7 @@ public class ImpressionsToInfluxDb {
                 .withKeys(Serdes.String())
                 .withValues(requestSerde)
                 .persistent()
+                .windowed(1000, 5000, 1, false)
                 .build();
         
         requestsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Request>>() {
