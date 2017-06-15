@@ -39,6 +39,7 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Reducer;
+import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.apache.kafka.streams.state.Stores;
@@ -161,7 +162,7 @@ public class ImpressionsToInfluxDb {
 			public Impression apply(Impression value1, Impression value2) {
 				return value1.add(value2);
 			}
-		}, impressionsStore)
+		},TimeWindows.of(1000).until(5000), impressionsStore)
 		.foreach(
 				new ForeachAction<String, Impression>() {
 			@Override
@@ -210,7 +211,7 @@ public class ImpressionsToInfluxDb {
 			public Request apply(Request value1, Request value2) {
 				return value1.add(value2);
 			}
-		}, requestsStore)
+		}, TimeWindows.of(1000).until(5000),requestsStore)
 		.foreach(new ForeachAction<String, Request>() {
 			
 			@Override
