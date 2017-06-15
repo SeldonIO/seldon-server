@@ -39,7 +39,6 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Reducer;
-import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.apache.kafka.streams.state.Stores;
@@ -140,8 +139,7 @@ public class ImpressionsToInfluxDb {
         StateStoreSupplier impressionsStore = Stores.create("impressionsStore")
                 .withKeys(Serdes.String())
                 .withValues(impressionSerde)
-                .persistent()
-                .windowed(1000, 5000, 2, false)
+                .inMemory()
                 .build();
         
         impressionsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
@@ -163,7 +161,7 @@ public class ImpressionsToInfluxDb {
 			public Impression apply(Impression value1, Impression value2) {
 				return value1.add(value2);
 			}
-		},TimeWindows.of(1000).until(5000), impressionsStore)
+		}, impressionsStore)
 		.foreach(
 				new ForeachAction<String, Impression>() {
 			@Override
@@ -190,8 +188,7 @@ public class ImpressionsToInfluxDb {
         StateStoreSupplier requestsStore = Stores.create("requestStore")
                 .withKeys(Serdes.String())
                 .withValues(requestSerde)
-                .persistent()
-                .windowed(1000, 5000, 2, false)
+                .inMemory()
                 .build();
         
         requestsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Request>>() {
@@ -213,7 +210,7 @@ public class ImpressionsToInfluxDb {
 			public Request apply(Request value1, Request value2) {
 				return value1.add(value2);
 			}
-		}, TimeWindows.of(1000).until(5000),requestsStore)
+		},requestsStore)
 		.foreach(new ForeachAction<String, Request>() {
 			
 			@Override

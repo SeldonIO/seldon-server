@@ -39,7 +39,6 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Reducer;
-import org.apache.kafka.streams.kstream.TimeWindows;
 import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.apache.kafka.streams.state.Stores;
@@ -93,7 +92,6 @@ public class PredictionsToInfluxDb {
                 .withKeys(Serdes.String())
                 .withValues(predictionSerde)
                 .persistent()
-                .windowed(1000, 5000, 2, false)
                 .build();
         
         
@@ -134,7 +132,7 @@ public class PredictionsToInfluxDb {
 			public Prediction apply(Prediction value1, Prediction value2) {
 				return value1.add(value2);
 			}
-		}, TimeWindows.of(1000).until(5000),predictionStore)
+		},predictionStore)
 		.foreach(new ForeachAction<String, Prediction>() {
 			
 			@Override
