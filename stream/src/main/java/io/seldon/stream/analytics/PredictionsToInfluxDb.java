@@ -93,7 +93,7 @@ public class PredictionsToInfluxDb {
                 .withKeys(Serdes.String())
                 .withValues(predictionSerde)
                 .persistent()
-                .windowed(1000, 5000, 1, false)
+                .windowed(1000, 5000, 2, false)
                 .build();
         
         
