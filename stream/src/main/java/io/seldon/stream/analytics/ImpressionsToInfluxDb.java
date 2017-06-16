@@ -154,14 +154,7 @@ public class ImpressionsToInfluxDb {
 				return new KeyValue<String,Impression>(ikey,imp);
 			}
         	
-		}).groupByKey(stringSerde,impressionSerde)
-		.reduce(new Reducer<Impression>() {
-			
-			@Override
-			public Impression apply(Impression value1, Impression value2) {
-				return value1.add(value2);
-			}
-		}, impressionsStore)
+		})
 		.foreach(
 				new ForeachAction<String, Impression>() {
 			@Override
@@ -203,14 +196,7 @@ public class ImpressionsToInfluxDb {
 				return new KeyValue<String,Request>(rkey,req);
 			}
         	
-		}).groupByKey(stringSerde,requestSerde)
-		.reduce(new Reducer<Request>() {
-			
-			@Override
-			public Request apply(Request value1, Request value2) {
-				return value1.add(value2);
-			}
-		},requestsStore)
+		})
 		.foreach(new ForeachAction<String, Request>() {
 			
 			@Override
