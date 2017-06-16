@@ -21,6 +21,8 @@ def getOpts(args):
     parser.add_argument('--action', help="the action to use", required=False, choices=['list','add','show','edit','train'])
     parser.add_argument('--client-name', help="the name of the client", required=False)
     parser.add_argument('--model-name', help="the name of the client", required=False)
+    parser.add_argument('--spark-executor-memory', help="spark executor memory", required=False)
+    parser.add_argument('--spark-driver-memory', help="spark driver memory", required=False)
     opts = parser.parse_known_args(args)
     return opts
 
@@ -50,12 +52,21 @@ def write_node_value_to_file(zk_client, zkroot, node_path):
     data_fpath = zkroot + node_path + "/_data_"
     write_data_to_file(data_fpath, data)
 
-def run_spark_job(command_data, job_info, client_name):
+def run_spark_job(command_data, job_info, client_name,opts):
     conf_data = command_data["conf_data"]
     spark_home = conf_data["spark_home"]
     seldon_spark_home = conf_data["seldon_spark_home"]
     seldon_version = conf_data["seldon_version"]
     zk_hosts = conf_data["zk_hosts"]
+
+    
+    spark_executor_memory = conf_data["spark_executor_memory"]
+    if not opts.spark_executor_memory is None:
+        spark_executor_memory = opts.spark_executor_memory
+    spark_driver_memory = conf_data["spark_driver_memory"]
+    if not opts.spark_driver_memory is None:
+        spark_driver_memory = opts.spark_driver_memory
+
 
     cmd = job_info["cmd"].replace("%SPARK_HOME%", spark_home)
 
@@ -67,6 +78,8 @@ def run_spark_job(command_data, job_info, client_name):
         ("%SELDON_SPARK_HOME%", seldon_spark_home),
         ("%SELDON_VERSION%", seldon_version),
         ("%ZK_HOSTS%", zk_hosts),
+        ("%SPARK_EXECUTOR_MEMORY%", spark_executor_memory),
+        ("%SPARK_DRIVER_MEMORY%", spark_driver_memory)
     ]
 
     def appy_replacements(item):
@@ -75,6 +88,8 @@ def run_spark_job(command_data, job_info, client_name):
         return item
 
     cmd_args = map(appy_replacements, cmd_args)
+
+    print "Run Spark Job  ",cmd,cmd_args
 
     call([cmd]+cmd_args)
 
@@ -267,7 +282,7 @@ def action_train(command_data, opts,extra_args):
     }
 
     if job_handlers.has_key(job_type):
-        job_handlers[job_type](command_data, job_info, client_name)
+        job_handlers[job_type](command_data, job_info, client_name,opts)
     else:
         print "No handler found for job_type[{job_type}]".format(**locals())
 

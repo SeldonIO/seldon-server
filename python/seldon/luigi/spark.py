@@ -16,6 +16,8 @@ class ItemSimilaritySparkJob(luigi.Task):
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")
+    sparkDriverMemory = luigi.Parameter(default="1g")
+    sparkExecutorMemory = luigi.Parameter(default="1g")
     startDay = luigi.IntParameter(default=1)
     days = luigi.IntParameter(default=1)
     itemType = luigi.IntParameter(-1)
@@ -32,7 +34,7 @@ class ItemSimilaritySparkJob(luigi.Task):
     def run(self):
         params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","similar-items","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--sample",str(self.sample),"--itemType",str(self.itemType),"--limit",str(self.limit),"--minItemsPerUser",str(self.minItemsPerUser),"--minUsersPerItem",str(self.minUsersPerItem),"--maxUsersPerItem",str(self.maxUsersPerItem),"--dimsumThreshold",str(self.dimsumThreshold)]
         res = call(params)
-        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","similar-items"]
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","similar-items","--spark-executor-memory",self.sparkExecutorMemory,"--spark-driver-memory",self.sparkDriverMemory]
         res = call(params)
         return res
 
@@ -66,6 +68,8 @@ class SeldonMatrixFactorization(luigi.Task):
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")
+    sparkDriverMemory = luigi.Parameter(default="1g")
+    sparkExecutorMemory = luigi.Parameter(default="1g")
     startDay = luigi.IntParameter(default=1)
     days = luigi.IntParameter(default=1)
 
@@ -80,7 +84,7 @@ class SeldonMatrixFactorization(luigi.Task):
     def run(self):
         params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","matrix-factorization","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--rank",str(self.rank),"--lambda",str(self.mf_lambda),"--alpha",str(self.alpha),"--iterations",str(self.iterations)]
         res = call(params)
-        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization"]
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization","--spark-executor-memory",self.sparkExecutorMemory,"--spark-driver-memory",self.sparkDriverMemory]
         res = call(params)
         return res
 
@@ -92,6 +96,8 @@ class SeldonMatrixFactorizationClusters(luigi.Task):
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")
+    sparkDriverMemory = luigi.Parameter(default="1g")
+    sparkExecutorMemory = luigi.Parameter(default="1g")
     startDay = luigi.IntParameter(default=1)
     days = luigi.IntParameter(default=1)
 
@@ -106,7 +112,7 @@ class SeldonMatrixFactorizationClusters(luigi.Task):
     def run(self):
         params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","matrix-factorization-clusters","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--rank",str(self.rank),"--lambda",str(self.mf_lambda),"--alpha",str(self.alpha),"--iterations",str(self.iterations)]
         res = call(params)
-        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization-clusters"]
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","matrix-factorization-clusters","--spark-executor-memory",self.sparkExecutorMemory,"--spark-driver-memory",self.sparkDriverMemory]
         res = call(params)
         return res
 
@@ -118,6 +124,8 @@ class SeldonMostPopularDim(luigi.Task):
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")
+    sparkDriverMemory = luigi.Parameter(default="1g")
+    sparkExecutorMemory = luigi.Parameter(default="1g")
     startDay = luigi.IntParameter(default=1)
     days = luigi.IntParameter(default=1)
 
@@ -134,7 +142,7 @@ class SeldonMostPopularDim(luigi.Task):
         jdbc = "jdbc:mysql://"+self.db_host+":"+str(self.db_port)+"/"+self.client+"?characterEncoding=utf8&user="+self.db_user+"&password="+self.db_pass
         params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","mostpopulardim","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days),"--jdbc",jdbc,"--k",str(self.k)]
         res = call(params)
-        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","mostpopulardim"]
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","mostpopulardim","--spark-executor-memory",self.sparkExecutorMemory,"--spark-driver-memory",self.sparkDriverMemory]
         res = call(params)
         return res
 
@@ -145,6 +153,8 @@ class MostPopularSparkJob(luigi.Task):
     inputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     outputPath = luigi.Parameter(default="/seldon-data/seldon-models/")
     client = luigi.Parameter(default="test")
+    sparkDriverMemory = luigi.Parameter(default="1g")
+    sparkExecutorMemory = luigi.Parameter(default="1g")
     startDay = luigi.IntParameter(default=1)
     days = luigi.IntParameter(default=1)
 
@@ -154,7 +164,7 @@ class MostPopularSparkJob(luigi.Task):
     def run(self):
         params = ["seldon-cli","model","--action","add","--client-name",self.client,"--model-name","mostpopular","--inputPath",self.inputPath,"--outputPath",self.outputPath,"--startDay",str(self.startDay),"--days",str(self.days)]
         res = call(params)
-        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","mostpopular"]
+        params = ["seldon-cli","model","--action","train","--client-name",self.client,"--model-name","mostpopular","--spark-executor-memory",self.sparkExecutorMemory,"--spark-driver-memory",self.sparkDriverMemory]
         res = call(params)
         return res
 

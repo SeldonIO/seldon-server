@@ -38,6 +38,10 @@
                             {
                                 "name": "action-logs",
                                 "emptyDir": {}
+                            },
+                            {
+                                "name": "tomcat-logs",
+                                "emptyDir": {}
                             }
                         ],
                         "containers": [
@@ -80,6 +84,10 @@
                                     {
                                         "name": "action-logs",
                                         "mountPath": "/home/seldon/logs/actions"
+                                    },
+                                    {
+                                        "name": "tomcat-logs",
+                                        "mountPath": "/home/seldon/logs/tomcat"
                                     }
                                 ],
                                 "livenessProbe": {
@@ -112,6 +120,27 @@
                                     {
                                         "name": "action-logs",
                                         "mountPath": "/home/seldon/logs/actions"
+                                    }
+                                ],
+                                "terminationMessagePath": "/dev/termination-log",
+                                "imagePullPolicy": "IfNotPresent"
+                            },
+                            {
+                                "name": "seldon-server-maintenance",
+                                "image": "seldonio/seldon-server-maintenance:%SELDON_SERVER_MAINTENANCE_IMAGE_VERSION%",
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "base-logs",
+                                        "mountPath": "/home/seldon/logs/base"
+                                    },
+                                    {
+                                        "name": "action-logs",
+                                        "mountPath": "/home/seldon/logs/actions"
+                                    },
+                                    {
+                                        "name": "tomcat-logs",
+                                        "mountPath": "/home/seldon/logs/tomcat"
                                     }
                                 ],
                                 "terminationMessagePath": "/dev/termination-log",

@@ -1,0 +1,2 @@
+15 01 * * * root /home/seldon/rm_old_logs.sh >> /var/log/cron.log 2>&1
+

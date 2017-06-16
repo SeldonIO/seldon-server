@@ -38,10 +38,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Predicate;
-import org.apache.kafka.streams.kstream.Reducer;
-import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
-import org.apache.kafka.streams.state.Stores;
 import org.apache.log4j.Logger;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
@@ -135,12 +132,7 @@ public class ImpressionsToInfluxDb {
         /*
          * Impressions topology
          */
-        
-        StateStoreSupplier impressionsStore = Stores.create("impressionsStore")
-                .withKeys(Serdes.String())
-                .withValues(impressionSerde)
-                .persistent()
-                .build();
+       
         
         impressionsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Impression>>() {
 
@@ -154,14 +146,7 @@ public class ImpressionsToInfluxDb {
 				return new KeyValue<String,Impression>(ikey,imp);
 			}
         	
-		}).groupByKey(stringSerde,impressionSerde)
-		.reduce(new Reducer<Impression>() {
-			
-			@Override
-			public Impression apply(Impression value1, Impression value2) {
-				return value1.add(value2);
-			}
-		}, impressionsStore)
+		})
 		.foreach(
 				new ForeachAction<String, Impression>() {
 			@Override
@@ -185,11 +170,6 @@ public class ImpressionsToInfluxDb {
 			}
 		});
 		
-        StateStoreSupplier requestsStore = Stores.create("requestStore")
-                .withKeys(Serdes.String())
-                .withValues(requestSerde)
-                .persistent()
-                .build();
         
         requestsStream.map(new KeyValueMapper<String, JsonNode, KeyValue<String,Request>>() {
 
@@ -203,14 +183,7 @@ public class ImpressionsToInfluxDb {
 				return new KeyValue<String,Request>(rkey,req);
 			}
         	
-		}).groupByKey(stringSerde,requestSerde)
-		.reduce(new Reducer<Request>() {
-			
-			@Override
-			public Request apply(Request value1, Request value2) {
-				return value1.add(value2);
-			}
-		}, requestsStore)
+		})
 		.foreach(new ForeachAction<String, Request>() {
 			
 			@Override

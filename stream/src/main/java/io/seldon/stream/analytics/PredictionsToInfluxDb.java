@@ -25,11 +25,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
-
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -43,18 +38,18 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.Predicate;
-import org.apache.kafka.streams.kstream.Reducer;
-import org.apache.kafka.streams.kstream.TimeWindows;
-import org.apache.kafka.streams.kstream.Windowed;
-import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
-import org.apache.kafka.streams.state.Stores;
 import org.apache.log4j.Logger;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 public class PredictionsToInfluxDb {
 	private static Logger logger = Logger.getLogger(PredictionsToInfluxDb.class.getName());
@@ -90,12 +85,7 @@ public class PredictionsToInfluxDb {
         logger.info("Topic is "+ns.getString("topic"));
         KStream<String, JsonNode> source = builder.stream(stringSerde,jsonSerde,ns.getString("topic"));
      
-        StateStoreSupplier predictionStore = Stores.create("predictionStore")
-                .withKeys(Serdes.String())
-                .withValues(predictionSerde)
-                .persistent()
-                .build();
-        
+       
         
         source.filter(
         		new Predicate<String, JsonNode>()
@@ -127,14 +117,7 @@ public class PredictionsToInfluxDb {
 				return new KeyValue<String,Prediction>(ikey,pred);
 			}
         	
-		}).groupByKey()
-		.reduce(new Reducer<Prediction>() {
-			
-			@Override
-			public Prediction apply(Prediction value1, Prediction value2) {
-				return value1.add(value2);
-			}
-		}, predictionStore)
+		})
 		.foreach(new ForeachAction<String, Prediction>() {
 			
 			@Override

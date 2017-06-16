@@ -9,6 +9,7 @@ ALL_LIST=\
 	seldon_spark_build \
 	seldonio_seldon_control \
 	seldonio_seldon_server \
+	seldonio_seldon_server_maintenance \
 	seldonio_seldon_stream \
 	seldonio_examples_ml100k \
 	seldonio_examples_ml10m \
@@ -49,6 +50,8 @@ build_seldonio_seldon_control: build_versions_generated
 	@./dobuild seldonio_seldon_control
 build_seldonio_seldon_server: build_versions_generated
 	@./dobuild seldonio_seldon_server
+build_seldonio_seldon_server_maintenance: build_versions_generated
+	@./dobuild seldonio_seldon_server_maintenance
 build_seldonio_seldon_stream: build_versions_generated
 	@./dobuild seldonio_seldon_stream
 build_seldonio_examples_ml100k: build_versions_generated
@@ -104,6 +107,8 @@ publish_seldonio_seldon_control: build_versions_generated
 	@./dopublish seldonio_seldon_control
 publish_seldonio_seldon_server: build_versions_generated
 	@./dopublish seldonio_seldon_server
+publish_seldonio_seldon_server_maintenance: build_versions_generated
+	@./dopublish seldonio_seldon_server_maintenance
 publish_seldonio_seldon_stream: build_versions_generated
 	@./dopublish seldonio_seldon_stream
 publish_seldonio_examples_ml100k: build_versions_generated

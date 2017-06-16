@@ -28,6 +28,7 @@
                     {
                         "command": [
                             "java",
+			    "-Xmx400M",
                             "-cp",
                             "seldon-stream-%SELDON_STREAM_VERSION%-jar-with-dependencies.jar",
                             "io.seldon.stream.analytics.ImpressionsToInfluxDb",
@@ -47,7 +48,11 @@
                         "image": "seldonio/seldon-stream:%SELDON_STREAM_BUILD_IMAGE_VERSION%",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "kafka-streaming-impressions",
-                        "terminationMessagePath": "/dev/termination-log"
+                        "terminationMessagePath": "/dev/termination-log",
+			"resources": {
+			    "requests":{ "memory" : "500M" },
+			    "limits":{ "memory" : "500M"}
+			}
                     }
                 ],
                 "terminationGracePeriodSeconds": 0
