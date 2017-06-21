@@ -28,7 +28,7 @@
                     {
                         "command": [
                             "java",
-			    "-Xmx400M",
+			    "-Xmx200M",
                             "-cp",
                             "seldon-stream-%SELDON_STREAM_VERSION%-jar-with-dependencies.jar",
                             "io.seldon.stream.analytics.PredictionsToInfluxDb",
@@ -48,8 +48,8 @@
                         "name": "kafka-streaming-predictions",
                         "terminationMessagePath": "/dev/termination-log",
 			"resources": {
-			    "requests":{ "memory" : "500M" },
-			    "limits":{ "memory" : "500M"}
+			    "requests":{ "memory" : "300M" },
+			    "limits":{ "memory" : "300M"}
 			}                    }
                 ],
                 "terminationGracePeriodSeconds": 0
