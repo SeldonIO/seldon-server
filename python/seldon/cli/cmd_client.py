@@ -209,9 +209,14 @@ def action_processactions(gopts,command_data, opts):
         job_info["cmd_args"].append("--single-client")
         job_info["cmd_args"].append("%CLIENT_NAME%")
 
+    conf_data = command_data["conf_data"]
+    spark_executor_memory = conf_data["spark_executor_memory"]
+    spark_driver_memory = conf_data["spark_driver_memory"]
     input_date_string = get_valid_input_date_string()
     replacements = [
         ("%INPUT_DATE_STRING%", input_date_string),
+        ("%SPARK_EXECUTOR_MEMORY%", spark_executor_memory),
+        ("%SPARK_DRIVER_MEMORY%", spark_driver_memory)
     ]
 
     def appy_replacements(item):
