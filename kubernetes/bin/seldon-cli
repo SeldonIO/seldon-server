@@ -3,4 +3,16 @@
 set -o nounset
 set -o errexit
 
-kubectl exec -it `kubectl get pods | grep seldon-control | grep Running | cut -d' ' -f1` -- seldon-cli "$@"
+get_seldon_control_pod() {
+  kubectl get pod -l name=seldon-control "$@"
+}
+
+
+seldod_control_pod_ready() {
+  get_seldon_control_pod -o jsonpath='{range .items[*]}{range @.status.conditions[*]}{@.type}={@.status};{end}{end}' \
+    | grep -q 'Initialized=True;Ready=True;PodScheduled=True;'
+}
+
+until seldod_control_pod_ready ; do sleep 1 ; done
+
+kubectl exec -it "$(get_seldon_control_pod -o jsonpath='{.items..metadata.name}')" -- seldon-cli "$@"
