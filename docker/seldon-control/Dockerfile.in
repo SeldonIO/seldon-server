@@ -14,7 +14,7 @@ RUN \
 # Define commonly used JAVA_HOME variable
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
 
-ENV hadoop_ver 2.6.1
+ENV hadoop_ver 2.6.5
 ENV spark_ver 1.5.2
 
 # Get Hadoop from US Apache mirror and extract just the native
