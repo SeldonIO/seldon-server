@@ -34,7 +34,7 @@ def default_classification_model(input_width,num_classes):
 
 
 class KerasClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
-    def __init__(self,model_create=default_classification_model,tmp_model="/tmp/model",target=None, target_readable=None,included=None,excluded=None,id_map={},optimizer='adam', loss='categorical_crossentropy', train_batch_size=128, test_batch_size=128, nb_epoch=100, shuffle=True, show_accuracy=False, validation_split=0, validation_data=None, callbacks=None,verbose=0):
+    def __init__(self,model_create=default_classification_model,tmp_model="/tmp/model",target=None, target_readable=None,included=None,excluded=None,id_map={},optimizer='adam', loss='categorical_crossentropy', train_batch_size=128, test_batch_size=128, nb_epoch=100, shuffle=True, validation_split=0, validation_data=None, callbacks=None,verbose=0):
         """
         Wrapper for keras with pandas support
         Derived from https://github.com/fchollet/keras/blob/master/keras/wrappers/scikit_learn.py
@@ -64,8 +64,6 @@ class KerasClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
            Number of training epochs.
         shuffle : boolean, optional
            Wheter to shuffle the samples at each epoch.
-        show_accuracy : boolean, optional
-           Whether to display class accuracy in the logs at each epoch.
         validation_split : float [0, 1], optional
            Fraction of the data to use as held-out validation data.
         validation_data : tuple (X, y), optional
@@ -94,7 +92,6 @@ class KerasClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
         self.test_batch_size=test_batch_size 
         self.nb_epoch=nb_epoch
         self.shuffle=shuffle
-        self.show_accuracy=show_accuracy
         self.validation_split=validation_split
         self.validation_data=validation_data
         self.callbacks = [] if callbacks is None else callbacks
@@ -165,7 +162,7 @@ class KerasClassifier(BasePandasEstimator,BaseEstimator,ClassifierMixin):
             self.compiled_model_.compile(optimizer=self.optimizer, loss=self.loss)
         history = self.compiled_model_.fit(
             X, y, batch_size=self.train_batch_size, nb_epoch=self.nb_epoch, verbose=self.verbose,
-            shuffle=self.shuffle, show_accuracy=self.show_accuracy,
+            shuffle=self.shuffle,
             validation_split=self.validation_split, validation_data=self.validation_data,
             callbacks=self.callbacks)
 

@@ -1,6 +1,9 @@
 FROM seldonio/pyseldon:%SELDON_PYTHON_PACKAGE_VERSION%
 
+RUN pip install theano
+
 ENV SELDON_HOME=/home/seldon
+ENV KERAS_BACKEND=theano
 COPY keras_pipeline.py $SELDON_HOME/keras_pipeline.py
 COPY create-json.py $SELDON_HOME/create-json.py
 

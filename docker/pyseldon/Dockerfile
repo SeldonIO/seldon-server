@@ -43,7 +43,7 @@ RUN pip install kazoo filechunkio Flask gunicorn pylibmc gensim annoy smart_open
 
 RUN cd /usr/local/src && mkdir keras && cd keras && \
        git clone https://github.com/fchollet/keras.git && \
-       cd keras && git checkout tags/0.2.0 && python setup.py install
+       cd keras && git checkout tags/2.0.0 && python setup.py install
 
 # bayes_opt
 

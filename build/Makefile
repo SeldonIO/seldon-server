@@ -15,7 +15,6 @@ ALL_LIST=\
 	seldonio_examples_ml10m \
 	seldonio_examples_reuters_data \
 	seldonio_reuters_example \
-	seldonio_iris_keras \
 	seldonio_mysql \
 	seldonio_grafana \
 	seldonio_iago \
