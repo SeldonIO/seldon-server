@@ -206,8 +206,17 @@ public class ActionsController {
 	
 	@RequestMapping(value="/actions", method = RequestMethod.POST)
 	public @ResponseBody
-    ResourceBean addActions(@RequestBody ActionBean action, HttpServletRequest req) {
+    ResourceBean addActions(@RequestBody ActionBean action, HttpServletRequest req,
+            @RequestParam(value = "rlabs", required = false) String rlabs,
+            @RequestParam(value = "pos", required = false) Integer pos,
+            @RequestParam(value = "click_only", required = false) Boolean click_only) {
 		Date start = new Date();
+		{ // fill action fields to match JS call
+		    action.setActionId(null);
+		    action.setDate(start);
+		    action.setValue(0.0);
+		    action.setTimes(1);
+		}
 		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
@@ -248,5 +257,6 @@ public class ActionsController {
 	
 	 private JSONPObject asCallback(String callbackName, Object valueObject) {
 	        return new JSONPObject(callbackName, valueObject);
-	    }
+	 }
+	 
 }
