@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author claudio
@@ -207,6 +208,7 @@ public class ActionsController {
 	@RequestMapping(value="/actions", method = RequestMethod.POST)
 	public @ResponseBody
     ResourceBean addActions(@RequestBody ActionBean action, HttpServletRequest req,
+            @RequestParam(value = "rectag", required = false) String recTag,
             @RequestParam(value = "rlabs", required = false) String rlabs,
             @RequestParam(value = "pos", required = false) Integer pos,
             @RequestParam(value = "click_only", required = false) Boolean click_only) {
@@ -217,11 +219,18 @@ public class ActionsController {
 		    action.setValue(0.0);
 		    action.setTimes(1);
 		}
+		
+        boolean isCTR = StringUtils.isNotBlank(rlabs);
+        boolean clickOnly = (isCTR && (click_only != null) && (click_only == true)) ? true : false;
+        int clickPos = -1;
+        if (pos != null)
+            clickPos = pos.intValue();
+		
 		ResourceBean con = resourceServer.validateResourceRequest(req);
 		ResourceBean responseBean;
 		if(con instanceof ConsumerBean) {
-			MDCKeys.addKeys((ConsumerBean)con, action.getUser(),action.getItem());
-            responseBean = actionBusinessService.addAction((ConsumerBean) con, action,false,"","",-1,false);
+			MDCKeys.addKeys((ConsumerBean)con, action.getUser(),action.getItem(), recTag);
+            responseBean = actionBusinessService.addAction((ConsumerBean) con, action,isCTR,rlabs,recTag,clickPos,clickOnly);
         }
 		else {
 			responseBean = con;
