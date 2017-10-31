@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.seldon</groupId>
         <artifactId>seldon-parent</artifactId>
-        <version>1.4.9</version>
+        <version>1.4.10</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>seldon-server</artifactId>
