@@ -30,7 +30,7 @@ Seldon is used by some of the world's most innovative organisations — it's the
 
 ## Get Started
 
-It takes a few minutes to install Seldon on a Kubernertes cluster. Visit our [install guide](http://docs.seldon.io/install.html) and read our [tech docs](http://docs.seldon.io).
+It takes a few minutes to install Seldon on a Kubernetes cluster. Visit our [install guide](http://docs.seldon.io/install.html) and read our [tech docs](http://docs.seldon.io).
 
 ## Community & Support
 
