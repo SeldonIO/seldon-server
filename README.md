@@ -6,7 +6,9 @@
 
 
 
-# Seldon Server
+# Seldon Server : * * Archived * *
+
+**This project is not actively maintained anymore please see** [Seldon Core](https://github.com/SeldonIO/seldon-core).
 
 Seldon Server is a machine learning platform that helps your data science team deploy models into production.
 
